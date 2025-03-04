@@ -1,15 +1,10 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
 import Image from "next/image";
 import logo from "../../../../public/logo-andes.png";
 import bgImage from "../../../../public/fondo-landing.png";
+import LoginForm from "./components/LoginForm";
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
-
   return (
     <section className="min-h-screen flex flex-col bg-cover bg-center bg-no-repeat w-full h-full relative">
       {/* Imagen de fondo con blur */}
@@ -109,80 +104,7 @@ export default function LoginPage() {
               </div>
 
               {/* Formulario */}
-              <div className="flex-1 text-black h-full flex flex-col">
-                {/* Título solo visible en móvil */}
-                <h2 className="text-xl font-[600] text-[18px] mb-4 lg:hidden">
-                  Iniciar sesión
-                </h2>
-
-                <div className="flex flex-col space-y-8 mt-4">
-                  {/* Email input */}
-                  <div>
-                    <label className="block text-sm mb-1 text-[#0097B2] text-[16px] font-[500]">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="Escribe tu email"
-                      className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
-                    />
-                  </div>
-
-                  {/* Password input */}
-                  <div>
-                    <label className="block text-sm mb-1 text-[#0097B2] text-[16px] font-[500]">
-                      Contraseña
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Elige tu contraseña"
-                        className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
-                      />
-                      <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 flex items-center text-gray-400"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOffIcon size={20} color="#0097B2" />
-                        ) : (
-                          <EyeIcon size={20} color="#0097B2" />
-                        )}
-                      </button>
-                    </div>
-                    <div className="text-right mt-1">
-                      <Link
-                        href="/auth/forgot-password"
-                        className="text-[#0097B2] w-full py-2 px-4 rounded-sm mt-4 first-letter:text-andes-blue text-[15px] hover:underline"
-                      >
-                        ¿Olvidaste tu contraseña?
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Login button */}
-                  <button
-                    type="submit"
-                    className="bg-[#0097B2] text-white w-full py-2 px-4 rounded-[5px] mt-8 text-[15px] hover:underline"
-                  >
-                    Iniciar sesión
-                  </button>
-
-                  {/* Register link - sin espacios adicionales */}
-                  <div className="text-center mt-2">
-                    <p className="flex flex-col text-[14px] text-[#B6B4B4] m-0">
-                      ¿No tenés una cuenta?{" "}
-                      <Link
-                        href="/auth/register"
-                        className="text-[#0097B2] font-[600] text-[16px] hover:underline"
-                      >
-                        Crear cuenta
-                      </Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <LoginForm />
             </div>
 
             {/* Panel derecho (imagen) - solo visible en lg y superiores */}
