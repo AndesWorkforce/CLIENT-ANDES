@@ -1,8 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import logo from "../../../../public/logo-andes.png";
-import bgImage from "../../../../public/fondo-landing.png";
 import LoginForm from "./components/LoginForm";
+import Logo from "@/components/ui/Logo";
 
 export default function LoginPage() {
   return (
@@ -10,7 +9,7 @@ export default function LoginPage() {
       {/* Imagen de fondo con blur */}
       <div className="absolute inset-0 z-0">
         <Image
-          src={bgImage.src}
+          src="https://appwiseinnovations.dev/Andes/fondo-landing.png"
           alt="Fondo"
           fill
           sizes="100vw"
@@ -76,14 +75,8 @@ export default function LoginPage() {
                       <path d="M15 18l-6-6 6-6" />
                     </svg>
                   </Link>
-                  <div className="flex-1 text-center">
-                    <Image
-                      src={logo}
-                      alt="Andes Workforce"
-                      width={120}
-                      height={40}
-                      className="mx-auto"
-                    />
+                  <div className="flex-1 flex text-center justify-center">
+                    <Logo />
                   </div>
                 </div>
               </div>
@@ -94,12 +87,7 @@ export default function LoginPage() {
                   <h2 className="text-xl font-[600] text-[18px] text-black">
                     Iniciar sesión
                   </h2>
-                  <Image
-                    src={logo}
-                    alt="Andes Workforce"
-                    width={120}
-                    height={40}
-                  />
+                  <Logo />
                 </div>
               </div>
 
@@ -111,7 +99,7 @@ export default function LoginPage() {
             <div className="hidden lg:block lg:w-[100%] lg:relative bg-[#0097B2] overflow-hidden">
               <div className="absolute inset-0">
                 <Image
-                  src={bgImage.src}
+                  src="https://appwiseinnovations.dev/Andes/fondo-landing.png"
                   alt="Ilustración de login"
                   fill
                   sizes="100vw"

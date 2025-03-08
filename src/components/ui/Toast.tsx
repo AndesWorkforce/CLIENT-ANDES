@@ -100,7 +100,7 @@ export function Toast({ position = "top-right" }: ToastProps = {}) {
             rounded-lg px-6 py-4
             shadow-lg
             border-l-4
-            bg-white
+            bg-[#FCFEFF]
             ${toastStyles[notification.type]}
             ${
               exitingNotifications.includes(notification.id)

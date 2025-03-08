@@ -10,6 +10,7 @@
   --foreground: #000000;
   --andes-blue: #0097b2;
   --font-inter: "Inter", sans-serif;
+  --navbar-height: 105px; /* Altura total del navbar incluyendo los botones de navegación móvil */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,4 +28,36 @@ body {
   padding: 0;
   margin: 0;
   font-family: var(--font-inter);
+}
+
+/* Espaciador para el navbar fijo */
+.navbar-spacer {
+  height: var(--navbar-height);
+  width: 100%;
+}
+
+/* Ocultar scrollbar pero mantener funcionalidad */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Gradient shadows para indicar desplazamiento */
+.scroll-shadow-left {
+  background-image: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.scroll-shadow-right {
+  background-image: linear-gradient(
+    to left,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
