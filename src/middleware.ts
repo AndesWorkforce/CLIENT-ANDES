@@ -13,6 +13,11 @@ const publicRoutes = [
   "/auth/register",
   "/api/auth/login",
   "/api/auth/register",
+  "/pages/offers",
+  "/pages/services",
+  "/pages/about",
+  "/pages/contact",
+  "/pages/privacy-policy",
 ];
 
 export function middleware(request: NextRequest) {
