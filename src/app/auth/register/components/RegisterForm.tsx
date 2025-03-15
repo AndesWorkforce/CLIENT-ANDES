@@ -11,8 +11,10 @@ import {
 } from "../schemas/register.schema";
 import { registerAction } from "../actions/register.action";
 import { useNotificationStore } from "@/store/notifications.store";
+import { useRouter } from "next/navigation";
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({
     password: false,
@@ -46,7 +48,7 @@ export default function RegisterForm() {
       if (result.success) {
         addNotification("Cuenta creada exitosamente", "success");
         reset();
-        // Aquí puedes redirigir al usuario o hacer lo que necesites
+        router.push("/auth/login");
       } else {
         addNotification(result.error || "Error al crear la cuenta", "error");
         reset();
@@ -81,11 +83,11 @@ export default function RegisterForm() {
             type="text"
             placeholder="Escribe tu nombre"
             className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
-            {...register("firstName")}
+            {...register("nombre")}
           />
-          {errors.firstName && (
+          {errors.nombre && (
             <span className="text-red-500 text-xs mt-1">
-              {errors.firstName.message}
+              {errors.nombre.message}
             </span>
           )}
         </div>
@@ -99,11 +101,11 @@ export default function RegisterForm() {
             type="text"
             placeholder="Escribe tu apellido"
             className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
-            {...register("lastName")}
+            {...register("apellido")}
           />
-          {errors.lastName && (
+          {errors.apellido && (
             <span className="text-red-500 text-xs mt-1">
-              {errors.lastName.message}
+              {errors.apellido.message}
             </span>
           )}
         </div>
@@ -117,11 +119,11 @@ export default function RegisterForm() {
             type="email"
             placeholder="Escribe tu email"
             className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
-            {...register("email")}
+            {...register("correo")}
           />
-          {errors.email && (
+          {errors.correo && (
             <span className="text-red-500 text-xs mt-1">
-              {errors.email.message}
+              {errors.correo.message}
             </span>
           )}
         </div>
@@ -133,26 +135,30 @@ export default function RegisterForm() {
           </label>
           <div className="relative">
             <input
-              type={showPassword.password ? "text" : "password"}
+              type={showPassword.contrasena ? "text" : "password"}
               placeholder="Elige tu contraseña"
               className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
-              {...register("password")}
+              {...register("contrasena")}
             />
             <button
               type="button"
               className="absolute inset-y-0 right-0 flex items-center text-gray-400"
-              onClick={() => togglePasswordVisibility("password")}
+              onClick={() => togglePasswordVisibility("contrasena")}
             >
-              {showPassword.password ? (
-                <EyeOffIcon size={20} color="#0097B2" />
+              {showPassword.contrasena ? (
+                <EyeOffIcon
+                  size={20}
+                  color="#0097B2"
+                  className="cursor-pointer"
+                />
               ) : (
-                <EyeIcon size={20} color="#0097B2" />
+                <EyeIcon size={20} color="#0097B2" className="cursor-pointer" />
               )}
             </button>
           </div>
-          {errors.password && (
+          {errors.contrasena && (
             <span className="text-red-500 text-xs mt-1">
-              {errors.password.message}
+              {errors.contrasena.message}
             </span>
           )}
         </div>
@@ -164,26 +170,30 @@ export default function RegisterForm() {
           </label>
           <div className="relative">
             <input
-              type={showPassword.confirmPassword ? "text" : "password"}
+              type={showPassword.confirmContrasena ? "text" : "password"}
               placeholder="Confirma la contraseña"
               className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
-              {...register("confirmPassword")}
+              {...register("confirmContrasena")}
             />
             <button
               type="button"
               className="absolute inset-y-0 right-0 flex items-center text-gray-400"
-              onClick={() => togglePasswordVisibility("confirmPassword")}
+              onClick={() => togglePasswordVisibility("confirmContrasena")}
             >
-              {showPassword.confirmPassword ? (
-                <EyeOffIcon size={20} color="#0097B2" />
+              {showPassword.confirmContrasena ? (
+                <EyeOffIcon
+                  size={20}
+                  color="#0097B2"
+                  className="cursor-pointer"
+                />
               ) : (
-                <EyeIcon size={20} color="#0097B2" />
+                <EyeIcon size={20} color="#0097B2" className="cursor-pointer" />
               )}
             </button>
           </div>
-          {errors.confirmPassword && (
+          {errors.confirmContrasena && (
             <span className="text-red-500 text-xs mt-1">
-              {errors.confirmPassword.message}
+              {errors.confirmContrasena.message}
             </span>
           )}
         </div>
@@ -192,7 +202,7 @@ export default function RegisterForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="bg-[#0097B2] text-white w-full py-2 px-4 rounded-[5px] text-[15px] hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-[#0097B2] text-white w-full py-2 px-4 rounded-[5px] text-[15px] hover:underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
         </button>

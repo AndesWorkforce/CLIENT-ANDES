@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useRef, useEffect, useState } from "react";
+import { useAuthStore } from "@/store/auth.store";
+import { logoutAction } from "@/app/auth/logout/actions/logout.action";
+import { User, LogOut, FileText, UserCircle } from "lucide-react";
 
 const navigation = [
   { name: "Offers", href: "/pages/offers" },
@@ -15,10 +18,14 @@ const navigation = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { isAuthenticated, user, logout } = useAuthStore();
   const isAuthPage = pathname.includes("/auth");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftShadow, setShowLeftShadow] = useState(false);
   const [showRightShadow, setShowRightShadow] = useState(true);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Manejar visibilidad de sombras al desplazarse
   const handleScroll = () => {
@@ -39,6 +46,34 @@ export default function Navbar() {
       return () => scrollElement.removeEventListener("scroll", handleScroll);
     }
   }, []);
+
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    try {
+      await logoutAction();
+      logout();
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
 
   // Función para verificar si una ruta está activa
   const isActive = (itemHref: string) => {
@@ -79,18 +114,89 @@ export default function Navbar() {
           </div>
           {/* Auth Buttons - Desktop y Mobile */}
           <div className="flex items-center space-x-4">
-            <Link
-              href="/auth/login"
-              className="text-[#0097B2] hover:text-[#007A8F] px-3 py-2 text-[16px] font-[600] transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              href="/auth/register"
-              className="bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] text-white px-4 py-2 rounded text-[16px] font-[600] transition-all hover:shadow-lg"
-            >
-              Sign In
-            </Link>
+            {!isAuthenticated ? (
+              <>
+                <Link
+                  href="/auth/login"
+                  className="text-[#0097B2] hover:text-[#007A8F] px-3 py-2 text-[16px] font-[600] transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] text-white px-4 py-2 rounded text-[16px] font-[600] transition-all hover:shadow-lg"
+                >
+                  Sign In
+                </Link>
+              </>
+            ) : (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <span>{`${user?.nombre || ""} ${user?.apellido || ""}`}</span>
+                  <span
+                    className={`transition-transform duration-200 ${
+                      showUserMenu ? "rotate-180" : ""
+                    }`}
+                  >
+                    ▼
+                  </span>
+                </button>
+
+                {/* Menú desplegable */}
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-[#0097B2] font-medium text-sm">
+                        {user?.nombre || ""} {user?.apellido || ""}
+                      </p>
+                    </div>
+
+                    <Link
+                      href="/perfil"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <UserCircle size={16} className="mr-2 text-[#0097B2]" />
+                      Mi perfil
+                    </Link>
+
+                    <Link
+                      href="/postulaciones"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <FileText size={16} className="mr-2 text-[#0097B2]" />
+                      Mis postulaciones
+                    </Link>
+
+                    <Link
+                      href="/cuenta"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <User size={16} className="mr-2 text-[#0097B2]" />
+                      Mi cuenta
+                    </Link>
+
+                    <hr className="my-1 border-gray-200" />
+
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setShowUserMenu(false);
+                      }}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                    >
+                      <LogOut size={16} className="mr-2 text-[#0097B2]" />
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
