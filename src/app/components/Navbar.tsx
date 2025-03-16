@@ -6,7 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useRef, useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
-import { User, LogOut, FileText, UserCircle } from "lucide-react";
+import { User, LogOut, FileText, UserCircle, X, Info } from "lucide-react";
+import useRouteExclusion from "@/hooks/useRouteExclusion";
 
 const navigation = [
   { name: "Offers", href: "/pages/offers" },
@@ -19,13 +20,15 @@ const navigation = [
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { isNavbarExcluded } = useRouteExclusion();
   const { isAuthenticated, user, logout } = useAuthStore();
-  const isAuthPage = pathname.includes("/auth");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftShadow, setShowLeftShadow] = useState(false);
   const [showRightShadow, setShowRightShadow] = useState(true);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Manejar visibilidad de sombras al desplazarse
   const handleScroll = () => {
@@ -56,13 +59,35 @@ export default function Navbar() {
       ) {
         setShowUserMenu(false);
       }
+
+      // Cerrar sidebar si se hace clic fuera
+      if (
+        sidebarRef.current &&
+        showMobileSidebar &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        setShowMobileSidebar(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [showMobileSidebar]);
+
+  // Evitar scroll del body cuando el sidebar está abierto
+  useEffect(() => {
+    if (showMobileSidebar) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showMobileSidebar]);
 
   // Función para cerrar sesión
   const handleLogout = async () => {
@@ -80,9 +105,60 @@ export default function Navbar() {
     return pathname === itemHref || pathname.startsWith(itemHref);
   };
 
-  if (isAuthPage) {
+  if (isNavbarExcluded) {
     return null;
   }
+
+  // Renderizar el menú de usuario
+  const renderUserMenu = () => (
+    <>
+      <div className="px-4 py-3 border-b border-gray-100">
+        <p className="text-[#0097B2] font-medium text-sm">
+          {user?.nombre || ""} {user?.apellido || ""}
+        </p>
+      </div>
+
+      <Link
+        href="/profile"
+        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+        onClick={() => setShowUserMenu(false)}
+      >
+        <UserCircle size={16} className="mr-2 text-[#0097B2]" />
+        Mi perfil
+      </Link>
+
+      <Link
+        href="/applications"
+        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+        onClick={() => setShowUserMenu(false)}
+      >
+        <FileText size={16} className="mr-2 text-[#0097B2]" />
+        Mis postulaciones
+      </Link>
+
+      <Link
+        href="/account"
+        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+        onClick={() => setShowUserMenu(false)}
+      >
+        <User size={16} className="mr-2 text-[#0097B2]" />
+        Mi cuenta
+      </Link>
+
+      <hr className="my-1 border-gray-200" />
+
+      <button
+        onClick={() => {
+          handleLogout();
+          setShowUserMenu(false);
+        }}
+        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+      >
+        <LogOut size={16} className="mr-2 text-[#0097B2] cursor-pointer" />
+        Cerrar sesión
+      </button>
+    </>
+  );
 
   return (
     <header className="w-full bg-[#FCFEFF] shadow-sm z-10">
@@ -130,72 +206,38 @@ export default function Navbar() {
                 </Link>
               </>
             ) : (
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
-                >
-                  <span>{`${user?.nombre || ""} ${user?.apellido || ""}`}</span>
-                  <span
-                    className={`transition-transform duration-200 ${
-                      showUserMenu ? "rotate-180" : ""
-                    }`}
+              <>
+                {/* Desktop Dropdown */}
+                <div className="relative hidden md:block" ref={userMenuRef}>
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
                   >
-                    ▼
-                  </span>
-                </button>
+                    <span>{`${user?.nombre || ""} ${
+                      user?.apellido || ""
+                    }`}</span>
+                  </button>
 
-                {/* Menú desplegable */}
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-[#0097B2] font-medium text-sm">
-                        {user?.nombre || ""} {user?.apellido || ""}
-                      </p>
+                  {/* Menú desplegable para desktop */}
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                      {renderUserMenu()}
                     </div>
+                  )}
+                </div>
 
-                    <Link
-                      href="/perfil"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <UserCircle size={16} className="mr-2 text-[#0097B2]" />
-                      Mi perfil
-                    </Link>
-
-                    <Link
-                      href="/postulaciones"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <FileText size={16} className="mr-2 text-[#0097B2]" />
-                      Mis postulaciones
-                    </Link>
-
-                    <Link
-                      href="/cuenta"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <User size={16} className="mr-2 text-[#0097B2]" />
-                      Mi cuenta
-                    </Link>
-
-                    <hr className="my-1 border-gray-200" />
-
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setShowUserMenu(false);
-                      }}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-                    >
-                      <LogOut size={16} className="mr-2 text-[#0097B2]" />
-                      Cerrar sesión
-                    </button>
-                  </div>
-                )}
-              </div>
+                {/* Mobile Button */}
+                <div className="md:hidden">
+                  <button
+                    onClick={() => setShowMobileSidebar(true)}
+                    className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>{`${user?.nombre || ""} ${
+                      user?.apellido || ""
+                    }`}</span>
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -235,6 +277,79 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
+      {/* Mobile Sidebar */}
+      {showMobileSidebar && (
+        <div
+          className="fixed inset-0 bg-[#08252A33] z-50 md:hidden animate-fade-in"
+          onClick={() => setShowMobileSidebar(false)}
+        >
+          <div
+            ref={sidebarRef}
+            className="absolute right-0 top-0 h-full w-[250px] bg-white shadow-xl animate-slide-in-right"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <Logo />
+              <button
+                onClick={() => setShowMobileSidebar(false)}
+                className="text-gray-500 cursor-pointer"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-2">
+              <div className="flex flex-col space-y-1 py-2">
+                <p className="px-4 text-[#0097B2] font-medium">
+                  {user?.nombre || ""} {user?.apellido || ""}
+                </p>
+
+                <Link
+                  href="/profile"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={() => setShowMobileSidebar(false)}
+                >
+                  <UserCircle size={20} className="mr-2 text-[#0097B2]" />
+                  Mi perfil
+                </Link>
+
+                <Link
+                  href="/applications"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={() => setShowMobileSidebar(false)}
+                >
+                  <FileText size={20} className="mr-2 text-[#0097B2]" />
+                  Mis postulaciones
+                </Link>
+
+                <Link
+                  href="/account"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={() => setShowMobileSidebar(false)}
+                >
+                  <User size={20} className="mr-2 text-[#0097B2]" />
+                  Mi cuenta
+                </Link>
+
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setShowMobileSidebar(false);
+                  }}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md text-left w-full cursor-pointer"
+                >
+                  <LogOut
+                    size={20}
+                    className="mr-2 text-[#0097B2] cursor-pointer"
+                  />
+                  Cerrar sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

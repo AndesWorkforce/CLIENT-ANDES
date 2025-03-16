@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
-import { usePathname } from "next/navigation";
+import useRouteExclusion from "@/hooks/useRouteExclusion";
 
 const navigation = [
   { name: "Offers", href: "/pages/offers" },
@@ -14,10 +14,9 @@ const navigation = [
 ];
 
 export default function Footer() {
-  const pathname = usePathname();
-  const isAuthPage = pathname.includes("/auth");
+  const { isFooterExcluded } = useRouteExclusion();
 
-  if (isAuthPage) {
+  if (isFooterExcluded) {
     return null;
   }
 

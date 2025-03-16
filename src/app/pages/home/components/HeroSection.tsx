@@ -18,9 +18,9 @@ export default function HeroSection() {
       </div>
 
       {/* Content Container */}
-      <div className="container items-center mx-auto px-5 md:px-8 lg:px-12 relative z-10 flex flex-row md:items-start">
+      <div className="container items-center mx-auto px-5 md:px-8 lg:px-12 relative z-10 flex flex-col md:flex-row md:items-start">
         {/* Left Content */}
-        <div className="w-[65%] pr-2 md:px-20">
+        <div className="w-[100%] md:w-[65%] pr-2 md:px-20">
           <h1 className="text-[32px] md:text-[50px] font-bold mb-6 text-[#17323A]">
             Are you looking for <span className="text-[#0097B2]">talent</span>{" "}
             or a <span className="text-[#0097B2]">job</span>?
@@ -48,7 +48,7 @@ export default function HeroSection() {
         </div>
 
         {/* Right Content - Image */}
-        <div className="w-[35%] flex justify-center items-start pt-4">
+        <div className="w-[100%] md:w-[35%] flex justify-center items-start pt-4">
           <Image
             src="https://appwiseinnovations.dev/Andes/hero-1.png"
             alt="Professional Team"

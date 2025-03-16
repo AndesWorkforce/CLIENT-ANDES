@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import useOutsideClick from "@/hooks/useOutsideClick";
 
 interface FilterOption {
   id: string;
@@ -11,6 +12,15 @@ interface FilterModalProps {
   isOpen: boolean;
   onClose: () => void;
   onApplyFilters: (filters: any) => void;
+  onClearFilters: () => void;
+  selectedDepartments: string[];
+  setSelectedDepartments: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedDates: string[];
+  setSelectedDates: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedSeniority: string[];
+  setSelectedSeniority: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedLocation: string[];
+  setSelectedLocation: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 // Datos de ejemplo para los filtros
@@ -48,13 +58,24 @@ export default function FilterModal({
   isOpen,
   onClose,
   onApplyFilters,
+  onClearFilters,
+  selectedDepartments,
+  setSelectedDepartments,
+  selectedDates,
+  setSelectedDates,
+  selectedSeniority,
+  setSelectedSeniority,
+  selectedLocation,
+  setSelectedLocation,
 }: FilterModalProps) {
   const [activeCategory, setActiveCategory] =
     useState<CategoryType>("department");
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
-  const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [selectedSeniority, setSelectedSeniority] = useState<string[]>([]);
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+
+  // Referencia al contenido del modal
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Usar el hook sin especificar el tipo genérico
+  useOutsideClick(modalRef, onClose, isOpen);
 
   const toggleDepartment = (id: string) => {
     setSelectedDepartments((prevSelected) =>
@@ -81,7 +102,7 @@ export default function FilterModal({
   };
 
   const toggleLocation = (id: string) => {
-    setSelectedLocations((prevSelected) =>
+    setSelectedLocation((prevSelected) =>
       prevSelected.includes(id)
         ? prevSelected.filter((item) => item !== id)
         : [...prevSelected, id]
@@ -93,7 +114,7 @@ export default function FilterModal({
       departments: selectedDepartments,
       dates: selectedDates,
       seniority: selectedSeniority,
-      locations: selectedLocations,
+      locations: selectedLocation,
     });
     onClose();
   };
@@ -102,14 +123,18 @@ export default function FilterModal({
     setSelectedDepartments([]);
     setSelectedDates([]);
     setSelectedSeniority([]);
-    setSelectedLocations([]);
+    setSelectedLocation([]);
+    onClearFilters();
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-[#08252A33] z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg w-11/12 max-w-md shadow-md relative">
+      <div
+        ref={modalRef}
+        className="bg-white rounded-lg w-11/12 max-w-md overflow-hidden"
+      >
         {/* Botón de cierre (X) */}
         <button
           onClick={onClose}
@@ -247,7 +272,7 @@ export default function FilterModal({
                     key={option.id}
                     onClick={() => toggleLocation(option.id)}
                     className={`px-3 py-1 rounded-md text-sm cursor-pointer ${
-                      selectedLocations.includes(option.id)
+                      selectedLocation.includes(option.id)
                         ? "bg-[#0097B2] text-white"
                         : "bg-white border border-gray-300 text-gray-700"
                     }`}

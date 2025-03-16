@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { jobs, Job } from "./data/mockData";
 import FilterModal from "./components/FilterModal";
+import JobDetailModal from "./components/JobDetailModal";
 import JobList from "./components/JobList";
 import JobDetail from "./components/JobDetail";
 import Image from "next/image";
@@ -21,6 +22,13 @@ export default function JobOffersPage() {
   );
   const [filteredJobs, setFilteredJobs] = useState(jobs);
   const [showFilters, setShowFilters] = useState(false);
+  const [showJobDetail, setShowJobDetail] = useState(false);
+
+  // Estados para los filtros
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [selectedSeniority, setSelectedSeniority] = useState<string[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<string[]>([]);
 
   const handleSelectJob = (job: Job) => {
     setSelectedJob(job);
@@ -31,6 +39,17 @@ export default function JobOffersPage() {
     // Por ahora, simplemente mantenemos la lista original
     console.log("Filtros aplicados:", filterData);
     setFilteredJobs(jobs);
+  };
+
+  const handleClearFilters = () => {
+    // Opcional: implementar lógica adicional de limpieza
+    setFilteredJobs(jobs);
+  };
+
+  const openJobDetailModal = (job: Job, e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que se dispare el onClick del div padre
+    setSelectedJob(job);
+    setShowJobDetail(true);
   };
 
   return (
@@ -46,27 +65,27 @@ export default function JobOffersPage() {
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <g clip-path="url(#clip0_616_13239)">
+              <g clipPath="url(#clip0_616_13239)">
                 <path
                   d="M10.0001 18.3333C14.6025 18.3333 18.3334 14.6024 18.3334 10C18.3334 5.39763 14.6025 1.66667 10.0001 1.66667C5.39771 1.66667 1.66675 5.39763 1.66675 10C1.66675 14.6024 5.39771 18.3333 10.0001 18.3333Z"
                   stroke="#2563EB"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M10 13.3333V10"
                   stroke="#2563EB"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M10 6.66667H10.0083"
                   stroke="#2563EB"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </g>
               <defs>
@@ -104,69 +123,69 @@ export default function JobOffersPage() {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <g clip-path="url(#clip0_616_13233)">
+            <g clipPath="url(#clip0_616_13233)">
               <path
                 d="M13.625 13L9.25 13"
                 stroke="#0097B2"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M6.75 13L2.375 13"
                 stroke="#0097B2"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M13.625 8L8 8"
                 stroke="#0097B2"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M5.5 8L2.375 8"
                 stroke="#0097B2"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M13.625 3L10.5 3"
                 stroke="#0097B2"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M8 3L2.375 3"
                 stroke="#0097B2"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M9.25 14.875L9.25 11.125"
                 stroke="#0097B2"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M5.5 9.875L5.5 6.125"
                 stroke="#0097B2"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M10.5 4.875L10.5 1.125"
                 stroke="#0097B2"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </g>
             <defs>
@@ -183,11 +202,26 @@ export default function JobOffersPage() {
         </button>
       </div>
 
-      {/* Nuevo Modal de Filtros con Chips */}
+      {/* Modales */}
       <FilterModal
         isOpen={showFilters}
         onClose={() => setShowFilters(false)}
         onApplyFilters={handleApplyFilters}
+        onClearFilters={handleClearFilters}
+        selectedDepartments={selectedDepartments}
+        setSelectedDepartments={setSelectedDepartments}
+        selectedDates={selectedDates}
+        setSelectedDates={setSelectedDates}
+        selectedSeniority={selectedSeniority}
+        setSelectedSeniority={setSelectedSeniority}
+        selectedLocation={selectedLocation}
+        setSelectedLocation={setSelectedLocation}
+      />
+
+      <JobDetailModal
+        isOpen={showJobDetail}
+        onClose={() => setShowJobDetail(false)}
+        job={selectedJob as Job}
       />
 
       {/* Lista de servicios */}
@@ -206,7 +240,10 @@ export default function JobOffersPage() {
                   </h3>
                   <p className="text-gray-500 text-sm">Globant</p>
                 </div>
-                <div className="text-[#0097B2] cursor-pointer">
+                <div
+                  className="text-[#0097B2] cursor-pointer"
+                  onClick={(e) => openJobDetailModal(job, e)}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6"

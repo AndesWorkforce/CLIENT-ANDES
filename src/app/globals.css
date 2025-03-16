@@ -61,3 +61,22 @@ body {
     rgba(255, 255, 255, 0) 100%
   );
 }
+
+/* Custom scrollbar para el formulario */
+.custom-scrollbar {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #0097B2 #f3f4f6; /* Firefox */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px; /* Chrome, Safari, Opera */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6; /* Chrome, Safari, Opera */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #0097b2; /* Chrome, Safari, Opera */
+  border-radius: 6px;
+}
