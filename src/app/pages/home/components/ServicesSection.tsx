@@ -5,25 +5,24 @@ const services = [
     icon: "https://appwiseinnovations.dev/Andes/service-1.png",
     title: "Administrative Support",
     description:
-      "Our team members bring the administrative and customer service skills you are looking for, skills that will help you expand your business while growing your client base.",
+      "Our skilled talent pool is ready to provide top-notch administrative and customer service support, helping you scale your business and grow your client base effortlessly.",
   },
   {
     icon: "https://appwiseinnovations.dev/Andes/service-2.png",
     title: "Cost Efficient",
     description:
-      "Eliminate hiring headaches and save thousands of dollars on payroll and administrative costs",
+      "We handle the talent behind the service, allowing you to save thousands on payroll and administrative costs.",
   },
   {
     icon: "https://appwiseinnovations.dev/Andes/service-3.png",
     title: "HR Solutions",
     description:
-      "We find and hire personnel for you, reducing your HR workload.",
+      "We ensure you have the right ally at the right time, minimizing your HR workload.",
   },
   {
     icon: "https://appwiseinnovations.dev/Andes/service-4.png",
     title: "Compliance",
-    description:
-      "We handle regulatory requirements, ensuring compliant hiring for all parties involved.",
+    description: "Hire with confidence—legally, securely, and hassle-free.",
   },
 ];
 

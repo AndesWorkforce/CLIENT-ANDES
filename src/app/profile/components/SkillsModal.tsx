@@ -6,8 +6,8 @@ import { X } from "lucide-react";
 interface SkillsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (skills: string[]) => void;
-  initialSkills?: string[];
+  onSave: (skills: { id: string; nombre: string }[]) => void;
+  initialSkills?: { id: string; nombre: string }[];
 }
 
 export default function SkillsModal({
@@ -18,8 +18,9 @@ export default function SkillsModal({
 }: SkillsModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [skills, setSkills] = useState<string[]>(initialSkills);
-  const [inputValue, setInputValue] = useState("");
+  const [skills, setSkills] =
+    useState<{ id: string; nombre: string }[]>(initialSkills);
+  const [inputValue, setInputValue] = useState<string>("");
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -34,8 +35,14 @@ export default function SkillsModal({
   };
 
   const handleAddSkill = () => {
-    if (inputValue.trim() && !skills.includes(inputValue.trim())) {
-      setSkills([...skills, inputValue.trim()]);
+    if (
+      inputValue.trim() &&
+      !skills.some((skill) => skill.nombre === inputValue.trim())
+    ) {
+      setSkills([
+        ...skills,
+        { id: inputValue.trim(), nombre: inputValue.trim() },
+      ]);
       setInputValue("");
     }
   };
@@ -47,8 +54,8 @@ export default function SkillsModal({
     }
   };
 
-  const handleRemoveSkill = (skillToRemove: string) => {
-    setSkills(skills.filter((skill) => skill !== skillToRemove));
+  const handleRemoveSkill = (skillToRemove: { id: string; nombre: string }) => {
+    setSkills(skills.filter((skill) => skill.id !== skillToRemove.id));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -59,6 +66,8 @@ export default function SkillsModal({
     onSave(skills);
     onClose();
   };
+
+  console.log(skills);
 
   if (!isOpen) return null;
 
@@ -72,7 +81,7 @@ export default function SkillsModal({
         className="bg-white w-full max-w-md rounded-lg shadow-lg overflow-hidden"
       >
         <div className="flex justify-between items-center px-4 py-3">
-          <div className="w-6"></div>
+          <div className="w-6" />
           <h2 className="text-[#0097B2] text-lg font-semibold">Skills</h2>
           <button onClick={onClose} className="text-gray-400 cursor-pointer">
             <X size={20} />
@@ -90,14 +99,14 @@ export default function SkillsModal({
               <div className="flex flex-wrap gap-2">
                 {skills.map((skill) => (
                   <div
-                    key={skill}
+                    key={skill.id}
                     className="flex items-center bg-[#0097B2] text-white px-3 py-1 rounded-md"
                   >
-                    <span>{skill}</span>
+                    <span>{skill.nombre}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveSkill(skill)}
-                      className="ml-2 focus:outline-none"
+                      className="ml-2 focus:outline-none cursor-pointer"
                     >
                       <X size={16} />
                     </button>
@@ -125,10 +134,10 @@ export default function SkillsModal({
             <button
               type="submit"
               disabled={skills.length === 0}
-              className={`w-full py-2.5 px-6 rounded-md font-medium ${
+              className={`w-full py-2.5 px-6 rounded-md font-medium cursor-pointer ${
                 skills.length === 0
                   ? "bg-gray-300 text-gray-700 cursor-not-allowed"
-                  : "bg-[#0097B2] text-white"
+                  : "bg-[#0097B2] hover:bg-[#0097B2]/80 text-white"
               }`}
             >
               Guardar
@@ -136,7 +145,7 @@ export default function SkillsModal({
             <button
               type="button"
               onClick={onClose}
-              className="text-[#0097B2] py-1 cursor-pointer"
+              className="text-[#0097B2] hover:text-[#0097B2]/80 py-1 cursor-pointer"
             >
               Cancelar
             </button>

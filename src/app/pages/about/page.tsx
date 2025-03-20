@@ -26,13 +26,13 @@ export default function AboutPage() {
             <h1 className="text-white text-4xl md:text-5xl font-bold mb-3">
               Andes Workforce
             </h1>
-            <p className="text-white text-base mb-3">
-              Personnel Services Company
+            <p className="text-white text-base font-extralight mb-3">
+              Assistance and Support Services Company
             </p>
-            <p className="text-white text-lg max-w-xl mt-6 mb-6">
-              Andes Workforce takes its name from the Andes Mountains in South
-              America. This is a region that is rapidly growing to become a
-              crucial source of virtual employees for businesses worldwide.
+            <p className="text-white text-lg font-extralight max-w-xl mt-6 mb-6">
+              Andes Workforce takes its name from the Andes mountain range in
+              South America. This region is rapidly growing to become a source
+              of virtual services that provide support to companies worldwide.
             </p>
 
             {/* Información de contacto */}
@@ -54,7 +54,9 @@ export default function AboutPage() {
                     />
                   </svg>
                 </div>
-                <span className="text-white">info@andes-workforce.com</span>
+                <span className="text-white font-extralight">
+                  info@andes-workforce.com
+                </span>
               </div>
               <div className="flex items-center">
                 <div className="bg-white rounded-full p-2 mr-3">
@@ -73,7 +75,9 @@ export default function AboutPage() {
                     />
                   </svg>
                 </div>
-                <span className="text-white">+1 7572373612</span>
+                <span className="text-white font-extralight">
+                  +1 7572373612
+                </span>
               </div>
             </div>
           </div>

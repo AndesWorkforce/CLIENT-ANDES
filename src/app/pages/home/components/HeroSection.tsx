@@ -21,21 +21,22 @@ export default function HeroSection() {
       <div className="container items-center mx-auto px-5 md:px-8 lg:px-12 relative z-10 flex flex-col md:flex-row md:items-start">
         {/* Left Content */}
         <div className="w-[100%] md:w-[65%] pr-2 md:px-20">
-          <h1 className="text-[32px] md:text-[50px] font-bold mb-6 text-[#17323A]">
-            Are you looking for <span className="text-[#0097B2]">talent</span>{" "}
-            or a <span className="text-[#0097B2]">job</span>?
+          <h1 className="text-[32px] md:text-[50px] font-bold text-[#17323A]">
+            Are you{" "}
+            <span className="text-[#0097B2]">looking for a service? </span>
+          </h1>
+          <p className="text-lg mb-6 md:text-base">
+            We offer an unlimited source of talent ready to cover your needs!
+          </p>
+          <h1 className="text-[32px] md:text-[50px] font-bold text-[#17323A]">
+            Are you interested in{" "}
+            <span className="text-[#0097B2]">offering a service?</span>
           </h1>
 
           <div className="space-y-5 mb-10 text-[#17323A]">
             <p className="text-lg md:text-base">
-              If you have a vacancy you need filled, we provide a limitless
-              source of personnel ready to start working now!
-            </p>
-
-            <p className="text-lg md:text-base">
-              If you are a fluent English speaker and you are interested in
-              working virtually for an employer in the United States, we will
-              find a perfect fit for you!
+              Interested in offering your services? <br /> Many businesses in
+              the United States are interested in your talent.
             </p>
           </div>
 
@@ -52,8 +53,8 @@ export default function HeroSection() {
           <Image
             src="https://appwiseinnovations.dev/Andes/hero-1.png"
             alt="Professional Team"
-            width={300}
-            height={300}
+            width={400}
+            height={400}
             className="rounded-lg"
             priority
           />

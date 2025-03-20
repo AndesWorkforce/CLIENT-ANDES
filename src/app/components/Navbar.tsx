@@ -10,7 +10,7 @@ import { User, LogOut, FileText, UserCircle, X, Info } from "lucide-react";
 import useRouteExclusion from "@/hooks/useRouteExclusion";
 
 const navigation = [
-  { name: "Offers", href: "/pages/offers" },
+  // { name: "Offers", href: "/pages/offers" },
   { name: "Services", href: "/pages/services" },
   { name: "About", href: "/pages/about" },
   { name: "Contact", href: "/pages/contact" },
@@ -23,10 +23,10 @@ export default function Navbar() {
   const { isNavbarExcluded } = useRouteExclusion();
   const { isAuthenticated, user, logout } = useAuthStore();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftShadow, setShowLeftShadow] = useState(false);
-  const [showRightShadow, setShowRightShadow] = useState(true);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [showLeftShadow, setShowLeftShadow] = useState<boolean>(false);
+  const [showRightShadow, setShowRightShadow] = useState<boolean>(true);
+  const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -188,8 +188,9 @@ export default function Navbar() {
               ))}
             </div>
           </div>
-          {/* Auth Buttons - Desktop y Mobile */}
-          <div className="flex items-center space-x-4">
+
+          {/* Auth Buttons - Desktop y Mobile Activar cuando se tenga el Modulo Completo */}
+          {/* <div className="flex items-center space-x-4">
             {!isAuthenticated ? (
               <>
                 <Link
@@ -207,7 +208,6 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                {/* Desktop Dropdown */}
                 <div className="relative hidden md:block" ref={userMenuRef}>
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
@@ -217,16 +217,12 @@ export default function Navbar() {
                       user?.apellido || ""
                     }`}</span>
                   </button>
-
-                  {/* Menú desplegable para desktop */}
                   {showUserMenu && (
                     <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                       {renderUserMenu()}
                     </div>
                   )}
                 </div>
-
-                {/* Mobile Button */}
                 <div className="md:hidden">
                   <button
                     onClick={() => setShowMobileSidebar(true)}
@@ -239,7 +235,7 @@ export default function Navbar() {
                 </div>
               </>
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Mobile Navigation Links con desplazamiento táctil */}
@@ -278,8 +274,8 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Sidebar */}
-      {showMobileSidebar && (
+      {/* Mobile Sidebar Activar cuando se tenga el Modulo Completo */}
+      {/* {showMobileSidebar && (
         <div
           className="fixed inset-0 bg-[#08252A33] z-50 md:hidden animate-fade-in"
           onClick={() => setShowMobileSidebar(false)}
@@ -349,7 +345,7 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </header>
   );
 }

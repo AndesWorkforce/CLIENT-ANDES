@@ -4,22 +4,14 @@ import type { NextRequest } from "next/server";
 // Constantes para las cookies
 const AUTH_COOKIE = "auth_token";
 
-// Definición de rutas públicas (accesibles sin autenticación)
-const publicRoutes = [
-  "/",
-  "/pages/offers",
-  "/pages/services",
-  "/pages/about",
-  "/pages/contact",
-  "/pages/privacy-policy",
-];
-
 // Rutas de autenticación que deben redirigir si el usuario ya está autenticado
-const authRoutes = [
-  "/auth/login",
-  "/auth/register",
-  "/api/auth/login",
-  "/api/auth/register",
+const authRoutes: string[] = [
+  // "/auth/login",
+  // "/auth/register",
+  // "/api/auth/login",
+  // "/api/auth/register",
+  // "/admin/login",
+  // "/admin/dashboard",
 ];
 
 // Rutas que requieren autenticación
@@ -27,7 +19,7 @@ const protectedRoutes = [
   "/perfil",
   "/postulaciones",
   "/cuenta",
-  "/pages/offers/apply", // Ejemplo: ruta de aplicación a una oferta
+  "/pages/offers/apply",
   "/user",
   "/dashboard",
   "/settings",

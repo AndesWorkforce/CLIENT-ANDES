@@ -12,6 +12,8 @@ export const excludedRoutes = {
     "/profile", 
     "/applications",
     "/account",
+    "/admin/login",
+    "/admin/dashboard",
   ],
   footer: [
     "/auth", 

@@ -4,9 +4,6 @@ import { useState } from "react";
 import { jobs, Job } from "./data/mockData";
 import FilterModal from "./components/FilterModal";
 import JobDetailModal from "./components/JobDetailModal";
-import JobList from "./components/JobList";
-import JobDetail from "./components/JobDetail";
-import Image from "next/image";
 
 interface Filters {
   department: string;
@@ -20,9 +17,9 @@ export default function JobOffersPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(
     jobs.length > 0 ? jobs[0] : null
   );
-  const [filteredJobs, setFilteredJobs] = useState(jobs);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showJobDetail, setShowJobDetail] = useState(false);
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [showJobDetail, setShowJobDetail] = useState<boolean>(false);
 
   // Estados para los filtros
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);

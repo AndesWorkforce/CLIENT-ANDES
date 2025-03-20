@@ -36,7 +36,7 @@ export default function LoginForm() {
 
       if (result.success) {
         addNotification("Inicio de sesión exitoso", "success");
-        setUser(result.data?.user);
+        setUser(result.data?.usuario);
         setAuthenticated(true);
         reset();
         router.push("/pages/offers");

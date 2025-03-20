@@ -1,55 +1,122 @@
 "use server";
 
-import {
-  contactFormSchema,
-  type ContactFormValues,
-} from "../schema/contact-schema";
+import nodemailer from "nodemailer";
+import { ConfidentialClientApplication } from "@azure/msal-node";
+import { z } from "zod";
 
-export async function submitContactForm(formData: ContactFormValues) {
+// Validation schema
+const contactFormSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  email: z.string().email("Invalid email"),
+  phone: z.string().regex(/^[+]?[\d\s()-]+$/, {
+    message: "Phone number can only contain digits, spaces, and +()-",
+  }),
+  smsConsent: z.boolean(),
+  service: z.enum(["talent", "job"]),
+  message: z.string().min(10, "Message must be at least 10 characters"),
+});
+
+export type ContactFormValues = z.infer<typeof contactFormSchema>;
+
+// Configure OAuth2 client for Office 365
+const getAccessToken = async () => {
   try {
-    // Validar los datos del formulario con el esquema Zod
-    const validatedData = contactFormSchema.parse(formData);
-    console.log(validatedData);
-    // Aquí iría la lógica de envío a un endpoint externo
-    // Por ahora solo simulamos una respuesta exitosa
+    const msalConfig = {
+      auth: {
+        clientId: process.env.OFFICE365MAIL_CLIENT_ID || "",
+        clientSecret: process.env.OFFICE365MAIL_CLIENT_SECRET || "",
+        authority: `https://login.microsoftonline.com/${process.env.OFFICE365MAIL_TENANT}/`,
+      }
+    };
 
-    // Ejemplo de cómo se usaría fetch para enviar los datos a un endpoint
-    /*
-    const response = await fetch('https://api.example.com/contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(validatedData),
-    });
+    const tokenRequest = {
+      scopes: ["https://outlook.office.com/.default"],
+    };
+
+    const cca = new ConfidentialClientApplication(msalConfig);
+    const result = await cca.acquireTokenByClientCredential(tokenRequest);
     
-    if (!response.ok) {
-      throw new Error('Error al enviar el formulario');
+    return result?.accessToken;
+  } catch (error) {
+    console.error("Error getting token:", error);
+    throw error;
+  }
+};
+
+export async function submitContactForm(data: ContactFormValues) {
+  try {
+    // Validate data
+    const validatedData = contactFormSchema.parse(data);
+    console.log("[Email] Data validated successfully:", JSON.stringify(validatedData));
+
+    // Get access token for Office 365
+    console.log("[Email] Getting access token for Office 365...");
+    const accessToken = await getAccessToken();
+    console.log("[Email] Access token obtained successfully");
+
+    if (!accessToken) {
+      throw new Error("Could not obtain access token for Office 365");
     }
-    
-    const responseData = await response.json();
-    */
 
-    // Simulamos una respuesta exitosa
+    // Configure mail transporter using OAuth2
+    console.log("[Email] Configuring mail transporter...");
+    const transporter = nodemailer.createTransport({
+      host: "smtp.office365.com",
+      port: 587,
+      secure: false,
+      auth: {
+        type: "OAuth2",
+        user: process.env.MAIL_FROM_ADDRESS || "mrendon@teamandes.com",
+        accessToken,
+      },
+    });
+
+    // Create email content
+    const mailOptions = {
+      from: process.env.MAIL_FROM_ADDRESS || "mrendon@teamandes.com",
+      to: "info@andes-workforce.com", // Main recipient
+      replyTo: validatedData.email, // So they can reply directly to the applicant
+      subject: `New contact message - ${validatedData.service === "talent" ? "Looking for talent" : "Service offering"}`,
+      html: `
+        <h2>New contact message</h2>
+        <p><strong>Name:</strong> ${validatedData.firstName} ${validatedData.lastName}</p>
+        <p><strong>Email:</strong> ${validatedData.email}</p>
+        <p><strong>Phone:</strong> ${validatedData.phone}</p>
+        <p><strong>SMS Consent:</strong> ${validatedData.smsConsent ? "Yes" : "No"}</p>
+        <p><strong>Service type:</strong> ${validatedData.service === "talent" ? "Looking for talent" : "Service offering"}</p>
+        <p><strong>Message:</strong></p>
+        <p>${validatedData.message}</p>
+      `,
+    };
+
+    console.log("[Email] Trying to send email to:", mailOptions.to);
+    
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    console.log("[Email] Email sent successfully:", JSON.stringify({
+      messageId: info.messageId,
+      response: info.response,
+      envelope: info.envelope
+    }));
+
     return {
       success: true,
-      message:
-        "Tu mensaje ha sido enviado correctamente. Nos pondremos en contacto contigo pronto.",
+      message: "Thank you for your message! We will contact you soon.",
     };
   } catch (error) {
-    console.error("Error al enviar el formulario:", error);
-
+    console.error("[Email] Error sending form:", error);
+    
     if (error instanceof Error) {
-      return {
-        success: false,
-        message: `Error: ${error.message}`,
-      };
+      console.error("[Email] Error details:", error.message);
+      if (error.stack) {
+        console.error("[Email] Error stack:", error.stack);
+      }
     }
-
+    
     return {
       success: false,
-      message:
-        "Ocurrió un error al enviar el formulario. Por favor intenta de nuevo.",
+      message: "There was an error sending your message. Please try again.",
     };
   }
 }

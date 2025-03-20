@@ -25,8 +25,8 @@ export async function loginAction(values: LoginFormValues) {
 
     // Si el inicio de sesión fue exitoso, establecer cookies
     if (data && data.data) {
-      const userData = data.data.user || data.data;
-      const token = data.data.token || "default-token-placeholder";
+      const userData = data.data.usuario || data.data;
+      const token = data.data.accessToken || "default-token-placeholder";
 
       // Establecer cookie para el token (HTTP-only para seguridad)
       const cookieStore = cookies();

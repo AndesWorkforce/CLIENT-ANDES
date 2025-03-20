@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ChevronLeft, Info, PlusCircle, Check } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, Info } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
 import ExperienceModal from "./components/ExperienceModal";
@@ -14,8 +14,17 @@ import ViewFormularioModal from "./components/ViewFormularioModal";
 import ViewVideoModal from "./components/ViewVideoModal";
 import ViewSkillsModal from "./components/ViewSkillsModal";
 import ViewPCRequirementsModal from "./components/ViewPCRequirementsModal";
+import { useProfileContext } from "./context/ProfileContext";
+import Dump from "@/components/icons/Dump";
+import Edit from "@/components/icons/Edit";
+import UploadFile from "@/components/icons/UploadFile";
+import Add from "@/components/icons/Add";
 
 export default function ProfilePage() {
+  const { profile } = useProfileContext();
+
+  console.log(profile);
+
   const [activeTab, setActiveTab] = useState<"experiencia" | "educacion">(
     "experiencia"
   );
@@ -30,7 +39,9 @@ export default function ProfilePage() {
   const [showViewSkillsModal, setShowViewSkillsModal] = useState(false);
   const [showViewPCRequirementsModal, setShowViewPCRequirementsModal] =
     useState(false);
-  const [skills, setSkills] = useState<string[]>([]);
+  const [skills, setSkills] = useState<{ id: string; nombre: string }[]>(
+    profile.habilidades || []
+  );
   const [experiences, setExperiences] = useState<any[]>([
     {
       id: "1",
@@ -68,9 +79,6 @@ export default function ProfilePage() {
   ]);
   const [selectedExperience, setSelectedExperience] = useState<any>(null);
   const [selectedEducation, setSelectedEducation] = useState<any>(null);
-
-  // Estado para activar el modo demo
-  const [demoMode, setDemoMode] = useState(false);
 
   // Inicializar tareas y su estado de completado
   const [tasks, setTasks] = useState([
@@ -246,43 +254,6 @@ export default function ProfilePage() {
     },
   ]);
 
-  // Activar el modo demo
-  const activateDemo = () => {
-    // Marcar todas las tareas como completadas
-    const completedTasks = tasks.map((task) => ({
-      ...task,
-      completed: true,
-    }));
-    setTasks(completedTasks);
-
-    // Establecer datos de ejemplo para mostrar en los modales
-    setSkills([
-      "UX/UI Design",
-      "Figma",
-      "Sketch",
-      "Adobe XD",
-      "HTML/CSS",
-      "JavaScript",
-      "React",
-      "Responsive Design",
-    ]);
-
-    // Activar el modo demo
-    setDemoMode(true);
-  };
-
-  // Mostrar un modal de ejemplo al activar el demo
-  useEffect(() => {
-    if (demoMode) {
-      // Mostrar un modal después de un breve retraso
-      const timer = setTimeout(() => {
-        setShowViewFormularioModal(true);
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [demoMode]);
-
   const handleSaveExperience = (data: any) => {
     if (data.id) {
       // Actualizar experiencia existente
@@ -351,7 +322,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSaveSkills = (newSkills: string[]) => {
+  const handleSaveSkills = (newSkills: { id: string; nombre: string }[]) => {
     setSkills(newSkills);
 
     // Actualizar el estado de la tarea como completada si hay skills
@@ -375,298 +346,6 @@ export default function ProfilePage() {
     }
   };
 
-  const renderTaskIcon = (task: any) => {
-    if (task.completed) {
-      // Iconos para tareas completadas
-      switch (task.id) {
-        case 1: // Formulario
-          return (
-            <>
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 22 22"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M2.75 5.5H4.58333H19.25"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7.3335 5.49998V3.66665C7.3335 3.18042 7.52665 2.7141 7.87047 2.37028C8.21428 2.02647 8.6806 1.83331 9.16683 1.83331H12.8335C13.3197 1.83331 13.786 2.02647 14.1299 2.37028C14.4737 2.7141 14.6668 3.18042 14.6668 3.66665V5.49998M17.4168 5.49998V18.3333C17.4168 18.8195 17.2237 19.2859 16.8799 19.6297C16.536 19.9735 16.0697 20.1666 15.5835 20.1666H6.41683C5.9306 20.1666 5.46428 19.9735 5.12047 19.6297C4.77665 19.2859 4.5835 18.8195 4.5835 18.3333V5.49998H17.4168Z"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M9.1665 10.0833V15.5833"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12.8335 10.0833V15.5833"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 22 22"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <g clipPath="url(#clip0_599_11255)">
-                  <path
-                    d="M10.0835 3.66669H3.66683C3.1806 3.66669 2.71428 3.85984 2.37047 4.20366C2.02665 4.54747 1.8335 5.01379 1.8335 5.50002V18.3334C1.8335 18.8196 2.02665 19.2859 2.37047 19.6297C2.71428 19.9735 3.1806 20.1667 3.66683 20.1667H16.5002C16.9864 20.1667 17.4527 19.9735 17.7965 19.6297C18.1403 19.2859 18.3335 18.8196 18.3335 18.3334V11.9167"
-                    stroke="#0097B2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M16.9585 2.29165C17.3232 1.92698 17.8178 1.72211 18.3335 1.72211C18.8492 1.72211 19.3438 1.92698 19.7085 2.29165C20.0732 2.65632 20.278 3.15093 20.278 3.66665C20.278 4.18238 20.0732 4.67698 19.7085 5.04165L11.0002 13.75L7.3335 14.6667L8.25016 11L16.9585 2.29165Z"
-                    stroke="#0097B2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_599_11255">
-                    <rect width="22" height="22" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </>
-          );
-        case 2: // Video
-          return (
-            <>
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 22 22"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M2.75 5.5H4.58333H19.25"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7.3335 5.49998V3.66665C7.3335 3.18042 7.52665 2.7141 7.87047 2.37028C8.21428 2.02647 8.6806 1.83331 9.16683 1.83331H12.8335C13.3197 1.83331 13.786 2.02647 14.1299 2.37028C14.4737 2.7141 14.6668 3.18042 14.6668 3.66665V5.49998M17.4168 5.49998V18.3333C17.4168 18.8195 17.2237 19.2859 16.8799 19.6297C16.536 19.9735 16.0697 20.1666 15.5835 20.1666H6.41683C5.9306 20.1666 5.46428 19.9735 5.12047 19.6297C4.77665 19.2859 4.5835 18.8195 4.5835 18.3333V5.49998H17.4168Z"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M9.1665 10.0833V15.5833"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12.8335 10.0833V15.5833"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 22 22"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <g clipPath="url(#clip0_599_11255)">
-                  <path
-                    d="M10.0835 3.66669H3.66683C3.1806 3.66669 2.71428 3.85984 2.37047 4.20366C2.02665 4.54747 1.8335 5.01379 1.8335 5.50002V18.3334C1.8335 18.8196 2.02665 19.2859 2.37047 19.6297C2.71428 19.9735 3.1806 20.1667 3.66683 20.1667H16.5002C16.9864 20.1667 17.4527 19.9735 17.7965 19.6297C18.1403 19.2859 18.3335 18.8196 18.3335 18.3334V11.9167"
-                    stroke="#0097B2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M16.9585 2.29165C17.3232 1.92698 17.8178 1.72211 18.3335 1.72211C18.8492 1.72211 19.3438 1.92698 19.7085 2.29165C20.0732 2.65632 20.278 3.15093 20.278 3.66665C20.278 4.18238 20.0732 4.67698 19.7085 5.04165L11.0002 13.75L7.3335 14.6667L8.25016 11L16.9585 2.29165Z"
-                    stroke="#0097B2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_599_11255">
-                    <rect width="22" height="22" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </>
-          );
-        case 3: // Skills
-          return (
-            <>
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 22 22"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M2.75 5.5H4.58333H19.25"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7.3335 5.49998V3.66665C7.3335 3.18042 7.52665 2.7141 7.87047 2.37028C8.21428 2.02647 8.6806 1.83331 9.16683 1.83331H12.8335C13.3197 1.83331 13.786 2.02647 14.1299 2.37028C14.4737 2.7141 14.6668 3.18042 14.6668 3.66665V5.49998M17.4168 5.49998V18.3333C17.4168 18.8195 17.2237 19.2859 16.8799 19.6297C16.536 19.9735 16.0697 20.1666 15.5835 20.1666H6.41683C5.9306 20.1666 5.46428 19.9735 5.12047 19.6297C4.77665 19.2859 4.5835 18.8195 4.5835 18.3333V5.49998H17.4168Z"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M9.1665 10.0833V15.5833"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12.8335 10.0833V15.5833"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 22 22"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <g clipPath="url(#clip0_599_11255)">
-                  <path
-                    d="M10.0835 3.66669H3.66683C3.1806 3.66669 2.71428 3.85984 2.37047 4.20366C2.02665 4.54747 1.8335 5.01379 1.8335 5.50002V18.3334C1.8335 18.8196 2.02665 19.2859 2.37047 19.6297C2.71428 19.9735 3.1806 20.1667 3.66683 20.1667H16.5002C16.9864 20.1667 17.4527 19.9735 17.7965 19.6297C18.1403 19.2859 18.3335 18.8196 18.3335 18.3334V11.9167"
-                    stroke="#0097B2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M16.9585 2.29165C17.3232 1.92698 17.8178 1.72211 18.3335 1.72211C18.8492 1.72211 19.3438 1.92698 19.7085 2.29165C20.0732 2.65632 20.278 3.15093 20.278 3.66665C20.278 4.18238 20.0732 4.67698 19.7085 5.04165L11.0002 13.75L7.3335 14.6667L8.25016 11L16.9585 2.29165Z"
-                    stroke="#0097B2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_599_11255">
-                    <rect width="22" height="22" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </>
-          );
-        case 4: // PC Requirements
-          return (
-            <>
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 22 22"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M2.75 5.5H4.58333H19.25"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7.3335 5.49998V3.66665C7.3335 3.18042 7.52665 2.7141 7.87047 2.37028C8.21428 2.02647 8.6806 1.83331 9.16683 1.83331H12.8335C13.3197 1.83331 13.786 2.02647 14.1299 2.37028C14.4737 2.7141 14.6668 3.18042 14.6668 3.66665V5.49998M17.4168 5.49998V18.3333C17.4168 18.8195 17.2237 19.2859 16.8799 19.6297C16.536 19.9735 16.0697 20.1666 15.5835 20.1666H6.41683C5.9306 20.1666 5.46428 19.9735 5.12047 19.6297C4.77665 19.2859 4.5835 18.8195 4.5835 18.3333V5.49998H17.4168Z"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M9.1665 10.0833V15.5833"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12.8335 10.0833V15.5833"
-                  stroke="#0097B2"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 22 22"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <g clipPath="url(#clip0_599_11255)">
-                  <path
-                    d="M10.0835 3.66669H3.66683C3.1806 3.66669 2.71428 3.85984 2.37047 4.20366C2.02665 4.54747 1.8335 5.01379 1.8335 5.50002V18.3334C1.8335 18.8196 2.02665 19.2859 2.37047 19.6297C2.71428 19.9735 3.1806 20.1667 3.66683 20.1667H16.5002C16.9864 20.1667 17.4527 19.9735 17.7965 19.6297C18.1403 19.2859 18.3335 18.8196 18.3335 18.3334V11.9167"
-                    stroke="#0097B2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M16.9585 2.29165C17.3232 1.92698 17.8178 1.72211 18.3335 1.72211C18.8492 1.72211 19.3438 1.92698 19.7085 2.29165C20.0732 2.65632 20.278 3.15093 20.278 3.66665C20.278 4.18238 20.0732 4.67698 19.7085 5.04165L11.0002 13.75L7.3335 14.6667L8.25016 11L16.9585 2.29165Z"
-                    stroke="#0097B2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_599_11255">
-                    <rect width="22" height="22" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </>
-          );
-        default:
-          return <Check className="h-5 w-5 text-white" />;
-      }
-    } else {
-      return task.icon && task.icon();
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -679,14 +358,6 @@ export default function ProfilePage() {
             <h1 className="text-xl font-semibold">Mi perfil</h1>
           </div>
           <div className="flex items-center">
-            {!demoMode && (
-              <button
-                onClick={activateDemo}
-                className="px-3 py-1 text-xs text-[#0097B2] border border-[#0097B2] rounded-md mr-4 hover:bg-blue-50"
-              >
-                Activar Demo
-              </button>
-            )}
             <Logo />
           </div>
         </div>
@@ -705,55 +376,297 @@ export default function ProfilePage() {
 
       {/* Lista de tareas */}
       <div className="px-4 space-y-0 relative">
-        {tasks.map((task) => (
+        {/* Card 1: Formulario */}
+        <div
+          className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+          style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+        >
+          <span className="text-gray-800 font-medium">
+            Completar formulario
+          </span>
           <div
-            key={task.id}
-            className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
-            style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+            className="flex items-center justify-center gap-4"
+            onClick={() =>
+              profile.datosFormulario
+                ? setShowViewFormularioModal(true)
+                : setShowFormularioModal(true)
+            }
           >
-            <span className="text-gray-800 font-medium">{task.title}</span>
-            <div
-              className="flex items-center justify-center gap-4"
-              onClick={() => {
-                if (task.completed) {
-                  // Mostrar modal de visualización si la tarea está completada
-                  switch (task.id) {
-                    case 1:
-                      setShowViewFormularioModal(true);
-                      break;
-                    case 2:
-                      setShowViewVideoModal(true);
-                      break;
-                    case 3:
-                      setShowViewSkillsModal(true);
-                      break;
-                    case 4:
-                      setShowViewPCRequirementsModal(true);
-                      break;
-                  }
-                } else {
-                  // Mostrar modal de edición si la tarea no está completada
-                  switch (task.id) {
-                    case 1:
-                      setShowFormularioModal(true);
-                      break;
-                    case 2:
-                      setShowVideoModal(true);
-                      break;
-                    case 3:
-                      setShowSkillsModal(true);
-                      break;
-                    case 4:
-                      setShowPCRequirementsModal(true);
-                      break;
-                  }
-                }
-              }}
-            >
-              {renderTaskIcon(task)}
-            </div>
+            {profile.datosFormulario ? (
+              <div className="flex items-center gap-2">
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 22 22"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.75 5.5H4.58333H19.25"
+                    stroke="#0097B2"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M7.3335 5.49998V3.66665C7.3335 3.18042 7.52665 2.7141 7.87047 2.37028C8.21428 2.02647 8.6806 1.83331 9.16683 1.83331H12.8335C13.3197 1.83331 13.786 2.02647 14.1299 2.37028C14.4737 2.7141 14.6668 3.18042 14.6668 3.66665V5.49998M17.4168 5.49998V18.3333C17.4168 18.8195 17.2237 19.2859 16.8799 19.6297C16.536 19.9735 16.0697 20.1666 15.5835 20.1666H6.41683C5.9306 20.1666 5.46428 19.9735 5.12047 19.6297C4.77665 19.2859 4.5835 18.8195 4.5835 18.3333V5.49998H17.4168Z"
+                    stroke="#0097B2"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9.1665 10.0833V15.5833"
+                    stroke="#0097B2"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12.8335 10.0833V15.5833"
+                    stroke="#0097B2"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 22 22"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <g clipPath="url(#clip0_599_11255)">
+                    <path
+                      d="M10.0835 3.66669H3.66683C3.1806 3.66669 2.71428 3.85984 2.37047 4.20366C2.02665 4.54747 1.8335 5.01379 1.8335 5.50002V18.3334C1.8335 18.8196 2.02665 19.2859 2.37047 19.6297C2.71428 19.9735 3.1806 20.1667 3.66683 20.1667H16.5002C16.9864 20.1667 17.4527 19.9735 17.7965 19.6297C18.1403 19.2859 18.3335 18.8196 18.3335 18.3334V11.9167"
+                      stroke="#0097B2"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M16.9585 2.29165C17.3232 1.92698 17.8178 1.72211 18.3335 1.72211C18.8492 1.72211 19.3438 1.92698 19.7085 2.29165C20.0732 2.65632 20.278 3.15093 20.278 3.66665C20.278 4.18238 20.0732 4.67698 19.7085 5.04165L11.0002 13.75L7.3335 14.6667L8.25016 11L16.9585 2.29165Z"
+                      stroke="#0097B2"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_599_11255">
+                      <rect width="22" height="22" fill="white" />
+                    </clipPath>
+                  </defs>
+                </svg>
+              </div>
+            ) : (
+              <svg
+                width="35"
+                height="35"
+                viewBox="0 0 25 25"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="12.5" cy="12.5" r="12.5" fill="#0097B2" />
+                <g clipPath="url(#clip0_161_384)">
+                  <path
+                    d="M11.875 7.5H7.5C7.16848 7.5 6.85054 7.6317 6.61612 7.86612C6.3817 8.10054 6.25 8.41848 6.25 8.75V17.5C6.25 17.8315 6.3817 18.1495 6.61612 18.3839C6.85054 18.6183 7.16848 18.75 7.5 18.75H16.25C16.5815 18.75 16.8995 18.6183 17.1339 18.3839C17.3683 18.1495 17.5 17.8315 17.5 17.5V13.125"
+                    stroke="#FCFEFF"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M16.5625 6.5625C16.8111 6.31386 17.1484 6.17417 17.5 6.17417C17.8516 6.17417 18.1889 6.31386 18.4375 6.5625C18.6861 6.81114 18.8258 7.14837 18.8258 7.5C18.8258 7.85163 18.6861 8.18886 18.4375 8.4375L12.5 14.375L10 15L10.625 12.5L16.5625 6.5625Z"
+                    stroke="#FCFEFF"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </g>
+                <defs>
+                  <clipPath id="clip0_161_384">
+                    <rect
+                      width="15"
+                      height="15"
+                      fill="white"
+                      transform="translate(5 5)"
+                    />
+                  </clipPath>
+                </defs>
+              </svg>
+            )}
           </div>
-        ))}
+        </div>
+
+        {/* Card 2: Video */}
+        <div
+          className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+          style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+        >
+          <span className="text-gray-800 font-medium">
+            Subir video presentación
+          </span>
+          <div className="flex items-center justify-center gap-4">
+            {!profile.archivos.videoPresentacion ? (
+              <div className="flex items-center gap-2">
+                <Dump
+                  className="cursor-pointer"
+                  onClick={() => {
+                    console.log("click");
+                  }}
+                />
+                <Edit
+                  className="cursor-pointer"
+                  onClick={() => setShowViewVideoModal(true)}
+                />
+              </div>
+            ) : (
+              <UploadFile
+                className="cursor-pointer"
+                onClick={() => setShowVideoModal(true)}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Card 3: Skills */}
+        <div
+          className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+          style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+        >
+          <span className="text-gray-800 font-medium">Agregar skills</span>
+          <div
+            className="flex items-center justify-center gap-4"
+            onClick={() =>
+              tasks[2].completed
+                ? setShowViewSkillsModal(true)
+                : setShowSkillsModal(true)
+            }
+          >
+            {profile.habilidades.length > 0 ? (
+              <div className="flex items-center gap-2">
+                <Dump
+                  className="cursor-pointer"
+                  onClick={() => {
+                    console.log("click");
+                  }}
+                />
+                <Edit
+                  className="cursor-pointer"
+                  onClick={() => setShowViewSkillsModal(true)}
+                />
+              </div>
+            ) : (
+              <Add
+                className="cursor-pointer"
+                onClick={() => setShowSkillsModal(true)}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Card 4: PC Requirements */}
+        <div
+          className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+          style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+        >
+          <span className="text-gray-800 font-medium">
+            Subir requerimientos PC
+          </span>
+          <div
+            className="flex items-center justify-center gap-4"
+            onClick={() =>
+              tasks[3].completed
+                ? setShowViewPCRequirementsModal(true)
+                : setShowPCRequirementsModal(true)
+            }
+          >
+            {tasks[3].completed ? (
+              <div className="flex items-center gap-2">
+                <Dump
+                  className="cursor-pointer"
+                  onClick={() => {
+                    console.log("click");
+                  }}
+                />
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 22 22"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <g clipPath="url(#clip0_599_11255)">
+                    <path
+                      d="M10.0835 3.66669H3.66683C3.1806 3.66669 2.71428 3.85984 2.37047 4.20366C2.02665 4.54747 1.8335 5.01379 1.8335 5.50002V18.3334C1.8335 18.8196 2.02665 19.2859 2.37047 19.6297C2.71428 19.9735 3.1806 20.1667 3.66683 20.1667H16.5002C16.9864 20.1667 17.4527 19.9735 17.7965 19.6297C18.1403 19.2859 18.3335 18.8196 18.3335 18.3334V11.9167"
+                      stroke="#0097B2"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M16.9585 2.29165C17.3232 1.92698 17.8178 1.72211 18.3335 1.72211C18.8492 1.72211 19.3438 1.92698 19.7085 2.29165C20.0732 2.65632 20.278 3.15093 20.278 3.66665C20.278 4.18238 20.0732 4.67698 19.7085 5.04165L11.0002 13.75L7.3335 14.6667L8.25016 11L16.9585 2.29165Z"
+                      stroke="#0097B2"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_599_11255">
+                      <rect width="22" height="22" fill="white" />
+                    </clipPath>
+                  </defs>
+                </svg>
+              </div>
+            ) : (
+              <svg
+                width="35"
+                height="35"
+                viewBox="0 0 25 25"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="12.5" cy="12.5" r="12.5" fill="#0097B2" />
+                <g clipPath="url(#clip0_161_384)">
+                  <path
+                    d="M18.125 14.375V16.875C18.125 17.2065 17.9933 17.5245 17.7589 17.7589C17.5245 17.9933 17.2065 18.125 16.875 18.125H8.125C7.79348 18.125 7.47554 17.9933 7.24112 17.7589C7.0067 17.5245 6.875 17.2065 6.875 16.875V14.375"
+                    stroke="#FCFEFF"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M15.625 10L12.5 6.875L9.375 10"
+                    stroke="#FCFEFF"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12.5 6.875V14.375"
+                    stroke="#FCFEFF"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </g>
+                <defs>
+                  <clipPath id="clip0_161_384">
+                    <rect
+                      width="15"
+                      height="15"
+                      fill="white"
+                      transform="translate(5 5)"
+                    />
+                  </clipPath>
+                </defs>
+              </svg>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -1122,7 +1035,7 @@ export default function ProfilePage() {
         isOpen={showSkillsModal}
         onClose={() => setShowSkillsModal(false)}
         onSave={handleSaveSkills}
-        initialSkills={skills}
+        initialSkills={profile.habilidades}
       />
 
       <PCRequirementsModal
@@ -1145,7 +1058,7 @@ export default function ProfilePage() {
       <ViewSkillsModal
         isOpen={showViewSkillsModal}
         onClose={() => setShowViewSkillsModal(false)}
-        skills={skills}
+        skills={profile.habilidades}
         onEdit={() => {
           setShowViewSkillsModal(false);
           setShowSkillsModal(true);
@@ -1156,36 +1069,6 @@ export default function ProfilePage() {
         isOpen={showViewPCRequirementsModal}
         onClose={() => setShowViewPCRequirementsModal(false)}
       />
-
-      {/* Demo Controls if in demo mode */}
-      {demoMode && (
-        <div className="fixed bottom-4 right-4 flex space-x-2 bg-white p-2 rounded-lg shadow-lg z-40">
-          <button
-            onClick={() => setShowViewFormularioModal(true)}
-            className="px-2 py-1 text-xs bg-[#0097B2] text-white rounded"
-          >
-            Ver Formulario
-          </button>
-          <button
-            onClick={() => setShowViewVideoModal(true)}
-            className="px-2 py-1 text-xs bg-[#0097B2] text-white rounded"
-          >
-            Ver Video
-          </button>
-          <button
-            onClick={() => setShowViewSkillsModal(true)}
-            className="px-2 py-1 text-xs bg-[#0097B2] text-white rounded"
-          >
-            Ver Skills
-          </button>
-          <button
-            onClick={() => setShowViewPCRequirementsModal(true)}
-            className="px-2 py-1 text-xs bg-[#0097B2] text-white rounded"
-          >
-            Ver PC
-          </button>
-        </div>
-      )}
     </div>
   );
 }

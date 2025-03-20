@@ -1,0 +1,95 @@
+"use client";
+
+import { createContext, ReactNode, useContext, useEffect } from "react";
+
+interface DatosPersonales {
+  nombre: string;
+  apellido: string;
+  correo: string;
+  telefono: string;
+  residencia: string;
+  fotoPerfil: string | null;
+}
+
+interface RequisitosDispositivo {
+  tipoDispositivo: "PC_LAPTOP" | "TABLET" | "SMARTPHONE" | string;
+  proveedorInternet: string;
+  cantidadRAM: string;
+  velocidadDescarga: string;
+  conexionCableada: boolean;
+}
+
+interface Archivos {
+  videoPresentacion: string | null;
+  curriculum: string | null;
+  documentosAdicionales: string[];
+}
+
+interface Habilidad {
+  id: string;
+  nombre: string;
+  nivel: number;
+  usuarioId: string;
+}
+
+interface Educacion {
+  id: string;
+  institucion: string;
+  titulo: string;
+  añoInicio: string;
+  añoFin: string;
+  usuarioId: string;
+}
+
+interface Experiencia {
+  id: string;
+  empresa: string;
+  cargo: string;
+  descripcion: string;
+  fechaInicio: string;
+  fechaFin: string;
+  usuarioId: string;
+}
+
+type EstadoPerfil = "COMPLETO" | "INCOMPLETO" | "PENDIENTE" | string;
+
+interface ProfileData {
+  datosPersonales: DatosPersonales;
+  requisitosDispositivo: RequisitosDispositivo;
+  archivos: Archivos;
+  datosFormulario: any | null;
+  habilidades: Habilidad[];
+  educacion: Educacion[];
+  experiencia: Experiencia[];
+  estadoPerfil: EstadoPerfil;
+}
+
+interface ProfileContextType {
+  profile: ProfileData;
+}
+
+export const ProfileContext = createContext<ProfileContextType | undefined>(
+  undefined
+);
+
+export function useProfileContext() {
+  const context = useContext(ProfileContext);
+  if (context === undefined) {
+    throw new Error(
+      "useProfileContext debe ser usado dentro de un ProfileContextProvider"
+    );
+  }
+  return context;
+}
+
+export function ProfileContextProvider({
+  children,
+  value,
+}: {
+  children: ReactNode;
+  value: ProfileContextType;
+}) {
+  return (
+    <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
+  );
+}

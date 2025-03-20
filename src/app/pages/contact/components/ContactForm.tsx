@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Instagram, Facebook } from "lucide-react";
@@ -17,12 +17,16 @@ export default function ContactForm() {
     success: boolean;
     message: string;
   } | null>(null);
+  const [countryCode, setCountryCode] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
+    setValue,
+    watch,
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
@@ -34,25 +38,40 @@ export default function ContactForm() {
       service: undefined,
       message: "",
     },
+    mode: "onChange",
   });
+
+  // Cuando cambie cualquiera de los dos inputs, actualizar el valor en el formulario
+  useEffect(() => {
+    // Concatenar código de país y número
+    setValue("phone", `${countryCode}${phoneNumber}` || "");
+  }, [countryCode, phoneNumber, setValue]);
 
   const onSubmit = async (data: ContactFormValues) => {
     setIsSubmitting(true);
     setFormResponse(null);
 
     try {
-      const response = await submitContactForm(data);
+      // Asegurar que phone y smsConsent nunca sean undefined
+      const formData = {
+        ...data,
+        phone: data.phone || "",
+        smsConsent: !!data.smsConsent,
+      };
+
+      const response = await submitContactForm(formData);
       setFormResponse(response);
 
       if (response.success) {
         reset();
+        setCountryCode("");
+        setPhoneNumber("");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
       setFormResponse({
         success: false,
-        message:
-          "Ha ocurrido un error al enviar el formulario. Por favor intenta de nuevo.",
+        message: "An error occurred while sending the form. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -168,19 +187,21 @@ export default function ContactForm() {
             <div className="flex-shrink-0">
               <input
                 type="text"
-                value="+1"
-                disabled
-                className="w-12 px-3 py-2 bg-gray-100 text-gray-500 border-b border-gray-300"
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                placeholder="+54"
+                className="w-14 px-3 py-2 border-b border-gray-300 mr-2 focus:outline-none focus:border-b-2 focus:border-[#0097B2]"
               />
             </div>
             <input
               type="tel"
               id="phone"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="Enter your phone number"
               className={`flex-grow px-3 py-2 border-b ${
                 errors.phone ? "border-red-500" : "border-gray-300"
               } focus:outline-none focus:border-b-2 focus:border-[#0097B2]`}
-              {...register("phone")}
             />
           </div>
           {errors.phone && (
@@ -193,7 +214,9 @@ export default function ContactForm() {
                 className="form-checkbox h-4 w-4 text-[#0097B2]"
                 {...register("smsConsent")}
               />
-              <span className="ml-2">Opt-in to receive sms messages</span>
+              <span className="ml-2 text-[#B6B4B4]">
+                Opt-in to receive sms messages
+              </span>
             </label>
           </div>
         </div>
@@ -211,8 +234,8 @@ export default function ContactForm() {
                 value="talent"
                 {...register("service")}
               />
-              <span className="ml-2 text-[#08252A]">
-                I&apos;m looking for a talent
+              <span className="ml-2 text-[#B6B4B4]">
+                I&apos;m looking for a talent/service
               </span>
             </label>
             <div>
@@ -223,8 +246,8 @@ export default function ContactForm() {
                   value="job"
                   {...register("service")}
                 />
-                <span className="ml-2 text-[#08252A]">
-                  I&apos;m looking for a job
+                <span className="ml-2 text-[#B6B4B4]">
+                  I&apos;m want to offer my services
                 </span>
               </label>
             </div>
@@ -268,15 +291,17 @@ export default function ContactForm() {
             <div className="mt-4">
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className={`w-full bg-gray-300 text-gray-600 py-3 rounded flex items-center justify-center shadow-sm hover:bg-gray-400 transition-colors ${
-                  isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                disabled={isSubmitting || !isValid}
+                className={`w-full bg-[#0097B2] text-white py-3 rounded flex items-center justify-center shadow-sm hover:bg-opacity-90 transition-colors cursor-pointer ${
+                  isSubmitting || !isValid
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
               >
                 {isSubmitting ? (
                   <>
                     <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-600"
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -299,7 +324,24 @@ export default function ContactForm() {
                   </>
                 ) : (
                   <>
-                    <span className="mr-2">✉</span> Send Information
+                    <span className="mr-2 text-white">
+                      <svg
+                        width="22"
+                        height="22"
+                        viewBox="0 0 26 26"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M2 12.4211L24 2L13.5789 24L11.2632 14.7368L2 12.4211Z"
+                          stroke="white"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>{" "}
+                    Send Information
                   </>
                 )}
               </button>
@@ -327,7 +369,7 @@ export default function ContactForm() {
             {/* Iconos de redes sociales */}
             <div className="flex gap-3">
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/andesworkforce/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-[#0097B2] text-white p-2 rounded-full hover:bg-opacity-90 transition-colors"
@@ -335,7 +377,7 @@ export default function ContactForm() {
                 <Instagram size={24} />
               </a>
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/profile.php?id=61553675729226&mibextid=LQQJ4d"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-[#0097B2] text-white p-2 rounded-full hover:bg-opacity-90 transition-colors"

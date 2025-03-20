@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 interface ViewSkillsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  skills: string[];
+  skills: { id: string; nombre: string }[];
   onEdit: () => void;
 }
 
@@ -86,12 +86,12 @@ export default function ViewSkillsModal({
             </p>
 
             <div className="flex flex-wrap justify-center gap-2 mt-4">
-              {skills.map((skill, index) => (
+              {skills.map((skill) => (
                 <div
-                  key={index}
+                  key={skill.id}
                   className="px-4 py-2 bg-blue-50 text-[#0097B2] rounded-full"
                 >
-                  {skill}
+                  {skill.nombre}
                 </div>
               ))}
             </div>
@@ -101,14 +101,14 @@ export default function ViewSkillsModal({
             <button
               type="button"
               onClick={onEdit}
-              className="w-full py-2 px-4 bg-[#0097B2] text-white font-medium rounded-md"
+              className="w-full py-2 px-4 bg-[#0097B2] hover:bg-[#0097B2]/80 text-white font-medium rounded-md cursor-pointer"
             >
               Editar habilidades
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="w-full text-center text-[#0097B2] py-1"
+              className="w-full text-center text-[#0097B2] hover:text-[#0097B2]/80 py-1 cursor-pointer"
             >
               Cerrar
             </button>

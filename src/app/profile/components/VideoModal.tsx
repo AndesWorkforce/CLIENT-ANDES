@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { X, Info, Upload, Eye, AlertCircle } from "lucide-react";
+import { useProfileContext } from "../context/ProfileContext";
 
 interface VideoModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ export default function VideoModal({
   onClose,
   onSave,
 }: VideoModalProps) {
+  const { profile } = useProfileContext();
   const modalRef = useRef<HTMLDivElement>(null);
   const [showInstructions, setShowInstructions] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -22,7 +24,9 @@ export default function VideoModal({
     "idle" | "generating" | "uploading" | "success" | "error"
   >("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadUrl, setUploadUrl] = useState<string | null>(null);
+  const [uploadUrl, setUploadUrl] = useState<string | null>(
+    profile.archivos.videoPresentacion
+  );
   const [error, setError] = useState<string | null>(null);
 
   // 100MB en bytes
