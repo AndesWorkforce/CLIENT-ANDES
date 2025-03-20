@@ -4,9 +4,12 @@ import Link from "next/link";
 import Logo from "@/components/ui/Logo";
 import { usePathname } from "next/navigation";
 import { useRef, useEffect, useState } from "react";
+// import { logoutAction } from "@/app/auth/logout/actions/logout.action";
+// import { User, LogOut, FileText, UserCircle, X, Info } from "lucide-react";
+import useRouteExclusion from "@/hooks/useRouteExclusion";
 
 const navigation = [
-  { name: "Offers", href: "/pages/offers" },
+  // { name: "Offers", href: "/pages/offers" },
   { name: "Services", href: "/pages/services" },
   { name: "About", href: "/pages/about" },
   { name: "Contact", href: "/pages/contact" },
@@ -15,11 +18,15 @@ const navigation = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const isAuthPage = pathname.includes("/auth");
+  const { isNavbarExcluded } = useRouteExclusion();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftShadow, setShowLeftShadow] = useState(false);
-  const [showRightShadow, setShowRightShadow] = useState(true);
-
+  const [showLeftShadow, setShowLeftShadow] = useState<boolean>(false);
+  const [showRightShadow, setShowRightShadow] = useState<boolean>(true);
+  const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  console.log("showUserMenu", showUserMenu);
   // Manejar visibilidad de sombras al desplazarse
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -40,14 +47,115 @@ export default function Navbar() {
     }
   }, []);
 
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setShowUserMenu(false);
+      }
+
+      // Cerrar sidebar si se hace clic fuera
+      if (
+        sidebarRef.current &&
+        showMobileSidebar &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        setShowMobileSidebar(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMobileSidebar]);
+
+  // Evitar scroll del body cuando el sidebar está abierto
+  useEffect(() => {
+    if (showMobileSidebar) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showMobileSidebar]);
+
+  // Función para cerrar sesión
+  // const handleLogout = async () => {
+  //   try {
+  //     await logoutAction();
+  //     logout();
+  //     router.push("/auth/login");
+  //   } catch (error) {
+  //     console.error("Error al cerrar sesión:", error);
+  //   }
+  // };
+
   // Función para verificar si una ruta está activa
   const isActive = (itemHref: string) => {
     return pathname === itemHref || pathname.startsWith(itemHref);
   };
 
-  if (isAuthPage) {
+  if (isNavbarExcluded) {
     return null;
   }
+
+  // Renderizar el menú de usuario
+  // const renderUserMenu = () => (
+  //   <>
+  //     <div className="px-4 py-3 border-b border-gray-100">
+  //       <p className="text-[#0097B2] font-medium text-sm">
+  //         {user?.nombre || ""} {user?.apellido || ""}
+  //       </p>
+  //     </div>
+
+  //     <Link
+  //       href="/profile"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <UserCircle size={16} className="mr-2 text-[#0097B2]" />
+  //       Mi perfil
+  //     </Link>
+
+  //     <Link
+  //       href="/applications"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <FileText size={16} className="mr-2 text-[#0097B2]" />
+  //       Mis postulaciones
+  //     </Link>
+
+  //     <Link
+  //       href="/account"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <User size={16} className="mr-2 text-[#0097B2]" />
+  //       Mi cuenta
+  //     </Link>
+
+  //     <hr className="my-1 border-gray-200" />
+
+  //     <button
+  //       onClick={() => {
+  //         handleLogout();
+  //         setShowUserMenu(false);
+  //       }}
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+  //     >
+  //       <LogOut size={16} className="mr-2 text-[#0097B2] cursor-pointer" />
+  //       Cerrar sesión
+  //     </button>
+  //   </>
+  // );
 
   return (
     <header className="w-full bg-[#FCFEFF] shadow-sm z-10">
@@ -77,21 +185,54 @@ export default function Navbar() {
               ))}
             </div>
           </div>
-          {/* Auth Buttons - Desktop y Mobile */}
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/auth/login"
-              className="text-[#0097B2] hover:text-[#007A8F] px-3 py-2 text-[16px] font-[600] transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              href="/auth/register"
-              className="bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] text-white px-4 py-2 rounded text-[16px] font-[600] transition-all hover:shadow-lg"
-            >
-              Sign In
-            </Link>
-          </div>
+
+          {/* Auth Buttons - Desktop y Mobile Activar cuando se tenga el Modulo Completo */}
+          {/* <div className="flex items-center space-x-4">
+            {!isAuthenticated ? (
+              <>
+                <Link
+                  href="/auth/login"
+                  className="text-[#0097B2] hover:text-[#007A8F] px-3 py-2 text-[16px] font-[600] transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] text-white px-4 py-2 rounded text-[16px] font-[600] transition-all hover:shadow-lg"
+                >
+                  Sign In
+                </Link>
+              </>
+            ) : (
+              <>
+                <div className="relative hidden md:block" ref={userMenuRef}>
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>{`${user?.nombre || ""} ${
+                      user?.apellido || ""
+                    }`}</span>
+                  </button>
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                      {renderUserMenu()}
+                    </div>
+                  )}
+                </div>
+                <div className="md:hidden">
+                  <button
+                    onClick={() => setShowMobileSidebar(true)}
+                    className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>{`${user?.nombre || ""} ${
+                      user?.apellido || ""
+                    }`}</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div> */}
         </div>
 
         {/* Mobile Navigation Links con desplazamiento táctil */}
@@ -129,6 +270,79 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
+      {/* Mobile Sidebar Activar cuando se tenga el Modulo Completo */}
+      {/* {showMobileSidebar && (
+        <div
+          className="fixed inset-0 bg-[#08252A33] z-50 md:hidden animate-fade-in"
+          onClick={() => setShowMobileSidebar(false)}
+        >
+          <div
+            ref={sidebarRef}
+            className="absolute right-0 top-0 h-full w-[250px] bg-white shadow-xl animate-slide-in-right"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <Logo />
+              <button
+                onClick={() => setShowMobileSidebar(false)}
+                className="text-gray-500 cursor-pointer"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-2">
+              <div className="flex flex-col space-y-1 py-2">
+                <p className="px-4 text-[#0097B2] font-medium">
+                  {user?.nombre || ""} {user?.apellido || ""}
+                </p>
+
+                <Link
+                  href="/profile"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={() => setShowMobileSidebar(false)}
+                >
+                  <UserCircle size={20} className="mr-2 text-[#0097B2]" />
+                  Mi perfil
+                </Link>
+
+                <Link
+                  href="/applications"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={() => setShowMobileSidebar(false)}
+                >
+                  <FileText size={20} className="mr-2 text-[#0097B2]" />
+                  Mis postulaciones
+                </Link>
+
+                <Link
+                  href="/account"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={() => setShowMobileSidebar(false)}
+                >
+                  <User size={20} className="mr-2 text-[#0097B2]" />
+                  Mi cuenta
+                </Link>
+
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setShowMobileSidebar(false);
+                  }}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md text-left w-full cursor-pointer"
+                >
+                  <LogOut
+                    size={20}
+                    className="mr-2 text-[#0097B2] cursor-pointer"
+                  />
+                  Cerrar sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )} */}
     </header>
   );
 }

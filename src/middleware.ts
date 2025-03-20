@@ -1,48 +1,64 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// AQUÍ SE SIMULA LA AUTENTICACIÓN
-// Cambiar a true para simular que el usuario está autenticado y permitir acceso a rutas privadas
-// Cambiar a false para simular que no está autenticado y forzar redirección al login
-const isAuthenticated = false;
+// Constantes para las cookies
+const AUTH_COOKIE = "auth_token";
 
-// Definición de rutas públicas (que no requieren autenticación)
-const publicRoutes = [
-  "/",
-  "/auth/login",
-  "/auth/register",
-  "/api/auth/login",
-  "/api/auth/register",
-  "/pages/offers",
-  "/pages/services",
-  "/pages/about",
-  "/pages/contact",
-  "/pages/privacy-policy",
+// Rutas de autenticación que deben redirigir si el usuario ya está autenticado
+const authRoutes: string[] = [
+  // "/auth/login",
+  // "/auth/register",
+  // "/api/auth/login",
+  // "/api/auth/register",
+  // "/admin/login",
+  // "/admin/dashboard",
+];
+
+// Rutas que requieren autenticación
+const protectedRoutes = [
+  "/perfil",
+  "/postulaciones",
+  "/cuenta",
+  "/pages/offers/apply",
+  "/user",
+  "/dashboard",
+  "/settings",
 ];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Verificamos si la ruta actual es pública
-  const isPublicRoute = publicRoutes.some(
+  // Verificar autenticación usando la cookie
+  const authToken = request.cookies.get(AUTH_COOKIE)?.value;
+  const isAuthenticated = !!authToken;
+
+  // 1. Si ya está autenticado e intenta ir a páginas de login/registro, redirigir a offers
+  if (
+    isAuthenticated &&
+    authRoutes.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`)
+    )
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/pages/offers";
+    return NextResponse.redirect(url);
+  }
+
+  // 2. Verificamos si la ruta actual es una ruta protegida que requiere autenticación
+  const requiresAuth = protectedRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 
-  // Si es una ruta pública, permitimos el acceso directamente
-  if (isPublicRoute) {
-    return NextResponse.next();
-  }
-
-  // Si no está autenticado y la ruta es privada, redirigimos al login
-  if (!isAuthenticated) {
+  // 3. Si requiere autenticación y el usuario no está autenticado, redirigir al login
+  if (requiresAuth && !isAuthenticated) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
-    // Guardamos la URL original para redirigir después del login
+    // Guardar URL original para redirigir después del login
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
 
-  // Si está autenticado, permitimos el acceso a la ruta privada
+  // 4. En cualquier otro caso, permitir la navegación
   return NextResponse.next();
 }
 

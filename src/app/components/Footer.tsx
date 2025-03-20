@@ -3,10 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
-import { usePathname } from "next/navigation";
+import useRouteExclusion from "@/hooks/useRouteExclusion";
 
 const navigation = [
-  { name: "Offers", href: "/pages/offers" },
+  // { name: "Offers", href: "/pages/offers" },
   { name: "Services", href: "/pages/services" },
   { name: "About", href: "/pages/about" },
   { name: "Contact", href: "/pages/contact" },
@@ -14,10 +14,9 @@ const navigation = [
 ];
 
 export default function Footer() {
-  const pathname = usePathname();
-  const isAuthPage = pathname.includes("/auth");
+  const { isFooterExcluded } = useRouteExclusion();
 
-  if (isAuthPage) {
+  if (isFooterExcluded) {
     return null;
   }
 
@@ -45,24 +44,27 @@ export default function Footer() {
 
             <div className="flex space-x-4">
               <Link
-                href="https://facebook.com"
+                href="https://www.facebook.com/profile.php?id=61553675729226&mibextid=LQQJ4d"
                 target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Facebook"
                 className="text-[#0097B2] hover:text-[#00778E]"
               >
                 <Facebook size={20} />
               </Link>
               <Link
-                href="https://instagram.com"
+                href="https://www.instagram.com/andesworkforce/"
                 target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Instagram"
                 className="text-[#0097B2] hover:text-[#00778E]"
               >
                 <Instagram size={20} />
               </Link>
               <Link
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/company/andes-workforce/posts/?feedView=all"
                 target="_blank"
+                rel="noopener noreferrer"
                 aria-label="LinkedIn"
                 className="text-[#0097B2] hover:text-[#00778E]"
               >

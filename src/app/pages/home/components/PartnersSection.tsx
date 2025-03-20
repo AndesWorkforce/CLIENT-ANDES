@@ -11,7 +11,6 @@ export default function PartnersSection() {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.addEventListener("error", () => {
-        console.error("Error loading video");
         setVideoError(true);
       });
     }
@@ -142,9 +141,9 @@ export default function PartnersSection() {
               </div>
             </div>
           )}
-          <p className="text-sm text-center text-gray-500 mt-2">
+          {/* <p className="text-sm text-center text-gray-500 mt-2">
             © 2023 Andes Workforce - Todos los derechos reservados
-          </p>
+          </p> */}
         </div>
       </div>
     </section>

@@ -84,7 +84,7 @@ export function Toast({ position = "top-right" }: ToastProps = {}) {
         removeNotification(notification.id);
       });
     };
-  }, []);
+  }, [removeNotification, notifications]);
 
   if (notifications.length === 0) return null;
 

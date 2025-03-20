@@ -6,21 +6,21 @@ const services = [
     id: 1,
     title: "Administrative Assistants",
     description:
-      "Let us aid in the administrative concerns of your company. Take care of day-to-day tasks and increase productivity with our office coordinators.",
+      "Carry out office duties such as answering phone calls, scheduling appointments, writing and distributing mail, correspondence, faxes, etc.",
     image: "https://appwiseinnovations.dev/Andes/services-view-1.png",
   },
   {
     id: 2,
     title: "Customer Service Representatives",
     description:
-      "Our representatives are experts in interpersonal communication and problem-solving. They handle inquiries, resolve issues, and leave your customers satisfied.",
+      "Interact with customers to answer questions and assist them with their needs. Answer phone calls and emails in a timely manner to resolve any emerging problem.",
     image: "https://appwiseinnovations.dev/Andes/services-view-2.png",
   },
   {
     id: 3,
     title: "Call Center Agents",
     description:
-      "Provide efficient and professional calls to your clients. Our agents are trained to handle high call volumes and maintain quality service at all times.",
+      "Handle inbound and outbound calls to and from customers making sure that everyone quickly receives the help they need.",
     image: "https://appwiseinnovations.dev/Andes/services-view-3.png",
   },
 ];
@@ -69,7 +69,7 @@ export default function ServicesPage() {
                   </p>
                   <div className="mt-auto">
                     <Link
-                      href="/contact"
+                      href="/pages/contact"
                       className="inline-block bg-[#0097B2] text-white py-2 px-4 rounded text-sm hover:bg-opacity-90 transition-colors"
                     >
                       Message Us

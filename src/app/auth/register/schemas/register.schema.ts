@@ -2,19 +2,19 @@ import { z } from "zod";
 
 export const registerSchema = z
   .object({
-    firstName: z
+    nombre: z
       .string()
       .min(2, "El nombre debe tener al menos 2 caracteres")
       .max(50, "El nombre no puede tener más de 50 caracteres"),
-    lastName: z
+    apellido: z
       .string()
       .min(2, "El apellido debe tener al menos 2 caracteres")
       .max(50, "El apellido no puede tener más de 50 caracteres"),
-    email: z
+    correo: z
       .string()
       .email("El email no es válido")
       .min(1, "El email es requerido"),
-    password: z
+    contrasena: z
       .string()
       .min(8, "La contraseña debe tener al menos 8 caracteres")
       .max(50, "La contraseña no puede tener más de 50 caracteres")
@@ -22,11 +22,11 @@ export const registerSchema = z
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\w\W]{8,}$/,
         "La contraseña debe contener al menos una letra mayúscula, una minúscula y un número"
       ),
-    confirmPassword: z.string(),
+    confirmContrasena: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.contrasena === data.confirmContrasena, {
     message: "Las contraseñas no coinciden",
-    path: ["confirmPassword"],
+    path: ["confirmContrasena"],
   });
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;

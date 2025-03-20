@@ -8,8 +8,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormValues } from "../schemas/login.schema";
 import { loginAction } from "../actions/login.action";
 import { useNotificationStore } from "@/store/notifications.store";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function LoginForm() {
+  const router = useRouter();
+  const { setUser, setAuthenticated } = useAuthStore();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const addNotification = useNotificationStore(
@@ -32,8 +36,10 @@ export default function LoginForm() {
 
       if (result.success) {
         addNotification("Inicio de sesión exitoso", "success");
+        setUser(result.data?.usuario);
+        setAuthenticated(true);
         reset();
-        // Aquí puedes manejar la redirección
+        router.push("/pages/offers");
       } else {
         addNotification(result.error || "Error al iniciar sesión", "error");
         reset();
@@ -68,11 +74,11 @@ export default function LoginForm() {
             type="email"
             placeholder="Escribe tu email"
             className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
-            {...register("email")}
+            {...register("correo")}
           />
-          {errors.email && (
+          {errors.correo && (
             <span className="text-red-500 text-xs mt-1">
-              {errors.email.message}
+              {errors.correo.message}
             </span>
           )}
         </div>
@@ -87,7 +93,7 @@ export default function LoginForm() {
               type={showPassword ? "text" : "password"}
               placeholder="Escribe tu contraseña"
               className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
-              {...register("password")}
+              {...register("contrasena")}
             />
             <button
               type="button"
@@ -95,15 +101,19 @@ export default function LoginForm() {
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
-                <EyeOffIcon size={20} color="#0097B2" />
+                <EyeOffIcon
+                  size={20}
+                  color="#0097B2"
+                  className="cursor-pointer"
+                />
               ) : (
-                <EyeIcon size={20} color="#0097B2" />
+                <EyeIcon size={20} color="#0097B2" className="cursor-pointer" />
               )}
             </button>
           </div>
-          {errors.password && (
+          {errors.contrasena && (
             <span className="text-red-500 text-xs mt-1">
-              {errors.password.message}
+              {errors.contrasena.message}
             </span>
           )}
           <div className="text-right mt-1">
@@ -120,7 +130,7 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="bg-[#0097B2] text-white w-full py-2 px-4 rounded-[5px] mt-8 text-[15px] hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-[#0097B2] text-white w-full py-2 px-4 rounded-[5px] mt-8 text-[15px] hover:underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
         </button>
