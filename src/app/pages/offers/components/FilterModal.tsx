@@ -8,10 +8,18 @@ interface FilterOption {
   label: string;
 }
 
+// Tipo para los valores de filtros
+export interface FilterValues {
+  departments: string[];
+  dates: string[];
+  seniority: string[];
+  locations: string[];
+}
+
 interface FilterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onApplyFilters: (filters: any) => void;
+  onApplyFilters: (filters: FilterValues) => void;
   onClearFilters: () => void;
   selectedDepartments: string[];
   setSelectedDepartments: React.Dispatch<React.SetStateAction<string[]>>;

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
@@ -21,8 +20,8 @@ export default function AdminLoginPage() {
     // Aquí iría la lógica real de autenticación con la API
     try {
       // Simulación de login exitoso (para demo)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       if (email === "empresa@ejemplo.com" && password === "123456") {
         // Guardar token o estado de sesión
         localStorage.setItem("adminLoggedIn", "true");
@@ -31,6 +30,7 @@ export default function AdminLoginPage() {
         setError("Credenciales incorrectas");
       }
     } catch (error) {
+      console.log("error", error);
       setError("Error al iniciar sesión. Intente nuevamente.");
     } finally {
       setLoading(false);
@@ -41,13 +41,14 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-6">
-          <img 
-            src="/logo-andes.png" 
-            alt="Andes Workforce" 
+          <img
+            src="/logo-andes.png"
+            alt="Andes Workforce"
             className="h-12"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = "https://via.placeholder.com/150x50?text=Andes+Workforce";
+              target.src =
+                "https://via.placeholder.com/150x50?text=Andes+Workforce";
             }}
           />
         </div>
@@ -67,9 +68,12 @@ export default function AdminLoginPage() {
                 {error}
               </div>
             )}
-            
+
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
               <div className="mt-1">
@@ -88,7 +92,10 @@ export default function AdminLoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Contraseña
               </label>
               <div className="mt-1 relative">
@@ -120,13 +127,19 @@ export default function AdminLoginPage() {
                   type="checkbox"
                   className="h-4 w-4 text-[#0097B2] focus:ring-[#0097B2] border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-700"
+                >
                   Recordarme
                 </label>
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-[#0097B2] hover:text-[#007A8F]">
+                <a
+                  href="#"
+                  className="font-medium text-[#0097B2] hover:text-[#007A8F]"
+                >
                   ¿Olvidó su contraseña?
                 </a>
               </div>
@@ -136,9 +149,11 @@ export default function AdminLoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0097B2] hover:bg-[#007A8F] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0097B2] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0097B2] hover:bg-[#007A8F] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0097B2] ${
+                  loading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
               >
-                {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </button>
             </div>
           </form>
@@ -149,7 +164,9 @@ export default function AdminLoginPage() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">¿No tiene una cuenta?</span>
+                <span className="px-2 bg-white text-gray-500">
+                  ¿No tiene una cuenta?
+                </span>
               </div>
             </div>
 
@@ -166,4 +183,4 @@ export default function AdminLoginPage() {
       </div>
     </div>
   );
-} 
+}

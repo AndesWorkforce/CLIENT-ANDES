@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import {
   ChevronLeft,
-  FileText,
-  Clock,
   Briefcase,
   Mail,
   Phone,
@@ -14,8 +12,56 @@ import {
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 
+// Interfaces para la tipificación
+interface AppliedJob {
+  id: number;
+  title: string;
+  service: string;
+  date: string;
+}
+
+interface Experience {
+  id: number;
+  title: string;
+  company: string;
+  fromDate: string;
+  toDate: string;
+  description: string;
+}
+
+interface Education {
+  id: number;
+  degree: string;
+  institution: string;
+  year: string;
+}
+
+interface PCRequirements {
+  completed: boolean;
+  specs: string;
+  internet: string;
+}
+
+interface Applicant {
+  id: number;
+  name: string;
+  contact: {
+    email: string;
+    phone: string;
+  };
+  videoPresentation: string | null;
+  formData: {
+    completed: boolean;
+  };
+  pcRequirements: PCRequirements;
+  skills: string[];
+  experience: Experience[];
+  education: Education[];
+  appliedTo: AppliedJob[];
+}
+
 // Datos de ejemplo de un postulante
-const mockApplicant = {
+const mockApplicant: Applicant = {
   id: 2,
   name: "Mariana Lopez",
   contact: {
@@ -78,7 +124,7 @@ export default function ApplicantDetailPage() {
   const params = useParams();
   const applicantId = params.id as string;
 
-  const [applicant, setApplicant] = useState<any>(null);
+  const [applicant, setApplicant] = useState<Applicant | null>(null);
   const [activeTab, setActiveTab] = useState<string>("profile");
 
   // Cargar datos del backend (simulado)
@@ -152,7 +198,7 @@ export default function ApplicantDetailPage() {
                   <h3 className="text-sm font-medium text-gray-900 mb-2">
                     Postulaciones:
                   </h3>
-                  {applicant.appliedTo.map((job: any) => (
+                  {applicant.appliedTo.map((job) => (
                     <div key={job.id} className="flex items-start mb-2">
                       <Briefcase className="h-5 w-5 text-[#0097B2] mr-2 mt-0.5" />
                       <div>
@@ -333,7 +379,7 @@ export default function ApplicantDetailPage() {
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Experiencia
               </h3>
-              {applicant.experience.map((exp: any) => (
+              {applicant.experience.map((exp: Experience) => (
                 <div key={exp.id} className="mb-6 last:mb-0">
                   <div className="flex justify-between items-start">
                     <h4 className="text-base font-medium text-gray-900">
@@ -355,7 +401,7 @@ export default function ApplicantDetailPage() {
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Educación
               </h3>
-              {applicant.education.map((edu: any) => (
+              {applicant.education.map((edu: Education) => (
                 <div key={edu.id} className="mb-4 last:mb-0">
                   <h4 className="text-base font-medium text-gray-900">
                     {edu.degree}

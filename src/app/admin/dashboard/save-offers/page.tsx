@@ -1,12 +1,11 @@
 "use client";
 
-import { PlusCircle, Calendar, ChevronRight } from "lucide-react";
+import { PlusCircle, Calendar } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function SaveOffersPage() {
-  const [offers, setOffers] = useState([
+  const [offers] = useState([
     {
       id: 1,
       title: "Especialidad de Diseño UX/UI",
@@ -41,8 +40,8 @@ export default function SaveOffersPage() {
     },
   ]);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<
+  const [searchTerm] = useState("");
+  const [filterStatus] = useState<
     "all" | "active" | "pending" | "closed" | "draft"
   >("all");
 

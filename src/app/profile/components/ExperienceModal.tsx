@@ -2,20 +2,13 @@
 
 import { useRef, useState } from "react";
 import { X } from "lucide-react";
+import { ExperienceData } from "@/app/types/experience-data";
 
 interface ExperienceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
-  experienceData?: {
-    id?: string;
-    company: string;
-    position: string;
-    startDate: string;
-    endDate: string;
-    currentlyWorking: boolean;
-    description: string;
-  };
+  onSave: (data: ExperienceData) => void;
+  experienceData?: ExperienceData;
 }
 
 export default function ExperienceModal({
@@ -42,15 +35,15 @@ export default function ExperienceModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    const data: any = {
-      position: formData.get("position"),
-      company: formData.get("company"),
+    const data: ExperienceData = {
+      position: formData.get("position") as string,
+      company: formData.get("company") as string,
       startDate: `${formData.get("startMonth")} ${formData.get("startYear")}`,
       endDate: atPresent
         ? "Presente"
         : `${formData.get("endMonth")} ${formData.get("endYear")}`,
       currentlyWorking: atPresent,
-      description: formData.get("description"),
+      description: formData.get("description") as string,
     };
 
     // Añadir ID si estamos editando

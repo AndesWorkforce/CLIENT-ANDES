@@ -1,18 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import {
-  PlusCircle,
-  Search,
-  Calendar,
-  Users,
-  ChevronRight,
-  Edit2,
-  X,
-  ChevronDown,
-} from "lucide-react";
+import { PlusCircle, Search, Calendar, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import ApplicantsModal from "./components/ApplicantsModal";
 
 // Tipo para representar una oferta
@@ -36,11 +26,11 @@ interface Applicant {
 }
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftShadow, setShowLeftShadow] = useState(false);
   const [showRightShadow, setShowRightShadow] = useState(false);
-
+  console.log("showLeftShadow", showLeftShadow);
+  console.log("showRightShadow", showRightShadow);
   // Función para controlar cuándo mostrar las sombras de desplazamiento
   const checkScrollShadows = () => {
     if (!scrollRef.current) return;
@@ -57,7 +47,7 @@ export default function AdminDashboardPage() {
     return () => window.removeEventListener("resize", checkScrollShadows);
   }, []);
 
-  const [offers, setOffers] = useState<JobOffer[]>([
+  const [offers] = useState<JobOffer[]>([
     {
       id: 1,
       title: "Especialidad de Diseño UX/UI",
@@ -116,42 +106,42 @@ export default function AdminDashboardPage() {
   });
 
   // Obtener el indicador de estado para la tarjeta
-  const getStatusIndicator = (status: string) => {
-    switch (status) {
-      case "active":
-        return (
-          <div className="flex items-center">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full mx-1"></div>
-            <div className="w-2 h-2 bg-red-500 rounded-full mx-1"></div>
-            <div className="w-2 h-2 bg-green-500 rounded-full mx-1"></div>
-          </div>
-        );
-      case "pending":
-        return (
-          <div className="flex items-center">
-            <div className="w-2 h-2 bg-red-500 rounded-full mx-1"></div>
-          </div>
-        );
-      case "closed":
-        return (
-          <div className="flex items-center">
-            <div className="w-2 h-2 bg-gray-500 rounded-full mx-1"></div>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
+  // const getStatusIndicator = (status: string) => {
+  //   switch (status) {
+  //     case "active":
+  //       return (
+  //         <div className="flex items-center">
+  //           <div className="w-2 h-2 bg-yellow-500 rounded-full mx-1"></div>
+  //           <div className="w-2 h-2 bg-red-500 rounded-full mx-1"></div>
+  //           <div className="w-2 h-2 bg-green-500 rounded-full mx-1"></div>
+  //         </div>
+  //       );
+  //     case "pending":
+  //       return (
+  //         <div className="flex items-center">
+  //           <div className="w-2 h-2 bg-red-500 rounded-full mx-1"></div>
+  //         </div>
+  //       );
+  //     case "closed":
+  //       return (
+  //         <div className="flex items-center">
+  //           <div className="w-2 h-2 bg-gray-500 rounded-full mx-1"></div>
+  //         </div>
+  //       );
+  //     default:
+  //       return null;
+  //   }
+  // };
 
   // Manejar logout
-  const handleLogout = () => {
-    localStorage.removeItem("adminLoggedIn");
-    router.push("/admin/login");
-  };
+  // const handleLogout = () => {
+  //   localStorage.removeItem("adminLoggedIn");
+  //   router.push("/admin/login");
+  // };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<JobOffer | null>(null);
-  const [applicantsData, setApplicantsData] = useState<Applicant[]>([
+  const [applicantsData] = useState<Applicant[]>([
     {
       id: 1,
       name: "Juan Perez",
@@ -244,7 +234,16 @@ export default function AdminDashboardPage() {
             <span className="text-sm text-gray-700">Filtrar:</span>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
+              onChange={(e) =>
+                setFilterStatus(
+                  e.target.value as
+                    | "all"
+                    | "active"
+                    | "pending"
+                    | "closed"
+                    | "draft"
+                )
+              }
               className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#0097B2] focus:border-[#0097B2] sm:text-sm rounded-md"
             >
               <option value="all">Todas</option>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   ChevronDown,
   ChevronUp,
@@ -9,7 +8,6 @@ import {
   Clock,
   CheckCircle,
 } from "lucide-react";
-import TabsNavigation from "../components/TabsNavigation";
 
 // Interfaz para representar una oferta de trabajo
 interface JobOffer {
@@ -23,8 +21,6 @@ interface JobOffer {
 }
 
 export default function ProcessPage() {
-  const router = useRouter();
-
   // Estado para simular las ofertas de trabajo
   const [offers, setOffers] = useState<JobOffer[]>([
     {
@@ -74,10 +70,10 @@ export default function ProcessPage() {
     },
   ]);
 
-  // Simular cierre de sesión
-  const handleLogout = () => {
-    router.push("/admin/login");
-  };
+  // // Simular cierre de sesión
+  // const handleLogout = () => {
+  //   router.push("/admin/login");
+  // };
 
   // Función para expandir/contraer una oferta
   const toggleOffer = (id: number) => {

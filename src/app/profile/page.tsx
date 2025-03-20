@@ -19,6 +19,12 @@ import Dump from "@/components/icons/Dump";
 import Edit from "@/components/icons/Edit";
 import UploadFile from "@/components/icons/UploadFile";
 import Add from "@/components/icons/Add";
+import { Experience } from "../types/experience";
+import { Education } from "../types/education";
+import { Skill } from "../types/skill";
+import { Task } from "../types/task";
+import { EducationData } from "../types/education-data";
+import { ExperienceData } from "../types/experience-data";
 
 export default function ProfilePage() {
   const { profile } = useProfileContext();
@@ -39,10 +45,9 @@ export default function ProfilePage() {
   const [showViewSkillsModal, setShowViewSkillsModal] = useState(false);
   const [showViewPCRequirementsModal, setShowViewPCRequirementsModal] =
     useState(false);
-  const [skills, setSkills] = useState<{ id: string; nombre: string }[]>(
-    profile.habilidades || []
-  );
-  const [experiences, setExperiences] = useState<any[]>([
+  const [skills, setSkills] = useState<Skill[]>(profile.habilidades || []);
+  console.log("skills", skills);
+  const [experiences, setExperiences] = useState<Experience[]>([
     {
       id: "1",
       position: "Diseñadora Gráfica",
@@ -64,7 +69,7 @@ export default function ProfilePage() {
         "Creación de wireframes y prototipos en baja, media y alta fidelidad, asegurando una experiencia de usuario intuitiva y alineada con los objetivos del negocio. Coordino el handoff con los desarrolladores, proporcionando documentación detallada para asegurar la implementación correcta del diseño.",
     },
   ]);
-  const [education, setEducation] = useState<any[]>([
+  const [education, setEducation] = useState<Education[]>([
     {
       id: "1",
       degree: "Diseño UX/UI",
@@ -77,11 +82,15 @@ export default function ProfilePage() {
         "Especialización en diseño de interfaces digitales, usabilidad y experiencia de usuario. Desarrollé proyectos prácticos aplicando metodologías centradas en el usuario y técnicas de prototipado.",
     },
   ]);
-  const [selectedExperience, setSelectedExperience] = useState<any>(null);
-  const [selectedEducation, setSelectedEducation] = useState<any>(null);
+  const [selectedExperience, setSelectedExperience] = useState<
+    ExperienceData | undefined
+  >(undefined);
+  const [selectedEducation, setSelectedEducation] = useState<
+    EducationData | undefined
+  >(undefined);
 
   // Inicializar tareas y su estado de completado
-  const [tasks, setTasks] = useState([
+  const [tasks, setTasks] = useState<Task[]>([
     {
       id: 1,
       title: "Completar formulario",
@@ -254,52 +263,58 @@ export default function ProfilePage() {
     },
   ]);
 
-  const handleSaveExperience = (data: any) => {
+  const handleSaveExperience = (data: ExperienceData) => {
     if (data.id) {
       // Actualizar experiencia existente
+      const updatedExperience = data as Experience;
       setExperiences(
-        experiences.map((exp) => (exp.id === data.id ? data : exp))
+        experiences.map((exp) => (exp.id === data.id ? updatedExperience : exp))
       );
     } else {
       // Agregar nueva experiencia con ID único
-      setExperiences([...experiences, { ...data, id: Date.now().toString() }]);
+      const newExperience: Experience = { ...data, id: Date.now().toString() };
+      setExperiences([...experiences, newExperience]);
     }
 
     // Limpiar la experiencia seleccionada
-    setSelectedExperience(null);
+    setSelectedExperience(undefined);
   };
 
-  const handleSaveEducation = (data: any) => {
+  const handleSaveEducation = (data: EducationData) => {
     if (data.id) {
       // Actualizar educación existente
-      setEducation(education.map((edu) => (edu.id === data.id ? data : edu)));
+      const updatedEducation = data as Education;
+      setEducation(
+        education.map((edu) => (edu.id === data.id ? updatedEducation : edu))
+      );
     } else {
       // Agregar nueva educación con ID único
-      setEducation([...education, { ...data, id: Date.now().toString() }]);
+      const newEducation: Education = { ...data, id: Date.now().toString() };
+      setEducation([...education, newEducation]);
     }
 
     // Limpiar la educación seleccionada
-    setSelectedEducation(null);
+    setSelectedEducation(undefined);
   };
 
-  const handleEditExperience = (exp: any) => {
-    setSelectedExperience(exp);
-    setShowExperienceModal(true);
-  };
+  // const handleEditExperience = (exp: any) => {
+  //   setSelectedExperience(exp);
+  //   setShowExperienceModal(true);
+  // };
 
-  const handleEditEducation = (edu: any) => {
+  const handleEditEducation = (edu: EducationData) => {
     setSelectedEducation(edu);
     setShowEducationModal(true);
   };
 
   const handleCloseExperienceModal = () => {
     setShowExperienceModal(false);
-    setSelectedExperience(null);
+    setSelectedExperience(undefined);
   };
 
   const handleCloseEducationModal = () => {
     setShowEducationModal(false);
-    setSelectedEducation(null);
+    setSelectedEducation(undefined);
   };
 
   const handleSaveFormulario = () => {
@@ -322,7 +337,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSaveSkills = (newSkills: { id: string; nombre: string }[]) => {
+  const handleSaveSkills = (newSkills: Skill[]) => {
     setSkills(newSkills);
 
     // Actualizar el estado de la tarea como completada si hay skills

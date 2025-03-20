@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { X, Play, Pause } from "lucide-react";
+import { X, Play } from "lucide-react";
 import { useProfileContext } from "../context/ProfileContext";
 
 interface ViewVideoModalProps {

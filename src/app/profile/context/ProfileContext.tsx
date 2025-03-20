@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useEffect } from "react";
+import { createContext, ReactNode, useContext } from "react";
 
 interface DatosPersonales {
   nombre: string;
@@ -57,7 +57,7 @@ interface ProfileData {
   datosPersonales: DatosPersonales;
   requisitosDispositivo: RequisitosDispositivo;
   archivos: Archivos;
-  datosFormulario: any | null;
+  datosFormulario: string | null;
   habilidades: Habilidad[];
   educacion: Educacion[];
   experiencia: Experiencia[];

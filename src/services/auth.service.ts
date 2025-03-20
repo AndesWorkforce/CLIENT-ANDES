@@ -1,11 +1,8 @@
-import { useAuthStore, type User } from "@/store/auth.store";
+import { useAuthStore} from "@/store/auth.store";
 
 // Constantes para las cookies
 const AUTH_COOKIE = "auth_token";
 const USER_INFO_COOKIE = "user_info";
-
-// Duración de la cookie - 7 días en segundos
-const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
 // Funciones para el cliente
 export const clientAuthService = {

@@ -1,23 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Bold, Italic, List, AlignLeft } from "lucide-react";
 
 export default function OffersPage() {
-  const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-
-  // Estado para simular si el formulario está en modo edición
-  const [isEditing, setIsEditing] = useState(false);
-
-  // Simular cierre de sesión
-  const handleLogout = () => {
-    // Lógica para cerrar sesión
-    router.push("/admin/login");
-  };
 
   const handlePublish = () => {
     // Lógica para publicar oferta

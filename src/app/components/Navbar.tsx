@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useRef, useEffect, useState } from "react";
-import { useAuthStore } from "@/store/auth.store";
-import { logoutAction } from "@/app/auth/logout/actions/logout.action";
-import { User, LogOut, FileText, UserCircle, X, Info } from "lucide-react";
+// import { logoutAction } from "@/app/auth/logout/actions/logout.action";
+// import { User, LogOut, FileText, UserCircle, X, Info } from "lucide-react";
 import useRouteExclusion from "@/hooks/useRouteExclusion";
 
 const navigation = [
@@ -19,9 +18,7 @@ const navigation = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { isNavbarExcluded } = useRouteExclusion();
-  const { isAuthenticated, user, logout } = useAuthStore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftShadow, setShowLeftShadow] = useState<boolean>(false);
   const [showRightShadow, setShowRightShadow] = useState<boolean>(true);
@@ -29,7 +26,7 @@ export default function Navbar() {
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
-
+  console.log("showUserMenu", showUserMenu);
   // Manejar visibilidad de sombras al desplazarse
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -90,15 +87,15 @@ export default function Navbar() {
   }, [showMobileSidebar]);
 
   // Función para cerrar sesión
-  const handleLogout = async () => {
-    try {
-      await logoutAction();
-      logout();
-      router.push("/auth/login");
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     await logoutAction();
+  //     logout();
+  //     router.push("/auth/login");
+  //   } catch (error) {
+  //     console.error("Error al cerrar sesión:", error);
+  //   }
+  // };
 
   // Función para verificar si una ruta está activa
   const isActive = (itemHref: string) => {
@@ -110,55 +107,55 @@ export default function Navbar() {
   }
 
   // Renderizar el menú de usuario
-  const renderUserMenu = () => (
-    <>
-      <div className="px-4 py-3 border-b border-gray-100">
-        <p className="text-[#0097B2] font-medium text-sm">
-          {user?.nombre || ""} {user?.apellido || ""}
-        </p>
-      </div>
+  // const renderUserMenu = () => (
+  //   <>
+  //     <div className="px-4 py-3 border-b border-gray-100">
+  //       <p className="text-[#0097B2] font-medium text-sm">
+  //         {user?.nombre || ""} {user?.apellido || ""}
+  //       </p>
+  //     </div>
 
-      <Link
-        href="/profile"
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-        onClick={() => setShowUserMenu(false)}
-      >
-        <UserCircle size={16} className="mr-2 text-[#0097B2]" />
-        Mi perfil
-      </Link>
+  //     <Link
+  //       href="/profile"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <UserCircle size={16} className="mr-2 text-[#0097B2]" />
+  //       Mi perfil
+  //     </Link>
 
-      <Link
-        href="/applications"
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-        onClick={() => setShowUserMenu(false)}
-      >
-        <FileText size={16} className="mr-2 text-[#0097B2]" />
-        Mis postulaciones
-      </Link>
+  //     <Link
+  //       href="/applications"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <FileText size={16} className="mr-2 text-[#0097B2]" />
+  //       Mis postulaciones
+  //     </Link>
 
-      <Link
-        href="/account"
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-        onClick={() => setShowUserMenu(false)}
-      >
-        <User size={16} className="mr-2 text-[#0097B2]" />
-        Mi cuenta
-      </Link>
+  //     <Link
+  //       href="/account"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <User size={16} className="mr-2 text-[#0097B2]" />
+  //       Mi cuenta
+  //     </Link>
 
-      <hr className="my-1 border-gray-200" />
+  //     <hr className="my-1 border-gray-200" />
 
-      <button
-        onClick={() => {
-          handleLogout();
-          setShowUserMenu(false);
-        }}
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-      >
-        <LogOut size={16} className="mr-2 text-[#0097B2] cursor-pointer" />
-        Cerrar sesión
-      </button>
-    </>
-  );
+  //     <button
+  //       onClick={() => {
+  //         handleLogout();
+  //         setShowUserMenu(false);
+  //       }}
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+  //     >
+  //       <LogOut size={16} className="mr-2 text-[#0097B2] cursor-pointer" />
+  //       Cerrar sesión
+  //     </button>
+  //   </>
+  // );
 
   return (
     <header className="w-full bg-[#FCFEFF] shadow-sm z-10">

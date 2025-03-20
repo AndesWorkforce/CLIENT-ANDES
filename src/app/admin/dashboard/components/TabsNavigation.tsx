@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function TabsNavigation() {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const params = useParams();
   const pathname = usePathname();
   const [showLeftShadow, setShowLeftShadow] = useState(false);
   const [showRightShadow, setShowRightShadow] = useState(false);

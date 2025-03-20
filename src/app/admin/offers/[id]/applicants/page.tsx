@@ -15,6 +15,13 @@ interface Applicant {
   hasPhone: boolean;
 }
 
+// Tipo para representar una oferta
+interface Offer {
+  id: number;
+  title: string;
+  service: string;
+}
+
 // Datos de ejemplo
 const mockOffers = {
   1: {
@@ -142,7 +149,7 @@ export default function ApplicantsPage() {
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [applicants, setApplicants] = useState<Applicant[]>([]);
-  const [offer, setOffer] = useState<any>(null);
+  const [offer, setOffer] = useState<Offer | null>(null);
 
   // Cargar datos del backend (simulado)
   useEffect(() => {
@@ -175,8 +182,8 @@ export default function ApplicantsPage() {
     .sort((a, b) => {
       if (!sortField) return 0;
 
-      let aValue = a[sortField as keyof Applicant];
-      let bValue = b[sortField as keyof Applicant];
+      const aValue = a[sortField as keyof Applicant];
+      const bValue = b[sortField as keyof Applicant];
 
       if (typeof aValue === "string") {
         if (sortDirection === "asc") {

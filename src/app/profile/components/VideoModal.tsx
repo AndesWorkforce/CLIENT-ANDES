@@ -28,7 +28,7 @@ export default function VideoModal({
     profile.archivos.videoPresentacion
   );
   const [error, setError] = useState<string | null>(null);
-
+  console.log("uploadUrl", uploadUrl);
   // 100MB en bytes
   const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
@@ -120,7 +120,7 @@ export default function VideoModal({
         };
 
         xhr.send(file);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Error subiendo a Cloudflare:", err);
         setUploadState("error");
         reject(new Error("Error al subir el video a Cloudflare"));
@@ -136,8 +136,13 @@ export default function VideoModal({
       const uploadUrl = await generateUploadUrl(selectedFile.name);
       setUploadUrl(uploadUrl);
       await uploadToCloudflare(uploadUrl, selectedFile);
-    } catch (err: any) {
-      setError(err.message || "Error durante la carga");
+    } catch (err) {
+      console.log("err", err);
+      if (err instanceof Error) {
+        setError(err.message || "Error durante la carga");
+      } else {
+        setError("Error desconocido durante la carga");
+      }
       setUploadState("error");
     }
   };
@@ -368,9 +373,9 @@ export default function VideoModal({
               <div className="p-4 space-y-4">
                 <p className="text-gray-700 text-sm">
                   Thank you for taking the time to apply with us, we hope that
-                  you'll become part of our growing team very soon. As part of
-                  our recruitment process, we recommend that you record a 1 to
-                  2-minute video introducing yourself. We recommend using
+                  you&apos;ll become part of our growing team very soon. As part
+                  of our recruitment process, we recommend that you record a 1
+                  to 2-minute video introducing yourself. We recommend using
                   www.loom.com, but it is not required.
                 </p>
 
@@ -440,8 +445,8 @@ export default function VideoModal({
                   info@andes-workforce.com and mention@teamandes.com
                 </p>
                 <p className="text-gray-700 text-sm">
-                  Subject line: "Your Name" Introductory Video DON'T FORGET TO
-                  INCLUDE THE LINK
+                  Subject line: &quot;Your Name&quot; Introductory Video
+                  DON&apos;T FORGET TO INCLUDE THE LINK
                 </p>
 
                 <div className="pt-4">

@@ -18,7 +18,7 @@ interface Application {
 
 export default function ApplicationsPage() {
   // Lista de postulaciones de ejemplo
-  const [applications, setApplications] = useState<Application[]>([
+  const [applications] = useState<Application[]>([
     {
       id: 1,
       title: "Asistente administrativo",

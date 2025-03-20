@@ -11,8 +11,8 @@ export async function logoutAction() {
     // Eliminar cookies de autenticación
     const cookieStore = cookies();
 
-    cookieStore.delete(AUTH_COOKIE);
-    cookieStore.delete(USER_INFO_COOKIE);
+    (await cookieStore).delete(AUTH_COOKIE);
+    (await cookieStore).delete(USER_INFO_COOKIE);
 
     return { success: true };
   } catch (error) {

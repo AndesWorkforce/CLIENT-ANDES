@@ -3,20 +3,22 @@
 import { useRef, useState } from "react";
 import { X } from "lucide-react";
 
+interface EducationData {
+  id?: string;
+  institution: string;
+  degree: string;
+  field: string;
+  startDate: string;
+  endDate: string;
+  currentlyStudying: boolean;
+  description: string;
+}
+
 interface EducationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
-  educationData?: {
-    id?: string;
-    institution: string;
-    degree: string;
-    field: string;
-    startDate: string;
-    endDate: string;
-    currentlyStudying: boolean;
-    description: string;
-  };
+  onSave: (data: EducationData) => void;
+  educationData?: EducationData;
 }
 
 export default function EducationModal({
@@ -43,16 +45,16 @@ export default function EducationModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    const data: any = {
-      institution: formData.get("institution"),
-      degree: formData.get("degree"),
-      field: formData.get("field"),
+    const data: EducationData = {
+      institution: formData.get("institution") as string,
+      degree: formData.get("degree") as string,
+      field: formData.get("field") as string,
       startDate: `${formData.get("startMonth")} ${formData.get("startYear")}`,
       endDate: atPresente
         ? "Presente"
         : `${formData.get("endMonth")} ${formData.get("endYear")}`,
       currentlyStudying: atPresente,
-      description: formData.get("description"),
+      description: formData.get("description") as string,
     };
 
     // Añadir ID si estamos editando

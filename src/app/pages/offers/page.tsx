@@ -5,13 +5,8 @@ import { jobs, Job } from "./data/mockData";
 import FilterModal from "./components/FilterModal";
 import JobDetailModal from "./components/JobDetailModal";
 
-interface Filters {
-  department: string;
-  date: string;
-  seniority: string;
-  location: string;
-  modality: string;
-}
+// Importar el tipo FilterValues de FilterModal para reutilizarlo
+import type { FilterValues } from "./components/FilterModal";
 
 export default function JobOffersPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(
@@ -31,7 +26,7 @@ export default function JobOffersPage() {
     setSelectedJob(job);
   };
 
-  const handleApplyFilters = (filterData: any) => {
+  const handleApplyFilters = (filterData: FilterValues) => {
     // Aquí implementaríamos la lógica de filtrado con los nuevos chips
     // Por ahora, simplemente mantenemos la lista original
     console.log("Filtros aplicados:", filterData);

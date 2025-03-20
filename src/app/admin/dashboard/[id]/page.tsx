@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Phone, Mail, FileText, Play } from "lucide-react";
+import { Phone, Mail, FileText, Play } from "lucide-react";
 
 interface Skill {
   name: string;
@@ -46,7 +46,7 @@ export default function ApplicantProfilePage() {
   const [activeTab, setActiveTab] = useState<"experience" | "education">(
     "experience"
   );
-  const [profile, setProfile] = useState<ApplicantProfile>({
+  const [profile] = useState<ApplicantProfile>({
     id,
     name: "Mariana Lopez",
     email: "marianalopez@gmail.com",
