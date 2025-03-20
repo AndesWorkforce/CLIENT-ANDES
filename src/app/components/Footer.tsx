@@ -6,6 +6,7 @@ import { Facebook, Instagram, Linkedin } from "lucide-react";
 import useRouteExclusion from "@/hooks/useRouteExclusion";
 
 const navigation = [
+  { name: "Home", href: "/pages/home" },
   // { name: "Offers", href: "/pages/offers" },
   { name: "Services", href: "/pages/services" },
   { name: "About", href: "/pages/about" },
