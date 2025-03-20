@@ -31,7 +31,7 @@ export async function loginAction(values: LoginFormValues) {
       // Establecer cookie para el token (HTTP-only para seguridad)
       const cookieStore = cookies();
 
-      cookieStore.set({
+      (await cookieStore).set({
         name: AUTH_COOKIE,
         value: token,
         httpOnly: true,
@@ -42,7 +42,7 @@ export async function loginAction(values: LoginFormValues) {
       });
 
       // Establecer cookie con información del usuario (no HTTP-only para que el cliente pueda leerla)
-      cookieStore.set({
+      (await cookieStore).set({
         name: USER_INFO_COOKIE,
         value: JSON.stringify(userData),
         httpOnly: false,
