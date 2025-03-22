@@ -1,6 +1,6 @@
 interface DumpProps {
   className?: string;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent) => void;
 }
 
 export default function Dump({ className, onClick }: DumpProps) {

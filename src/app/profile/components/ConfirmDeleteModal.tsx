@@ -1,0 +1,71 @@
+"use client";
+
+import { useRef } from "react";
+import { X } from "lucide-react";
+
+interface ConfirmDeleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+}
+
+export default function ConfirmDeleteModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+}: ConfirmDeleteModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (e: React.MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4"
+      onClick={handleClickOutside}
+    >
+      <div
+        ref={modalRef}
+        className="bg-white w-full max-w-md rounded-lg shadow-lg overflow-hidden"
+      >
+        <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200">
+          <div className="w-6" />
+          <h2 className="text-lg font-medium text-center text-red-500">
+            {title}
+          </h2>
+          <button onClick={onClose} className="text-gray-400 cursor-pointer">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="p-6">
+          <p className="text-gray-700 text-center">{message}</p>
+
+          <div className="mt-6 flex flex-col space-y-2">
+            <button
+              onClick={onConfirm}
+              className="w-full py-2.5 px-6 rounded-md font-medium bg-red-500 hover:bg-red-600 text-white cursor-pointer"
+            >
+              Yes, Delete All
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full py-2.5 px-6 rounded-md font-medium border border-gray-300 hover:bg-gray-50 text-gray-700 cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

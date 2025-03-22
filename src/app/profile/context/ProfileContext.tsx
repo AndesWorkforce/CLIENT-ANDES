@@ -23,6 +23,8 @@ interface Archivos {
   videoPresentacion: string | null;
   curriculum: string | null;
   documentosAdicionales: string[];
+  imagenTestVelocidad?: string;
+  imagenRequerimientosPC?: string;
 }
 
 interface Habilidad {
@@ -39,6 +41,7 @@ interface Educacion {
   añoInicio: string;
   añoFin: string;
   usuarioId: string;
+  esActual?: boolean;
 }
 
 interface Experiencia {
@@ -47,7 +50,8 @@ interface Experiencia {
   cargo: string;
   descripcion: string;
   fechaInicio: string;
-  fechaFin: string;
+  fechaFin?: string | null;
+  esActual?: boolean;
   usuarioId: string;
 }
 
@@ -62,6 +66,7 @@ interface ProfileData {
   educacion: Educacion[];
   experiencia: Experiencia[];
   estadoPerfil: EstadoPerfil;
+  validacionExterna: boolean;
 }
 
 interface ProfileContextType {
@@ -84,11 +89,18 @@ export function useProfileContext() {
 
 export function ProfileContextProvider({
   children,
-  value,
+  initialValue,
 }: {
   children: ReactNode;
-  value: ProfileContextType;
+  initialValue: { profile: ProfileData };
 }) {
+  // Ya no necesitamos estado local ni funciones de actualización
+  // El server component manejará todo con la revalidación
+
+  const value = {
+    profile: initialValue.profile,
+  };
+
   return (
     <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
   );

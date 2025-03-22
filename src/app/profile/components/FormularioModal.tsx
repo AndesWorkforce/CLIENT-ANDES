@@ -1,22 +1,105 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { guardarDatosFormulario } from "../actions/formulario.actions";
+import { useAuthStore } from "@/store/auth.store";
 
 interface FormularioModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;
+  datosFormulario?: Record<string, any> | null;
+  readOnly?: boolean;
 }
 
 export default function FormularioModal({
   isOpen,
   onClose,
-  onSave,
+  datosFormulario = null,
+  readOnly = false,
 }: FormularioModalProps) {
+  const { user } = useAuthStore();
   const modalRef = useRef<HTMLDivElement>(null);
   const [computerType, setComputerType] = useState<string>("");
   const [otherComputerText, setOtherComputerText] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [wiredConnection, setWiredConnection] = useState<string>("");
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  // Campos del formulario
+  const [formData, setFormData] = useState<Record<string, any>>({});
+
+  // Validar si todos los campos requeridos tienen valor
+  const validateForm = () => {
+    // Lista de preguntas requeridas (todas las del formulario)
+    const requiredQuestions = [
+      "What is your preferred first and last name?",
+      "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
+      "What phone number do you use for WhatsApp?",
+      "In what city and country do you reside?",
+      "What type of computer do you use?",
+      "What Internet provider do you use?",
+      "What is the URL for their website?",
+      "Do you use a wired internet connection?",
+      "Please run a speed test on your computer: what is the current upload speed?",
+      "Please run a speed test on your computer: what is the current download speed?",
+      "How much RAM is available on your computer?",
+      "How many monitors do you currently have/use for work?",
+      "What type of headset do you currently have? How does it connect with your computer?",
+      "What type of headset do you currently want? How does it connect with your computer?",
+      "What makes you the best candidate for this position?",
+      "What 3 words best describe you and why?",
+      "Please write a few sentences about any previous experience you have had with making and/or taking calls.",
+      "On a scale of 1-10, how comfortable are you with making calls with native English speakers? Please explain your rating.",
+    ];
+
+    // Verificar que todos los campos tengan valor
+    const allFieldsValid = requiredQuestions.every((question) => {
+      // Casos especiales
+      if (question === "What type of computer do you use?") {
+        return (
+          computerType !== "" &&
+          (computerType !== "other" || otherComputerText.trim() !== "")
+        );
+      }
+      if (question === "Do you use a wired internet connection?") {
+        return wiredConnection !== "";
+      }
+
+      // Resto de campos
+      return formData[question] && formData[question].trim() !== "";
+    });
+
+    setIsFormValid(allFieldsValid);
+  };
+
+  // Cargar datos previos si existen
+  useEffect(() => {
+    if (datosFormulario) {
+      setFormData(datosFormulario);
+
+      // Establecer valores específicos para campos con lógica adicional
+      if (datosFormulario["What type of computer do you use?"]) {
+        const computerValue =
+          datosFormulario["What type of computer do you use?"];
+        if (computerValue.startsWith("Other:")) {
+          setComputerType("other");
+          setOtherComputerText(computerValue.replace("Other:", "").trim());
+        } else {
+          setComputerType(computerValue);
+        }
+      }
+
+      if (datosFormulario["Do you use a wired internet connection?"]) {
+        setWiredConnection(
+          datosFormulario["Do you use a wired internet connection?"]
+        );
+      }
+    }
+
+    // Validar el formulario después de cargar datos
+    setTimeout(validateForm, 0);
+  }, [datosFormulario]);
 
   const handleClickOutside = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -24,12 +107,88 @@ export default function FormularioModal({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleInputChange = (question: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [question]: value,
+    }));
+
+    // Validar el formulario después de cada cambio
+    setTimeout(validateForm, 0);
+  };
+
+  // Actualizar validación cuando cambia el tipo de computadora
+  useEffect(() => {
+    validateForm();
+  }, [computerType, otherComputerText, wiredConnection]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Si el tipo de computadora es "other", incluir el texto en los datos del formulario
-    // Aquí podríamos agregar lógica para capturar todos los datos del formulario
-    onSave();
-    onClose();
+
+    if (readOnly) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // Preparar datos completos
+      const formFields = e.target as HTMLFormElement;
+      const completeFormData: Record<string, any> = {};
+
+      // Capturar todos los campos de texto, email, tel, url, number y textarea
+      const inputElements = formFields.querySelectorAll(
+        'input:not([type="radio"]), textarea'
+      );
+      inputElements.forEach((el: Element) => {
+        const element = el as HTMLInputElement | HTMLTextAreaElement;
+        const labelElement = element
+          .closest("div.space-y-2")
+          ?.querySelector("label");
+
+        if (labelElement) {
+          const question =
+            labelElement.textContent?.replace(/\*$/, "").trim() || "";
+          if (question && element.value) {
+            completeFormData[question] = element.value;
+          }
+        }
+      });
+
+      // Capturar el tipo de computadora
+      if (computerType) {
+        const question = "What type of computer do you use?";
+        completeFormData[question] =
+          computerType === "other"
+            ? `Other: ${otherComputerText}`
+            : computerType;
+      }
+
+      // Capturar la conexión por cable
+      if (wiredConnection) {
+        completeFormData["Do you use a wired internet connection?"] =
+          wiredConnection;
+      }
+
+      // Llamar a la acción del servidor
+      const result = await guardarDatosFormulario(
+        user?.id || "",
+        completeFormData
+      );
+      if (result.success) {
+        // Llamar a onSave para actualizar la UI
+        onClose();
+      } else {
+        throw new Error(
+          result.error || "Error desconocido al guardar el formulario"
+        );
+      }
+    } catch (error) {
+      console.error("Error al guardar el formulario:", error);
+      alert(
+        "Ocurrió un error al guardar el formulario. Por favor, intenta de nuevo."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -60,6 +219,16 @@ export default function FormularioModal({
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
+              disabled={readOnly}
+              value={
+                formData["What is your preferred first and last name?"] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "What is your preferred first and last name?",
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -74,6 +243,18 @@ export default function FormularioModal({
               type="email"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
+              disabled={readOnly}
+              value={
+                formData[
+                  "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)"
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -86,6 +267,16 @@ export default function FormularioModal({
               type="tel"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
+              disabled={readOnly}
+              value={
+                formData["What phone number do you use for WhatsApp?"] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "What phone number do you use for WhatsApp?",
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -98,6 +289,14 @@ export default function FormularioModal({
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
+              disabled={readOnly}
+              value={formData["In what city and country do you reside?"] || ""}
+              onChange={(e) =>
+                handleInputChange(
+                  "In what city and country do you reside?",
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -117,6 +316,7 @@ export default function FormularioModal({
                   value="pc-laptop"
                   onChange={() => setComputerType("pc-laptop")}
                   checked={computerType === "pc-laptop"}
+                  disabled={readOnly}
                 />
                 <label htmlFor="pc-laptop">PC Laptop</label>
               </div>
@@ -129,6 +329,7 @@ export default function FormularioModal({
                   value="pc-desktop"
                   onChange={() => setComputerType("pc-desktop")}
                   checked={computerType === "pc-desktop"}
+                  disabled={readOnly}
                 />
                 <label htmlFor="pc-desktop">PC Desktop</label>
               </div>
@@ -141,6 +342,7 @@ export default function FormularioModal({
                   value="mac-laptop"
                   onChange={() => setComputerType("mac-laptop")}
                   checked={computerType === "mac-laptop"}
+                  disabled={readOnly}
                 />
                 <label htmlFor="mac-laptop">Mac Laptop</label>
               </div>
@@ -153,6 +355,7 @@ export default function FormularioModal({
                   value="mac-desktop"
                   onChange={() => setComputerType("mac-desktop")}
                   checked={computerType === "mac-desktop"}
+                  disabled={readOnly}
                 />
                 <label htmlFor="mac-desktop">Mac Desktop</label>
               </div>
@@ -165,12 +368,13 @@ export default function FormularioModal({
                   value="other"
                   onChange={() => setComputerType("other")}
                   checked={computerType === "other"}
+                  disabled={readOnly}
                 />
                 <label htmlFor="other-computer">Other:</label>
                 <input
                   type="text"
                   className="ml-2 p-1 border-b border-gray-300 focus:outline-none focus:border-blue-500"
-                  disabled={computerType !== "other"}
+                  disabled={computerType !== "other" || readOnly}
                   value={otherComputerText}
                   onChange={(e) => setOtherComputerText(e.target.value)}
                 />
@@ -187,6 +391,14 @@ export default function FormularioModal({
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
+              disabled={readOnly}
+              value={formData["What Internet provider do you use?"] || ""}
+              onChange={(e) =>
+                handleInputChange(
+                  "What Internet provider do you use?",
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -199,6 +411,14 @@ export default function FormularioModal({
               type="url"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
+              disabled={readOnly}
+              value={formData["What is the URL for their website?"] || ""}
+              onChange={(e) =>
+                handleInputChange(
+                  "What is the URL for their website?",
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -215,6 +435,10 @@ export default function FormularioModal({
                   name="wired-connection"
                   className="mr-2"
                   required
+                  value="Yes"
+                  checked={wiredConnection === "Yes"}
+                  onChange={() => setWiredConnection("Yes")}
+                  disabled={readOnly}
                 />
                 <label htmlFor="yes-wired">Yes</label>
               </div>
@@ -224,6 +448,10 @@ export default function FormularioModal({
                   id="no-wired"
                   name="wired-connection"
                   className="mr-2"
+                  value="No"
+                  checked={wiredConnection === "No"}
+                  onChange={() => setWiredConnection("No")}
+                  disabled={readOnly}
                 />
                 <label htmlFor="no-wired">No</label>
               </div>
@@ -233,6 +461,10 @@ export default function FormularioModal({
                   id="sometimes-wired"
                   name="wired-connection"
                   className="mr-2"
+                  value="Sometimes"
+                  checked={wiredConnection === "Sometimes"}
+                  onChange={() => setWiredConnection("Sometimes")}
+                  disabled={readOnly}
                 />
                 <label htmlFor="sometimes-wired">Sometimes</label>
               </div>
@@ -249,6 +481,18 @@ export default function FormularioModal({
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
+              disabled={readOnly}
+              value={
+                formData[
+                  "Please run a speed test on your computer: what is the current upload speed?"
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "Please run a speed test on your computer: what is the current upload speed?",
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -262,6 +506,18 @@ export default function FormularioModal({
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
+              disabled={readOnly}
+              value={
+                formData[
+                  "Please run a speed test on your computer: what is the current download speed?"
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "Please run a speed test on your computer: what is the current download speed?",
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -274,6 +530,16 @@ export default function FormularioModal({
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
+              disabled={readOnly}
+              value={
+                formData["How much RAM is available on your computer?"] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "How much RAM is available on your computer?",
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -286,6 +552,18 @@ export default function FormularioModal({
               type="number"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
+              disabled={readOnly}
+              value={
+                formData[
+                  "How many monitors do you currently have/use for work?"
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "How many monitors do you currently have/use for work?",
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -299,6 +577,18 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               rows={2}
               required
+              disabled={readOnly}
+              value={
+                formData[
+                  "What type of headset do you currently have? How does it connect with your computer?"
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "What type of headset do you currently have? How does it connect with your computer?",
+                  e.target.value
+                )
+              }
             ></textarea>
           </div>
 
@@ -312,6 +602,18 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               rows={2}
               required
+              disabled={readOnly}
+              value={
+                formData[
+                  "What type of headset do you currently want? How does it connect with your computer?"
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "What type of headset do you currently want? How does it connect with your computer?",
+                  e.target.value
+                )
+              }
             ></textarea>
           </div>
 
@@ -324,6 +626,18 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               rows={3}
               required
+              disabled={readOnly}
+              value={
+                formData[
+                  "What makes you the best candidate for this position?"
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "What makes you the best candidate for this position?",
+                  e.target.value
+                )
+              }
             ></textarea>
           </div>
 
@@ -336,6 +650,14 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               rows={3}
               required
+              disabled={readOnly}
+              value={formData["What 3 words best describe you and why?"] || ""}
+              onChange={(e) =>
+                handleInputChange(
+                  "What 3 words best describe you and why?",
+                  e.target.value
+                )
+              }
             ></textarea>
           </div>
 
@@ -349,6 +671,18 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               rows={3}
               required
+              disabled={readOnly}
+              value={
+                formData[
+                  "Please write a few sentences about any previous experience you have had with making and/or taking calls."
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "Please write a few sentences about any previous experience you have had with making and/or taking calls.",
+                  e.target.value
+                )
+              }
             ></textarea>
           </div>
 
@@ -362,24 +696,63 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               rows={3}
               required
+              disabled={readOnly}
+              value={
+                formData[
+                  "On a scale of 1-10, how comfortable are you with making calls with native English speakers? Please explain your rating."
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "On a scale of 1-10, how comfortable are you with making calls with native English speakers? Please explain your rating.",
+                  e.target.value
+                )
+              }
             ></textarea>
           </div>
 
-          <div className="pt-4 flex flex-col items-center space-y-3">
-            <button
-              type="submit"
-              className="w-full bg-gray-300 text-gray-700 py-3 px-6 rounded-md hover:bg-gray-400 transition-colors font-medium cursor-pointer"
-            >
-              Guardar
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-[#0097B2] py-2 hover:underline cursor-pointer"
-            >
-              Cancelar
-            </button>
-          </div>
+          {!readOnly && (
+            <div className="pt-4 flex flex-col items-center space-y-3">
+              <button
+                type="submit"
+                disabled={!isFormValid || isSubmitting}
+                className={`w-full py-3 px-6 rounded-md transition-colors font-medium cursor-pointer ${
+                  !isFormValid || isSubmitting
+                    ? "bg-gray-300 text-gray-700 opacity-70"
+                    : "bg-[#0097B2] text-white hover:bg-[#007d91]"
+                }`}
+              >
+                {isSubmitting ? "Guardando..." : "Guardar"}
+              </button>
+
+              {!isFormValid && (
+                <p className="text-sm text-amber-600 text-center">
+                  Por favor completa todos los campos requeridos para habilitar
+                  el botón de guardar
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-[#0097B2] py-2 hover:underline cursor-pointer"
+              >
+                Cancelar
+              </button>
+            </div>
+          )}
+
+          {readOnly && (
+            <div className="pt-4 flex flex-col items-center">
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-[#0097B2] py-2 hover:underline cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

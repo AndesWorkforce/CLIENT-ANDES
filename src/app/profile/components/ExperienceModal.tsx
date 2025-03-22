@@ -1,62 +1,39 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { X } from "lucide-react";
-import { ExperienceData } from "@/app/types/experience-data";
+import { Experience } from "../actions/experience.actions";
+import { useAuthStore } from "@/store/auth.store";
 
 interface ExperienceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: ExperienceData) => void;
-  experienceData?: ExperienceData;
+  onSave: (userId: string, data: Experience) => void;
+  experienceData?: Experience;
 }
 
 export default function ExperienceModal({
   isOpen,
   onClose,
-  onSave,
   experienceData,
+  onSave,
 }: ExperienceModalProps) {
+  const { user } = useAuthStore();
   const modalRef = useRef<HTMLDivElement>(null);
-  const [atPresent, setAtPresent] = useState(
-    experienceData?.currentlyWorking || false
-  );
-
-  const handleClickOutside = (e: React.MouseEvent) => {
-    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
-
-  if (!isOpen) return null;
-
-  const isEditing = !!experienceData?.id;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const data: ExperienceData = {
-      position: formData.get("position") as string,
-      company: formData.get("company") as string,
-      startDate: `${formData.get("startMonth")} ${formData.get("startYear")}`,
-      endDate: atPresent
-        ? "Presente"
-        : `${formData.get("endMonth")} ${formData.get("endYear")}`,
-      currentlyWorking: atPresent,
-      description: formData.get("description") as string,
-    };
-
-    // Añadir ID si estamos editando
-    if (isEditing && experienceData?.id) {
-      data.id = experienceData.id;
-    }
-
-    onSave(data);
-    onClose();
-  };
+  const [atPresent, setAtPresent] = useState(experienceData?.esActual || false);
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [formValues, setFormValues] = useState({
+    cargo: "",
+    empresa: "",
+    startMonth: "",
+    startYear: "",
+    endMonth: "",
+    endYear: "",
+    descripcion: "",
+  });
 
   // Extraer mes y año de las fechas (si existen)
-  const parseDate = (dateStr?: string) => {
+  const parseDate = (dateStr?: string | null) => {
     if (!dateStr || dateStr === "Presente") return { month: "", year: "" };
     const parts = dateStr.split(" ");
     return {
@@ -65,8 +42,109 @@ export default function ExperienceModal({
     };
   };
 
-  const startDate = parseDate(experienceData?.startDate);
-  const endDate = parseDate(experienceData?.endDate);
+  // Limpiar el formulario
+  const resetForm = () => {
+    setFormValues({
+      cargo: "",
+      empresa: "",
+      startMonth: "",
+      startYear: "",
+      endMonth: "",
+      endYear: "",
+      descripcion: "",
+    });
+    setAtPresent(false);
+  };
+
+  // Inicializar valores cuando cambia experienceData o el modal se abre/cierra
+  useEffect(() => {
+    if (experienceData) {
+      console.log("Actualizando formulario con datos:", experienceData);
+
+      const startDate = parseDate(experienceData.fechaInicio);
+      const endDate = parseDate(experienceData.fechaFin);
+
+      setFormValues({
+        cargo: experienceData.cargo || "",
+        empresa: experienceData.empresa || "",
+        startMonth: startDate.month,
+        startYear: startDate.year,
+        endMonth: endDate.month,
+        endYear: endDate.year,
+        descripcion: experienceData.descripcion || "",
+      });
+
+      setAtPresent(experienceData.esActual || false);
+    } else if (isOpen) {
+      // Si el modal se abre y no hay experienceData, resetear el formulario
+      resetForm();
+    }
+  }, [experienceData, isOpen]);
+
+  // Validar formulario
+  useEffect(() => {
+    const validateForm = () => {
+      // Validar campos requeridos
+      const cargoValid = !!formValues.cargo.trim();
+      const empresaValid = !!formValues.empresa.trim();
+      const startDateValid = !!formValues.startMonth && !!formValues.startYear;
+      const descripcionValid = !!formValues.descripcion.trim();
+
+      // Validar fecha de finalización (o al presente)
+      const endDateValid =
+        atPresent || (!!formValues.endMonth && !!formValues.endYear);
+
+      return (
+        cargoValid &&
+        empresaValid &&
+        startDateValid &&
+        descripcionValid &&
+        endDateValid
+      );
+    };
+
+    setIsFormValid(validateForm());
+  }, [formValues, atPresent]);
+
+  const handleClickOutside = (e: React.MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormValues((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const data: Experience = {
+      id: experienceData?.id,
+      cargo: formData.get("cargo") as string,
+      empresa: formData.get("empresa") as string,
+      fechaInicio: `${formData.get("startMonth")} ${formData.get("startYear")}`,
+      fechaFin: atPresent
+        ? null
+        : `${formData.get("endMonth")} ${formData.get("endYear")}`,
+      esActual: atPresent,
+      descripcion: formData.get("descripcion") as string,
+    };
+
+    onSave(user?.id || "", data);
+    resetForm(); // Limpiar formulario al guardar
+    onClose();
+  };
 
   return (
     <div
@@ -94,16 +172,17 @@ export default function ExperienceModal({
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label
-              htmlFor="position"
+              htmlFor="cargo"
               className="block text-sm text-[#6D6D6D] mb-1"
             >
               Puesto<span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="position"
-              name="position"
-              defaultValue={experienceData?.position || ""}
+              id="cargo"
+              name="cargo"
+              value={formValues.cargo}
+              onChange={handleInputChange}
               placeholder="Ingresa el nombre del puesto"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
@@ -112,16 +191,17 @@ export default function ExperienceModal({
 
           <div>
             <label
-              htmlFor="company"
+              htmlFor="empresa"
               className="block text-sm text-[#6D6D6D] mb-1"
             >
               Empresa<span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="company"
-              name="company"
-              defaultValue={experienceData?.company || ""}
+              id="empresa"
+              name="empresa"
+              value={formValues.empresa}
+              onChange={handleInputChange}
               placeholder="Ingresa el nombre de la empresa"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
@@ -135,7 +215,8 @@ export default function ExperienceModal({
             <div className="flex space-x-2">
               <select
                 name="startMonth"
-                defaultValue={startDate.month}
+                value={formValues.startMonth}
+                onChange={handleInputChange}
                 className="w-1/2 p-2 border border-gray-300 rounded-md text-[#6D6D6D] appearance-none"
                 style={{
                   backgroundImage:
@@ -163,7 +244,8 @@ export default function ExperienceModal({
               </select>
               <select
                 name="startYear"
-                defaultValue={startDate.year}
+                value={formValues.startYear}
+                onChange={handleInputChange}
                 className="w-1/2 p-2 border border-gray-300 rounded-md text-[#6D6D6D] appearance-none"
                 style={{
                   backgroundImage:
@@ -180,7 +262,7 @@ export default function ExperienceModal({
                   { length: 50 },
                   (_, i) => new Date().getFullYear() - i
                 ).map((year) => (
-                  <option key={year} value={year}>
+                  <option key={year} value={year.toString()}>
                     {year}
                   </option>
                 ))}
@@ -195,8 +277,11 @@ export default function ExperienceModal({
             <div className="flex space-x-2">
               <select
                 name="endMonth"
-                defaultValue={endDate.month}
-                className="w-1/2 p-2 border border-gray-300 rounded-md text-[#6D6D6D] appearance-none"
+                value={formValues.endMonth}
+                onChange={handleInputChange}
+                className={`w-1/2 p-2 border border-gray-300 rounded-md text-[#6D6D6D] appearance-none ${
+                  atPresent ? "cursor-not-allowed bg-gray-100" : ""
+                }`}
                 style={{
                   backgroundImage:
                     "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%230097B2' strokeLinecap='round' strokeLinejoin='round' strokeWidth='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")",
@@ -224,8 +309,11 @@ export default function ExperienceModal({
               </select>
               <select
                 name="endYear"
-                defaultValue={endDate.year}
-                className="w-1/2 p-2 border border-gray-300 rounded-md text-[#6D6D6D] appearance-none"
+                value={formValues.endYear}
+                onChange={handleInputChange}
+                className={`w-1/2 p-2 border border-gray-300 rounded-md text-[#6D6D6D] appearance-none ${
+                  atPresent ? "cursor-not-allowed bg-gray-100" : ""
+                }`}
                 style={{
                   backgroundImage:
                     "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%230097B2' strokeLinecap='round' strokeLinejoin='round' strokeWidth='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")",
@@ -242,7 +330,7 @@ export default function ExperienceModal({
                   { length: 50 },
                   (_, i) => new Date().getFullYear() - i
                 ).map((year) => (
-                  <option key={year} value={year}>
+                  <option key={year} value={year.toString()}>
                     {year}
                   </option>
                 ))}
@@ -253,7 +341,17 @@ export default function ExperienceModal({
                 type="checkbox"
                 id="atPresent"
                 checked={atPresent}
-                onChange={() => setAtPresent(!atPresent)}
+                onChange={(e) => {
+                  setAtPresent(e.target.checked);
+                  if (e.target.checked) {
+                    // Limpiar los campos de fecha de finalización
+                    setFormValues((prev) => ({
+                      ...prev,
+                      endMonth: "",
+                      endYear: "",
+                    }));
+                  }
+                }}
                 className="h-4 w-4 text-[#0097B2] rounded focus:ring-[#0097B2]"
               />
               <label
@@ -267,28 +365,40 @@ export default function ExperienceModal({
 
           <div>
             <label
-              htmlFor="description"
+              htmlFor="descripcion"
               className="block text-sm text-[#6D6D6D] mb-1"
             >
               Descripción del puesto<span className="text-red-500">*</span>
             </label>
             <textarea
-              id="description"
-              name="description"
-              defaultValue={experienceData?.description || ""}
+              id="descripcion"
+              name="descripcion"
+              value={formValues.descripcion}
+              onChange={handleInputChange}
               placeholder="Escribe cuáles son tus tareas"
               rows={4}
               className="w-full p-2 border border-gray-300 rounded-md"
+              required
             ></textarea>
           </div>
 
           <div className="mt-6 space-y-2">
             <button
               type="submit"
-              className="w-full py-2 px-4 bg-[#B6B4B4] text-[#6D6D6D] font-medium rounded-md"
+              disabled={!isFormValid}
+              className={`w-full py-2 px-4 font-medium rounded-md transition-colors cursor-pointer ${
+                isFormValid
+                  ? "bg-[#0097B2] hover:bg-[#0097B2]/80 text-white"
+                  : "bg-gray-300 text-gray-600 cursor-not-allowed"
+              }`}
             >
               Guardar
             </button>
+            {!isFormValid && (
+              <p className="text-amber-600 text-sm text-center">
+                Por favor completa todos los campos requeridos
+              </p>
+            )}
             <button
               type="button"
               onClick={onClose}

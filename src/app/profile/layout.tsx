@@ -9,6 +9,8 @@ export default async function ProfileLayout({
   const cookieStore = await cookies();
   const { id } = JSON.parse(cookieStore.get("user_info")?.value || "{}");
   const token = cookieStore.get("auth_token")?.value;
+
+  // Fetch profile data - this will be automatically revalidated when needed
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}usuarios/${id}/perfil-completo`,
     {
@@ -17,17 +19,15 @@ export default async function ProfileLayout({
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
+      cache: "no-store",
     }
   );
-  const profile = await response.json();
 
-  console.log(id);
-  console.log(token);
-  console.log(profile);
+  const profile = await response.json();
 
   return (
     <main className="bg-white">
-      <ProfileContextProvider value={{ profile: profile.data }}>
+      <ProfileContextProvider initialValue={{ profile: profile.data }}>
         {children}
       </ProfileContextProvider>
     </main>

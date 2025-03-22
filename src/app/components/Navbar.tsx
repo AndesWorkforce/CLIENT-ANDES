@@ -1,16 +1,19 @@
 "use client";
 
+import { logoutAction } from "@/app/auth/logout/actions/logout.action";
+import { useAuthStore } from "@/store/auth.store";
+import { usePathname, useRouter } from "next/navigation";
+import { User, LogOut, FileText, UserCircle, X, Info } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
-import { usePathname } from "next/navigation";
-import { useRef, useEffect, useState } from "react";
-// import { logoutAction } from "@/app/auth/logout/actions/logout.action";
-// import { User, LogOut, FileText, UserCircle, X, Info } from "lucide-react";
 import useRouteExclusion from "@/hooks/useRouteExclusion";
+import useOutsideClick from "@/hooks/useOutsideClick";
+import useScrollShadow from "@/hooks/useScrollShadow";
 
 const navigation = [
   { name: "Home", href: "/pages/home" },
-  // { name: "Offers", href: "/pages/offers" },
+  { name: "Offers", href: "/pages/offers" },
   { name: "Services", href: "/pages/services" },
   { name: "About", href: "/pages/about" },
   { name: "Contact", href: "/pages/contact" },
@@ -19,60 +22,24 @@ const navigation = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout, isAuthenticated } = useAuthStore();
   const { isNavbarExcluded } = useRouteExclusion();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftShadow, setShowLeftShadow] = useState<boolean>(false);
-  const [showRightShadow, setShowRightShadow] = useState<boolean>(true);
+  const { scrollRef, showLeftShadow, showRightShadow } = useScrollShadow();
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  console.log("showUserMenu", showUserMenu);
-  // Manejar visibilidad de sombras al desplazarse
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setShowLeftShadow(scrollLeft > 20);
-      setShowRightShadow(scrollLeft < scrollWidth - clientWidth - 20);
-    }
-  };
 
-  // Añadir listener de evento
-  useEffect(() => {
-    const scrollElement = scrollRef.current;
-    if (scrollElement) {
-      scrollElement.addEventListener("scroll", handleScroll);
-      // Inicializar estado
-      handleScroll();
-      return () => scrollElement.removeEventListener("scroll", handleScroll);
-    }
-  }, []);
+  // Usando el hook useOutsideClick para el menú de usuario
+  useOutsideClick(userMenuRef, () => setShowUserMenu(false), showUserMenu);
 
-  // Cerrar menú al hacer clic fuera
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(event.target as Node)
-      ) {
-        setShowUserMenu(false);
-      }
-
-      // Cerrar sidebar si se hace clic fuera
-      if (
-        sidebarRef.current &&
-        showMobileSidebar &&
-        !sidebarRef.current.contains(event.target as Node)
-      ) {
-        setShowMobileSidebar(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showMobileSidebar]);
+  // Usando el hook useOutsideClick para el sidebar móvil
+  useOutsideClick(
+    sidebarRef,
+    () => setShowMobileSidebar(false),
+    showMobileSidebar
+  );
 
   // Evitar scroll del body cuando el sidebar está abierto
   useEffect(() => {
@@ -88,15 +55,15 @@ export default function Navbar() {
   }, [showMobileSidebar]);
 
   // Función para cerrar sesión
-  // const handleLogout = async () => {
-  //   try {
-  //     await logoutAction();
-  //     logout();
-  //     router.push("/auth/login");
-  //   } catch (error) {
-  //     console.error("Error al cerrar sesión:", error);
-  //   }
-  // };
+  const handleLogout = async () => {
+    try {
+      await logoutAction();
+      logout();
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
   // Función para verificar si una ruta está activa
   const isActive = (itemHref: string) => {
@@ -108,55 +75,55 @@ export default function Navbar() {
   }
 
   // Renderizar el menú de usuario
-  // const renderUserMenu = () => (
-  //   <>
-  //     <div className="px-4 py-3 border-b border-gray-100">
-  //       <p className="text-[#0097B2] font-medium text-sm">
-  //         {user?.nombre || ""} {user?.apellido || ""}
-  //       </p>
-  //     </div>
+  const renderUserMenu = () => (
+    <>
+      <div className="px-4 py-3 border-b border-gray-100">
+        <p className="text-[#0097B2] font-medium text-sm">
+          {user?.nombre || ""} {user?.apellido || ""}
+        </p>
+      </div>
 
-  //     <Link
-  //       href="/profile"
-  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-  //       onClick={() => setShowUserMenu(false)}
-  //     >
-  //       <UserCircle size={16} className="mr-2 text-[#0097B2]" />
-  //       Mi perfil
-  //     </Link>
+      <Link
+        href="/profile"
+        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+        onClick={() => setShowUserMenu(false)}
+      >
+        <UserCircle size={16} className="mr-2 text-[#0097B2]" />
+        My Profile
+      </Link>
 
-  //     <Link
-  //       href="/applications"
-  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-  //       onClick={() => setShowUserMenu(false)}
-  //     >
-  //       <FileText size={16} className="mr-2 text-[#0097B2]" />
-  //       Mis postulaciones
-  //     </Link>
+      <Link
+        href="/applications"
+        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+        onClick={() => setShowUserMenu(false)}
+      >
+        <FileText size={16} className="mr-2 text-[#0097B2]" />
+        My Applications
+      </Link>
 
-  //     <Link
-  //       href="/account"
-  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-  //       onClick={() => setShowUserMenu(false)}
-  //     >
-  //       <User size={16} className="mr-2 text-[#0097B2]" />
-  //       Mi cuenta
-  //     </Link>
+      <Link
+        href="/account"
+        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+        onClick={() => setShowUserMenu(false)}
+      >
+        <User size={16} className="mr-2 text-[#0097B2]" />
+        My Account
+      </Link>
 
-  //     <hr className="my-1 border-gray-200" />
+      <hr className="my-1 border-gray-200" />
 
-  //     <button
-  //       onClick={() => {
-  //         handleLogout();
-  //         setShowUserMenu(false);
-  //       }}
-  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-  //     >
-  //       <LogOut size={16} className="mr-2 text-[#0097B2] cursor-pointer" />
-  //       Cerrar sesión
-  //     </button>
-  //   </>
-  // );
+      <button
+        onClick={() => {
+          handleLogout();
+          setShowUserMenu(false);
+        }}
+        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+      >
+        <LogOut size={16} className="mr-2 text-[#0097B2] cursor-pointer" />
+        Logout
+      </button>
+    </>
+  );
 
   return (
     <header className="w-full bg-[#FCFEFF] shadow-sm z-10">
@@ -188,7 +155,7 @@ export default function Navbar() {
           </div>
 
           {/* Auth Buttons - Desktop y Mobile Activar cuando se tenga el Modulo Completo */}
-          {/* <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4">
             {!isAuthenticated ? (
               <>
                 <Link
@@ -233,7 +200,7 @@ export default function Navbar() {
                 </div>
               </>
             )}
-          </div> */}
+          </div>
         </div>
 
         {/* Mobile Navigation Links con desplazamiento táctil */}
@@ -273,7 +240,7 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Sidebar Activar cuando se tenga el Modulo Completo */}
-      {/* {showMobileSidebar && (
+      {showMobileSidebar && (
         <div
           className="fixed inset-0 bg-[#08252A33] z-50 md:hidden animate-fade-in"
           onClick={() => setShowMobileSidebar(false)}
@@ -305,7 +272,7 @@ export default function Navbar() {
                   onClick={() => setShowMobileSidebar(false)}
                 >
                   <UserCircle size={20} className="mr-2 text-[#0097B2]" />
-                  Mi perfil
+                  My Profile
                 </Link>
 
                 <Link
@@ -314,7 +281,7 @@ export default function Navbar() {
                   onClick={() => setShowMobileSidebar(false)}
                 >
                   <FileText size={20} className="mr-2 text-[#0097B2]" />
-                  Mis postulaciones
+                  My Applications
                 </Link>
 
                 <Link
@@ -323,7 +290,7 @@ export default function Navbar() {
                   onClick={() => setShowMobileSidebar(false)}
                 >
                   <User size={20} className="mr-2 text-[#0097B2]" />
-                  Mi cuenta
+                  My Account
                 </Link>
 
                 <button
@@ -337,13 +304,13 @@ export default function Navbar() {
                     size={20}
                     className="mr-2 text-[#0097B2] cursor-pointer"
                   />
-                  Cerrar sesión
+                  Logout
                 </button>
               </div>
             </div>
           </div>
         </div>
-      )} */}
+      )}
     </header>
   );
 }
