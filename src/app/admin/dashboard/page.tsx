@@ -22,73 +22,17 @@ import ConfirmPauseModal from "@/app/components/ConfirmPauseModal";
 import { useNotificationStore } from "@/store/notifications.store";
 import { updateOffer } from "./save-offers/actions/save-offers.actions";
 
-interface Applicant {
-  id: number;
-  name: string;
-  email?: string;
-  phone?: string;
-  hasProfile?: boolean;
-  hasVideo?: boolean;
-}
-
 export default function AdminDashboardPage() {
   const { addNotification } = useNotificationStore();
   const [offerToView, setOfferToView] = useState<Offer | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isApplicantsModalOpen, setIsApplicantsModalOpen] =
+    useState<boolean>(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [selectedOfferId, setSelectedOfferId] = useState<string | undefined>();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
-  const [applicantsData] = useState<Applicant[]>([
-    {
-      id: 1,
-      name: "Juan Perez",
-      email: "juan.perez@gmail.com",
-      phone: "11 4545 4545",
-      hasProfile: true,
-      hasVideo: false,
-    },
-    {
-      id: 2,
-      name: "Mariana López",
-      email: "marianalopez@gmail.com",
-      phone: "11 4545 4545",
-      hasProfile: true,
-      hasVideo: true,
-    },
-    {
-      id: 3,
-      name: "Juan Perez",
-      email: "juan.perez2@gmail.com",
-      phone: "11 5555 5555",
-    },
-    {
-      id: 4,
-      name: "Juan Perez",
-      email: "juan.perez3@gmail.com",
-      phone: "11 6666 6666",
-    },
-    {
-      id: 5,
-      name: "Mariana Gonzalez",
-      email: "mariana.gonzalez@gmail.com",
-      phone: "11 7777 7777",
-      hasProfile: true,
-    },
-    {
-      id: 6,
-      name: "Juan Gomez",
-      email: "juan.gomez@gmail.com",
-      phone: "11 8888 8888",
-    },
-    {
-      id: 7,
-      name: "Mariana Gonzalez",
-      email: "mariana.gonzalez2@gmail.com",
-      phone: "11 9999 9999",
-    },
-  ]);
   const [isPauseModalOpen, setIsPauseModalOpen] = useState<boolean>(false);
   const [offerToToggle, setOfferToToggle] = useState<Offer | null>(null);
 
@@ -102,27 +46,38 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const openModal = (offer: Offer) => {
-    setSelectedOffer(offer);
-    setIsModalOpen(true);
+  const openApplicantsModal = (offer: Offer) => {
+    // Solo abrir el modal de postulantes si la oferta tiene postulaciones
+    if (offer.postulaciones && offer.postulaciones.length > 0) {
+      setSelectedOffer(offer);
+      setIsApplicantsModalOpen(true);
+    } else {
+      addNotification("Esta oferta no tiene postulantes todavía", "info");
+    }
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const closeApplicantsModal = () => {
+    setIsApplicantsModalOpen(false);
     setSelectedOffer(null);
+  };
+
+  const openEditModal = (offer: Offer) => {
+    setSelectedOffer(offer);
+    setSelectedOfferId(offer.id);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    console.log("[DEBUG] Cerrando modal de edición y limpiando estados");
+    setIsEditModalOpen(false);
+    setSelectedOffer(null);
+    setSelectedOfferId(undefined);
+    fetchPublishedOffers();
   };
 
   const handleViewOffer = (offer: Offer) => {
     setOfferToView(offer);
     setIsViewModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    console.log("[DEBUG] Cerrando modal y limpiando estados");
-    setIsModalOpen(false);
-    setSelectedOffer(null);
-    setSelectedOfferId(undefined);
-    fetchPublishedOffers();
   };
 
   const handleSaveOffer = async (offerData: Offer) => {
@@ -201,6 +156,8 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     fetchPublishedOffers();
   }, []);
+
+  console.log("[Dashboard] Offers:", selectedOffer);
 
   return (
     <div className="min-h-screen bg-white">
@@ -296,7 +253,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <div
                       className="flex items-center text-xs text-gray-500 gap-1 cursor-pointer"
-                      onClick={() => openModal(offer)}
+                      onClick={() => openApplicantsModal(offer)}
                     >
                       <svg
                         width="14"
@@ -325,7 +282,7 @@ export default function AdminDashboardPage() {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span>{offer.postulacionesCount} postulantes</span>
+                      <span>{offer.postulacionesCount || 0} postulantes</span>
                       <ChevronRight size={24} className="text-[#6D6D6D]" />
                     </div>
                     <div className="flex items-center gap-3">
@@ -350,7 +307,10 @@ export default function AdminDashboardPage() {
                         viewBox="0 0 22 22"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        onClick={() => openModal(offer)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditModal(offer);
+                        }}
                         className="cursor-pointer"
                       >
                         <g clipPath="url(#clip0_599_11221)">
@@ -406,18 +366,31 @@ export default function AdminDashboardPage() {
         </div>
       </main>
 
-      {/* Usar el componente ApplicantsModal */}
-      <ApplicantsModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        serviceTitle={selectedOffer?.titulo || ""}
-        applicants={applicantsData}
-      />
+      {/* Modal de postulantes */}
+      {selectedOffer && (
+        <ApplicantsModal
+          isOpen={isApplicantsModalOpen}
+          onClose={closeApplicantsModal}
+          serviceTitle={selectedOffer?.titulo || ""}
+          applicants={
+            selectedOffer?.postulaciones?.map((postulacion) => ({
+              id: postulacion.candidato.id,
+              nombre: postulacion.candidato.nombre,
+              apellido: postulacion.candidato.apellido,
+              correo: postulacion.candidato.correo,
+              telefono: postulacion.candidato.telefono,
+              fotoPerfil: postulacion.candidato.fotoPerfil,
+              videoPresentacion: postulacion.candidato.videoPresentacion,
+            })) || []
+          }
+        />
+      )}
 
+      {/* Modal de edición de oferta */}
       {selectedOffer && (
         <EditOfferModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
+          isOpen={isEditModalOpen}
+          onClose={closeEditModal}
           offerId={selectedOfferId}
           onSave={handleSaveOffer}
           initialData={selectedOffer}

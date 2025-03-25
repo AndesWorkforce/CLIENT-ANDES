@@ -9,6 +9,52 @@ export interface CreadorOffer {
   correo: string;
 }
 
+// Interfaz para el candidato
+export interface Candidato {
+  id: string;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  telefono: string;
+  fotoPerfil: string | null;
+  videoPresentacion: string | null;
+}
+
+// Interfaz para documentos de postulación
+export interface DocumentoPostulacion {
+  id: string;
+  nombre: string;
+  url: string;
+  tipo: string;
+}
+
+// Estado de la postulación
+export type EstadoPostulacion =
+  | "PENDIENTE"
+  | "ACEPTADO"
+  | "RECHAZADO"
+  | "EN_PROCESO";
+
+// Interfaz para las postulaciones
+export interface Postulacion {
+  id: string;
+  activo: boolean;
+  propuestaId: string;
+  candidatoId: string;
+  fechaPostulacion: string;
+  estadoPostulacion: EstadoPostulacion;
+  fechaEtapa1: string | null;
+  fechaEtapa2: string | null;
+  fechaEtapa3: string | null;
+  notasInternas: string | null;
+  fechaActualizacion: string;
+  actualizadoPorId: string | null;
+  estado: string;
+  cv: string | null;
+  documentosPostulacion: DocumentoPostulacion[];
+  candidato: Candidato;
+}
+
 // Interfaz básica para una oferta
 export interface Offer {
   id?: string;
@@ -32,7 +78,7 @@ export interface Offer {
   creadaPorId?: string;
   actualizadoPorId?: string | null;
   creadaPor?: CreadorOffer;
-  postulaciones?: any[]; // Se puede crear una interfaz específica si se conoce la estructura
+  postulaciones?: Postulacion[]; // Actualizado con el tipo correcto
   _count?: {
     postulaciones: number;
   };
