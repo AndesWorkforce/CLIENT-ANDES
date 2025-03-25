@@ -7,7 +7,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="flex flex-col h-screen">
       <HeaderDashboard />
       <TabsNavigation />
       {children}

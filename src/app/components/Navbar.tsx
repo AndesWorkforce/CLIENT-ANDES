@@ -2,8 +2,8 @@
 
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import { useAuthStore } from "@/store/auth.store";
-import { usePathname, useRouter } from "next/navigation";
-import { User, LogOut, FileText, UserCircle, X, Info } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { User, LogOut, FileText, UserCircle, X } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
@@ -22,7 +22,6 @@ const navigation = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { user, logout, isAuthenticated } = useAuthStore();
   const { isNavbarExcluded } = useRouteExclusion();
   const { scrollRef, showLeftShadow, showRightShadow } = useScrollShadow();
@@ -59,7 +58,6 @@ export default function Navbar() {
     try {
       await logoutAction();
       logout();
-      router.push("/auth/login");
     } catch (error) {
       console.error("Error logging out:", error);
     }

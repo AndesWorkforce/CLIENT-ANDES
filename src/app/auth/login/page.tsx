@@ -1,9 +1,35 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect } from "react";
 import LoginForm from "./components/LoginForm";
 import Logo from "@/components/ui/Logo";
+import { useSearchParams } from "next/navigation";
+import { useNotificationStore } from "@/store/notifications.store";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const { addNotification } = useNotificationStore();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) {
+      const errorMessages: Record<string, string> = {
+        session_expired:
+          "Tu sesión ha expirado. Por favor inicia sesión nuevamente.",
+        unauthorized: "No tienes permiso para acceder a este recurso.",
+        invalid_token: "Token inválido. Por favor inicia sesión nuevamente.",
+      };
+
+      addNotification(
+        errorMessages[error] ||
+          "Ha ocurrido un error. Por favor inicia sesión nuevamente.",
+        "info"
+      );
+    }
+  }, [searchParams]);
+
   return (
     <section className="min-h-screen flex flex-col bg-cover bg-center bg-no-repeat w-full h-full relative">
       {/* Imagen de fondo con blur */}

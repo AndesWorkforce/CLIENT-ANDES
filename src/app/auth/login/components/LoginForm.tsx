@@ -13,7 +13,7 @@ import { useAuthStore } from "@/store/auth.store";
 
 export default function LoginForm() {
   const router = useRouter();
-  const { setUser, setAuthenticated } = useAuthStore();
+  const { setUser, setAuthenticated, setToken } = useAuthStore();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const addNotification = useNotificationStore(
@@ -38,6 +38,7 @@ export default function LoginForm() {
         addNotification("Inicio de sesión exitoso", "success");
         setUser(result.data?.usuario);
         setAuthenticated(true);
+        setToken(result.data?.accessToken);
         reset();
         router.push("/pages/offers");
       } else {

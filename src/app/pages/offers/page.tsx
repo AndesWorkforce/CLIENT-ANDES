@@ -1,18 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { jobs, Job } from "./data/mockData";
+import { useEffect, useState } from "react";
+import { Job } from "./data/mockData";
 import FilterModal from "./components/FilterModal";
 import JobDetailModal from "./components/JobDetailModal";
 
 // Importar el tipo FilterValues de FilterModal para reutilizarlo
 import type { FilterValues } from "./components/FilterModal";
+import { getOffers } from "./actions/jobs.actions";
 
 export default function JobOffersPage() {
-  const [selectedJob, setSelectedJob] = useState<Job | null>(
-    jobs.length > 0 ? jobs[0] : null
-  );
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [showJobDetail, setShowJobDetail] = useState<boolean>(false);
 
@@ -30,12 +29,12 @@ export default function JobOffersPage() {
     // Aquí implementaríamos la lógica de filtrado con los nuevos chips
     // Por ahora, simplemente mantenemos la lista original
     console.log("Filtros aplicados:", filterData);
-    setFilteredJobs(jobs);
+    setFilteredJobs(filteredJobs);
   };
 
   const handleClearFilters = () => {
     // Opcional: implementar lógica adicional de limpieza
-    setFilteredJobs(jobs);
+    setFilteredJobs(filteredJobs);
   };
 
   const openJobDetailModal = (job: Job, e: React.MouseEvent) => {
@@ -44,6 +43,17 @@ export default function JobOffersPage() {
     setShowJobDetail(true);
   };
 
+  useEffect(() => {
+    const fetchOffers = async () => {
+      const response = await getOffers();
+      if (response.success) {
+        setFilteredJobs(response.data.data);
+      }
+    };
+    fetchOffers();
+  }, []);
+
+  console.log("[FilteredJobs] Jobs", filteredJobs);
   return (
     <div className="container mx-auto bg-white min-h-screen">
       {/* Información Importante Banner */}
@@ -218,61 +228,64 @@ export default function JobOffersPage() {
 
       {/* Lista de servicios */}
       <div className="px-4 space-y-3 pb-20">
-        {filteredJobs.map((job) => (
-          <div
-            key={job.id}
-            className="bg-white border-[#B6B4B4] border rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
-            onClick={() => handleSelectJob(job)}
-          >
-            <div className="p-4 pb-2">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-medium text-[#08252A]">
-                    Especialidad de Diseño UX/UI
-                  </h3>
-                  <p className="text-gray-500 text-sm">Globant</p>
-                </div>
-                <div
-                  className="text-[#0097B2] cursor-pointer"
-                  onClick={(e) => openJobDetailModal(job, e)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+        {filteredJobs.map((job) => {
+          console.log("[FilteredJobs] Job", job);
+          return (
+            <div
+              key={job.id}
+              className="bg-white border-[#B6B4B4] border rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
+              onClick={() => handleSelectJob(job)}
+            >
+              <div className="p-4 pb-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-medium text-[#08252A]">{job.titulo}</h3>
+                    <p className="text-gray-500 text-sm">
+                      {job.datosExtra.empresa}
+                    </p>
+                  </div>
+                  <div
+                    className="text-[#0097B2] cursor-pointer"
+                    onClick={(e) => openJobDetailModal(job, e)}
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
+              <div className="px-4 pb-4">
+                <div className="border-t border-gray-200" />
+              </div>
+              <div className="px-4 pt-0 pb-4 flex items-center text-xs text-[#0097B2]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-1 text-[#0097B2]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span>{job.fechaCreacion.split("T")[0]}</span>
+              </div>
             </div>
-            <div className="px-4 pb-4">
-              <div className="border-t border-gray-200"></div>
-            </div>
-            <div className="px-4 pt-0 pb-4 flex items-center text-xs text-[#0097B2]">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1 text-[#0097B2]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span>Feb 12</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

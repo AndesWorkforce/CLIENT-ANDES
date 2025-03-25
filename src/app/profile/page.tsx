@@ -88,18 +88,18 @@ export default function ProfilePage() {
   const handleSaveExperience = async (userId: string, data: Experience) => {
     const response = await addExperience(userId, data);
     if (response.success) {
-      addNotification("Experiencia añadida correctamente", "success");
+      addNotification("Experience added correctly", "success");
     } else {
-      addNotification("Error al añadir experiencia", "error");
+      addNotification("Error adding experience", "error");
     }
   };
 
   const handleSaveEducation = async (data: Education) => {
     const response = await addEducation(user?.id || "", data);
     if (response.success) {
-      addNotification("Educación añadida correctamente", "success");
+      addNotification("Education added correctly", "success");
     } else {
-      addNotification("Error al añadir educación", "error");
+      addNotification("Error adding education", "error");
     }
   };
 
@@ -125,10 +125,10 @@ export default function ProfilePage() {
           // Cerrar modal después de actualizar
           setShowSkillsModal(false);
         } else {
-          alert(`Error al actualizar las habilidades: ${result.message}`);
+          alert(`Error updating skills: ${result.message}`);
         }
       } catch (error) {
-        alert("Ha ocurrido un error inesperado al actualizar las habilidades");
+        alert("An unexpected error occurred while updating skills");
       } finally {
         // Ocultar indicador de carga
         setIsUpdatingSkills(false);
@@ -148,23 +148,20 @@ export default function ProfilePage() {
         // Mostrar indicador de carga
         setIsUpdatingSkills(true);
         console.log(
-          "[ProfilePage] Iniciando eliminación de todas las skills para usuario:",
+          "[ProfilePage] Starting to delete all skills for user:",
           user.id
         );
 
         const result = await deleteAllSkills(user.id);
 
         if (result.success) {
-          console.log("[ProfilePage] All skills deleted successfully");
+          console.log("[ProfilePage] All skills deleted correctly");
 
           // Cerrar el modal de confirmación
           setShowDeleteSkillsModal(false);
 
           // Mostrar mensaje de éxito al usuario
-          addNotification(
-            "Todas las skills han sido eliminadas correctamente",
-            "success"
-          );
+          addNotification("All skills have been deleted correctly", "success");
 
           // Forzar recarga completa de la página para asegurarnos que los datos se actualizan
           // También borramos la caché local del navegador para evitar estados inconsistentes
@@ -175,15 +172,12 @@ export default function ProfilePage() {
             "[ProfilePage] Failed to delete skills:",
             result.message
           );
-          addNotification(
-            `Error al eliminar las skills: ${result.message}`,
-            "error"
-          );
+          addNotification(`Error deleting skills: ${result.message}`, "error");
         }
       } catch (error) {
         console.error("[ProfilePage] Error deleting skills:", error);
         addNotification(
-          "Ha ocurrido un error inesperado al eliminar las skills",
+          "An unexpected error occurred while deleting skills",
           "error"
         );
       } finally {
@@ -207,34 +201,29 @@ export default function ProfilePage() {
         const result = await removeVideoPresentation(user.id);
 
         if (result.success) {
-          console.log(
-            "[ProfilePage] Video de presentación eliminado correctamente"
-          );
-          addNotification(
-            "Video de presentación eliminado correctamente",
-            "success"
-          );
+          console.log("[ProfilePage] Video presentation deleted correctly");
+          addNotification("Video presentation deleted correctly", "success");
 
           // Forzar recarga de la página para asegurar que los datos se actualizan
           window.location.href =
             window.location.pathname + "?ts=" + new Date().getTime();
         } else {
           console.error(
-            "[ProfilePage] Error al eliminar el video de presentación:",
+            "[ProfilePage] Error deleting video presentation:",
             result.message
           );
           addNotification(
-            `Error al eliminar el video de presentación: ${result.message}`,
+            `Error deleting video presentation: ${result.message}`,
             "error"
           );
         }
       } catch (error) {
         console.error(
-          "[ProfilePage] Error al eliminar el video de presentación:",
+          "[ProfilePage] Error deleting video presentation:",
           error
         );
         addNotification(
-          "Ha ocurrido un error inesperado al eliminar el video de presentación",
+          "An unexpected error occurred while deleting video presentation",
           "error"
         );
       } finally {
@@ -250,34 +239,26 @@ export default function ProfilePage() {
         const result = await deletePCRequirementsImages(user.id);
 
         if (result.success) {
-          console.log(
-            "[ProfilePage] Requisitos de PC eliminados correctamente"
-          );
-          addNotification(
-            "Requisitos de PC eliminados correctamente",
-            "success"
-          );
+          console.log("[ProfilePage] PC requirements deleted correctly");
+          addNotification("PC requirements deleted correctly", "success");
 
           // Forzar recarga de la página para asegurar que los datos se actualizan
           window.location.href =
             window.location.pathname + "?ts=" + new Date().getTime();
         } else {
           console.error(
-            "[ProfilePage] Error al eliminar los requisitos de PC:",
+            "[ProfilePage] Error deleting PC requirements:",
             result.error
           );
           addNotification(
-            `Error al eliminar los requisitos de PC: ${result.error}`,
+            `Error deleting PC requirements: ${result.error}`,
             "error"
           );
         }
       } catch (error) {
-        console.error(
-          "[ProfilePage] Error al eliminar los requisitos de PC:",
-          error
-        );
+        console.error("[ProfilePage] Error deleting PC requirements:", error);
         addNotification(
-          "Ha ocurrido un error inesperado al eliminar los requisitos de PC",
+          "An unexpected error occurred while deleting PC requirements",
           "error"
         );
       } finally {
@@ -292,25 +273,16 @@ export default function ProfilePage() {
         const result = await eliminarDatosFormulario(user.id);
 
         if (result.success) {
-          console.log("[ProfilePage] Formulario eliminado correctamente");
-          addNotification(
-            "El formulario ha sido eliminado correctamente",
-            "success"
-          );
+          console.log("[ProfilePage] Form deleted correctly");
+          addNotification("Form deleted correctly", "success");
         } else {
-          console.error(
-            "[ProfilePage] Error al eliminar el formulario:",
-            result.error
-          );
-          addNotification(
-            `Error al eliminar el formulario: ${result.error}`,
-            "error"
-          );
+          console.error("[ProfilePage] Error deleting form:", result.error);
+          addNotification(`Error deleting form: ${result.error}`, "error");
         }
       } catch (error) {
-        console.error("[ProfilePage] Error al eliminar el formulario:", error);
+        console.error("[ProfilePage] Error deleting form:", error);
         addNotification(
-          "Ha ocurrido un error inesperado al eliminar el formulario",
+          "An unexpected error occurred while deleting form",
           "error"
         );
       } finally {
@@ -325,19 +297,16 @@ export default function ProfilePage() {
         const result = await deleteExperience(user.id, experienceId);
 
         if (result.success) {
-          addNotification(
-            "La experiencia ha sido eliminada correctamente",
-            "success"
-          );
+          addNotification("Experience deleted correctly", "success");
         } else {
           addNotification(
-            `Error al eliminar la experiencia: ${result.message}`,
+            `Error deleting experience: ${result.message}`,
             "error"
           );
         }
       } catch (error) {
         addNotification(
-          "Ha ocurrido un error inesperado al eliminar la experiencia",
+          "An unexpected error occurred while deleting experience",
           "error"
         );
       } finally {
@@ -353,19 +322,16 @@ export default function ProfilePage() {
         const result = await deleteEducation(user.id, educationId);
 
         if (result.success) {
-          addNotification(
-            "La educación ha sido eliminada correctamente",
-            "success"
-          );
+          addNotification("Education deleted correctly", "success");
         } else {
           addNotification(
-            `Error al eliminar la educación: ${result.message}`,
+            `Error deleting education: ${result.message}`,
             "error"
           );
         }
       } catch (error) {
         addNotification(
-          "Ha ocurrido un error inesperado al eliminar la educación",
+          "An unexpected error occurred while deleting education",
           "error"
         );
       } finally {
@@ -417,7 +383,7 @@ export default function ProfilePage() {
             <Link href="/" className="text-gray-700">
               <ChevronLeft size={24} color="#0097B2" />
             </Link>
-            <h1 className="text-xl font-semibold">Mi perfil</h1>
+            <h1 className="text-xl font-semibold">My Profile</h1>
           </div>
           <div className="flex items-center">
             <Logo />
@@ -430,11 +396,9 @@ export default function ProfilePage() {
         <div className="bg-blue-50 p-4 my-4 mx-4 rounded-lg flex items-start space-x-3">
           <Info className="text-blue-500 shrink-0 mt-1" size={20} />
           <div>
-            <h3 className="font-medium text-blue-800">
-              Información importante
-            </h3>
+            <h3 className="font-medium text-blue-800">Important Information</h3>
             <p className="text-sm text-blue-600 mt-1">
-              Recuerda que tienes que completar tu perfil para poder postularte
+              Remember that you need to complete your profile to apply
             </p>
           </div>
         </div>
@@ -447,9 +411,7 @@ export default function ProfilePage() {
           className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
           style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
         >
-          <span className="text-gray-800 font-medium">
-            Completar formulario
-          </span>
+          <span className="text-gray-800 font-medium">Complete Form</span>
           <div className="flex items-center justify-center gap-4">
             {profile.datosFormulario &&
             Object.keys(profile.datosFormulario).length > 0 ? (
@@ -511,7 +473,7 @@ export default function ProfilePage() {
           style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
         >
           <span className="text-gray-800 font-medium">
-            Subir video presentación
+            Upload Video Presentation
           </span>
           <div className="flex items-center justify-center gap-4">
             {profile.archivos.videoPresentacion ? (
@@ -539,7 +501,7 @@ export default function ProfilePage() {
           className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
           style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
         >
-          <span className="text-gray-800 font-medium">Agregar skills</span>
+          <span className="text-gray-800 font-medium">Add Skills</span>
           <div className="flex items-center justify-center gap-4">
             {profile.habilidades.length > 0 ? (
               <div className="flex items-center gap-2">
@@ -572,7 +534,7 @@ export default function ProfilePage() {
           style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
         >
           <span className="text-gray-800 font-medium">
-            Subir requerimientos PC
+            Upload PC Requirements
           </span>
           <div className="flex items-center justify-center gap-4">
             {profile.archivos.imagenRequerimientosPC ||
@@ -657,7 +619,7 @@ export default function ProfilePage() {
               onClick={() => setActiveTab("experiencia")}
               style={{ cursor: "pointer" }}
             >
-              <span className="text-lg font-medium">Experiencia</span>
+              <span className="text-lg font-medium">Experience</span>
             </div>
 
             {/* Educación */}
@@ -670,7 +632,7 @@ export default function ProfilePage() {
               onClick={() => setActiveTab("educacion")}
               style={{ cursor: "pointer" }}
             >
-              <span className="text-lg font-medium">Educación</span>
+              <span className="text-lg font-medium">Education</span>
             </div>
 
             {/* Resto del borde superior */}
@@ -770,7 +732,7 @@ export default function ProfilePage() {
                     ))}
                     <div className="p-4 flex justify-between items-center">
                       <span className="text-gray-600 font-medium">
-                        Agregar Experiencia
+                        Add Experience
                       </span>
                       <div
                         className="w-10 h-10 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
@@ -799,7 +761,7 @@ export default function ProfilePage() {
                 ) : (
                   <div className="p-6 flex items-center justify-between">
                     <span className="text-gray-600 font-medium text-xl">
-                      Agregar Experiencia
+                      Add Experience
                     </span>
                     <div
                       className="w-12 h-12 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
@@ -913,7 +875,7 @@ export default function ProfilePage() {
                     ))}
                     <div className="p-4 flex justify-between items-center">
                       <span className="text-gray-600 font-medium">
-                        Agregar Educación
+                        Add Education
                       </span>
                       <div
                         className="w-10 h-10 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
@@ -942,7 +904,7 @@ export default function ProfilePage() {
                 ) : (
                   <div className="p-6 flex items-center justify-between">
                     <span className="text-gray-600 font-medium text-xl">
-                      Agregar Educación
+                      Add Education
                     </span>
                     <div
                       className="w-12 h-12 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
@@ -1042,48 +1004,48 @@ export default function ProfilePage() {
         isOpen={showDeleteFormularioModal}
         onClose={() => setShowDeleteFormularioModal(false)}
         onConfirm={confirmDeleteFormulario}
-        title="Eliminar Formulario"
-        message="¿Estás seguro de que deseas eliminar el formulario? Esta acción no se puede deshacer."
+        title="Delete Form"
+        message="Are you sure you want to delete the form? This action cannot be undone."
       />
 
       <ConfirmDeleteModal
         isOpen={showDeleteSkillsModal}
         onClose={() => setShowDeleteSkillsModal(false)}
         onConfirm={handleDeleteAllSkills}
-        title="Eliminar Habilidades"
-        message="¿Estás seguro de que deseas eliminar todas tus habilidades? Esta acción no se puede deshacer."
+        title="Delete Skills"
+        message="Are you sure you want to delete all your skills? This action cannot be undone."
       />
 
       <ConfirmDeleteModal
         isOpen={showDeleteVideoModal}
         onClose={() => setShowDeleteVideoModal(false)}
         onConfirm={confirmDeleteVideo}
-        title="Eliminar Video"
-        message="¿Estás seguro de que deseas eliminar este video de presentación? Esta acción no se puede deshacer."
+        title="Delete Video"
+        message="Are you sure you want to delete this video presentation? This action cannot be undone."
       />
 
       <ConfirmDeleteModal
         isOpen={showDeletePCRequirementsModal}
         onClose={() => setShowDeletePCRequirementsModal(false)}
         onConfirm={confirmDeletePCRequirements}
-        title="Eliminar Requisitos de PC"
-        message="¿Estás seguro de que deseas eliminar los requisitos de PC? Esta acción no se puede deshacer."
+        title="Delete PC Requirements"
+        message="Are you sure you want to delete the PC requirements? This action cannot be undone."
       />
 
       <ConfirmDeleteModal
         isOpen={showDeleteExperienceModal}
         onClose={() => setShowDeleteExperienceModal(false)}
         onConfirm={() => confirmDeleteExperience(experienceIdToDelete)}
-        title="Eliminar Experiencia"
-        message="¿Estás seguro de que deseas eliminar esta experiencia? Esta acción no se puede deshacer."
+        title="Delete Experience"
+        message="Are you sure you want to delete this experience? This action cannot be undone."
       />
 
       <ConfirmDeleteModal
         isOpen={showDeleteEducationModal}
         onClose={() => setShowDeleteEducationModal(false)}
         onConfirm={() => confirmDeleteEducation(educationIdToDelete)}
-        title="Eliminar Educación"
-        message="¿Estás seguro de que deseas eliminar esta educación? Esta acción no se puede deshacer."
+        title="Delete Education"
+        message="Are you sure you want to delete this education? This action cannot be undone."
       />
     </div>
   );
