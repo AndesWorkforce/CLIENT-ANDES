@@ -1,6 +1,14 @@
 // Modificar la importación de YooptaContentValue
 // import { YooptaContentValue } from "@yoopta/editor";
 
+// Interfaz para la información del usuario creador
+export interface CreadorOffer {
+  id: string;
+  nombre: string;
+  apellido: string;
+  correo: string;
+}
+
 // Interfaz básica para una oferta
 export interface Offer {
   id?: string;
@@ -14,10 +22,30 @@ export interface Offer {
   fechaActualizacion?: string;
   fechaPublicacion?: string;
   userId?: string;
+
+  // Campos adicionales de la API
+  activo?: boolean;
+  reutilizable?: boolean;
+  departamento?: string | null;
+  seniority?: string | null;
+  modalidad?: string | null;
+  creadaPorId?: string;
+  actualizadoPorId?: string | null;
+  creadaPor?: CreadorOffer;
+  postulaciones?: any[]; // Se puede crear una interfaz específica si se conoce la estructura
+  _count?: {
+    postulaciones: number;
+  };
+  postulacionesCount?: number;
 }
 
 // Estados posibles de una oferta
-export type OfferStatus = "borrador" | "publicado" | "cerrado" | "eliminado";
+export type OfferStatus =
+  | "borrador"
+  | "publicado"
+  | "cerrado"
+  | "eliminado"
+  | "pausado";
 
 // Interfaz para usar con el editor (con valores ya parseados)
 export interface OfferWithContent {

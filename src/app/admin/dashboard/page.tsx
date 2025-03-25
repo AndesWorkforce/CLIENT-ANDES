@@ -1,21 +1,27 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { PlusCircle, Search, Calendar, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  PlusCircle,
+  Search,
+  Calendar,
+  ChevronRight,
+  PauseCircle,
+  PlayCircle,
+} from "lucide-react";
 import Link from "next/link";
 import ApplicantsModal from "./components/ApplicantsModal";
+import {
+  getPublishedOffers,
+  toggleOfferStatus,
+} from "./actions/offers.actions";
+import { Offer } from "@/app/types/offers";
+import ViewOfferModal from "@/app/components/ViewOfferModal";
+import EditOfferModal from "@/app/components/EditOfferModal";
+import ConfirmPauseModal from "@/app/components/ConfirmPauseModal";
+import { useNotificationStore } from "@/store/notifications.store";
+import { updateOffer } from "./save-offers/actions/save-offers.actions";
 
-// Tipo para representar una oferta
-interface JobOffer {
-  id: number;
-  title: string;
-  publishDate: string;
-  publishDay: string;
-  status: "active" | "pending" | "closed" | "draft";
-  applicants: number;
-}
-
-// Tipo para representar un postulante
 interface Applicant {
   id: number;
   name: string;
@@ -26,121 +32,14 @@ interface Applicant {
 }
 
 export default function AdminDashboardPage() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftShadow, setShowLeftShadow] = useState(false);
-  const [showRightShadow, setShowRightShadow] = useState(false);
-  console.log("showLeftShadow", showLeftShadow);
-  console.log("showRightShadow", showRightShadow);
-  // Función para controlar cuándo mostrar las sombras de desplazamiento
-  const checkScrollShadows = () => {
-    if (!scrollRef.current) return;
-
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    setShowLeftShadow(scrollLeft > 0);
-    setShowRightShadow(scrollLeft < scrollWidth - clientWidth - 5);
-  };
-
-  // Comprobar sombras al cargar y al cambiar tamaño de ventana
-  useEffect(() => {
-    checkScrollShadows();
-    window.addEventListener("resize", checkScrollShadows);
-    return () => window.removeEventListener("resize", checkScrollShadows);
-  }, []);
-
-  const [offers] = useState<JobOffer[]>([
-    {
-      id: 1,
-      title: "Especialidad de Diseño UX/UI",
-      publishDate: "12 Feb, 2025",
-      publishDay: "Feb 12",
-      status: "active",
-      applicants: 20,
-    },
-    {
-      id: 2,
-      title: "Diseño gráfico",
-      publishDate: "10 Feb, 2025",
-      publishDay: "Feb 12",
-      status: "pending",
-      applicants: 15,
-    },
-    {
-      id: 3,
-      title: "Social Media Manager",
-      publishDate: "05 Feb, 2025",
-      publishDay: "Feb 12",
-      status: "pending",
-      applicants: 30,
-    },
-    {
-      id: 4,
-      title: "Desarrollador Frontend",
-      publishDate: "01 Feb, 2025",
-      publishDay: "Feb 12",
-      status: "pending",
-      applicants: 10,
-    },
-  ]);
-
+  const { addNotification } = useNotificationStore();
+  const [offerToView, setOfferToView] = useState<Offer | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedOfferId, setSelectedOfferId] = useState<string | undefined>();
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<
-    "all" | "active" | "pending" | "closed" | "draft"
-  >("all");
-
-  // Protección de ruta comentada para desarrollo
-  // useEffect(() => {
-  //   const isLoggedIn = localStorage.getItem("adminLoggedIn") === "true";
-  //   if (!isLoggedIn) {
-  //     router.push("/admin/login");
-  //   }
-  // }, [router]);
-
-  // Filtrar ofertas según búsqueda y filtro de estado
-  const filteredOffers = offers.filter((offer) => {
-    const matchesSearch = offer.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" || offer.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
-
-  // Obtener el indicador de estado para la tarjeta
-  // const getStatusIndicator = (status: string) => {
-  //   switch (status) {
-  //     case "active":
-  //       return (
-  //         <div className="flex items-center">
-  //           <div className="w-2 h-2 bg-yellow-500 rounded-full mx-1"></div>
-  //           <div className="w-2 h-2 bg-red-500 rounded-full mx-1"></div>
-  //           <div className="w-2 h-2 bg-green-500 rounded-full mx-1"></div>
-  //         </div>
-  //       );
-  //     case "pending":
-  //       return (
-  //         <div className="flex items-center">
-  //           <div className="w-2 h-2 bg-red-500 rounded-full mx-1"></div>
-  //         </div>
-  //       );
-  //     case "closed":
-  //       return (
-  //         <div className="flex items-center">
-  //           <div className="w-2 h-2 bg-gray-500 rounded-full mx-1"></div>
-  //         </div>
-  //       );
-  //     default:
-  //       return null;
-  //   }
-  // };
-
-  // Manejar logout
-  // const handleLogout = () => {
-  //   localStorage.removeItem("adminLoggedIn");
-  //   router.push("/admin/login");
-  // };
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedOffer, setSelectedOffer] = useState<JobOffer | null>(null);
+  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [applicantsData] = useState<Applicant[]>([
     {
       id: 1,
@@ -190,8 +89,20 @@ export default function AdminDashboardPage() {
       phone: "11 9999 9999",
     },
   ]);
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState<boolean>(false);
+  const [offerToToggle, setOfferToToggle] = useState<Offer | null>(null);
 
-  const openModal = (offer: JobOffer) => {
+  const fetchPublishedOffers = async () => {
+    try {
+      const response = await getPublishedOffers();
+      console.log("[Dashboard] Published offers:", response);
+      setOffers(response.data.data);
+    } catch (error) {
+      console.error("[Dashboard] Error getting published offers:", error);
+    }
+  };
+
+  const openModal = (offer: Offer) => {
     setSelectedOffer(offer);
     setIsModalOpen(true);
   };
@@ -200,6 +111,96 @@ export default function AdminDashboardPage() {
     setIsModalOpen(false);
     setSelectedOffer(null);
   };
+
+  const handleViewOffer = (offer: Offer) => {
+    setOfferToView(offer);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    console.log("[DEBUG] Cerrando modal y limpiando estados");
+    setIsModalOpen(false);
+    setSelectedOffer(null);
+    setSelectedOfferId(undefined);
+    fetchPublishedOffers();
+  };
+
+  const handleSaveOffer = async (offerData: Offer) => {
+    try {
+      const formData = new FormData();
+      formData.append("title", offerData.titulo);
+
+      // La descripción ahora es siempre HTML
+      if (typeof offerData.descripcion === "string") {
+        formData.append("description", offerData.descripcion);
+      } else {
+        // Si por alguna razón es un objeto, lo convertimos a string HTML
+        formData.append(
+          "description",
+          typeof offerData.descripcion === "object"
+            ? "<p>Contenido migrado desde formato anterior</p>"
+            : String(offerData.descripcion || "")
+        );
+      }
+
+      formData.append("estado", offerData.estado);
+
+      if (offerData.id) {
+        const response = await updateOffer(offerData.id, formData);
+        if (response.success) {
+          addNotification("Oferta actualizada correctamente", "success");
+
+          // Recargar ofertas
+          await fetchPublishedOffers();
+        } else {
+          addNotification(
+            `Error al actualizar oferta: ${response.message}`,
+            "error"
+          );
+        }
+      } else {
+        addNotification(
+          "Función de crear nueva oferta no implementada",
+          "warning"
+        );
+      }
+    } catch (error) {
+      console.error("Error al guardar oferta:", error);
+      addNotification("Error al guardar oferta", "error");
+    }
+  };
+
+  const handleTogglePause = (offer: Offer) => {
+    setOfferToToggle(offer);
+    setIsPauseModalOpen(true);
+  };
+
+  const confirmTogglePause = async () => {
+    if (!offerToToggle || !offerToToggle.id) return;
+
+    const newStatus =
+      offerToToggle.estado === "pausado" ? "publicado" : "pausado";
+
+    try {
+      const response = await toggleOfferStatus(offerToToggle.id, newStatus);
+      if (response.success) {
+        addNotification(response.message, "success");
+        await fetchPublishedOffers();
+      } else {
+        addNotification(`Error: ${response.message}`, "error");
+      }
+    } catch (error) {
+      console.error("Error al cambiar estado de la oferta:", error);
+      addNotification("Error al cambiar estado de la oferta", "error");
+    } finally {
+      setIsPauseModalOpen(false);
+      setOfferToToggle(null);
+    }
+  };
+
+  useEffect(() => {
+    fetchPublishedOffers();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -229,7 +230,7 @@ export default function AdminDashboardPage() {
               />
             </div>
           </div>
-
+          {/* 
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-700">Filtrar:</span>
             <select
@@ -252,13 +253,13 @@ export default function AdminDashboardPage() {
               <option value="closed">Cerradas</option>
               <option value="draft">Borradores</option>
             </select>
-          </div>
+          </div> */}
         </div>
 
         {/* Offers list - Estilo actualizado según imagen */}
         <div className="space-y-4">
-          {filteredOffers.length > 0 ? (
-            filteredOffers.map((offer) => (
+          {offers.length > 0 ? (
+            offers.map((offer) => (
               <div
                 key={offer.id}
                 className="bg-white rounded-lg shadow-sm border border-[#B6B4B4] overflow-hidden"
@@ -268,16 +269,21 @@ export default function AdminDashboardPage() {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center">
                       <h3 className="text-base font-medium text-gray-900">
-                        {offer.title}
+                        {offer.titulo}
                       </h3>
+                      {offer.estado === "pausado" && (
+                        <span className="ml-2 px-2 py-1 text-xs font-medium rounded-md bg-amber-100 text-amber-800">
+                          Pausada
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Link
-                        href={`/admin/offers/${offer.id}/edit`}
-                        className="text-gray-400 hover:text-[#0097B2]"
+                      <button
+                        className="text-gray-400 hover:text-[#0097B2] cursor-pointer"
+                        onClick={() => handleViewOffer(offer)}
                       >
                         <ChevronRight size={24} className="text-[#0097B2]" />
-                      </Link>
+                      </button>
                     </div>
                   </div>
                   <hr className="my-2 border-[#E2E2E2]" />
@@ -285,7 +291,7 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center text-xs text-gray-500">
                         <Calendar className="flex-shrink-0 mr-1 h-4 w-4 text-[#0097B2]" />
-                        <span>{offer.publishDay}</span>
+                        <span>{offer.fechaCreacion?.split("T")[0]}</span>
                       </div>
                     </div>
                     <div
@@ -319,52 +325,33 @@ export default function AdminDashboardPage() {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span>{offer.applicants} postulantes</span>
+                      <span>{offer.postulacionesCount} postulantes</span>
                       <ChevronRight size={24} className="text-[#6D6D6D]" />
                     </div>
                     <div className="flex items-center gap-3">
-                      <svg
-                        width="22"
-                        height="22"
-                        viewBox="0 0 22 22"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                      {/* Botón de pausa/reactivar */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTogglePause(offer);
+                        }}
+                        className="cursor-pointer"
                       >
-                        <g clipPath="url(#clip0_612_11307)">
-                          <path
-                            d="M10.9997 20.1667C16.0623 20.1667 20.1663 16.0626 20.1663 11C20.1663 5.9374 16.0623 1.83334 10.9997 1.83334C5.93706 1.83334 1.83301 5.9374 1.83301 11C1.83301 16.0626 5.93706 20.1667 10.9997 20.1667Z"
-                            stroke="#FF0004"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M9.16699 13.75V8.25"
-                            stroke="#FF0004"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M12.833 13.75V8.25"
-                            stroke="#FF0004"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_612_11307">
-                            <rect width="22" height="22" fill="white" />
-                          </clipPath>
-                        </defs>
-                      </svg>
+                        {offer.estado === "pausado" ? (
+                          <PlayCircle size={22} className="text-green-600" />
+                        ) : (
+                          <PauseCircle size={22} className="text-amber-600" />
+                        )}
+                      </button>
+
                       <svg
                         width="22"
                         height="22"
                         viewBox="0 0 22 22"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
+                        onClick={() => openModal(offer)}
+                        className="cursor-pointer"
                       >
                         <g clipPath="url(#clip0_599_11221)">
                           <path
@@ -423,9 +410,48 @@ export default function AdminDashboardPage() {
       <ApplicantsModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        serviceTitle={selectedOffer?.title || ""}
+        serviceTitle={selectedOffer?.titulo || ""}
         applicants={applicantsData}
       />
+
+      {selectedOffer && (
+        <EditOfferModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          offerId={selectedOfferId}
+          onSave={handleSaveOffer}
+          initialData={selectedOffer}
+        />
+      )}
+
+      {/* Modal de visualización de oferta */}
+      {offerToView && (
+        <ViewOfferModal
+          isOpen={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+          offer={offerToView}
+        />
+      )}
+
+      {/* Modal de confirmación para pausar/despausar oferta */}
+      {offerToToggle && (
+        <ConfirmPauseModal
+          isOpen={isPauseModalOpen}
+          onClose={() => setIsPauseModalOpen(false)}
+          onConfirm={confirmTogglePause}
+          title={
+            offerToToggle.estado === "pausado"
+              ? "Publicar oferta"
+              : "Pausar oferta"
+          }
+          message={
+            offerToToggle.estado === "pausado"
+              ? "¿Estás seguro de que deseas volver a publicar esta oferta? Los usuarios podrán verla nuevamente."
+              : "¿Estás seguro de que deseas pausar esta oferta? Los usuarios no podrán verla mientras esté pausada."
+          }
+          isPaused={offerToToggle.estado === "pausado"}
+        />
+      )}
     </div>
   );
 }

@@ -311,7 +311,7 @@ interface EditOfferModalProps {
   offerId?: string;
   onSave: (offer: Offer) => Promise<void>;
   readOnly?: boolean;
-  initialData?: OfferWithContent;
+  initialData?: Offer;
 }
 
 export default function EditOfferModal({
