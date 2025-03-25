@@ -21,9 +21,11 @@ import EditOfferModal from "@/app/components/EditOfferModal";
 import ConfirmPauseModal from "@/app/components/ConfirmPauseModal";
 import { useNotificationStore } from "@/store/notifications.store";
 import { updateOffer } from "./save-offers/actions/save-offers.actions";
+import OfferCardSkeleton from "./components/OfferCardSkeleton";
 
 export default function AdminDashboardPage() {
   const { addNotification } = useNotificationStore();
+  const [isLoading, setIsLoading] = useState(true);
   const [offerToView, setOfferToView] = useState<Offer | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
   const [isApplicantsModalOpen, setIsApplicantsModalOpen] =
@@ -37,12 +39,15 @@ export default function AdminDashboardPage() {
   const [offerToToggle, setOfferToToggle] = useState<Offer | null>(null);
 
   const fetchPublishedOffers = async () => {
+    setIsLoading(true);
     try {
       const response = await getPublishedOffers();
       console.log("[Dashboard] Published offers:", response);
       setOffers(response.data.data);
     } catch (error) {
       console.error("[Dashboard] Error getting published offers:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -157,8 +162,6 @@ export default function AdminDashboardPage() {
     fetchPublishedOffers();
   }, []);
 
-  console.log("[Dashboard] Offers:", selectedOffer);
-
   return (
     <div className="min-h-screen bg-white">
       {/* Main content */}
@@ -187,35 +190,18 @@ export default function AdminDashboardPage() {
               />
             </div>
           </div>
-          {/* 
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700">Filtrar:</span>
-            <select
-              value={filterStatus}
-              onChange={(e) =>
-                setFilterStatus(
-                  e.target.value as
-                    | "all"
-                    | "active"
-                    | "pending"
-                    | "closed"
-                    | "draft"
-                )
-              }
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#0097B2] focus:border-[#0097B2] sm:text-sm rounded-md"
-            >
-              <option value="all">Todas</option>
-              <option value="active">Activas</option>
-              <option value="pending">Pendientes</option>
-              <option value="closed">Cerradas</option>
-              <option value="draft">Borradores</option>
-            </select>
-          </div> */}
         </div>
 
-        {/* Offers list - Estilo actualizado según imagen */}
+        {/* Offers list with loading state */}
         <div className="space-y-4">
-          {offers.length > 0 ? (
+          {isLoading ? (
+            // Mostrar 3 skeletons mientras carga
+            <>
+              <OfferCardSkeleton />
+              <OfferCardSkeleton />
+              <OfferCardSkeleton />
+            </>
+          ) : offers.length > 0 ? (
             offers.map((offer) => (
               <div
                 key={offer.id}

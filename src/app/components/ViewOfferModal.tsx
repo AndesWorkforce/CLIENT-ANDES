@@ -1,9 +1,12 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { X, Calendar, Filter, ChevronDown } from "lucide-react";
+import { X, Calendar } from "lucide-react";
 import { Offer } from "@/app/types/offers";
 import { useAuthStore } from "@/store/auth.store";
+import { useRouter } from "next/navigation";
+import { useNotificationStore } from "@/store/notifications.store";
+import { applyToOffer } from "../pages/offers/actions/jobs.actions";
 
 interface ViewOfferModalProps {
   isOpen: boolean;
@@ -95,6 +98,8 @@ export default function ViewOfferModal({
   offer,
 }: ViewOfferModalProps) {
   const { user } = useAuthStore();
+  const router = useRouter();
+  const { addNotification } = useNotificationStore();
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -192,6 +197,21 @@ export default function ViewOfferModal({
     }
   };
 
+  const handleApplyToOffer = async (offerId: string) => {
+    if (!offerId) return;
+    const { success, message } = await applyToOffer(offerId);
+    if (success) {
+      addNotification("Oferta aplicada correctamente", "success");
+      onClose();
+    } else {
+      if (message === "Ya te has postulado a esta propuesta") {
+        addNotification(message, "info");
+        onClose();
+      } else {
+        addNotification(message || "Error al aplicar a la oferta", "error");
+      }
+    }
+  };
   if (!isOpen || !offer) return null;
 
   return (
@@ -231,7 +251,16 @@ export default function ViewOfferModal({
 
           {/* Botón de aplicar */}
           {user?.rol !== "ADMIN" && (
-            <button className="w-full py-3 rounded-md font-medium text-white bg-[#0097B2] hover:bg-[#007A8F] mb-6">
+            <button
+              className="w-full py-3 rounded-md font-medium text-white bg-[#0097B2] hover:bg-[#007A8F] mb-6 cursor-pointer"
+              onClick={() => {
+                if (!user) {
+                  addNotification("Debes estar logueado para aplicar", "info");
+                  router.push("/auth/login");
+                }
+                handleApplyToOffer(offer.id || "");
+              }}
+            >
               Apply
             </button>
           )}

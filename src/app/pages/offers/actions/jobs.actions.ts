@@ -1,5 +1,8 @@
 "use server";
 
+import { createServerAxios } from "@/services/axios.server";
+import { AxiosError } from "axios";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function getOffers() {
@@ -24,6 +27,34 @@ export async function getOffers() {
     return {
       success: false,
       message: "Error al obtener las ofertas",
+    };
+  }
+}
+
+export async function applyToOffer(offerId: string) {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.post(`${API_URL}applications`, {
+      propuestaId: offerId,
+    });
+    const data = await response.data;
+
+    return {
+      success: true,
+      data: data,
+    };
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      console.error("Error al aplicar a la oferta:", error.response?.data);
+      return {
+        success: false,
+        message: error.response?.data.message,
+      };
+    }
+    console.error("Error al aplicar a la oferta:", error);
+    return {
+      success: false,
+      message: "Error al aplicar a la oferta",
     };
   }
 }

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Phone, Mail, FileText, Play, X, Pause } from "lucide-react";
+import { Phone, Mail, FileText, Play, X, Pause, Download } from "lucide-react";
 import ProfileModalSkeleton from "./ProfileModalSkeleton";
 import { getProfile } from "../actions/profile.actions";
 import { useNotificationStore } from "@/store/notifications.store";
 import { PerfilCompleto } from "@/app/types/profile";
 import ViewFormularioModal from "./ViewFormularioModal";
 import ImageViewer from "./ImageViewer";
+import PDFDownloadButton from "./PDFDownloadButton";
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -26,7 +27,8 @@ export default function ProfileModal({
   const [profile, setProfile] = useState<PerfilCompleto | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
-  const [isFormularioModalOpen, setIsFormularioModalOpen] = useState(false);
+  const [isFormularioModalOpen, setIsFormularioModalOpen] =
+    useState<boolean>(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -87,13 +89,18 @@ export default function ProfileModal({
               {/* Contact Info Card */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-4">
-                  <h1 className="text-xl font-medium text-[#0097B2] mb-2">
-                    {profile.datosPersonales.nombre}{" "}
-                    {profile.datosPersonales.apellido}
-                  </h1>
-                  <h2 className="font-medium text-gray-900 mb-3">
-                    Datos de contacto
-                  </h2>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h1 className="text-xl font-medium text-[#0097B2] mb-2">
+                        {profile.datosPersonales.nombre}{" "}
+                        {profile.datosPersonales.apellido}
+                      </h1>
+                      <h2 className="font-medium text-gray-900 mb-3">
+                        Datos de contacto
+                      </h2>
+                    </div>
+                    <PDFDownloadButton profile={profile} />
+                  </div>
                   <hr className="border-[#E2E2E2] my-2" />
                   <div className="space-y-3">
                     <div className="flex items-start">
