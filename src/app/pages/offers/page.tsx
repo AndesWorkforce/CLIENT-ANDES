@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Job } from "./data/mockData";
 import FilterModal from "./components/FilterModal";
 import JobDetailModal from "./components/JobDetailModal";
 
 import type { FilterValues } from "./components/FilterModal";
-import { getOffers } from "./actions/jobs.actions";
+import { getOffers, userIsAppliedToOffer } from "./actions/jobs.actions";
 import { Offer } from "@/app/types/offers";
 import ViewOfferModal from "@/app/components/ViewOfferModal";
 import { X } from "lucide-react";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function JobOffersPage() {
+  const { user } = useAuthStore();
   const [selectedJob, setSelectedJob] = useState<Offer | null>(null);
   const [filteredJobs, setFilteredJobs] = useState<Offer[]>([]);
   const [showFilters, setShowFilters] = useState<boolean>(false);
@@ -24,6 +26,15 @@ export default function JobOffersPage() {
   const [selectedSeniority, setSelectedSeniority] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string[]>([]);
   const [showInfoMessage, setShowInfoMessage] = useState(true);
+  const [isAppliedToOffer, setIsAppliedToOffer] = useState(false);
+  console.log("[OFFERS] user", user);
+  const getIsAppliedToOffer = async () => {
+    const response = await userIsAppliedToOffer(user?.id || "");
+    console.log("[OFFERS] response", response);
+    if (response.success) {
+      setIsAppliedToOffer(false);
+    }
+  };
 
   const handleSelectJob = (job: Offer) => {
     setSelectedJob(job);
@@ -47,6 +58,12 @@ export default function JobOffersPage() {
   };
 
   useEffect(() => {
+    if (user) {
+      getIsAppliedToOffer();
+    }
+  }, [user]);
+
+  useEffect(() => {
     const fetchOffers = async () => {
       const response = await getOffers();
       if (response.success) {
@@ -55,7 +72,7 @@ export default function JobOffersPage() {
     };
     fetchOffers();
   }, []);
-
+  console.log("[OFFERS] isAppliedToOffer", isAppliedToOffer);
   return (
     <div className="container mx-auto bg-white min-h-screen">
       {showInfoMessage && (

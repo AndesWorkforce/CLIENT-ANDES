@@ -9,24 +9,22 @@ export async function getPublishedOffers() {
     const response = await axios.get(
       `offers/mis-ofertas?estado=publicado,pausado`
     );
-
-    const responseData = response.data;
-
     if (response.status !== 200) {
       console.error(
         "[Offers] API error status:",
         response.status,
         response.statusText
       );
-      console.error("[Offers] API error body:", responseData);
 
       return {
         success: false,
         message: `Error del servidor: ${response.status} ${
           response.statusText
-        }. ${responseData.message || ""}`,
+        }. ${response.data.message || ""}`,
       };
     }
+
+    const responseData = response.data;
 
     revalidatePath("/admin/dashboard");
 

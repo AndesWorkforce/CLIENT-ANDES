@@ -1,11 +1,12 @@
 "use client";
 
 import { useAuthStore } from "@/store/auth.store";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard } from "lucide-react";
 import { useRef, useState } from "react";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Logo from "@/components/ui/Logo";
+import Link from "next/link";
 
 export default function HeaderDashboard() {
   const { user, logout } = useAuthStore();
@@ -47,6 +48,39 @@ export default function HeaderDashboard() {
                     {user?.nombre || ""} {user?.apellido || ""}
                   </p>
                 </div>
+
+                <hr className="my-1 border-gray-200" />
+
+                {/* Opción de Super Admin solo visible para usuarios con rol ADMIN */}
+                {user?.rol === "ADMIN" && (
+                  <>
+                    <Link
+                      href="/admin/superAdmin"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <Settings
+                        size={16}
+                        className="mr-2 text-[#0097B2] cursor-pointer"
+                      />
+                      Panel de Super Admin
+                    </Link>
+                    <hr className="my-1 border-gray-200" />
+                  </>
+                )}
+
+                {/* Opción para volver al panel de administración */}
+                <Link
+                  href="/admin/dashboard"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <LayoutDashboard
+                    size={16}
+                    className="mr-2 text-[#0097B2] cursor-pointer"
+                  />
+                  Gestión de Ofertas
+                </Link>
 
                 <hr className="my-1 border-gray-200" />
 

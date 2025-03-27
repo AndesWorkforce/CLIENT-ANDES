@@ -58,3 +58,30 @@ export async function applyToOffer(offerId: string) {
     };
   }
 }
+
+export async function userIsAppliedToOffer(userId: string) {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.get(`users/${userId}/profile-status`);
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: "Error al obtener el estado del perfil",
+      };
+    }
+
+    const data = await response.data;
+
+    return {
+      success: true,
+      data: data,
+    };
+  } catch (error) {
+    console.error("Error al obtener el estado del perfil:", error);
+    return {
+      success: false,
+      message: "Error al obtener el estado del perfil",
+    };
+  }
+}

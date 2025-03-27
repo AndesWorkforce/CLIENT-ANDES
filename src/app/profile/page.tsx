@@ -371,8 +371,7 @@ export default function ProfilePage() {
     profile.experiencia.length > 0 &&
     profile.educacion.length > 0 &&
     Boolean(profile.archivos.imagenRequerimientosPC) &&
-    Boolean(profile.archivos.imagenTestVelocidad) &&
-    profile.validacionExterna;
+    Boolean(profile.archivos.imagenTestVelocidad);
 
   return (
     <div className="min-h-screen bg-white">

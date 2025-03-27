@@ -1,0 +1,49 @@
+.customEditor {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.editorContainer {
+  flex: 1;
+  overflow: hidden;
+}
+
+.customEditor :global(.ql-toolbar) {
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.customEditor :global(.ql-container) {
+  flex-grow: 1;
+  overflow-y: auto;
+  font-size: 16px;
+  height: calc(100% - 42px); /* 42px es la altura de la toolbar */
+}
+
+.customEditor :global(.ql-editor) {
+  min-height: 150px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.customEditor :global(.ql-editor p) {
+  margin-bottom: 0.5em;
+}
+
+.customEditor :global(.ql-editor br) {
+  display: block;
+  content: "";
+  margin-top: 0.5em;
+}
+
+.customEditor :global(.ql-editor.ql-blank::before) {
+  color: #94a3b8;
+  font-style: normal;
+  left: 1rem;
+} 

@@ -250,20 +250,25 @@ export default function ViewOfferModal({
           </div>
 
           {/* Botón de aplicar */}
-          {user?.rol !== "ADMIN" && (
-            <button
-              className="w-full py-3 rounded-md font-medium text-white bg-[#0097B2] hover:bg-[#007A8F] mb-6 cursor-pointer"
-              onClick={() => {
-                if (!user) {
-                  addNotification("Debes estar logueado para aplicar", "info");
-                  router.push("/auth/login");
-                }
-                handleApplyToOffer(offer.id || "");
-              }}
-            >
-              Apply
-            </button>
-          )}
+          {!user?.rol.includes("ADMIN") &&
+            !user?.rol.includes("EMPLEADO_ADMIN") && (
+              <button
+                className="w-full py-3 rounded-md font-medium text-white bg-[#0097B2] hover:bg-[#007A8F] mb-6 cursor-pointer"
+                onClick={() => {
+                  if (!user) {
+                    addNotification(
+                      "Debes iniciar sesión para aplicar",
+                      "info"
+                    );
+                    router.push("/auth/login");
+                    return;
+                  }
+                  handleApplyToOffer(offer.id || "");
+                }}
+              >
+                Aplicar a la oferta
+              </button>
+            )}
 
           {/* Contenido de la oferta */}
           <div

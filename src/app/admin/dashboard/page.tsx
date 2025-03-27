@@ -163,14 +163,14 @@ export default function AdminDashboardPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
         {/* Actions and filters - Mantenerlos para la funcionalidad pero no visibles en el diseño actual */}
         <div className="hidden mb-8 flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <Link
-              href="/admin/offers/new"
+              href="/admin/dashboard/offers"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#0097B2] hover:bg-[#007A8F] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0097B2]"
             >
               <PlusCircle size={16} className="mr-2" />
@@ -339,7 +339,7 @@ export default function AdminDashboardPage() {
               {!searchTerm && (
                 <div className="mt-6">
                   <Link
-                    href="/admin/offers/new"
+                    href="/admin/dashboard/offers"
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#0097B2] hover:bg-[#007A8F] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0097B2]"
                   >
                     <PlusCircle size={16} className="mr-2" />
