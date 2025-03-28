@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -8,67 +8,25 @@ import {
   Clock,
   CheckCircle,
 } from "lucide-react";
-
-// Interfaz para representar una oferta de trabajo
-interface JobOffer {
-  id: number;
-  title: string;
-  applicants: number;
-  inInterview: number;
-  inTest: number;
-  hired: number;
-  isExpanded: boolean;
-}
+import { getPublishedOffers } from "../actions/offers.actions";
+import { Offer } from "@/app/types/offers";
 
 export default function ProcessPage() {
-  // Estado para simular las ofertas de trabajo
-  const [offers, setOffers] = useState<JobOffer[]>([
-    {
-      id: 1,
-      title: "Servicio de diseño gráfico",
-      applicants: 20,
-      inInterview: 5,
-      inTest: 2,
-      hired: 0,
-      isExpanded: true,
-    },
-    {
-      id: 2,
-      title: "Servicio de administrativo",
-      applicants: 15,
-      inInterview: 3,
-      inTest: 1,
-      hired: 2,
-      isExpanded: false,
-    },
-    {
-      id: 3,
-      title: "Servicio de contaduría",
-      applicants: 10,
-      inInterview: 2,
-      inTest: 0,
-      hired: 1,
-      isExpanded: false,
-    },
-    {
-      id: 4,
-      title: "Servicio de programador",
-      applicants: 30,
-      inInterview: 7,
-      inTest: 4,
-      hired: 2,
-      isExpanded: false,
-    },
-    {
-      id: 5,
-      title: "Servicio de secretaría",
-      applicants: 12,
-      inInterview: 3,
-      inTest: 1,
-      hired: 0,
-      isExpanded: false,
-    },
-  ]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [offers, setOffers] = useState<(Offer & { isExpanded: boolean })[]>([]);
+
+  const fetchPublishedOffers = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getPublishedOffers();
+      console.log("[Dashboard] Published offers:", response);
+      setOffers(response.data.data);
+    } catch (error) {
+      console.error("[Dashboard] Error getting published offers:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // // Simular cierre de sesión
   // const handleLogout = () => {
@@ -76,13 +34,19 @@ export default function ProcessPage() {
   // };
 
   // Función para expandir/contraer una oferta
-  const toggleOffer = (id: number) => {
+  const toggleOffer = (id: string) => {
     setOffers(
       offers.map((offer) =>
         offer.id === id ? { ...offer, isExpanded: !offer.isExpanded } : offer
       )
     );
   };
+
+  useEffect(() => {
+    fetchPublishedOffers();
+  }, []);
+
+  console.log("[Process] Offers:", offers);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -103,18 +67,20 @@ export default function ProcessPage() {
                   className={`p-4 flex items-center justify-between cursor-pointer ${
                     offer.isExpanded ? "bg-gray-50" : ""
                   }`}
-                  onClick={() => toggleOffer(offer.id)}
+                  onClick={() => toggleOffer(offer.id || "")}
                 >
-                  <div className="grid grid-cols-2 space-x-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {offer.isExpanded ? (
                       <ChevronUp size={20} className="text-[#0097B2]" />
                     ) : (
                       <ChevronDown size={20} className="text-[#0097B2]" />
                     )}
-                    <span className="font-medium">Oferta</span>
+                    <span className="text-start font-medium text-sm  ">
+                      Oferta
+                    </span>
                   </div>
-                  <div className="text-[#6D6D6D] flex-1 px-4">
-                    {offer.title}
+                  <div className="text-[#6D6D6D] text-start text-sm">
+                    {offer.titulo}
                   </div>
                 </div>
 
@@ -129,7 +95,7 @@ export default function ProcessPage() {
                           <span>Postulantes</span>
                         </div>
                         <div className="text-[#6D6D6D] font-medium">
-                          {offer.applicants}
+                          {offer.postulaciones?.length}
                         </div>
                       </div>
 
@@ -140,7 +106,13 @@ export default function ProcessPage() {
                           <span>En entrevista</span>
                         </div>
                         <div className="text-[#6D6D6D] font-medium">
-                          {offer.inInterview}
+                          {
+                            offer.postulaciones?.filter(
+                              (postulacion) =>
+                                String(postulacion.estadoPostulacion) ===
+                                "EN_EVALUACION"
+                            )?.length
+                          }
                         </div>
                       </div>
 
@@ -154,7 +126,44 @@ export default function ProcessPage() {
                           <span>En prueba</span>
                         </div>
                         <div className="text-[#6D6D6D] font-medium">
-                          {offer.inTest}
+                          {
+                            offer.postulaciones?.filter(
+                              (postulacion) =>
+                                String(postulacion.estadoPostulacion) ===
+                                "FINALISTA"
+                            )?.length
+                          }
+                        </div>
+                      </div>
+
+                      {/* Fila de rechazados */}
+                      <div className="grid grid-cols-2">
+                        <div className="flex items-center text-[#6D6D6D]">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#0097B2"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="mr-2"
+                          >
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                          </svg>
+                          <span>Rechazados</span>
+                        </div>
+                        <div className="text-[#6D6D6D] font-medium">
+                          {
+                            offer.postulaciones?.filter(
+                              (postulacion) =>
+                                String(postulacion.estadoPostulacion) ===
+                                "RECHAZADA"
+                            )?.length
+                          }
                         </div>
                       </div>
 
@@ -179,7 +188,13 @@ export default function ProcessPage() {
                           <span>Contratados</span>
                         </div>
                         <div className="text-[#6D6D6D] font-medium">
-                          {offer.hired}
+                          {
+                            offer.postulaciones?.filter(
+                              (postulacion) =>
+                                String(postulacion.estadoPostulacion) ===
+                                "ACEPTADA"
+                            )?.length
+                          }
                         </div>
                       </div>
                     </div>

@@ -10,7 +10,7 @@ export default function RegisterPage() {
       <div className="absolute inset-0 z-0">
         <Image
           src="https://appwiseinnovations.dev/Andes/fondo-landing.png"
-          alt="Fondo"
+          alt="Background"
           fill
           sizes="100vw"
           className="object-fill blur-lg brightness-75"
@@ -85,7 +85,7 @@ export default function RegisterPage() {
               <div className="hidden lg:flex lg:flex-col lg:mb-8">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-[600] text-[18px] text-black">
-                    Crear una cuenta nueva
+                    Create a new account
                   </h2>
                   <Logo />
                 </div>
@@ -100,13 +100,13 @@ export default function RegisterPage() {
               <div className="absolute inset-0">
                 <Image
                   src="https://appwiseinnovations.dev/Andes/fondo-landing.png"
-                  alt="Ilustración de login"
+                  alt="Illustration of login"
                   fill
                   sizes="100vw"
                   className="object-fill brightness-75"
                   priority
                 />
-                <div className="absolute inset-0 bg-black/40"></div>
+                <div className="absolute inset-0 bg-black/40" />
               </div>
             </div>
           </div>

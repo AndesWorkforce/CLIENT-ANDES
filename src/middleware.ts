@@ -118,7 +118,8 @@ export function middleware(request: NextRequest) {
 
     if (!isAuthenticated) {
       // Si no está autenticado, enviar al login
-      url.pathname = "/auth/login";
+      url.pathname = "/auth/forced-logout";
+      url.searchParams.set("reason", "session_expired");
       url.searchParams.set("callbackUrl", pathname);
     } else {
       // Si está autenticado pero no es super admin, enviar a página para administradores normales
@@ -139,7 +140,8 @@ export function middleware(request: NextRequest) {
 
     if (!isAuthenticated) {
       // Si no está autenticado, enviar al login
-      url.pathname = "/auth/login";
+      url.pathname = "/auth/forced-logout";
+      url.searchParams.set("reason", "session_expired");
       url.searchParams.set("callbackUrl", pathname);
     } else {
       // Si está autenticado pero no es admin, enviar a página para usuarios normales
@@ -157,7 +159,8 @@ export function middleware(request: NextRequest) {
   // 8. Si requiere autenticación y el usuario no está autenticado, redirigir al login
   if (requiresAuth && !isAuthenticated) {
     const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
+    url.pathname = "/auth/forced-logout";
+    url.searchParams.set("reason", "session_expired");
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }

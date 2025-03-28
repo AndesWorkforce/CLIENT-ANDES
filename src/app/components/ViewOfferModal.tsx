@@ -212,6 +212,7 @@ export default function ViewOfferModal({
       }
     }
   };
+
   if (!isOpen || !offer) return null;
 
   return (
@@ -249,6 +250,14 @@ export default function ViewOfferModal({
             </span>
           </div>
 
+          {/* Contenido de la oferta */}
+          <div
+            ref={contentRef}
+            className="prose prose-sm max-w-none text-gray-600 description-content"
+          >
+            {/* El contenido HTML se insertará aquí */}
+          </div>
+
           {/* Botón de aplicar */}
           {!user?.rol.includes("ADMIN") &&
             !user?.rol.includes("EMPLEADO_ADMIN") && (
@@ -269,14 +278,6 @@ export default function ViewOfferModal({
                 Aplicar a la oferta
               </button>
             )}
-
-          {/* Contenido de la oferta */}
-          <div
-            ref={contentRef}
-            className="prose prose-sm max-w-none text-gray-600 description-content"
-          >
-            {/* El contenido HTML se insertará aquí */}
-          </div>
 
           {/* Estado de la oferta */}
           <div className="mt-6 flex justify-between items-center">

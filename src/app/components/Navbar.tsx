@@ -3,13 +3,22 @@
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import { useAuthStore } from "@/store/auth.store";
 import { usePathname } from "next/navigation";
-import { User, LogOut, FileText, UserCircle, X } from "lucide-react";
+import {
+  User,
+  LogOut,
+  FileText,
+  UserCircle,
+  X,
+  Settings,
+  LayoutDashboard,
+} from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
 import useRouteExclusion from "@/hooks/useRouteExclusion";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import useScrollShadow from "@/hooks/useScrollShadow";
+import { userIsAppliedToOffer } from "../pages/offers/actions/jobs.actions";
 
 const navigation = [
   { name: "Home", href: "/pages/home" },
@@ -27,20 +36,31 @@ export default function Navbar() {
   const { scrollRef, showLeftShadow, showRightShadow } = useScrollShadow();
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
+  const [isValidProfileUserState, setIsValidProfileUserState] =
+    useState<boolean>(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
-
-  // Usando el hook useOutsideClick para el menú de usuario
   useOutsideClick(userMenuRef, () => setShowUserMenu(false), showUserMenu);
-
-  // Usando el hook useOutsideClick para el sidebar móvil
   useOutsideClick(
     sidebarRef,
     () => setShowMobileSidebar(false),
     showMobileSidebar
   );
 
-  // Evitar scroll del body cuando el sidebar está abierto
+  const isValidProfileUser = async () => {
+    try {
+      const response = await userIsAppliedToOffer(user?.id || "");
+
+      if (response.success) {
+        if (response.data?.perfilCompleto === "COMPLETO") {
+          setIsValidProfileUserState(true);
+        } else {
+          setIsValidProfileUserState(false);
+        }
+      }
+    } catch (error) {}
+  };
+
   useEffect(() => {
     if (showMobileSidebar) {
       document.body.style.overflow = "hidden";
@@ -52,6 +72,12 @@ export default function Navbar() {
       document.body.style.overflow = "auto";
     };
   }, [showMobileSidebar]);
+
+  useEffect(() => {
+    if (user) {
+      isValidProfileUser();
+    }
+  }, [user]);
 
   // Función para cerrar sesión
   const handleLogout = async () => {
@@ -87,7 +113,21 @@ export default function Navbar() {
         onClick={() => setShowUserMenu(false)}
       >
         <UserCircle size={16} className="mr-2 text-[#0097B2]" />
-        My Profile
+        <div className="relative">
+          My Profile
+          {isValidProfileUserState !== undefined && (
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 6 6"
+              fill={isValidProfileUserState ? "#10B981" : "#EF4444"}
+              xmlns="http://www.w3.org/2000/svg"
+              className="absolute -top-2 -right-2"
+            >
+              <circle cx="3" cy="3" r="3" />
+            </svg>
+          )}
+        </div>
       </Link>
 
       <Link
@@ -171,31 +211,113 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <div className="relative hidden md:block" ref={userMenuRef}>
-                  <button
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>{`${user?.nombre || ""} ${
-                      user?.apellido || ""
-                    }`}</span>
-                  </button>
-                  {showUserMenu && (
-                    <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                      {renderUserMenu()}
+                {user?.rol === "CANDIDATO" ? (
+                  <>
+                    <div className="relative hidden md:block" ref={userMenuRef}>
+                      <button
+                        onClick={() => setShowUserMenu(!showUserMenu)}
+                        className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>{`${user?.nombre || ""} ${
+                          user?.apellido || ""
+                        }`}</span>
+                      </button>
+                      {showUserMenu && (
+                        <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                          {renderUserMenu()}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div className="md:hidden">
-                  <button
-                    onClick={() => setShowMobileSidebar(true)}
-                    className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>{`${user?.nombre || ""} ${
-                      user?.apellido || ""
-                    }`}</span>
-                  </button>
-                </div>
+                    <div className="md:hidden">
+                      <button
+                        onClick={() => setShowMobileSidebar(true)}
+                        className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>{`${user?.nombre || ""} ${
+                          user?.apellido || ""
+                        }`}</span>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="relative hidden md:block" ref={userMenuRef}>
+                      <button
+                        onClick={() => setShowUserMenu(!showUserMenu)}
+                        className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>{`${user?.nombre || ""} ${
+                          user?.apellido || ""
+                        }`}</span>
+                      </button>
+                      {showUserMenu && (
+                        <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                          <div className="px-4 py-3 border-b border-gray-100">
+                            <p className="text-[#0097B2] font-medium text-sm cursor-default">
+                              {user?.nombre || ""} {user?.apellido || ""}
+                            </p>
+                          </div>
+                          {/* Opción de Super Admin solo visible para usuarios con rol ADMIN */}
+                          {user?.rol === "ADMIN" ? (
+                            <>
+                              <Link
+                                href="/admin/superAdmin"
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                                onClick={() => setShowUserMenu(false)}
+                              >
+                                <Settings
+                                  size={16}
+                                  className="mr-2 text-[#0097B2] cursor-pointer"
+                                />
+                                Panel de Super Admin
+                              </Link>
+                              <hr className="my-1 border-gray-200" />
+                            </>
+                          ) : null}
+
+                          {/* Opción para volver al panel de administración */}
+                          <Link
+                            href="/admin/dashboard"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                            onClick={() => setShowUserMenu(false)}
+                          >
+                            <LayoutDashboard
+                              size={16}
+                              className="mr-2 text-[#0097B2] cursor-pointer"
+                            />
+                            Gestión de Ofertas
+                          </Link>
+
+                          <hr className="my-1 border-gray-200" />
+
+                          <button
+                            onClick={() => {
+                              handleLogout();
+                              setShowUserMenu(false);
+                            }}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                          >
+                            <LogOut
+                              size={16}
+                              className="mr-2 text-[#0097B2] cursor-pointer"
+                            />
+                            Cerrar sesión
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="md:hidden">
+                      <button
+                        onClick={() => setShowMobileSidebar(true)}
+                        className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>{`${user?.nombre || ""} ${
+                          user?.apellido || ""
+                        }`}</span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -264,32 +386,80 @@ export default function Navbar() {
                   {user?.nombre || ""} {user?.apellido || ""}
                 </p>
 
-                <Link
-                  href="/profile"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                  onClick={() => setShowMobileSidebar(false)}
-                >
-                  <UserCircle size={20} className="mr-2 text-[#0097B2]" />
-                  My Profile
-                </Link>
+                {user?.rol === "CANDIDATO" ? (
+                  <>
+                    <Link
+                      href="/profile"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      onClick={() => setShowMobileSidebar(false)}
+                    >
+                      <UserCircle size={20} className="mr-2 text-[#0097B2]" />
+                      <div className="relative">
+                        My Profile
+                        {isValidProfileUserState !== undefined && (
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 6 6"
+                            fill={
+                              isValidProfileUserState ? "#10B981" : "#EF4444"
+                            }
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="absolute -top-2 -right-2"
+                          >
+                            <circle cx="3" cy="3" r="3" />
+                          </svg>
+                        )}
+                      </div>
+                    </Link>
 
-                <Link
-                  href="/applications"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                  onClick={() => setShowMobileSidebar(false)}
-                >
-                  <FileText size={20} className="mr-2 text-[#0097B2]" />
-                  My Applications
-                </Link>
+                    <Link
+                      href="/applications"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      onClick={() => setShowMobileSidebar(false)}
+                    >
+                      <FileText size={20} className="mr-2 text-[#0097B2]" />
+                      My Applications
+                    </Link>
 
-                <Link
-                  href="/account"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                  onClick={() => setShowMobileSidebar(false)}
-                >
-                  <User size={20} className="mr-2 text-[#0097B2]" />
-                  My Account
-                </Link>
+                    <Link
+                      href="/account"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      onClick={() => setShowMobileSidebar(false)}
+                    >
+                      <User size={20} className="mr-2 text-[#0097B2]" />
+                      My Account
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    {user?.rol === "ADMIN" && (
+                      <Link
+                        href="/admin/superAdmin"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                        onClick={() => setShowMobileSidebar(false)}
+                      >
+                        <Settings size={20} className="mr-2 text-[#0097B2]" />
+                        Panel de Super Admin
+                      </Link>
+                    )}
+                    <hr className="my-1 border-gray-200" />
+
+                    <Link
+                      href="/admin/dashboard"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      onClick={() => setShowMobileSidebar(false)}
+                    >
+                      <LayoutDashboard
+                        size={20}
+                        className="mr-2 text-[#0097B2]"
+                      />
+                      Gestión de Ofertas
+                    </Link>
+                  </>
+                )}
+
+                <hr className="my-1 border-gray-200" />
 
                 <button
                   onClick={() => {
@@ -302,7 +472,7 @@ export default function Navbar() {
                     size={20}
                     className="mr-2 text-[#0097B2] cursor-pointer"
                   />
-                  Logout
+                  {user?.rol === "CANDIDATO" ? "Logout" : "Cerrar sesión"}
                 </button>
               </div>
             </div>

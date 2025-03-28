@@ -16,15 +16,13 @@ export default function LoginPage() {
     const error = searchParams.get("error");
     if (error) {
       const errorMessages: Record<string, string> = {
-        session_expired:
-          "Tu sesión ha expirado. Por favor inicia sesión nuevamente.",
-        unauthorized: "No tienes permiso para acceder a este recurso.",
-        invalid_token: "Token inválido. Por favor inicia sesión nuevamente.",
+        session_expired: "Your session has expired. Please log in again.",
+        unauthorized: "You do not have permission to access this resource.",
+        invalid_token: "Invalid token. Please log in again.",
       };
 
       addNotification(
-        errorMessages[error] ||
-          "Ha ocurrido un error. Por favor inicia sesión nuevamente.",
+        errorMessages[error] || "An error has occurred. Please log in again.",
         "info"
       );
     }
@@ -36,13 +34,13 @@ export default function LoginPage() {
       <div className="absolute inset-0 z-0">
         <Image
           src="https://appwiseinnovations.dev/Andes/fondo-landing.png"
-          alt="Fondo"
+          alt="Background"
           fill
           sizes="100vw"
           className="object-fill blur-lg brightness-75"
           priority
         />
-        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="absolute inset-0 bg-black/50" />
       </div>
 
       {/* Contenedor principal - sin justify-center en móvil */}
@@ -111,7 +109,7 @@ export default function LoginPage() {
               <div className="hidden lg:flex lg:flex-col lg:mb-8">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-[600] text-[18px] text-black">
-                    Iniciar sesión
+                    Log in
                   </h2>
                   <Logo />
                 </div>
@@ -132,7 +130,7 @@ export default function LoginPage() {
                   className="object-fill brightness-75"
                   priority
                 />
-                <div className="absolute inset-0 bg-black/40"></div>
+                <div className="absolute inset-0 bg-black/40" />
               </div>
             </div>
           </div>

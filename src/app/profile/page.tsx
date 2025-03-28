@@ -14,6 +14,8 @@ import ViewFormularioModal from "./components/ViewFormularioModal";
 import ViewVideoModal from "./components/ViewVideoModal";
 import ViewSkillsModal from "./components/ViewSkillsModal";
 import ViewPCRequirementsModal from "./components/ViewPCRequirementsModal";
+import ContactoModal from "./components/ContactoModal";
+import ViewContactoModal from "./components/ViewContactoModal";
 import { useProfileContext } from "./context/ProfileContext";
 import Dump from "@/components/icons/Dump";
 import Edit from "@/components/icons/Edit";
@@ -84,6 +86,12 @@ export default function ProfilePage() {
   const [showDeleteEducationModal, setShowDeleteEducationModal] =
     useState(false);
   const [educationIdToDelete, setEducationIdToDelete] = useState<string>("");
+
+  // Estados para el modal de datos de contacto
+  const [showContactoModal, setShowContactoModal] = useState(false);
+  const [showEditContactoModal, setShowEditContactoModal] = useState(false);
+  const [showViewContactoModal, setShowViewContactoModal] = useState(false);
+  const [showDeleteContactoModal, setShowDeleteContactoModal] = useState(false);
 
   const handleSaveExperience = async (userId: string, data: Experience) => {
     const response = await addExperience(userId, data);
@@ -466,7 +474,64 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Card 2: Video */}
+        {/* Card 2: Datos de Contacto */}
+        <div
+          className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+          style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+        >
+          <span className="text-gray-800 font-medium">Datos de Contacto</span>
+          <div className="flex items-center justify-center gap-4">
+            {profile.datosPersonales.telefono &&
+            profile.datosPersonales.residencia ? (
+              <div className="flex items-center gap-2">
+                <Edit
+                  className="cursor-pointer"
+                  onClick={() => setShowViewContactoModal(true)}
+                />
+              </div>
+            ) : (
+              <svg
+                width="35"
+                height="35"
+                viewBox="0 0 25 25"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="cursor-pointer"
+                onClick={() => setShowContactoModal(true)}
+              >
+                <circle cx="12.5" cy="12.5" r="12.5" fill="#0097B2" />
+                <g clipPath="url(#clip0_161_384)">
+                  <path
+                    d="M11.875 7.5H7.5C7.16848 7.5 6.85054 7.6317 6.61612 7.86612C6.3817 8.10054 6.25 8.41848 6.25 8.75V17.5C6.25 17.8315 6.3817 18.1495 6.61612 18.3839C6.85054 18.6183 7.16848 18.75 7.5 18.75H16.25C16.5815 18.75 16.8995 18.6183 17.1339 18.3839C17.3683 18.1495 17.5 17.8315 17.5 17.5V13.125"
+                    stroke="#FCFEFF"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M16.5625 6.5625C16.8111 6.31386 17.1484 6.17417 17.5 6.17417C17.8516 6.17417 18.1889 6.31386 18.4375 6.5625C18.6861 6.81114 18.8258 7.14837 18.8258 7.5C18.8258 7.85163 18.6861 8.18886 18.4375 8.4375L12.5 14.375L10 15L10.625 12.5L16.5625 6.5625Z"
+                    stroke="#FCFEFF"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </g>
+                <defs>
+                  <clipPath id="clip0_161_384">
+                    <rect
+                      width="15"
+                      height="15"
+                      fill="white"
+                      transform="translate(5 5)"
+                    />
+                  </clipPath>
+                </defs>
+              </svg>
+            )}
+          </div>
+        </div>
+
+        {/* Card 3: Video */}
         <div
           className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
           style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
@@ -495,7 +560,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Card 3: Skills */}
+        {/* Card 4: Skills */}
         <div
           className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
           style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
@@ -527,7 +592,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Card 4: PC Requirements */}
+        {/* Card 5: PC Requirements */}
         <div
           className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
           style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
@@ -1045,6 +1110,25 @@ export default function ProfilePage() {
         onConfirm={() => confirmDeleteEducation(educationIdToDelete)}
         title="Delete Education"
         message="Are you sure you want to delete this education? This action cannot be undone."
+      />
+
+      <ViewContactoModal
+        isOpen={showViewContactoModal}
+        onClose={() => setShowViewContactoModal(false)}
+        onEdit={() => {
+          setShowViewContactoModal(false);
+          setShowEditContactoModal(true);
+        }}
+      />
+
+      <ContactoModal
+        isOpen={showContactoModal}
+        onClose={() => setShowContactoModal(false)}
+      />
+
+      <ContactoModal
+        isOpen={showEditContactoModal}
+        onClose={() => setShowEditContactoModal(false)}
       />
     </div>
   );

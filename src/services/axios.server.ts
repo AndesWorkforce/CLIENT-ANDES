@@ -25,9 +25,13 @@ export async function createServerAxios() {
         cookieStore.delete(AUTH_COOKIE);
         cookieStore.delete(USER_INFO_COOKIE);
 
-        // Redirigir a la página de logout forzado
-        // La redirección se ejecutará después de que la acción del servidor termine
-        redirect("/auth/forced-logout?reason=session_expired");
+        // Redirigir a la página de logout forzado con los parámetros correctos
+        const currentPath = error.config?.url || "/";
+        redirect(
+          `/auth/forced-logout?reason=session_expired&callbackUrl=${encodeURIComponent(
+            currentPath
+          )}`
+        );
       }
       return Promise.reject(error);
     }

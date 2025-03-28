@@ -358,6 +358,7 @@ export default function AdminDashboardPage() {
           isOpen={isApplicantsModalOpen}
           onClose={closeApplicantsModal}
           serviceTitle={selectedOffer?.titulo || ""}
+          offerId={selectedOffer.id || ""}
           applicants={
             selectedOffer?.postulaciones?.map((postulacion) => ({
               id: postulacion.candidato.id,
@@ -367,6 +368,7 @@ export default function AdminDashboardPage() {
               telefono: postulacion.candidato.telefono,
               fotoPerfil: postulacion.candidato.fotoPerfil,
               videoPresentacion: postulacion.candidato.videoPresentacion,
+              postulationId: postulacion.id,
             })) || []
           }
         />

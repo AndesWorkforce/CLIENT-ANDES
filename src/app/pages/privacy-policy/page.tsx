@@ -176,6 +176,11 @@ export default function PrivacyPolicyPage() {
             opinion of current or potential future services that may be offered.
           </p>
 
+          <p className="mb-8">
+            Personal data management will be in accordance with each country
+            legislation.
+          </p>
+
           <h2 className="text-xl font-bold mt-8 mb-4 text-[#08252A]">
             Disclosure of Information
           </h2>
