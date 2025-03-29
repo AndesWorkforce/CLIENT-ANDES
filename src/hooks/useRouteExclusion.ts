@@ -5,21 +5,25 @@ import { usePathname } from "next/navigation";
 // Rutas donde no queremos mostrar ciertos componentes (como Navbar y Footer)
 export const excludedRoutes = {
   navbar: [
-    "/auth", 
+    "/auth",
     "/auth/login",
     "/auth/register",
     "/auth/reset-password",
-    "/profile", 
+    "/profile",
     "/applications",
     "/account",
     "/admin/login",
     "/admin/dashboard",
+    "/admin/superAdmin",
+    "/admin/dashboard/offers",
   ],
   footer: [
-    "/auth", 
+    "/auth",
     "/auth/login",
-    "/auth/register", 
+    "/auth/register",
     "/auth/reset-password",
+    "/admin/dashboard",
+    "/admin/superAdmin",
   ],
 };
 
@@ -27,7 +31,9 @@ export default function useRouteExclusion() {
   const pathname = usePathname();
 
   const shouldExclude = (componentType: keyof typeof excludedRoutes) => {
-    return excludedRoutes[componentType].some((route) => pathname.startsWith(route));
+    return excludedRoutes[componentType].some((route) =>
+      pathname.startsWith(route)
+    );
   };
 
   return {
@@ -35,4 +41,4 @@ export default function useRouteExclusion() {
     isNavbarExcluded: shouldExclude("navbar"),
     isFooterExcluded: shouldExclude("footer"),
   };
-} 
+}

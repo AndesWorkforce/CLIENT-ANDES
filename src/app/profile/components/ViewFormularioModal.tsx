@@ -33,9 +33,9 @@ export default function ViewFormularioModal({
         style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
       >
         <div className="flex items-center p-4 relative border-b border-gray-200">
-          <div className="w-6"></div>
+          <div className="w-6" />
           <h2 className="text-lg font-medium w-full text-center text-[#0097B2]">
-            Tu formulario completado
+            Your completed form
           </h2>
           <button
             onClick={onClose}
@@ -75,11 +75,11 @@ export default function ViewFormularioModal({
 
           <div className="text-center">
             <h3 className="text-xl font-semibold text-gray-800">
-              ¡Formulario completado!
+              Form completed!
             </h3>
             <p className="text-gray-600 mt-2">
-              Ya has completado el formulario con tu información personal. Si
-              necesitas modificar algún dato, puedes hacerlo desde aquí.
+              You have completed the form with your personal information. If you
+              need to modify any data, you can do so here.
             </p>
           </div>
 
@@ -87,9 +87,9 @@ export default function ViewFormularioModal({
             <button
               type="button"
               onClick={onClose}
-              className="w-full py-2 px-4 bg-[#0097B2] text-white font-medium rounded-md"
+              className="w-full py-2 px-4 bg-[#0097B2] text-white font-medium rounded-md cursor-pointer"
             >
-              Cerrar
+              Close
             </button>
           </div>
         </div>

@@ -18,24 +18,21 @@ export default function TabsNavigation() {
     setShowRightShadow(scrollLeft < scrollWidth - clientWidth - 5);
   };
 
-  // Comprobar sombras al cargar y al cambiar tamaño de ventana
   useEffect(() => {
     checkScrollShadows();
     window.addEventListener("resize", checkScrollShadows);
     return () => window.removeEventListener("resize", checkScrollShadows);
   }, []);
 
-  console.log("PATHNAME", pathname);
-
   return (
     <div className="bg-white border-gray-200">
       <div className="max-w-7xl mx-auto px-4 relative">
-        {/* Indicador de scroll izquierdo */}
+        {/* Left scroll indicator */}
         {showLeftShadow && (
           <div className="absolute top-0 left-0 w-8 h-full z-10 bg-gradient-to-r from-white to-transparent pointer-events-none" />
         )}
 
-        {/* Contenedor desplazable */}
+        {/* Scrollable container */}
         <div
           ref={scrollRef}
           className="overflow-x-auto py-2 scrollbar-hide"
@@ -77,7 +74,7 @@ export default function TabsNavigation() {
                   strokeLinejoin="round"
                 />
               </svg>
-              Ofertas
+              Offers
             </Link>
             <Link
               href="/admin/dashboard/offers"
@@ -135,7 +132,7 @@ export default function TabsNavigation() {
                   </clipPath>
                 </defs>
               </svg>
-              Agregar ofertas
+              Add offers
             </Link>
             <Link
               href="/admin/dashboard/process"
@@ -193,7 +190,7 @@ export default function TabsNavigation() {
                   </clipPath>
                 </defs>
               </svg>
-              Proceso
+              Process
             </Link>
             <Link
               href="/admin/dashboard/save-offers"
@@ -244,12 +241,12 @@ export default function TabsNavigation() {
                   strokeLinejoin="round"
                 />
               </svg>
-              Ofertas guardadas
+              Saved offers
             </Link>
           </div>
         </div>
 
-        {/* Indicador de scroll derecho */}
+        {/* Right scroll indicator */}
         {showRightShadow && (
           <div className="absolute top-0 right-0 w-8 h-full z-10 bg-gradient-to-l from-white to-transparent pointer-events-none" />
         )}

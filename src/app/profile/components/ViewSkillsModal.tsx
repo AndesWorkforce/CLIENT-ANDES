@@ -2,11 +2,12 @@
 
 import { useRef } from "react";
 import { X } from "lucide-react";
+import { Skill } from "@/app/types/skill";
 
 interface ViewSkillsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  skills: { id: string; nombre: string }[];
+  skills: Skill[];
   onEdit: () => void;
 }
 
@@ -37,9 +38,9 @@ export default function ViewSkillsModal({
         style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
       >
         <div className="flex items-center p-4 relative border-b border-gray-200">
-          <div className="w-6"></div>
+          <div className="w-6" />
           <h2 className="text-lg font-medium w-full text-center text-[#0097B2]">
-            Tus habilidades
+            Your Skills
           </h2>
           <button
             onClick={onClose}
@@ -79,10 +80,10 @@ export default function ViewSkillsModal({
 
           <div className="text-center">
             <h3 className="text-xl font-semibold text-gray-800">
-              Habilidades agregadas
+              Skills Added
             </h3>
             <p className="text-gray-600 mt-2 mb-4">
-              Has agregado las siguientes habilidades a tu perfil:
+              You have added the following skills to your profile:
             </p>
 
             <div className="flex flex-wrap justify-center gap-2 mt-4">
@@ -103,14 +104,14 @@ export default function ViewSkillsModal({
               onClick={onEdit}
               className="w-full py-2 px-4 bg-[#0097B2] hover:bg-[#0097B2]/80 text-white font-medium rounded-md cursor-pointer"
             >
-              Editar habilidades
+              Edit Skills
             </button>
             <button
               type="button"
               onClick={onClose}
               className="w-full text-center text-[#0097B2] hover:text-[#0097B2]/80 py-1 cursor-pointer"
             >
-              Cerrar
+              Close
             </button>
           </div>
         </div>

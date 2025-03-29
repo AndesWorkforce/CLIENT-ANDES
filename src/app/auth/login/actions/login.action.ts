@@ -2,6 +2,7 @@
 
 import { LoginFormValues } from "../schemas/login.schema";
 import { cookies } from "next/headers";
+import { createServerAxios } from "@/services/axios.server";
 
 // Constantes para las cookies
 const AUTH_COOKIE = "auth_token";
@@ -13,15 +14,14 @@ const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 export async function loginAction(values: LoginFormValues) {
   try {
     const { correo, contrasena } = values;
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}auth/login`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, contrasena }),
-      }
-    );
-    const data = await response.json();
+    const axios = await createServerAxios();
+
+    const response = await axios.post("auth/login", {
+      correo,
+      contrasena,
+    });
+
+    const data = response.data;
 
     // Si el inicio de sesión fue exitoso, establecer cookies
     if (data && data.data) {
@@ -53,12 +53,16 @@ export async function loginAction(values: LoginFormValues) {
       });
 
       console.log("Cookies establecidas correctamente");
+      return {
+        success: true,
+        data: data.data,
+      };
+    } else {
+      return {
+        success: false,
+        error: "Error al iniciar sesión",
+      };
     }
-
-    return {
-      success: true,
-      data: data.data,
-    };
   } catch (error) {
     console.error("Error en el formulario:", error);
     return {

@@ -11,14 +11,14 @@ const services = [
   },
   {
     id: 2,
-    title: "Customer Service Representatives",
+    title: "Customer Service",
     description:
       "Interact with customers to answer questions and assist them with their needs. Answer phone calls and emails in a timely manner to resolve any emerging problem.",
     image: "https://appwiseinnovations.dev/Andes/services-view-2.png",
   },
   {
     id: 3,
-    title: "Call Center Agents",
+    title: "Call Center",
     description:
       "Handle inbound and outbound calls to and from customers making sure that everyone quickly receives the help they need.",
     image: "https://appwiseinnovations.dev/Andes/services-view-3.png",
@@ -35,7 +35,7 @@ export default function ServicesPage() {
             Our Services
           </h1>
           <p className="text-[#08252A] mt-1">
-            Find more information about the services we offer
+            Find more information about the services we offer.
           </p>
         </div>
       </section>

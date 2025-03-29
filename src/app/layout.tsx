@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toast } from "@/components/ui/Toast";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import "react-quill/dist/quill.snow.css";
+import "quill/dist/quill.snow.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
