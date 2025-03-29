@@ -40,9 +40,10 @@ export const InterviewInvitationEmail = ({
             }}
           >
             Thank you for expressing interest in working with Andes Workforce!
-            I've had the chance to review your resume for remote positions, and
-            we may have an opportunity that aligns with your experience. I'd
-            like to schedule a brief call to discuss your background further.
+            I&apos;ve had the chance to review your resume for remote positions,
+            and we may have an opportunity that aligns with your experience.
+            I&apos;d like to schedule a brief call to discuss your background
+            further.
           </Text>
 
           <Text

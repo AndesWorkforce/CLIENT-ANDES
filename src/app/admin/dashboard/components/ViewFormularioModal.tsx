@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 interface ViewFormularioModalProps {
   isOpen: boolean;
   onClose: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datosFormulario: Record<string, any>;
   name: string;
 }

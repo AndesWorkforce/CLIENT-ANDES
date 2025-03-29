@@ -175,6 +175,7 @@ export default function ViewOfferModal({
       const day = date.getDate();
       return `${month} ${day}`;
     } catch (e) {
+      console.error("[ViewOfferModal] Error al formatear la fecha:", e);
       return dateString.split("T")[0] || "Date not available";
     }
   };

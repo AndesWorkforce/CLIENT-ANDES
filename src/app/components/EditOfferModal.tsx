@@ -3,7 +3,6 @@
 import {
   useState,
   useEffect,
-  useMemo,
   Component,
   ErrorInfo,
   ReactNode,
@@ -15,7 +14,6 @@ import { X } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import QuillEditor from "@/app/admin/dashboard/components/QuillEditor";
 
-// Error boundary para capturar errores en el editor
 class EditorErrorBoundary extends Component<
   { children: ReactNode; fallback?: ReactNode },
   { hasError: boolean; error: Error | null }
@@ -40,11 +38,11 @@ class EditorErrorBoundary extends Component<
         this.props.fallback || (
           <div className="border border-red-300 p-4 rounded bg-red-50">
             <h3 className="text-red-600 font-medium mb-2">
-              Error en el editor
+              Error in the editor
             </h3>
             <p className="text-sm text-gray-700">
-              Hubo un problema al cargar el editor. Por favor, intente refrescar
-              la página.
+              There was an error loading the editor. Please try refreshing the
+              page.
             </p>
           </div>
         )
@@ -73,13 +71,13 @@ export default function EditOfferModal({
   initialData,
 }: EditOfferModalProps) {
   const { addNotification } = useNotificationStore();
-  const [isEditing, setIsEditing] = useState(!readOnly);
-  const [title, setTitle] = useState("");
-  const [editorHTML, setEditorHTML] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [editorKey, setEditorKey] = useState(Date.now());
-  const firstRenderRef = useRef(true);
-  const mountCountRef = useRef(0);
+  const [isEditing] = useState(!readOnly);
+  const [title, setTitle] = useState<string>("");
+  const [editorHTML, setEditorHTML] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [editorKey, setEditorKey] = useState<number>(Date.now());
+  const firstRenderRef = useRef<boolean>(true);
+  const mountCountRef = useRef<number>(0);
 
   const resetEditor = useCallback(() => {
     const allToolbars = document.querySelectorAll(".ql-toolbar");

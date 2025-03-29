@@ -9,7 +9,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export async function addEducation(userId: string, education: Education) {
   try {
     if (!API_URL) {
-      console.error("[Education] No se encontró la URL de la API");
       return {
         success: false,
         message: "Error de configuración: URL de API no disponible",
@@ -20,7 +19,6 @@ export async function addEducation(userId: string, education: Education) {
     const token = cookieStore.get("auth_token")?.value;
 
     if (!token) {
-      console.error("[Education] No se encontró el token de autenticación");
       return {
         success: false,
         message: "Error de autenticación: No se encontró el token",
@@ -43,17 +41,11 @@ export async function addEducation(userId: string, education: Education) {
     try {
       responseData = JSON.parse(responseText);
     } catch (e) {
+      console.error("[Education] Error al analizar la respuesta:", e);
       responseData = { message: responseText };
     }
 
     if (!response.ok) {
-      console.error(
-        "[Education] API error status:",
-        response.status,
-        response.statusText
-      );
-      console.error("[Education] API error body:", responseData);
-
       return {
         success: false,
         message: `Error del servidor: ${response.status} ${
@@ -62,10 +54,7 @@ export async function addEducation(userId: string, education: Education) {
       };
     }
 
-    console.log("[Education] Education added successfully:", responseData);
-
     revalidatePath("/profile");
-    console.log("[Education] Revalidated profile path");
 
     return {
       success: true,
@@ -83,7 +72,6 @@ export async function addEducation(userId: string, education: Education) {
 export async function deleteEducation(userId: string, educationId: string) {
   try {
     if (!API_URL) {
-      console.error("[Education] No se encontró la URL de la API");
       return {
         success: false,
         message: "Error de configuración: URL de API no disponible",
@@ -94,7 +82,6 @@ export async function deleteEducation(userId: string, educationId: string) {
     const token = cookieStore.get("auth_token")?.value;
 
     if (!token) {
-      console.error("[Education] No se encontró el token de autenticación");
       return {
         success: false,
         message: "Error de autenticación: No se encontró el token",
@@ -119,17 +106,11 @@ export async function deleteEducation(userId: string, educationId: string) {
     try {
       responseData = JSON.parse(responseText);
     } catch (e) {
+      console.error("[Education] Error al analizar la respuesta:", e);
       responseData = { message: responseText };
     }
 
     if (!response.ok) {
-      console.error(
-        "[Education] API error status:",
-        response.status,
-        response.statusText
-      );
-      console.error("[Education] API error body:", responseData);
-
       return {
         success: false,
         message: `Error del servidor: ${response.status} ${
@@ -138,11 +119,7 @@ export async function deleteEducation(userId: string, educationId: string) {
       };
     }
 
-    console.log("[Education] Education deleted successfully:", responseData);
-
-    // Revalidar la ruta del perfil para refrescar los datos automáticamente
     revalidatePath("/profile");
-    console.log("[Education] Revalidated profile path");
 
     return {
       success: true,

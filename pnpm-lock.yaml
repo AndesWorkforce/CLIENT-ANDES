@@ -92,6 +92,9 @@ importers:
       react-hook-form:
         specifier: ^7.54.2
         version: 7.54.2(react@19.0.0)
+      react-pdf:
+        specifier: ^9.2.1
+        version: 9.2.1(@types/react@19.0.12)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react-quill:
         specifier: ^2.0.0
         version: 2.0.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)

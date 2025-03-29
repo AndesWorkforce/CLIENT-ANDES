@@ -7,7 +7,8 @@ import { revalidatePath } from "next/cache";
  * Guarda los datos del formulario para un usuario específico
  */
 export async function guardarDatosFormulario(
-  userId: string, 
+  userId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datosFormulario: Record<string, any>
 ) {
   try {
@@ -15,16 +16,13 @@ export async function guardarDatosFormulario(
     const token = cookieStore.get("auth_token")?.value;
 
     if (!token) {
-        console.error("[Formulario] Error: No hay token de autenticación");
-        return { success: false, error: "No hay token de autenticación" };
+      return { success: false, error: "No hay token de autenticación" };
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
     const apiUrl = `${baseUrl}users/${userId}/datos-formulario`;
-    console.log("[Formulario] URL de API:", apiUrl);
-    
-    // Validar que los datos sean un objeto válido
-    if (!datosFormulario || typeof datosFormulario !== 'object') {
+
+    if (!datosFormulario || typeof datosFormulario !== "object") {
       throw new Error("Formato de datos inválido");
     }
 
@@ -32,19 +30,21 @@ export async function guardarDatosFormulario(
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(datosFormulario),
     });
 
     if (!response.ok) {
-      console.error("[Formulario] Error al guardar datos del formulario:", response.status);
-      return { success: false, error: `Error ${response.status} al guardar datos del formulario` };
+      return {
+        success: false,
+        error: `Error ${response.status} al guardar datos del formulario`,
+      };
     }
 
     revalidatePath(`/profile`);
     return { success: true };
-  } catch (error: any) {    
+  } catch (error) {
     console.error("[Formulario] Error al guardar datos del formulario:", error);
     return {
       success: false,
@@ -52,7 +52,6 @@ export async function guardarDatosFormulario(
     };
   }
 }
-
 
 /**
  * Obtiene los datos del formulario de un usuario específico
@@ -63,38 +62,37 @@ export async function eliminarDatosFormulario(userId: string) {
     const token = cookieStore.get("auth_token")?.value;
 
     if (!token) {
-      console.error("[Formulario] Error: No hay token de autenticación");
       return { success: false, error: "No hay token de autenticación" };
     }
-    
+
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
     const apiUrl = `${baseUrl}users/${userId}/datos-formulario`;
-    console.log("[Formulario] URL de API:", apiUrl);
 
     const response = await fetch(apiUrl, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
-    
+
     if (!response.ok) {
-      console.error("[Formulario] Error al obtener datos del formulario:", response.status);
-      return { success: false, error: `Error ${response.status} al obtener datos del formulario` };
+      return {
+        success: false,
+        error: `Error ${response.status} al obtener datos del formulario`,
+      };
     }
 
     const data = await response.json();
-    console.log("[Formulario] Datos del formulario obtenidos:", data);
 
     revalidatePath(`/profile`);
 
     return { success: true, data };
-  } catch (error: any) {
+  } catch (error) {
     console.error("[Formulario] Error al obtener datos del formulario:", error);
     return {
       success: false,
-      message: error.message || "Error al obtener los datos del formulario"
+      message: error instanceof Error ? error.message : "Error desconocido",
     };
   }
-}    
+}

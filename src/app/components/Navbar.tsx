@@ -58,7 +58,12 @@ export default function Navbar() {
           setIsValidProfileUserState(false);
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error(
+        "[Navbar] Error al verificar el perfil del usuario:",
+        error
+      );
+    }
   };
 
   useEffect(() => {

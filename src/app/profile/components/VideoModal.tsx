@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { X, Info, Upload, Eye, AlertCircle } from "lucide-react";
 import { useProfileContext } from "../context/ProfileContext";
 import { saveVideoUrl } from "../actions/video-actions";

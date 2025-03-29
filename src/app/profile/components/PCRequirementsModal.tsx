@@ -84,6 +84,10 @@ export default function PCRequirementsModal({
           throw new Error("La respuesta no contiene una URL de archivo válida");
         }
       } catch (parseError) {
+        console.error(
+          "[PCRequirements] Error parsing the response:",
+          parseError
+        );
         fileUrl = responseText.trim();
 
         if (!fileUrl.startsWith("http")) {

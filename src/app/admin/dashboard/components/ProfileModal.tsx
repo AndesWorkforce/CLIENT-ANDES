@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Phone, Mail, FileText, Play, X, Pause, Download } from "lucide-react";
+import { Phone, Mail, FileText, Play, X, Pause } from "lucide-react";
 import ProfileModalSkeleton from "./ProfileModalSkeleton";
 import { getProfile } from "../actions/profile.actions";
 import { useNotificationStore } from "@/store/notifications.store";

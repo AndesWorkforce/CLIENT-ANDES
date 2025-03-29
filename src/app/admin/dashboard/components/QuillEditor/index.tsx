@@ -14,15 +14,15 @@ interface QuillEditorProps {
 const QuillEditor = ({
   value,
   onChange,
-  placeholder = "Escribe aquí...",
+  placeholder = "Write here...",
   editorId,
 }: QuillEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const quillRef = useRef<any>(null);
   const [isQuillLoaded, setIsQuillLoaded] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Memoizar la configuración de Quill
   const quillConfig = useMemo(
     () => ({
       modules: {
@@ -50,7 +50,6 @@ const QuillEditor = ({
     [placeholder]
   );
 
-  // Memoizar la función de destrucción
   const destroyQuill = useCallback(() => {
     if (quillRef.current) {
       quillRef.current.off("text-change");
@@ -66,8 +65,8 @@ const QuillEditor = ({
     }
   }, []);
 
-  // Memoizar el manejador de cambios
   const handleTextChange = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (quill: any) => {
       const html = quill.root.innerHTML;
       onChange(html);
@@ -75,7 +74,6 @@ const QuillEditor = ({
     [onChange]
   );
 
-  // Efecto para la inicialización de Quill
   useEffect(() => {
     setIsMounted(true);
     return () => {

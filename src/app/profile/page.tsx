@@ -123,6 +123,7 @@ export default function ProfilePage() {
           alert(`Error updating skills: ${result.message}`);
         }
       } catch (error) {
+        console.error("[ProfilePage] Error updating skills:", error);
         alert("An unexpected error occurred while updating skills");
       } finally {
         // Ocultar indicador de carga
@@ -150,23 +151,13 @@ export default function ProfilePage() {
         const result = await deleteAllSkills(user.id);
 
         if (result.success) {
-          console.log("[ProfilePage] All skills deleted correctly");
-
-          // Cerrar el modal de confirmación
           setShowDeleteSkillsModal(false);
 
-          // Mostrar mensaje de éxito al usuario
           addNotification("All skills have been deleted correctly", "success");
 
-          // Forzar recarga completa de la página para asegurarnos que los datos se actualizan
-          // También borramos la caché local del navegador para evitar estados inconsistentes
           window.location.href =
             window.location.pathname + "?ts=" + new Date().getTime();
         } else {
-          console.error(
-            "[ProfilePage] Failed to delete skills:",
-            result.message
-          );
           addNotification(`Error deleting skills: ${result.message}`, "error");
         }
       } catch (error) {
@@ -186,7 +177,6 @@ export default function ProfilePage() {
   };
 
   const handleRemoveVideoPresentation = async () => {
-    // Mostrar el modal de confirmación en lugar de eliminar directamente
     setShowDeleteVideoModal(true);
   };
 
@@ -196,10 +186,8 @@ export default function ProfilePage() {
         const result = await removeVideoPresentation(user.id);
 
         if (result.success) {
-          console.log("[ProfilePage] Video presentation deleted correctly");
           addNotification("Video presentation deleted correctly", "success");
 
-          // Forzar recarga de la página para asegurar que los datos se actualizan
           window.location.href =
             window.location.pathname + "?ts=" + new Date().getTime();
         } else {
@@ -222,7 +210,6 @@ export default function ProfilePage() {
           "error"
         );
       } finally {
-        // Cerrar el modal
         setShowDeleteVideoModal(false);
       }
     }
@@ -234,10 +221,8 @@ export default function ProfilePage() {
         const result = await deletePCRequirementsImages(user.id);
 
         if (result.success) {
-          console.log("[ProfilePage] PC requirements deleted correctly");
           addNotification("PC requirements deleted correctly", "success");
 
-          // Forzar recarga de la página para asegurar que los datos se actualizan
           window.location.href =
             window.location.pathname + "?ts=" + new Date().getTime();
         } else {
@@ -300,6 +285,7 @@ export default function ProfilePage() {
           );
         }
       } catch (error) {
+        console.error("[ProfilePage] Error deleting experience:", error);
         addNotification(
           "An unexpected error occurred while deleting experience",
           "error"
@@ -325,6 +311,7 @@ export default function ProfilePage() {
           );
         }
       } catch (error) {
+        console.error("[ProfilePage] Error deleting education:", error);
         addNotification(
           "An unexpected error occurred while deleting education",
           "error"

@@ -16,7 +16,7 @@ export const AdvanceNextStep = ({ candidateName }: AdvanceNextStepProps) => {
     <Html>
       <Head />
       <Preview>
-        Congratulations! You've been selected for the next stage
+        Congratulations! You&apos;ve been selected for the next stage
       </Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>

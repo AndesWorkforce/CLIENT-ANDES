@@ -93,6 +93,7 @@ export async function advancedStage(
       message: "Etapa actualizada correctamente",
     };
   } catch (error) {
+    console.log("[error] ", error);
     return {
       success: false,
       message: "Error al actualizar la etapa",
@@ -123,6 +124,7 @@ export async function rejectStage(postulationId: string) {
       message: "Etapa actualizada correctamente",
     };
   } catch (error) {
+    console.log("[error] ", error);
     return {
       success: false,
       message: "Error al actualizar la etapa",

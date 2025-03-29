@@ -89,14 +89,11 @@ export async function toggleUserStatus(userId: string, activo: boolean) {
       message: "Error updating user status",
       data: response.data,
     };
-  } catch (error: any) {
-    console.error(
-      "[TOGGLE USER STATUS]",
-      error.response?.data || error.message
-    );
+  } catch (error) {
+    console.error("Error al actualizar el estado del usuario:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Error updating user status",
+      message: "Error updating user status",
     };
   }
 }
@@ -121,12 +118,12 @@ export async function deleteUser(userId: string) {
       message: "Error deleting user",
       data: response.data,
     };
-  } catch (error: any) {
-    console.error("[DELETE USER]", error.response?.data || error.message);
+  } catch (error) {
+    console.error("Error al eliminar el usuario:", error);
     revalidatePath("/admin/superAdmin/users");
     return {
       success: false,
-      message: error.response?.data?.message || "Error deleting user",
+      message: "Error deleting user",
     };
   }
 }

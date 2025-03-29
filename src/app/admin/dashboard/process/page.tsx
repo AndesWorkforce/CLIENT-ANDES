@@ -81,7 +81,7 @@ export default function ProcessPage() {
       }
     } else {
       let startPage = Math.max(1, currentPage - 2);
-      let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+      const endPage = Math.min(totalPages, startPage + maxButtons - 1);
 
       if (endPage - startPage < maxButtons - 1) {
         startPage = Math.max(1, endPage - maxButtons + 1);

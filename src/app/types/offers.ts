@@ -1,7 +1,3 @@
-// Modificar la importación de YooptaContentValue
-// import { YooptaContentValue } from "@yoopta/editor";
-
-// Interfaz para la información del usuario creador
 export interface CreadorOffer {
   id: string;
   nombre: string;
@@ -143,6 +139,7 @@ export interface CreateOfferDto {
 export interface ApiResponse {
   success: boolean;
   message: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
 }
 
@@ -170,7 +167,7 @@ export const parseOfferContent = (offer: Offer): OfferWithContent => {
         descripcionHTML = offer.descripcion;
       }
     } catch (e) {
-      // If it can't be parsed as JSON, assume it's already HTML
+      console.error("[parseOfferContent] Error al parsear la descripción:", e);
       descripcionHTML = offer.descripcion;
     }
   }

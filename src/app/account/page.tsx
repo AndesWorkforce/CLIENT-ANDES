@@ -17,10 +17,11 @@ export default function AccountPage() {
   const [emailPassword, setEmailPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [deletePassword, setDeletePassword] = useState("");
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showEmailPassword, setShowEmailPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] =
+    useState<boolean>(false);
+  const [showEmailPassword, setShowEmailPassword] = useState<boolean>(false);
+  const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
+  const [showDeletePassword, setShowDeletePassword] = useState<boolean>(false);
 
   const handleEmailChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,11 +130,12 @@ export default function AccountPage() {
             <div className="mt-2 text-xs text-gray-600">
               <p className="mb-1">
                 <strong>Public:</strong> Your profile is only visible to offers
-                you've participated in.
+                you&apos;ve participated in.
               </p>
               <p>
-                <strong>Private:</strong> Your profile won't be visible to any
-                company or your data won't be shared in searches with companies.
+                <strong>Private:</strong> Your profile won&apos;t be visible to
+                company or your data won&apos;t be shared in searches with
+                companies.
               </p>
             </div>
           </section>

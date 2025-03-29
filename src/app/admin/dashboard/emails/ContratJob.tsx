@@ -15,7 +15,7 @@ export const ContractJob = ({ candidateName }: ContractJobProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Congratulations! You've reached the final stage</Preview>
+      <Preview>Congratulations! You&apos;ve reached the final stage</Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>
           <Text

@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/auth.store";
 interface FormularioModalProps {
   isOpen: boolean;
   onClose: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datosFormulario?: Record<string, any> | null;
   readOnly?: boolean;
 }
@@ -22,16 +23,14 @@ export default function FormularioModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const [computerType, setComputerType] = useState<string>("");
   const [otherComputerText, setOtherComputerText] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [wiredConnection, setWiredConnection] = useState<string>("");
-  const [isFormValid, setIsFormValid] = useState(false);
+  const [isFormValid, setIsFormValid] = useState<boolean>(false);
 
-  // Campos del formulario
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [formData, setFormData] = useState<Record<string, any>>({});
 
-  // Validar si todos los campos requeridos tienen valor
   const validateForm = () => {
-    // Lista de preguntas requeridas (todas las del formulario)
     const requiredQuestions = [
       "What is your preferred first and last name?",
       "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
@@ -128,6 +127,7 @@ export default function FormularioModal({
       setIsSubmitting(true);
 
       const formFields = e.target as HTMLFormElement;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const completeFormData: Record<string, any> = {};
 
       const inputElements = formFields.querySelectorAll(

@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Job } from "./data/mockData";
 import FilterModal from "./components/FilterModal";
-import JobDetailModal from "./components/JobDetailModal";
 
 import type { FilterValues } from "./components/FilterModal";
 import { applyToOffer, getOffers } from "./actions/jobs.actions";
@@ -21,7 +19,6 @@ export default function JobOffersPage() {
   const [selectedJob, setSelectedJob] = useState<Offer | null>(null);
   const [filteredJobs, setFilteredJobs] = useState<Offer[]>([]);
   const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [showJobDetail, setShowJobDetail] = useState<boolean>(false);
   const [offerToView, setOfferToView] = useState<Offer | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
@@ -249,12 +246,6 @@ export default function JobOffersPage() {
         setSelectedSeniority={setSelectedSeniority}
         selectedLocation={selectedLocation}
         setSelectedLocation={setSelectedLocation}
-      />
-
-      <JobDetailModal
-        isOpen={showJobDetail}
-        onClose={() => setShowJobDetail(false)}
-        job={selectedJob as Job}
       />
 
       {/* Vista móvil - Lista de servicios */}
