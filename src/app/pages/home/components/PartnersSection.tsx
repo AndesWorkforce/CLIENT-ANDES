@@ -116,6 +116,8 @@ export default function PartnersSection() {
                 preload="metadata"
                 poster="https://appwiseinnovations.dev/Andes/video-poster.jpg"
                 playsInline
+                autoPlay
+                muted
               >
                 <source
                   src="https://appwiseinnovations.dev/Andes/andes-video.mp4"
