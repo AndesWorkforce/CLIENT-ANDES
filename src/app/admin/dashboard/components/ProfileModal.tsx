@@ -36,11 +36,11 @@ export default function ProfileModal({
       try {
         const response = await getProfile(candidateId);
         if (response.success) {
-          addNotification("Perfil cargado correctamente", "success");
+          addNotification("Profile loaded correctly", "success");
           setProfile(response.data.data);
         }
       } catch (error) {
-        addNotification("Error al cargar el perfil", "error");
+        addNotification("Error loading profile", "error");
         console.error("Error fetching profile:", error);
       } finally {
         setIsLoading(false);
@@ -68,7 +68,7 @@ export default function ProfileModal({
   if (isLoading || !profile) {
     return <ProfileModalSkeleton isOpen={isOpen} onClose={onClose} />;
   }
-  console.log("[ProfileModal] profile:", profile);
+
   return (
     <>
       <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[rgba(0,0,0,0.5)]">
@@ -79,7 +79,7 @@ export default function ProfileModal({
           {/* Botón de cerrar */}
           <button
             onClick={onClose}
-            className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 cursor-pointer z-10"
+            className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 cursor-pointer z-10 cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -96,7 +96,7 @@ export default function ProfileModal({
                         {profile.datosPersonales.apellido}
                       </h1>
                       <h2 className="font-medium text-gray-900 mb-3">
-                        Datos de contacto
+                        Contact information
                       </h2>
                     </div>
                     <PDFDownloadButton profile={profile} />
@@ -123,15 +123,13 @@ export default function ProfileModal({
               {profile.datosFormulario && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-4 flex justify-between items-center">
-                    <span className="font-medium text-gray-900">
-                      Formulario
-                    </span>
+                    <span className="font-medium text-gray-900">Form</span>
                     <button
                       onClick={() => setIsFormularioModalOpen(true)}
-                      className="text-[#0097B2] flex items-center hover:underline"
+                      className="text-[#0097B2] flex items-center hover:underline cursor-pointer"
                     >
                       <FileText size={18} className="mr-1" />
-                      <span>Ver</span>
+                      <span>View</span>
                     </button>
                   </div>
                 </div>
@@ -142,7 +140,7 @@ export default function ProfileModal({
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-4">
                     <h2 className="font-medium text-gray-900 mb-3">
-                      Video Presentación
+                      Presentation video
                     </h2>
                     <div className="aspect-video bg-gray-100 rounded relative group">
                       <video
@@ -155,7 +153,7 @@ export default function ProfileModal({
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={togglePlay}
-                          className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-md hover:bg-white transition-colors"
+                          className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-md hover:bg-white transition-colors cursor-pointer"
                         >
                           {isPlaying ? (
                             <Pause size={32} className="text-[#0097B2]" />
@@ -190,7 +188,7 @@ export default function ProfileModal({
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-4">
                   <h2 className="font-medium text-gray-900 mb-3">
-                    Especificaciones PC
+                    PC specifications
                   </h2>
                   <ImageViewer
                     images={[
@@ -221,7 +219,7 @@ export default function ProfileModal({
                       onClick={() => setActiveTab("experience")}
                       style={{ cursor: "pointer" }}
                     >
-                      <span className="text-lg font-medium">Experiencia</span>
+                      <span className="text-lg font-medium">Experience</span>
                     </div>
 
                     {/* Educación */}
@@ -234,7 +232,7 @@ export default function ProfileModal({
                       onClick={() => setActiveTab("education")}
                       style={{ cursor: "pointer" }}
                     >
-                      <span className="text-lg font-medium">Educación</span>
+                      <span className="text-lg font-medium">Education</span>
                     </div>
 
                     {/* Resto del borde superior */}

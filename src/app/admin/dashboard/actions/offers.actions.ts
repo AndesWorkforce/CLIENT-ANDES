@@ -3,19 +3,19 @@
 import { createServerAxios } from "@/services/axios.server";
 import { revalidatePath } from "next/cache";
 
-export async function getPublishedOffers() {
+export async function getPublishedOffers(page = 1, limit = 10, search = "") {
   const axios = await createServerAxios();
   try {
-    const response = await axios.get(
-      `offers/mis-ofertas?estado=publicado,pausado`
-    );
-    if (response.status !== 200) {
-      console.error(
-        "[Offers] API error status:",
-        response.status,
-        response.statusText
-      );
+    const searchParam =
+      search && search.trim()
+        ? `&search=${encodeURIComponent(search.trim())}`
+        : "";
 
+    const requestUrl = `offers/mis-ofertas?estado=publicado,pausado${searchParam}&page=${page}&limit=${limit}`;
+
+    const response = await axios.get(requestUrl);
+
+    if (response.status !== 200) {
       return {
         success: false,
         message: `Error del servidor: ${response.status} ${
@@ -26,12 +26,24 @@ export async function getPublishedOffers() {
 
     const responseData = response.data;
 
+    const total =
+      responseData.meta?.pagination?.total || responseData.total || 0;
+    const totalPages =
+      responseData.meta?.pagination?.totalPages ||
+      Math.ceil(total / limit) ||
+      1;
+    const hasNextPage =
+      responseData.meta?.pagination?.hasNextPage || page < totalPages;
+
     revalidatePath("/admin/dashboard");
 
     return {
       success: true,
       message: "Ofertas publicadas y pausadas obtenidas correctamente",
       data: responseData,
+      currentPage: page,
+      totalPages: totalPages,
+      hasMore: hasNextPage,
     };
   } catch (error) {
     console.error("[Offers] Error en getPublishedOffers:", error);
@@ -57,13 +69,6 @@ export async function toggleOfferStatus(
     const responseData = response.data;
 
     if (response.status !== 200) {
-      console.error(
-        "[Offers] API error status:",
-        response.status,
-        response.statusText
-      );
-      console.error("[Offers] API error body:", responseData);
-
       return {
         success: false,
         message: `Error del servidor: ${response.status} ${
@@ -78,8 +83,8 @@ export async function toggleOfferStatus(
       success: true,
       message:
         newStatus === "pausado"
-          ? "Oferta pausada correctamente"
-          : "Oferta publicada correctamente",
+          ? "Offer paused successfully"
+          : "Offer published successfully",
       data: responseData,
     };
   } catch (error) {

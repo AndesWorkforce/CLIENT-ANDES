@@ -28,13 +28,13 @@ export default function VideoModal({
 
         <div className="p-4 border-b border-[#E2E2E2] text-start rounded-t-lg">
           <h3 className="text-base font-medium text-gray-900">
-            Video de presentación
+            Presentation video
           </h3>
         </div>
 
         <div className="p-4 aspect-video">
           <video src={videoUrl} controls className="w-full h-full rounded-lg">
-            Tu navegador no soporta la reproducción de videos.
+            Your browser does not support the video playback.
           </video>
         </div>
       </div>

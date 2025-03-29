@@ -49,9 +49,6 @@ export default function HeaderDashboard() {
                   </p>
                 </div>
 
-                <hr className="my-1 border-gray-200" />
-
-                {/* Opción de Super Admin solo visible para usuarios con rol ADMIN */}
                 {user?.rol === "ADMIN" && (
                   <>
                     <Link
@@ -63,13 +60,12 @@ export default function HeaderDashboard() {
                         size={16}
                         className="mr-2 text-[#0097B2] cursor-pointer"
                       />
-                      Panel de Super Admin
+                      Super Admin Panel
                     </Link>
                     <hr className="my-1 border-gray-200" />
                   </>
                 )}
 
-                {/* Opción para volver al panel de administración */}
                 <Link
                   href="/admin/dashboard"
                   className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
@@ -79,7 +75,7 @@ export default function HeaderDashboard() {
                     size={16}
                     className="mr-2 text-[#0097B2] cursor-pointer"
                   />
-                  Gestión de Ofertas
+                  Offers Management
                 </Link>
 
                 <hr className="my-1 border-gray-200" />
@@ -95,7 +91,7 @@ export default function HeaderDashboard() {
                     size={16}
                     className="mr-2 text-[#0097B2] cursor-pointer"
                   />
-                  Cerrar sesión
+                  Logout
                 </button>
               </div>
             )}

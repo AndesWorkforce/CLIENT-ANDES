@@ -26,7 +26,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const MAX_FILE_SIZE = 40 * 1024 * 1024;
+  const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
   const handleClickOutside = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -44,7 +44,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
         setError(
-          `El archivo excede el límite de 40MB. Tamaño actual: ${(
+          `The file exceeds the 100MB limit. Current size: ${(
             file.size /
             (1024 * 1024)
           ).toFixed(2)}MB`
@@ -57,23 +57,17 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
     }
   };
 
-  // Modificado para usar fetch como en el ejemplo proporcionado
   const uploadVideo = async (file: File) => {
     try {
       setUploadState("uploading");
-      setUploadProgress(15); // No podemos mostrar progreso real con fetch básico
-      console.log("[VideoUpload] Iniciando carga a través del backend");
+      setUploadProgress(15);
 
-      // Crear FormData para enviar el archivo
       const formData = new FormData();
       formData.append("file", file);
 
-      // URL del endpoint
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
       const uploadEndpoint = `${apiBase}files/upload-video`;
-      console.log("[VideoUpload] Endpoint de carga:", uploadEndpoint);
 
-      // Simular progreso (ya que fetch no reporta progreso directamente)
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           const next = prev + 5;
@@ -82,36 +76,25 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
       }, 300);
 
       try {
-        // Realizar la carga con fetch
         const response = await fetch(uploadEndpoint, {
           method: "POST",
           body: formData,
         });
 
-        // Limpiar intervalo de progreso simulado
         clearInterval(progressInterval);
 
-        // Comprobar si la respuesta es correcta
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(
-            "[VideoUpload] Error en respuesta:",
-            response.status,
-            errorText
-          );
           setUploadState("error");
           throw new Error(`Error HTTP: ${response.status}. ${errorText}`);
         }
 
-        // Procesar respuesta exitosa
         const result = await response.json();
-        console.log("[VideoUpload] Respuesta del servidor:", result);
 
         if (!result.fileUrl) {
-          throw new Error("La respuesta no contiene una URL de archivo válida");
+          throw new Error("The response does not contain a valid file URL");
         }
 
-        // Actualizar estado con la URL del archivo
         setUploadProgress(100);
         setUploadUrl(result.fileUrl);
         setUploadState("success");
@@ -132,40 +115,25 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setError("No se ha seleccionado ningún archivo");
+      setError("No file has been selected");
       return;
     }
 
     try {
       setError(null);
-      console.log(
-        "[VideoUpload] Iniciando proceso de carga para:",
-        selectedFile.name
-      );
+      await uploadVideo(selectedFile);
 
-      // Subir el archivo directamente sin necesidad de generar URL firmada
-      console.log("[VideoUpload] Subiendo archivo al backend");
-      const fileUrl = await uploadVideo(selectedFile);
-
-      console.log(
-        "[VideoUpload] Archivo subido exitosamente. URL permanente:",
-        fileUrl
-      );
-
-      // La URL del video ya fue establecida en uploadVideo
       setUploadState("success");
-
-      console.log("[VideoUpload] Proceso de carga completado con éxito");
     } catch (err) {
-      console.error("[VideoUpload] Error durante el proceso de carga:", err);
+      console.error("[VideoUpload] Error during the upload process:", err);
 
       if (err instanceof Error) {
-        const errorMessage = err.message || "Error durante la carga";
-        console.error("[VideoUpload] Mensaje de error:", errorMessage);
+        const errorMessage = err.message || "Error during the upload process";
+        console.error("[VideoUpload] Error message:", errorMessage);
         setError(errorMessage);
       } else {
-        console.error("[VideoUpload] Error desconocido:", err);
-        setError("Error desconocido durante la carga");
+        console.error("[VideoUpload] Unknown error:", err);
+        setError("Unknown error during the upload process");
       }
 
       setUploadState("error");
@@ -177,48 +145,29 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
     if (agreeToTerms && uploadState === "success" && uploadUrl) {
       try {
         setError(null);
-        console.log("[VideoModal] Guardando URL del video:", uploadUrl);
 
-        // Obtener el userId del store de Zustand
         const userId = useAuthStore.getState().user?.id || "";
 
         if (!userId) {
-          console.error(
-            "[VideoModal] No se pudo determinar el ID del usuario del store"
-          );
-          setError(
-            "Error al guardar el video: No se pudo determinar el ID del usuario"
-          );
+          setError("Error saving the video: Unable to determine the user ID");
           return;
         }
 
-        console.log("[VideoModal] ID de usuario obtenido:", userId);
-
-        // Guardar la URL del video en la base de datos
         const result = await saveVideoUrl(userId, uploadUrl);
 
         if (!result.success) {
-          console.error(
-            "[VideoModal] Error al guardar URL del video:",
-            result.error
-          );
-          setError(`Error al guardar el video: ${result.error}`);
+          setError(`Error saving the video: ${result.error}`);
           return;
         }
 
-        console.log("[VideoModal] URL del video guardada con éxito");
         onClose();
       } catch (err) {
-        console.error(
-          "[VideoModal] Error inesperado al guardar URL del video:",
-          err
-        );
-        setError("Ocurrió un error inesperado al guardar el video");
+        console.error("[VideoModal] Unexpected error saving video URL:", err);
+        setError("Unexpected error saving the video");
       }
     }
   };
 
-  // Reset states cuando se cierra el modal
   const handleReset = () => {
     setSelectedFile(null);
     setUploadState("idle");
@@ -245,7 +194,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
       >
         <div className="flex justify-between items-center px-4 py-3 ">
           <div className="w-6" />
-          <h2 className="text-[#0097B2] text-lg font-semibold">Subir video</h2>
+          <h2 className="text-[#0097B2] text-lg font-semibold">Upload video</h2>
           <button
             onClick={closeModal}
             className="text-gray-400 cursor-pointer"
@@ -284,10 +233,9 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
             className="flex items-center justify-center w-full bg-[#0097B2] text-white py-2.5 px-4 rounded-md cursor-pointer"
           >
             <Eye className="h-5 w-5 mr-2" />
-            <span className="font-medium">Ver instrucciones</span>
+            <span className="font-medium">View instructions</span>
           </button>
 
-          {/* Aceptación de términos - Movido antes de la subida del video */}
           <div className="flex items-start space-x-2 pt-1 border p-3 rounded-lg border-gray-200 bg-gray-50">
             <input
               type="checkbox"
@@ -303,7 +251,6 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
             </label>
           </div>
 
-          {/* Selector de archivo y botón de carga */}
           <div className="space-y-3">
             <input
               type="file"
@@ -329,9 +276,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
               >
                 <Upload className="h-5 w-5 mr-2" />
                 <span className="font-medium">
-                  {agreeToTerms
-                    ? "Subir video"
-                    : "Acepta los términos para subir"}
+                  {agreeToTerms ? "Upload video" : "Accept the terms to upload"}
                 </span>
               </label>
             )}
@@ -339,7 +284,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
             {selectedFile && uploadState === "idle" && (
               <div className="mt-2">
                 <p className="text-sm text-gray-600 mb-1">
-                  Archivo seleccionado: {selectedFile.name}
+                  Selected file: {selectedFile.name}
                 </p>
                 <button
                   type="button"
@@ -347,18 +292,17 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
                   className="w-full bg-[#0097B2] text-white py-2 px-4 rounded-md cursor-pointer"
                   disabled={!agreeToTerms}
                 >
-                  Comenzar carga
+                  Start upload
                 </button>
               </div>
             )}
 
-            {/* Barra de progreso */}
             {(uploadState === "uploading" || uploadState === "generating") && (
               <div className="mt-2 space-y-2">
                 <p className="text-sm text-gray-600">
                   {uploadState === "generating"
-                    ? "Preparando carga..."
-                    : `Cargando: ${uploadProgress}%`}
+                    ? "Preparing upload..."
+                    : `Uploading: ${uploadProgress}%`}
                 </p>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
@@ -374,16 +318,14 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
               </div>
             )}
 
-            {/* Estado de éxito */}
             {uploadState === "success" && (
               <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-800 text-sm font-medium">
-                  ¡Video cargado exitosamente!
+                  Video uploaded successfully!
                 </p>
               </div>
             )}
 
-            {/* Mensajes de error */}
             {error && (
               <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-2">
                 <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -395,8 +337,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
               <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-2">
                 <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <p className="text-red-800 text-sm">
-                  Ocurrió un error durante la carga. Por favor intenta
-                  nuevamente.
+                  An error occurred during the upload. Please try again.
                 </p>
               </div>
             )}
@@ -412,7 +353,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
                   : "bg-[#0097B2] text-white"
               }`}
             >
-              Guardar
+              Save
             </button>
             <div className="text-center mt-2">
               <button
@@ -423,7 +364,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
                   uploadState === "uploading" || uploadState === "generating"
                 }
               >
-                Cancelar
+                Cancel
               </button>
             </div>
           </div>
@@ -529,7 +470,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
                     onClick={() => setShowInstructions(false)}
                     className="w-full bg-[#0097B2] text-white py-3 px-6 rounded-md hover:bg-[#007d93] transition-colors font-medium cursor-pointer"
                   >
-                    Entendido
+                    I understand
                   </button>
                 </div>
               </div>

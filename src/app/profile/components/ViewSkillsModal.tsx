@@ -38,7 +38,7 @@ export default function ViewSkillsModal({
         style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
       >
         <div className="flex items-center p-4 relative border-b border-gray-200">
-          <div className="w-6"></div>
+          <div className="w-6" />
           <h2 className="text-lg font-medium w-full text-center text-[#0097B2]">
             Your Skills
           </h2>

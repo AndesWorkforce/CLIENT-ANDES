@@ -21,12 +21,12 @@ export default function ConfirmPauseModal({
   title,
   message,
   confirmButtonText,
-  cancelButtonText = "Cancelar",
+  cancelButtonText = "Cancel",
   isPaused = false,
 }: ConfirmPauseModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const defaultConfirmText = isPaused ? "Sí, Publicar" : "Sí, Pausar";
+  const defaultConfirmText = isPaused ? "Yes, Publish" : "Yes, Pause";
 
   const handleClickOutside = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {

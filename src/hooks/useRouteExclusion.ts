@@ -15,8 +15,16 @@ export const excludedRoutes = {
     "/admin/login",
     "/admin/dashboard",
     "/admin/superAdmin",
+    "/admin/dashboard/offers",
   ],
-  footer: ["/auth", "/auth/login", "/auth/register", "/auth/reset-password"],
+  footer: [
+    "/auth",
+    "/auth/login",
+    "/auth/register",
+    "/auth/reset-password",
+    "/admin/dashboard",
+    "/admin/superAdmin",
+  ],
 };
 
 export default function useRouteExclusion() {

@@ -66,8 +66,6 @@ export default function SkillsModal({
       handleAddSkill();
     }
     onSave(skills);
-    // No cerramos el modal aquí para mostrar el estado de carga
-    // El componente padre cerrará el modal cuando termine
   };
 
   if (!isOpen) return null;
@@ -100,7 +98,6 @@ export default function SkillsModal({
             </label>
 
             <div className="border border-gray-300 rounded-md min-h-[200px] p-3 focus-within:ring-1 focus-within:ring-[#0097B2] focus-within:border-[#0097B2]">
-              {/* Contenedor para las habilidades y el input */}
               <div className="flex flex-wrap gap-2">
                 {skills.map((skill) => (
                   <div

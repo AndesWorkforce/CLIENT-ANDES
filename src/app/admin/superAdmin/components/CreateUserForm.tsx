@@ -35,12 +35,10 @@ export default function CreateUserForm({
 
   const onSubmit = async (data: CreateUserFormData) => {
     try {
-      // Si estamos actualizando y la contraseña está vacía, la eliminamos del objeto
       if (userId && !data.contrasena) {
         delete data.contrasena;
       }
 
-      // Limpiamos los campos opcionales vacíos
       if (!data.telefono) delete data.telefono;
       if (!data.residencia) delete data.residencia;
 
@@ -53,16 +51,14 @@ export default function CreateUserForm({
 
       if (response.success) {
         addNotification(
-          userId
-            ? "Usuario actualizado correctamente"
-            : "Usuario creado correctamente",
+          userId ? "User updated successfully" : "User created successfully",
           "success"
         );
         reset();
         onClose?.();
       } else {
         addNotification(
-          userId ? "Error al actualizar usuario" : "Error al crear usuario",
+          userId ? "Error updating user" : "Error creating user",
           "error"
         );
       }
@@ -78,25 +74,23 @@ export default function CreateUserForm({
   return (
     <div className="bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
-        {/* Botón de cerrar */}
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+            className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 cursor-pointer"
           >
             <X size={20} />
           </button>
         )}
 
         <h2 className="text-xl font-semibold text-[#17323A] mb-6">
-          {userId ? "Editar Usuario" : "Crear Usuario"}
+          {userId ? "Edit User" : "Create User"}
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Nombre */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Nombre
+              Name
             </label>
             <input
               type="text"
@@ -110,10 +104,9 @@ export default function CreateUserForm({
             )}
           </div>
 
-          {/* Apellido */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Apellido
+              Last Name
             </label>
             <input
               type="text"
@@ -127,7 +120,6 @@ export default function CreateUserForm({
             )}
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Email
@@ -144,10 +136,9 @@ export default function CreateUserForm({
             )}
           </div>
 
-          {/* Contraseña */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Contraseña {userId && "(dejar en blanco para mantener la actual)"}
+              Password {userId && "(leave blank to keep the current password)"}
             </label>
             <input
               type="password"
@@ -162,10 +153,9 @@ export default function CreateUserForm({
             )}
           </div>
 
-          {/* Teléfono */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Teléfono (opcional)
+              Phone (optional)
             </label>
             <input
               type="tel"
@@ -179,10 +169,9 @@ export default function CreateUserForm({
             )}
           </div>
 
-          {/* Residencia */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Residencia (opcional)
+              Residence (optional)
             </label>
             <input
               type="text"
@@ -196,13 +185,12 @@ export default function CreateUserForm({
             )}
           </div>
 
-          {/* Botones */}
           <div className="flex flex-col gap-2">
             <button
               type="submit"
               className="w-full bg-[#0097B2] text-white py-2 px-4 rounded hover:bg-[#007B8E] transition-colors"
             >
-              {userId ? "Actualizar" : "Crear"}
+              {userId ? "Update" : "Create"}
             </button>
             <button
               type="button"
@@ -212,7 +200,7 @@ export default function CreateUserForm({
               }}
               className="w-full text-[#0097B2] hover:text-[#007B8E] transition-colors"
             >
-              Descartar
+              Discard
             </button>
           </div>
         </form>

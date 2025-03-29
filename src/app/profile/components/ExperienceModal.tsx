@@ -32,7 +32,6 @@ export default function ExperienceModal({
     descripcion: "",
   });
 
-  // Extraer mes y año de las fechas (si existen)
   const parseDate = (dateStr?: string | null) => {
     if (!dateStr || dateStr === "Presente") return { month: "", year: "" };
     const parts = dateStr.split(" ");
@@ -42,7 +41,6 @@ export default function ExperienceModal({
     };
   };
 
-  // Limpiar el formulario
   const resetForm = () => {
     setFormValues({
       cargo: "",
@@ -56,11 +54,8 @@ export default function ExperienceModal({
     setAtPresent(false);
   };
 
-  // Inicializar valores cuando cambia experienceData o el modal se abre/cierra
   useEffect(() => {
     if (experienceData) {
-      console.log("Actualizando formulario con datos:", experienceData);
-
       const startDate = parseDate(experienceData.fechaInicio);
       const endDate = parseDate(experienceData.fechaFin);
 
@@ -76,21 +71,17 @@ export default function ExperienceModal({
 
       setAtPresent(experienceData.esActual || false);
     } else if (isOpen) {
-      // Si el modal se abre y no hay experienceData, resetear el formulario
       resetForm();
     }
   }, [experienceData, isOpen]);
 
-  // Validar formulario
   useEffect(() => {
     const validateForm = () => {
-      // Validar campos requeridos
       const cargoValid = !!formValues.cargo.trim();
       const empresaValid = !!formValues.empresa.trim();
       const startDateValid = !!formValues.startMonth && !!formValues.startYear;
       const descripcionValid = !!formValues.descripcion.trim();
 
-      // Validar fecha de finalización (o al presente)
       const endDateValid =
         atPresent || (!!formValues.endMonth && !!formValues.endYear);
 
@@ -142,7 +133,7 @@ export default function ExperienceModal({
     };
 
     onSave(user?.id || "", data);
-    resetForm(); // Limpiar formulario al guardar
+    resetForm();
     onClose();
   };
 
@@ -159,7 +150,7 @@ export default function ExperienceModal({
         <div className="flex items-center p-4 relative">
           <div className="w-6"></div>
           <h2 className="text-lg font-medium w-full text-center text-[#0097B2]">
-            Experiencia
+            Experience
           </h2>
           <button
             onClick={onClose}
@@ -175,7 +166,7 @@ export default function ExperienceModal({
               htmlFor="cargo"
               className="block text-sm text-[#6D6D6D] mb-1"
             >
-              Puesto<span className="text-red-500">*</span>
+              Job<span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -183,7 +174,7 @@ export default function ExperienceModal({
               name="cargo"
               value={formValues.cargo}
               onChange={handleInputChange}
-              placeholder="Ingresa el nombre del puesto"
+              placeholder="Enter the job"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
             />
@@ -194,7 +185,7 @@ export default function ExperienceModal({
               htmlFor="empresa"
               className="block text-sm text-[#6D6D6D] mb-1"
             >
-              Empresa<span className="text-red-500">*</span>
+              Company<span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -202,7 +193,7 @@ export default function ExperienceModal({
               name="empresa"
               value={formValues.empresa}
               onChange={handleInputChange}
-              placeholder="Ingresa el nombre de la empresa"
+              placeholder="Enter the company"
               className="w-full p-2 border border-gray-300 rounded-md"
               required
             />
@@ -210,7 +201,7 @@ export default function ExperienceModal({
 
           <div>
             <label className="block text-sm text-[#6D6D6D] mb-1">
-              Fecha de inicio<span className="text-red-500">*</span>
+              Start Date<span className="text-red-500">*</span>
             </label>
             <div className="flex space-x-2">
               <select
@@ -228,7 +219,7 @@ export default function ExperienceModal({
                 }}
                 required
               >
-                <option value="">Mes</option>
+                <option value="">Month</option>
                 <option value="Ene">Ene</option>
                 <option value="Feb">Feb</option>
                 <option value="Mar">Mar</option>
@@ -257,7 +248,7 @@ export default function ExperienceModal({
                 }}
                 required
               >
-                <option value="">Año</option>
+                <option value="">Year</option>
                 {Array.from(
                   { length: 50 },
                   (_, i) => new Date().getFullYear() - i
@@ -272,7 +263,7 @@ export default function ExperienceModal({
 
           <div>
             <label className="block text-sm text-[#6D6D6D] mb-1">
-              Fecha de finalización<span className="text-red-500">*</span>
+              End Date<span className="text-red-500">*</span>
             </label>
             <div className="flex space-x-2">
               <select
@@ -293,7 +284,7 @@ export default function ExperienceModal({
                 disabled={atPresent}
                 required={!atPresent}
               >
-                <option value="">Mes</option>
+                <option value="">Month</option>
                 <option value="Ene">Ene</option>
                 <option value="Feb">Feb</option>
                 <option value="Mar">Mar</option>
@@ -325,7 +316,7 @@ export default function ExperienceModal({
                 disabled={atPresent}
                 required={!atPresent}
               >
-                <option value="">Año</option>
+                <option value="">Year</option>
                 {Array.from(
                   { length: 50 },
                   (_, i) => new Date().getFullYear() - i
@@ -344,7 +335,6 @@ export default function ExperienceModal({
                 onChange={(e) => {
                   setAtPresent(e.target.checked);
                   if (e.target.checked) {
-                    // Limpiar los campos de fecha de finalización
                     setFormValues((prev) => ({
                       ...prev,
                       endMonth: "",
@@ -358,7 +348,7 @@ export default function ExperienceModal({
                 htmlFor="atPresent"
                 className="ml-2 block text-sm text-[#6D6D6D]"
               >
-                Al presente
+                Present
               </label>
             </div>
           </div>
@@ -368,14 +358,14 @@ export default function ExperienceModal({
               htmlFor="descripcion"
               className="block text-sm text-[#6D6D6D] mb-1"
             >
-              Descripción del puesto<span className="text-red-500">*</span>
+              Job Description<span className="text-red-500">*</span>
             </label>
             <textarea
               id="descripcion"
               name="descripcion"
               value={formValues.descripcion}
               onChange={handleInputChange}
-              placeholder="Escribe cuáles son tus tareas"
+              placeholder="Enter the job description"
               rows={4}
               className="w-full p-2 border border-gray-300 rounded-md"
               required
@@ -392,19 +382,19 @@ export default function ExperienceModal({
                   : "bg-gray-300 text-gray-600 cursor-not-allowed"
               }`}
             >
-              Guardar
+              Save
             </button>
             {!isFormValid && (
               <p className="text-amber-600 text-sm text-center">
-                Por favor completa todos los campos requeridos
+                Please complete all required fields
               </p>
             )}
             <button
               type="button"
               onClick={onClose}
-              className="w-full text-center text-[#0097B2] py-1"
+              className="w-full text-center text-[#0097B2] py-1 cursor-pointer"
             >
-              Cancelar
+              Cancel
             </button>
           </div>
         </form>

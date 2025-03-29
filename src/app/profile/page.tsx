@@ -62,36 +62,23 @@ export default function ProfilePage() {
   const [showViewFormularioModal, setShowViewFormularioModal] = useState(false);
   const [showViewVideoModal, setShowViewVideoModal] = useState(false);
   const [showViewSkillsModal, setShowViewSkillsModal] = useState(false);
-
-  // Modal de confirmación para eliminar skills
   const [showDeleteSkillsModal, setShowDeleteSkillsModal] = useState(false);
-
-  // Agregar estado para el modal de confirmación de eliminación de video
   const [showDeleteVideoModal, setShowDeleteVideoModal] = useState(false);
-
-  // Agregar estado para el modal de confirmación de eliminación de requisitos de PC
   const [showDeletePCRequirementsModal, setShowDeletePCRequirementsModal] =
     useState(false);
-
-  // Agregar estado para el modal de confirmación de eliminación de formulario
   const [showDeleteFormularioModal, setShowDeleteFormularioModal] =
     useState(false);
-
-  // Agregar estado para el modal de confirmación de eliminación de experiencia
   const [showDeleteExperienceModal, setShowDeleteExperienceModal] =
     useState(false);
   const [experienceIdToDelete, setExperienceIdToDelete] = useState<string>("");
-
-  // Agregar estado para el modal de confirmación de eliminación de educación
   const [showDeleteEducationModal, setShowDeleteEducationModal] =
     useState(false);
   const [educationIdToDelete, setEducationIdToDelete] = useState<string>("");
-
-  // Estados para el modal de datos de contacto
   const [showContactoModal, setShowContactoModal] = useState(false);
   const [showEditContactoModal, setShowEditContactoModal] = useState(false);
   const [showViewContactoModal, setShowViewContactoModal] = useState(false);
-  const [showDeleteContactoModal, setShowDeleteContactoModal] = useState(false);
+  const [educationData, setEducationData] = useState<Education | null>(null);
+  const [experienceData, setExperienceData] = useState<Experience | null>(null);
 
   const handleSaveExperience = async (userId: string, data: Experience) => {
     const response = await addExperience(userId, data);
@@ -349,9 +336,9 @@ export default function ProfilePage() {
     }
   };
 
-  // Experience handlers
   const handleEditExperience = (exp: Experience) => {
     setShowExperienceModal(true);
+    setExperienceData(exp);
   };
 
   const handleDeleteExperience = (exp: Experience) => {
@@ -361,9 +348,9 @@ export default function ProfilePage() {
     }
   };
 
-  // Education handlers
   const handleEditEducation = (edu: Education) => {
     setShowEducationModal(true);
+    setEducationData(edu);
   };
 
   const handleDeleteEducation = (edu: Education) => {
@@ -380,6 +367,24 @@ export default function ProfilePage() {
     profile.educacion.length > 0 &&
     Boolean(profile.archivos.imagenRequerimientosPC) &&
     Boolean(profile.archivos.imagenTestVelocidad);
+
+  const isVisibleNotification2 =
+    !profile.archivos.imagenRequerimientosPC ||
+    !profile.archivos.imagenTestVelocidad;
+
+  const isVisibleNotification3 =
+    profile.archivos.imagenRequerimientosPC ||
+    profile.archivos.imagenTestVelocidad;
+
+  const isDisabledContainer =
+    !profile.datosFormulario &&
+    profile.habilidades.length === 0 &&
+    !profile.archivos.videoPresentacion &&
+    isVisibleNotification2 &&
+    profile.experiencia.length === 0 &&
+    profile.educacion.length === 0 &&
+    !profile.datosPersonales.telefono &&
+    !profile.datosPersonales.residencia;
 
   return (
     <div className="min-h-screen bg-white">
@@ -400,7 +405,7 @@ export default function ProfilePage() {
 
       {/* Información importante */}
       {!isVisibleNotification && (
-        <div className="bg-blue-50 p-4 my-4 mx-4 rounded-lg flex items-start space-x-3">
+        <div className="bg-blue-50 p-4 my-4 mx-4 rounded-lg flex items-start space-x-3 md:hidden">
           <Info className="text-blue-500 shrink-0 mt-1" size={20} />
           <div>
             <h3 className="font-medium text-blue-800">Important Information</h3>
@@ -411,8 +416,8 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Lista de tareas */}
-      <div className="px-4 space-y-0 relative">
+      {/* Lista de tareas mobile viwew */}
+      <div className="px-4 space-y-0 relative md:hidden">
         {/* Card 1: Formulario */}
         <div
           className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
@@ -479,7 +484,7 @@ export default function ProfilePage() {
           className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
           style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
         >
-          <span className="text-gray-800 font-medium">Datos de Contacto</span>
+          <span className="text-gray-800 font-medium">Contact Information</span>
           <div className="flex items-center justify-center gap-4">
             {profile.datosPersonales.telefono &&
             profile.datosPersonales.residencia ? (
@@ -665,8 +670,8 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="mx-4 mt-6 mb-20 relative">
+      {/* Tabs mobile view */}
+      <div className="mx-4 mt-6 mb-20 relative md:hidden">
         <div
           className="relative"
           style={{ filter: "drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))" }}
@@ -1000,6 +1005,704 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Desktop Information view */}
+      <div className="hidden md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
+        {!isVisibleNotification && (
+          <div className="hidden md:flex bg-blue-50 p-4 my-6 rounded-lg items-start space-x-3">
+            <Info className="text-blue-500 shrink-0 mt-1" size={20} />
+            <div>
+              <p className="text-sm text-blue-600">
+                Remember that you have to complete your profile to be able to
+                apply.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isDisabledContainer && (
+          <div className="relative mt-8">
+            {/* Tarjetas */}
+            <div className="grid grid-cols-2 gap-6 mb-20">
+              {/* Primera fila */}
+              {!profile.datosFormulario && (
+                <div
+                  className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl shadow-md relative"
+                  style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
+                >
+                  <span className="text-gray-800 font-medium">
+                    Fill out questionnaire
+                  </span>
+                  <div
+                    className="w-10 h-10 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
+                    onClick={() => setShowFormularioModal(true)}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M11 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V14"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M17.5 3.50001C18.0304 2.96958 18.7348 2.67676 19.4645 2.67676C20.1942 2.67676 20.8986 2.96958 21.429 3.50001C21.9594 4.03044 22.2523 4.7348 22.2523 5.46448C22.2523 6.19417 21.9594 6.89853 21.429 7.42896L12 16.858L8 17.858L9 13.858L17.5 5.36501V3.50001Z"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {profile.habilidades.length === 0 && (
+                <div
+                  className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl shadow-md"
+                  style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
+                >
+                  <span className="text-gray-800 font-medium">Add skills</span>
+                  <div
+                    className="w-10 h-10 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
+                    onClick={() => setShowSkillsModal(true)}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 5V19M5 12H19"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {/* Segunda fila */}
+              {!profile.archivos.videoPresentacion && (
+                <div
+                  className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl shadow-md"
+                  style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
+                >
+                  <span className="text-gray-800 font-medium">
+                    Upload your video
+                  </span>
+                  <div
+                    className="w-10 h-10 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
+                    onClick={() => setShowVideoModal(true)}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M17 8L12 3L7 8"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 3V15"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {isVisibleNotification2 && (
+                <div
+                  className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl shadow-md"
+                  style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
+                >
+                  <span className="text-gray-800 font-medium">
+                    Computer specifications
+                  </span>
+                  <div
+                    className="w-10 h-10 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
+                    onClick={() => setShowPCRequirementsModal(true)}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M17 8L12 3L7 8"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 3V15"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {/* Tercera fila */}
+              {profile.experiencia.length === 0 && (
+                <div
+                  className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl shadow-md"
+                  style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
+                >
+                  <span className="text-gray-800 font-medium">
+                    Experience doing this service
+                  </span>
+                  <div
+                    className="w-10 h-10 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
+                    onClick={() => setShowExperienceModal(true)}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 5V19M5 12H19"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {profile.educacion.length === 0 && (
+                <div
+                  className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl shadow-md"
+                  style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
+                >
+                  <span className="text-gray-800 font-medium">Education</span>
+                  <div
+                    className="w-10 h-10 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
+                    onClick={() => setShowEducationModal(true)}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 5V19M5 12H19"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {!profile.datosPersonales.telefono &&
+                !profile.datosPersonales.residencia && (
+                  <div
+                    className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl shadow-md relative"
+                    style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
+                  >
+                    <span className="text-gray-800 font-medium">
+                      Contact Information
+                    </span>
+                    <div className="flex items-center justify-center gap-4">
+                      <svg
+                        width="35"
+                        height="35"
+                        viewBox="0 0 25 25"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="cursor-pointer"
+                        onClick={() => setShowContactoModal(true)}
+                      >
+                        <circle cx="12.5" cy="12.5" r="12.5" fill="#0097B2" />
+                        <g clipPath="url(#clip0_161_384)">
+                          <path
+                            d="M11.875 7.5H7.5C7.16848 7.5 6.85054 7.6317 6.61612 7.86612C6.3817 8.10054 6.25 8.41848 6.25 8.75V17.5C6.25 17.8315 6.3817 18.1495 6.61612 18.3839C6.85054 18.6183 7.16848 18.75 7.5 18.75H16.25C16.5815 18.75 16.8995 18.6183 17.1339 18.3839C17.3683 18.1495 17.5 17.8315 17.5 17.5V13.125"
+                            stroke="#FCFEFF"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M16.5625 6.5625C16.8111 6.31386 17.1484 6.17417 17.5 6.17417C17.8516 6.17417 18.1889 6.31386 18.4375 6.5625C18.6861 6.81114 18.8258 7.14837 18.8258 7.5C18.8258 7.85163 18.6861 8.18886 18.4375 8.4375L12.5 14.375L10 15L10.625 12.5L16.5625 6.5625Z"
+                            stroke="#FCFEFF"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_161_384">
+                            <rect
+                              width="15"
+                              height="15"
+                              fill="white"
+                              transform="translate(5 5)"
+                            />
+                          </clipPath>
+                        </defs>
+                      </svg>
+                    </div>
+                  </div>
+                )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop view */}
+      <div className="hidden md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="flex flex-col justify-between gap-4">
+            {profile.datosFormulario && (
+              <div
+                className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+                style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+              >
+                <span className="text-gray-800 font-medium">Questionnaire</span>
+                <div className="flex items-center justify-center gap-4">
+                  {profile.datosFormulario &&
+                  Object.keys(profile.datosFormulario).length > 0 ? (
+                    <div className="flex items-center gap-2">
+                      <Dump
+                        className="cursor-pointer"
+                        onClick={() => setShowDeleteFormularioModal(true)}
+                      />
+                      <Edit
+                        className="cursor-pointer"
+                        onClick={() => setShowViewFormularioModal(true)}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            )}
+            {profile.datosPersonales.telefono &&
+              profile.datosPersonales.residencia && (
+                <div
+                  className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+                  style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+                >
+                  <span className="text-gray-800 font-medium">
+                    Contact Information
+                  </span>
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Edit
+                        className="cursor-pointer"
+                        onClick={() => setShowViewContactoModal(true)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            {profile.archivos.videoPresentacion && (
+              <div
+                className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+                style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+              >
+                <span className="text-gray-800 font-medium">
+                  Video presentation
+                </span>
+                <div className="flex items-center justify-center gap-4">
+                  {profile.archivos.videoPresentacion ? (
+                    <div className="flex items-center gap-2">
+                      <Dump
+                        className="cursor-pointer"
+                        onClick={handleRemoveVideoPresentation}
+                      />
+                      <Edit
+                        className="cursor-pointer"
+                        onClick={() => setShowViewVideoModal(true)}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            )}
+            {profile.habilidades.length > 0 && (
+              <div
+                className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+                style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+              >
+                <span className="text-gray-800 font-medium">Skills</span>
+                <div className="flex items-center justify-center gap-4">
+                  {profile.habilidades.length > 0 ? (
+                    <div className="flex items-center gap-2">
+                      <Dump
+                        className="cursor-pointer"
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          if (user?.id) {
+                            setShowDeleteSkillsModal(true);
+                          }
+                        }}
+                      />
+                      <Edit
+                        className="cursor-pointer"
+                        onClick={() => setShowViewSkillsModal(true)}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            )}
+            {profile.experiencia.length > 0 && (
+              <div
+                className="flex flex-col p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+                style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-800 text-xl font-medium">
+                    Experience
+                  </span>
+                  <div className="p-4 flex items-center">
+                    <div
+                      className="w-8 h-8 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
+                      onClick={() => {
+                        setShowExperienceModal(true);
+                      }}
+                    >
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12 5V19M5 12H19"
+                          stroke="white"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                {profile.experiencia.length > 0 && (
+                  <div className="grid grid-cols-1 ">
+                    {profile.experiencia.map((exp) => (
+                      <div key={exp.id}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium text-gray-800 text-lg">
+                              {exp.empresa}
+                            </h3>
+                            <p className="text-gray-600 text-sm mt-1">
+                              {exp.cargo}
+                            </p>
+                            <p className="text-gray-500 text-xs mt-1">
+                              {exp.fechaInicio} -{" "}
+                              {exp.esActual ? "Presente" : exp.fechaFin}
+                            </p>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleDeleteExperience(exp)}
+                              className="text-red-500 p-1 rounded cursor-pointer "
+                            >
+                              <svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 22 22"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M2.75 5.5H4.58333H19.25"
+                                  stroke="#0097B2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M7.3335 5.49998V3.66665C7.3335 3.18042 7.52665 2.7141 7.87047 2.37028C8.21428 2.02647 8.6806 1.83331 9.16683 1.83331H12.8335C13.3197 1.83331 13.786 2.02647 14.1299 2.37028C14.4737 2.7141 14.6668 3.18042 14.6668 3.66665V5.49998M17.4168 5.49998V18.3333C17.4168 18.8195 17.2237 19.2859 16.8799 19.6297C16.536 19.9735 16.0697 20.1666 15.5835 20.1666H6.41683C5.9306 20.1666 5.46428 19.9735 5.12047 19.6297C4.77665 19.2859 4.5835 18.8195 4.5835 18.3333V5.49998H17.4168Z"
+                                  stroke="#0097B2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M9.1665 10.0833V15.5833"
+                                  stroke="#0097B2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M12.8335 10.0833V15.5833"
+                                  stroke="#0097B2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleEditExperience(exp)}
+                              className="text-[#0097B2] p-1 cursor-pointer rounded"
+                            >
+                              <svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M15.8333 8.33332L11.6667 4.16666M2.5 17.5L6.875 16.4583C7.14867 16.3878 7.28551 16.3525 7.41074 16.2961C7.52179 16.2456 7.62627 16.1815 7.7216 16.1055C7.82944 16.0197 7.92189 15.9128 8.10678 15.6989L17.5 6.24999C18.4205 5.32954 18.4205 3.83377 17.5 2.91332C16.5795 1.99287 15.0838 1.99287 14.1633 2.91332L4.77011 12.3065C4.55621 12.4914 4.44926 12.5839 4.36343 12.6917C4.28746 12.787 4.22336 12.8915 4.17293 13.0026C4.11651 13.1278 4.08125 13.2646 4.01074 13.5383L3 17.5"
+                                  stroke="#0097B2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col justify-between gap-4">
+            {isVisibleNotification3 && (
+              <div
+                className="flex flex-col p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+                style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-800 font-medium">
+                    Computer specifications
+                  </span>
+                  <div className="flex items-center justify-end mt-4">
+                    <div className="flex items-center gap-2">
+                      {profile.archivos.imagenRequerimientosPC ||
+                      profile.archivos.imagenTestVelocidad ? (
+                        <>
+                          <Dump
+                            className="cursor-pointer"
+                            onClick={() => {
+                              setShowDeletePCRequirementsModal(true);
+                            }}
+                          />
+                          <Edit
+                            className="cursor-pointer"
+                            onClick={() => setShowViewPCRequirementsModal(true)}
+                          />
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+                {profile.archivos.imagenRequerimientosPC && (
+                  <div className="mt-2">
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">
+                      PC Specs
+                    </h3>
+                    <div className="text-white rounded-md">
+                      <img
+                        src={`${profile.archivos.imagenRequerimientosPC}`}
+                        alt="PC Specifications"
+                        className="w-[50%] h-auto"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {profile.archivos.imagenTestVelocidad && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">
+                      Internet Speed
+                    </h3>
+                    <div className="text-white rounded-md">
+                      <img
+                        src={`${profile.archivos.imagenTestVelocidad}`}
+                        alt="Internet Speed Test"
+                        className="w-[50%] h-auto"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {profile.educacion.length > 0 && (
+              <div
+                className="flex flex-col p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+                style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-800 text-xl font-medium">
+                    Education
+                  </span>
+                  <div className="p-4 flex items-center">
+                    <div
+                      className="w-8 h-8 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
+                      onClick={() => {
+                        setShowExperienceModal(true);
+                      }}
+                    >
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12 5V19M5 12H19"
+                          stroke="white"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                {profile.educacion.length > 0 && (
+                  <div className="grid grid-cols-1 ">
+                    {profile.educacion.map((edu) => (
+                      <div key={edu.id}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium text-gray-800 text-lg">
+                              {edu.titulo}
+                            </h3>
+                            <p className="text-gray-600 text-sm mt-1">
+                              {edu.institucion}
+                            </p>
+                            <p className="text-gray-500 text-xs mt-1">
+                              {edu.añoInicio} -{" "}
+                              {edu.esActual ? "Presente" : edu.añoFin}
+                            </p>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleDeleteEducation(edu)}
+                              className="text-red-500 p-1 rounded cursor-pointer "
+                            >
+                              <svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 22 22"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M2.75 5.5H4.58333H19.25"
+                                  stroke="#0097B2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M7.3335 5.49998V3.66665C7.3335 3.18042 7.52665 2.7141 7.87047 2.37028C8.21428 2.02647 8.6806 1.83331 9.16683 1.83331H12.8335C13.3197 1.83331 13.786 2.02647 14.1299 2.37028C14.4737 2.7141 14.6668 3.18042 14.6668 3.66665V5.49998M17.4168 5.49998V18.3333C17.4168 18.8195 17.2237 19.2859 16.8799 19.6297C16.536 19.9735 16.0697 20.1666 15.5835 20.1666H6.41683C5.9306 20.1666 5.46428 19.9735 5.12047 19.6297C4.77665 19.2859 4.5835 18.8195 4.5835 18.3333V5.49998H17.4168Z"
+                                  stroke="#0097B2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M9.1665 10.0833V15.5833"
+                                  stroke="#0097B2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M12.8335 10.0833V15.5833"
+                                  stroke="#0097B2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleEditEducation(edu)}
+                              className="text-[#0097B2] p-1 cursor-pointer rounded"
+                            >
+                              <svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M15.8333 8.33332L11.6667 4.16666M2.5 17.5L6.875 16.4583C7.14867 16.3878 7.28551 16.3525 7.41074 16.2961C7.52179 16.2456 7.62627 16.1815 7.7216 16.1055C7.82944 16.0197 7.92189 15.9128 8.10678 15.6989L17.5 6.24999C18.4205 5.32954 18.4205 3.83377 17.5 2.91332C16.5795 1.99287 15.0838 1.99287 14.1633 2.91332L4.77011 12.3065C4.55621 12.4914 4.44926 12.5839 4.36343 12.6917C4.28746 12.787 4.22336 12.8915 4.17293 13.0026C4.11651 13.1278 4.08125 13.2646 4.01074 13.5383L3 17.5"
+                                  stroke="#0097B2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Modales de edición */}
       <FormularioModal
         isOpen={showFormularioModal}
@@ -1024,17 +1727,23 @@ export default function ProfilePage() {
         onClose={() => setShowPCRequirementsModal(false)}
       />
 
-      <ExperienceModal
-        isOpen={showExperienceModal}
-        onClose={handleCloseExperienceModal}
-        onSave={handleSaveExperience}
-      />
+      {experienceData && (
+        <ExperienceModal
+          isOpen={showExperienceModal}
+          onClose={handleCloseExperienceModal}
+          onSave={handleSaveExperience}
+          experienceData={experienceData}
+        />
+      )}
 
-      <EducationModal
-        isOpen={showEducationModal}
-        onClose={handleCloseEducationModal}
-        onSave={handleSaveEducation}
-      />
+      {educationData && (
+        <EducationModal
+          isOpen={showEducationModal}
+          onClose={handleCloseEducationModal}
+          onSave={handleSaveEducation}
+          educationData={educationData}
+        />
+      )}
 
       {/* Nuevos modales de visualización */}
       <ViewFormularioModal

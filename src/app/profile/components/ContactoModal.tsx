@@ -13,11 +13,9 @@ import { updateProfilePersonal } from "../actions/profile.actions";
 const contactoSchema = z.object({
   telefono: z
     .string()
-    .min(7, "El teléfono debe tener al menos 7 caracteres")
-    .regex(/^[+0-9() -]+$/, "Formato de teléfono inválido"),
-  residencia: z
-    .string()
-    .min(5, "La dirección debe tener al menos 5 caracteres"),
+    .min(7, "The phone number must be at least 7 characters")
+    .regex(/^[+0-9() -]+$/, "Invalid phone number format"),
+  residencia: z.string().min(5, "The address must be at least 5 characters"),
 });
 
 export type ContactoFormValues = z.infer<typeof contactoSchema>;
@@ -48,30 +46,25 @@ export default function ContactoModal({ isOpen, onClose }: ContactoModalProps) {
     },
   });
 
-  // Función para guardar los datos del formulario
   const onSubmit = async (data: ContactoFormValues) => {
     if (!user?.id) {
-      addNotification("Usuario no autenticado", "error");
+      addNotification("User not authenticated", "error");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      console.log("Datos a enviar:", data);
       const response = await updateProfilePersonal(user.id, data);
       if (response.success) {
-        addNotification(
-          "Datos de contacto actualizados correctamente",
-          "success"
-        );
+        addNotification("Contact information updated successfully", "success");
         onClose();
         reset();
       } else {
         addNotification(response.message, "error");
       }
     } catch (error) {
-      console.error("Error al guardar datos de contacto:", error);
-      addNotification("Error al actualizar datos de contacto", "error");
+      console.error("Error updating contact information:", error);
+      addNotification("Error updating contact information", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -83,16 +76,15 @@ export default function ContactoModal({ isOpen, onClose }: ContactoModalProps) {
     <div className="fixed inset-0 z-50 bg-[rgba(0,0,0,0.5)] bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Datos de Contacto</h2>
+          <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-4">
-              {/* Campo de teléfono */}
               <div>
                 <label
                   htmlFor="telefono"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Teléfono
+                  Phone
                 </label>
                 <input
                   id="telefono"
@@ -110,13 +102,12 @@ export default function ContactoModal({ isOpen, onClose }: ContactoModalProps) {
                 )}
               </div>
 
-              {/* Campo de residencia */}
               <div>
                 <label
                   htmlFor="residencia"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Residencia o Domicilio
+                  Residence or Address
                 </label>
                 <input
                   id="residencia"
@@ -125,7 +116,7 @@ export default function ContactoModal({ isOpen, onClose }: ContactoModalProps) {
                   className={`w-full p-2 border rounded-md ${
                     errors.residencia ? "border-red-500" : "border-gray-300"
                   }`}
-                  placeholder="Ciudad, País"
+                  placeholder="City, Country"
                 />
                 {errors.residencia && (
                   <span className="text-red-500 text-xs mt-1">
@@ -145,14 +136,14 @@ export default function ContactoModal({ isOpen, onClose }: ContactoModalProps) {
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
                 disabled={isSubmitting}
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-[#0097B2] text-white rounded-md hover:bg-[#007d8a]"
+                className="px-4 py-2 bg-[#0097B2] text-white rounded-md hover:bg-[#007d8a] cursor-pointer"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Guardando..." : "Guardar"}
+                {isSubmitting ? "Saving..." : "Save"}
               </button>
             </div>
           </form>

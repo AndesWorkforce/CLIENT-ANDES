@@ -43,12 +43,10 @@ export default function ViewVideoModal({
     }
   };
 
-  // Manejadores para cuando el video se pausa o reproduce automáticamente
   const handlePlay = () => setIsPlaying(true);
   const handlePause = () => setIsPlaying(false);
   const handleEnded = () => setIsPlaying(false);
 
-  // Función para mostrar el modal de confirmación de eliminación
   const handleDeleteVideo = () => {
     setShowDeleteModal(true);
   };
@@ -59,30 +57,23 @@ export default function ViewVideoModal({
         const result = await removeVideoPresentation(user.id);
 
         if (result.success) {
-          console.log(
-            "[ProfilePage] Video de presentación eliminado correctamente"
-          );
           addNotification(
             "Video de presentación eliminado correctamente",
             "success"
           );
         } else {
-          console.error(
-            "[ProfilePage] Error al eliminar el video de presentación:",
-            result.message
-          );
           addNotification(
-            `Error al eliminar el video de presentación: ${result.message}`,
+            `Error deleting the video presentation: ${result.message}`,
             "error"
           );
         }
       } catch (error) {
         console.error(
-          "[ProfilePage] Error al eliminar el video de presentación:",
+          "[ViewVideoModal] Error deleting the video presentation:",
           error
         );
         addNotification(
-          "Ha ocurrido un error inesperado al eliminar el video de presentación",
+          "An unexpected error occurred while deleting the video presentation",
           "error"
         );
       } finally {
@@ -108,7 +99,7 @@ export default function ViewVideoModal({
           <div className="flex items-center p-4 relative border-b border-gray-200">
             <div className="w-6"></div>
             <h2 className="text-lg font-medium w-full text-center text-[#0097B2]">
-              Video Presentación
+              Video Presentation
             </h2>
             <button
               onClick={onClose}
@@ -156,11 +147,11 @@ export default function ViewVideoModal({
 
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-800">
-                Video de presentación
+                Video Presentation
               </h3>
               <p className="text-gray-600 mt-2">
-                Si deseas cambiar tu video, primero debes eliminar este y luego
-                subir uno nuevo.
+                If you want to change your video, you must first delete this one
+                and then upload a new one.
               </p>
             </div>
 
@@ -170,7 +161,7 @@ export default function ViewVideoModal({
                 onClick={togglePlay}
                 className="w-full py-2 px-4 bg-[#0097B2] hover:bg-[#0097B2]/80 text-white font-medium rounded-md cursor-pointer"
               >
-                {isPlaying ? "Pausar video" : "Reproducir video"}
+                {isPlaying ? "Pause video" : "Play video"}
               </button>
               <button
                 type="button"
@@ -178,27 +169,26 @@ export default function ViewVideoModal({
                 className="w-full py-2 px-4 border border-red-500 hover:bg-red-50 text-red-500 font-medium rounded-md cursor-pointer flex items-center justify-center"
               >
                 <Trash2 size={16} className="mr-2" />
-                Eliminar video
+                Delete video
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="w-full text-center text-[#0097B2] hover:text-[#0097B2]/80 py-1 cursor-pointer"
               >
-                Cerrar
+                Close
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal de confirmación para eliminar video */}
       <ConfirmDeleteModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={confirmDeleteVideo}
-        title="Eliminar Video"
-        message="¿Estás seguro de que deseas eliminar este video de presentación? Esta acción no se puede deshacer."
+        title="Delete video"
+        message="Are you sure you want to delete this video presentation? This action cannot be undone."
       />
     </>
   );

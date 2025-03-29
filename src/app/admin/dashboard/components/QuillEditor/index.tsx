@@ -122,7 +122,6 @@ const QuillEditor = ({
     isQuillLoaded,
   ]);
 
-  // Efecto para actualizar el contenido
   useEffect(() => {
     if (!quillRef.current || value === undefined) return;
 
@@ -138,12 +137,14 @@ const QuillEditor = ({
 
   return (
     <div className={styles.customEditor} id={editorId}>
-      <div ref={editorRef} className={styles.editorContainer} />
+      <div
+        ref={editorRef}
+        className={`${styles.editorContainer} custom-scrollbar`}
+      />
     </div>
   );
 };
 
-// Exportar el componente memoizado
 export default dynamic(() => Promise.resolve(QuillEditor), {
   ssr: false,
   loading: () => (

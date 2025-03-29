@@ -20,7 +20,6 @@ export default function ViewPCRequirementsModal({
     null
   );
 
-  // Obtenemos las URLs de las imágenes desde el perfil
   const pcSpecsImageUrl = profile.archivos.documentosAdicionales?.[0] || "";
   const internetSpeedImageUrl =
     profile.archivos.documentosAdicionales?.[1] || "";
@@ -55,7 +54,6 @@ export default function ViewPCRequirementsModal({
 
   if (!isOpen) return null;
 
-  // Renderizar modal de captura específica (PC specs o Internet speed)
   if (activeCaptura) {
     return (
       <div
@@ -93,7 +91,6 @@ export default function ViewPCRequirementsModal({
                   alt="PC Specifications"
                   className="w-full rounded-md"
                   onError={(e) => {
-                    // Fallback para cuando la imagen no se encuentra
                     const target = e.target as HTMLImageElement;
                     target.src =
                       "https://via.placeholder.com/350x200?text=PC+Specifications";
@@ -107,7 +104,6 @@ export default function ViewPCRequirementsModal({
                   alt="Internet Speed Test"
                   className="w-full rounded-md"
                   onError={(e) => {
-                    // Fallback para cuando la imagen no se encuentra
                     const target = e.target as HTMLImageElement;
                     target.src =
                       "https://via.placeholder.com/350x200?text=Internet+Speed+Test";
@@ -121,7 +117,6 @@ export default function ViewPCRequirementsModal({
     );
   }
 
-  // Renderizar lista de capturas
   if (showCapturas) {
     return (
       <div
@@ -141,7 +136,7 @@ export default function ViewPCRequirementsModal({
               <ChevronLeft size={20} />
             </button>
             <h2 className="text-lg font-medium w-full text-center text-[#0097B2]">
-              Capturas verificadas
+              Verified screenshots
             </h2>
             <button
               onClick={() => setShowCapturas(false)}
@@ -165,7 +160,6 @@ export default function ViewPCRequirementsModal({
                   alt="PC Specifications"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    // Fallback para cuando la imagen no se encuentra
                     const target = e.target as HTMLImageElement;
                     target.src =
                       "https://via.placeholder.com/150x100?text=PC+Specs";
@@ -189,7 +183,6 @@ export default function ViewPCRequirementsModal({
                   alt="Internet Speed Test"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    // Fallback para cuando la imagen no se encuentra
                     const target = e.target as HTMLImageElement;
                     target.src =
                       "https://via.placeholder.com/150x100?text=Internet+Speed";
@@ -203,7 +196,6 @@ export default function ViewPCRequirementsModal({
     );
   }
 
-  // Renderizar modal principal
   return (
     <div
       className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4"
@@ -214,11 +206,10 @@ export default function ViewPCRequirementsModal({
         className="bg-white w-full max-w-md rounded-lg overflow-hidden flex flex-col max-h-[90vh]"
         style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
       >
-        {/* Header fijo */}
         <div className="flex items-center p-4 relative border-b border-gray-200">
           <div className="w-6"></div>
           <h2 className="text-lg font-medium w-full text-center text-[#0097B2]">
-            Requerimientos PC
+            PC Requirements
           </h2>
           <button
             onClick={onClose}
@@ -228,7 +219,6 @@ export default function ViewPCRequirementsModal({
           </button>
         </div>
 
-        {/* Contenido con scroll */}
         <div className="overflow-y-auto flex-1">
           <div className="p-6 space-y-6">
             <div className="flex justify-center items-center">
@@ -260,11 +250,11 @@ export default function ViewPCRequirementsModal({
 
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-800">
-                ¡Requerimientos verificados!
+                PC Requirements verified!
               </h3>
               <p className="text-gray-600 mt-2">
-                Has subido correctamente las capturas de pantalla que verifican
-                los requerimientos de tu PC.
+                You have uploaded the screenshots that verify your PC
+                requirements correctly.
               </p>
             </div>
 
@@ -273,14 +263,13 @@ export default function ViewPCRequirementsModal({
                 <div className="flex items-center">
                   <Monitor className="text-[#0097B2] mr-2" size={20} />
                   <h4 className="font-medium text-[#0097B2]">
-                    Especificaciones PC
+                    PC Specifications
                   </h4>
                 </div>
                 <p className="text-gray-600 text-sm mt-1 mb-3">
-                  Captura de pantalla verificada
+                  Verified screenshot
                 </p>
 
-                {/* Imagen de PC specs */}
                 <div className="rounded-md overflow-hidden border border-gray-200">
                   <img
                     src={pcSpecsImageUrl}
@@ -288,7 +277,6 @@ export default function ViewPCRequirementsModal({
                     className="w-full object-contain"
                     style={{ maxHeight: "200px" }}
                     onError={(e) => {
-                      // Fallback para cuando la imagen no se encuentra
                       const target = e.target as HTMLImageElement;
                       target.src =
                         "https://via.placeholder.com/350x200?text=PC+Specifications";
@@ -296,27 +284,23 @@ export default function ViewPCRequirementsModal({
                   />
                 </div>
 
-                {/* Botón para ver imagen en pantalla completa */}
                 <button
                   onClick={verCapturaPC}
                   className="w-full mt-2 text-xs text-[#0097B2] hover:underline flex justify-center"
                 >
-                  Ver en pantalla completa
+                  View full screen
                 </button>
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center">
                   <Wifi className="text-[#0097B2] mr-2" size={20} />
-                  <h4 className="font-medium text-[#0097B2]">
-                    Velocidad de Internet
-                  </h4>
+                  <h4 className="font-medium text-[#0097B2]">Internet speed</h4>
                 </div>
                 <p className="text-gray-600 text-sm mt-1 mb-3">
-                  Captura de pantalla verificada
+                  Verified screenshot
                 </p>
 
-                {/* Imagen de Internet speed */}
                 <div className="rounded-md overflow-hidden border border-gray-200">
                   <img
                     src={internetSpeedImageUrl}
@@ -324,7 +308,6 @@ export default function ViewPCRequirementsModal({
                     className="w-full object-contain"
                     style={{ maxHeight: "200px" }}
                     onError={(e) => {
-                      // Fallback para cuando la imagen no se encuentra
                       const target = e.target as HTMLImageElement;
                       target.src =
                         "https://via.placeholder.com/350x200?text=Internet+Speed+Test";
@@ -332,12 +315,11 @@ export default function ViewPCRequirementsModal({
                   />
                 </div>
 
-                {/* Botón para ver imagen en pantalla completa */}
                 <button
                   onClick={verCapturaInternet}
                   className="w-full mt-2 text-xs text-[#0097B2] hover:underline flex justify-center"
                 >
-                  Ver en pantalla completa
+                  Full screen
                 </button>
               </div>
             </div>
@@ -348,7 +330,7 @@ export default function ViewPCRequirementsModal({
                 onClick={onClose}
                 className="w-full text-center text-[#0097B2] py-1"
               >
-                Cerrar
+                Close
               </button>
             </div>
           </div>

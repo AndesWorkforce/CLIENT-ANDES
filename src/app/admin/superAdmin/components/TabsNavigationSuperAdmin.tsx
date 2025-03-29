@@ -7,8 +7,8 @@ import { useEffect, useRef, useState } from "react";
 export default function TabsNavigationSuperAdmin() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const [showLeftShadow, setShowLeftShadow] = useState(false);
-  const [showRightShadow, setShowRightShadow] = useState(false);
+  const [showLeftShadow, setShowLeftShadow] = useState<boolean>(false);
+  const [showRightShadow, setShowRightShadow] = useState<boolean>(false);
 
   const checkScrollShadows = () => {
     if (!scrollRef.current) return;
@@ -18,7 +18,6 @@ export default function TabsNavigationSuperAdmin() {
     setShowRightShadow(scrollLeft < scrollWidth - clientWidth - 5);
   };
 
-  // Comprobar sombras al cargar y al cambiar tamaño de ventana
   useEffect(() => {
     checkScrollShadows();
     window.addEventListener("resize", checkScrollShadows);
@@ -28,12 +27,10 @@ export default function TabsNavigationSuperAdmin() {
   return (
     <div className="bg-white border-gray-200">
       <div className="max-w-7xl mx-auto px-4 relative">
-        {/* Indicador de scroll izquierdo */}
         {showLeftShadow && (
           <div className="absolute top-0 left-0 w-8 h-full z-10 bg-gradient-to-r from-white to-transparent pointer-events-none" />
         )}
 
-        {/* Contenedor desplazable */}
         <div
           ref={scrollRef}
           className="overflow-x-auto py-2 scrollbar-hide"
@@ -90,7 +87,7 @@ export default function TabsNavigationSuperAdmin() {
                   </clipPath>
                 </defs>
               </svg>
-              Crear usuarios
+              Create users
             </Link>
             <Link
               href="/admin/superAdmin/users"
@@ -148,12 +145,11 @@ export default function TabsNavigationSuperAdmin() {
                   </clipPath>
                 </defs>
               </svg>
-              Gestionar usuarios
+              Manage users
             </Link>
           </div>
         </div>
 
-        {/* Indicador de scroll derecho */}
         {showRightShadow && (
           <div className="absolute top-0 right-0 w-8 h-full z-10 bg-gradient-to-l from-white to-transparent pointer-events-none" />
         )}

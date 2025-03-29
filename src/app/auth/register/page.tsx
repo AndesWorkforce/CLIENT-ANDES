@@ -82,8 +82,8 @@ export default function RegisterPage() {
               </div>
 
               {/* Estructura del header - versión desktop */}
-              <div className="hidden lg:flex lg:flex-col lg:mb-8">
-                <div className="flex items-center justify-between mb-6">
+              <div className="hidden lg:flex lg:flex-col">
+                <div className="flex items-center justify-between">
                   <h2 className="text-xl font-[600] text-[18px] text-black">
                     Create a new account
                   </h2>

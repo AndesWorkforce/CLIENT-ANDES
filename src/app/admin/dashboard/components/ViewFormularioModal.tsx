@@ -44,7 +44,7 @@ export default function ViewFormularioModal({
             onClick={onClose}
             className="text-[#0097B2] hover:text-[#0097B2] py-2 cursor-pointer"
           >
-            Cerrar
+            Close
           </button>
         </div>
       </div>

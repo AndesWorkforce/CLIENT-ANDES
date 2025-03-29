@@ -16,11 +16,11 @@ interface Props {
 export default function UsersTable({ users, onRefresh }: Props) {
   const { addNotification } = useNotificationStore();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [showStatusModal, setShowStatusModal] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const handleStatusChange = async () => {
     if (!selectedUser || isUpdatingStatus) return;
@@ -39,7 +39,7 @@ export default function UsersTable({ users, onRefresh }: Props) {
       }
     } catch (error) {
       console.error("Error al cambiar el estado:", error);
-      addNotification("Error al cambiar el estado del usuario", "error");
+      addNotification("Error changing user status", "error");
     } finally {
       setIsUpdatingStatus(false);
       setShowStatusModal(false);
@@ -76,19 +76,19 @@ export default function UsersTable({ users, onRefresh }: Props) {
           <thead className="bg-white border-b">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase">
-                Nombre
+                Name
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase">
                 Email
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase">
-                Rol
+                Role
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase">
-                Estado
+                Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase">
-                Acciones
+                Actions
               </th>
             </tr>
           </thead>
@@ -120,13 +120,13 @@ export default function UsersTable({ users, onRefresh }: Props) {
                         setSelectedUser(user);
                         setShowStatusModal(true);
                       }}
-                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors cursor-pointer ${
                         user.activo
                           ? "bg-[#EBFFF9] text-[#0097B2] hover:bg-[#D7F5EE]"
                           : "bg-red-100 text-red-800 hover:bg-red-200"
                       }`}
                     >
-                      {user.activo ? "Activo" : "Inactivo"}
+                      {user.activo ? "Active" : "Inactive"}
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -136,7 +136,7 @@ export default function UsersTable({ users, onRefresh }: Props) {
                           setSelectedUser(user);
                           setShowEditModal(true);
                         }}
-                        className="text-[#0097B2] hover:text-[#007B8E]"
+                        className="text-[#0097B2] hover:text-[#007B8E] cursor-pointer"
                       >
                         <svg
                           width="22"
@@ -173,7 +173,7 @@ export default function UsersTable({ users, onRefresh }: Props) {
                           setSelectedUser(user);
                           setShowDeleteModal(true);
                         }}
-                        className="text-[#0097B2] hover:text-[#007B8E]"
+                        className="text-[#0097B2] hover:text-[#007B8E] cursor-pointer"
                       >
                         <svg
                           width="22"
@@ -222,7 +222,7 @@ export default function UsersTable({ users, onRefresh }: Props) {
                   colSpan={5}
                   className="px-6 py-4 text-center text-sm text-[#17323A]"
                 >
-                  No hay usuarios registrados
+                  No users registered
                 </td>
               </tr>
             )}
@@ -230,7 +230,6 @@ export default function UsersTable({ users, onRefresh }: Props) {
         </table>
       </div>
 
-      {/* Modal de edición */}
       {showEditModal && selectedUser && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] bg-opacity-50 flex items-center justify-center z-50">
           <CreateUserForm
@@ -252,7 +251,6 @@ export default function UsersTable({ users, onRefresh }: Props) {
         </div>
       )}
 
-      {/* Modal de confirmación de cambio de estado */}
       {showStatusModal && selectedUser && (
         <ConfirmStatusModal
           isOpen={showStatusModal}
@@ -266,7 +264,6 @@ export default function UsersTable({ users, onRefresh }: Props) {
         />
       )}
 
-      {/* Modal de confirmación de eliminación */}
       {showDeleteModal && selectedUser && (
         <ConfirmDeleteModal
           isOpen={showDeleteModal}

@@ -19,8 +19,8 @@ export default function ConfirmDeleteModal({
   onConfirm,
   title,
   message,
-  confirmButtonText = "Sí, Eliminar",
-  cancelButtonText = "Cancelar",
+  confirmButtonText = "Yes, delete",
+  cancelButtonText = "Cancel",
 }: ConfirmDeleteModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 

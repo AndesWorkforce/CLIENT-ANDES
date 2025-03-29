@@ -73,7 +73,6 @@ export default function FormularioModal({
     setIsFormValid(allFieldsValid);
   };
 
-  // Cargar datos previos si existen
   useEffect(() => {
     if (datosFormulario) {
       setFormData(datosFormulario);
@@ -113,11 +112,9 @@ export default function FormularioModal({
       [question]: value,
     }));
 
-    // Validar el formulario después de cada cambio
     setTimeout(validateForm, 0);
   };
 
-  // Actualizar validación cuando cambia el tipo de computadora
   useEffect(() => {
     validateForm();
   }, [computerType, otherComputerText, wiredConnection]);
@@ -130,11 +127,9 @@ export default function FormularioModal({
     try {
       setIsSubmitting(true);
 
-      // Preparar datos completos
       const formFields = e.target as HTMLFormElement;
       const completeFormData: Record<string, any> = {};
 
-      // Capturar todos los campos de texto, email, tel, url, number y textarea
       const inputElements = formFields.querySelectorAll(
         'input:not([type="radio"]), textarea'
       );
@@ -203,7 +198,7 @@ export default function FormularioModal({
         className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg shadow-lg custom-scrollbar"
       >
         <div className="flex items-center p-4 relative">
-          <h2 className="text-lg font-medium w-full text-center">Formulario</h2>
+          <h2 className="text-lg font-medium w-full text-center">Form</h2>
           <button onClick={onClose} className="absolute right-4 cursor-pointer">
             <X size={20} />
           </button>
@@ -727,8 +722,7 @@ export default function FormularioModal({
 
               {!isFormValid && (
                 <p className="text-sm text-amber-600 text-center">
-                  Por favor completa todos los campos requeridos para habilitar
-                  el botón de guardar
+                  Please complete all required fields to enable the save button
                 </p>
               )}
 
@@ -737,7 +731,7 @@ export default function FormularioModal({
                 onClick={onClose}
                 className="text-[#0097B2] py-2 hover:underline cursor-pointer"
               >
-                Cancelar
+                Cancel
               </button>
             </div>
           )}
@@ -749,7 +743,7 @@ export default function FormularioModal({
                 onClick={onClose}
                 className="text-[#0097B2] py-2 hover:underline cursor-pointer"
               >
-                Cerrar
+                Close
               </button>
             </div>
           )}

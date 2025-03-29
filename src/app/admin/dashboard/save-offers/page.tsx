@@ -11,55 +11,43 @@ import { Offer, OfferWithContent, parseOfferContent } from "@/app/types/offers";
 import EditOfferModal from "@/app/components/EditOfferModal";
 import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 import { useNotificationStore } from "@/store/notifications.store";
+import OfferCardSkeleton from "@/app/admin/dashboard/components/OfferCardSkeleton";
 
 export default function SaveOffersPage() {
   const { addNotification } = useNotificationStore();
   const [offers, setOffers] = useState<OfferWithContent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [selectedOfferId, setSelectedOfferId] = useState<string | undefined>();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedOffer, setSelectedOffer] = useState<
     OfferWithContent | undefined
   >();
 
-  // Estados para el modal de confirmación de eliminación
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [offerToDelete, setOfferToDelete] = useState<string | undefined>();
 
   const fetchSavedOffers = useCallback(async () => {
     try {
-      console.log("[DEBUG] Obteniendo ofertas guardadas...");
       setLoading(true);
       const response = await getSavedOffers();
 
       if (response.success && response.data) {
-        // Parsear las ofertas para asegurar que tengan el formato correcto
         const rawOffers = response.data.data || [];
-        console.log("[DEBUG] Ofertas obtenidas (raw):", rawOffers.length);
 
-        // Aplicar parseOfferContent a cada oferta
         const parsedOffers = rawOffers.map((offer: Offer) => {
           const parsed = parseOfferContent(offer);
-          console.log(`[DEBUG] Oferta ${offer.id} parseada:`, {
-            titulo: parsed.titulo,
-            desc_tipo: typeof parsed.descripcion,
-            desc_claves:
-              typeof parsed.descripcion === "object"
-                ? Object.keys(parsed.descripcion).length
-                : "string",
-          });
           return parsed;
         });
 
         setOffers(parsedOffers);
       } else {
-        console.warn("[DEBUG] No se obtuvieron ofertas:", response.message);
+        console.warn("[DEBUG] No offers obtained:", response.message);
         setOffers([]);
       }
     } catch (error) {
-      console.error("[DEBUG] Error al obtener ofertas:", error);
+      console.error("[DEBUG] Error obtaining offers:", error);
       setOffers([]);
-      addNotification("Error al cargar ofertas", "error");
+      addNotification("Error loading offers", "error");
     } finally {
       setLoading(false);
     }
@@ -70,57 +58,28 @@ export default function SaveOffersPage() {
   }, [fetchSavedOffers]);
 
   const handleOpenModal = (offerId?: string, offer?: OfferWithContent) => {
-    console.log("[MODAL] Abriendo modal con oferta:", offerId);
-
     if (offer) {
       try {
-        // Verificar que tengamos datos válidos
-        console.log("[MODAL] Datos originales de offer:", {
-          id: offer.id,
-          titulo: offer.titulo,
-          desc_tipo: typeof offer.descripcion,
-          desc_muestra:
-            typeof offer.descripcion === "string"
-              ? offer.descripcion.substring(0, 50) + "..."
-              : typeof offer.descripcion === "object"
-              ? "Objeto JSON"
-              : "Tipo desconocido",
-        });
-
-        // Crear una copia de la oferta para el modal
         const ofertaParaModal: OfferWithContent = {
           id: offer.id,
           titulo: offer.titulo || "",
-          descripcion: offer.descripcion, // Mantener el formato original sin procesar
+          descripcion: offer.descripcion,
           estado: offer.estado || "borrador",
           fechaCreacion: offer.fechaCreacion,
           fechaActualizacion: offer.fechaActualizacion,
         };
 
-        // Si la descripción es un objeto, convertirlo a HTML
         if (
           typeof ofertaParaModal.descripcion === "object" &&
           ofertaParaModal.descripcion !== null
         ) {
-          console.log("[MODAL] Convirtiendo objeto a HTML");
-          // Formato simplificado para compatibilidad
           ofertaParaModal.descripcion =
-            "<p>Contenido migrado desde formato anterior</p>";
+            "<p>Content migrated from previous format</p>";
         }
-
-        console.log("[MODAL] Oferta preparada lista para enviar al modal:", {
-          id: ofertaParaModal.id,
-          desc_tipo_final: typeof ofertaParaModal.descripcion,
-          desc_muestra:
-            typeof ofertaParaModal.descripcion === "string"
-              ? ofertaParaModal.descripcion.substring(0, 50) + "..."
-              : "No es string",
-        });
 
         setSelectedOffer(ofertaParaModal);
       } catch (error) {
-        console.error("[ERROR] Error preparando oferta:", error);
-        // En caso de error, crear objeto mínimo
+        console.error("[ERROR] Error preparing offer:", error);
         setSelectedOffer({
           id: offer.id,
           titulo: offer.titulo || "",
@@ -137,12 +96,10 @@ export default function SaveOffersPage() {
   };
 
   const handleCloseModal = () => {
-    console.log("[DEBUG] Cerrando modal y limpiando estados");
     setIsModalOpen(false);
     setSelectedOffer(undefined);
     setSelectedOfferId(undefined);
 
-    // Volvemos a cargar las ofertas para asegurar que tengamos los datos más recientes
     fetchSavedOffers();
   };
 
@@ -151,15 +108,13 @@ export default function SaveOffersPage() {
       const formData = new FormData();
       formData.append("title", offerData.titulo);
 
-      // La descripción ahora es siempre HTML
       if (typeof offerData.descripcion === "string") {
         formData.append("description", offerData.descripcion);
       } else {
-        // Si por alguna razón es un objeto, lo convertimos a string HTML
         formData.append(
           "description",
           typeof offerData.descripcion === "object"
-            ? "<p>Contenido migrado desde formato anterior</p>"
+            ? "<p>Content migrated from previous format</p>"
             : String(offerData.descripcion || "")
         );
       }
@@ -169,25 +124,21 @@ export default function SaveOffersPage() {
       if (offerData.id) {
         const response = await updateOffer(offerData.id, formData);
         if (response.success) {
-          addNotification("Oferta actualizada correctamente", "success");
+          addNotification("Offer updated successfully", "success");
 
-          // Recargar ofertas
           await fetchSavedOffers();
         } else {
-          addNotification(
-            `Error al actualizar oferta: ${response.message}`,
-            "error"
-          );
+          addNotification(`Error updating offer: ${response.message}`, "error");
         }
       } else {
         addNotification(
-          "Función de crear nueva oferta no implementada",
+          "Function to create new offer not implemented",
           "warning"
         );
       }
     } catch (error) {
-      console.error("Error al guardar oferta:", error);
-      addNotification("Error al guardar oferta", "error");
+      console.error("Error saving offer:", error);
+      addNotification("Error saving offer", "error");
     }
   };
 
@@ -202,21 +153,17 @@ export default function SaveOffersPage() {
     try {
       const response = await deleteOffer(offerToDelete);
       if (response.success) {
-        addNotification("Oferta eliminada correctamente", "success");
+        addNotification("Offer deleted successfully", "success");
         await fetchSavedOffers();
       } else {
-        addNotification(
-          `Error al eliminar oferta: ${response.message}`,
-          "error"
-        );
+        addNotification(`Error deleting offer: ${response.message}`, "error");
       }
 
-      // Cerrar el modal y limpiar el estado
       setIsDeleteModalOpen(false);
       setOfferToDelete(undefined);
     } catch (error) {
-      console.error("Error al eliminar oferta:", error);
-      addNotification("Error al eliminar oferta", "error");
+      console.error("Error deleting offer:", error);
+      addNotification("Error deleting offer", "error");
       setIsDeleteModalOpen(false);
     }
   };
@@ -224,11 +171,19 @@ export default function SaveOffersPage() {
   return (
     <div className="container mx-auto px-4 py-6">
       {loading ? (
-        <div className="flex justify-center py-10">
-          <p>Cargando ofertas...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {offers.length > 0 ? (
             offers.map((offer) => (
               <div
@@ -271,14 +226,14 @@ export default function SaveOffersPage() {
               </div>
             ))
           ) : (
-            <div className="text-center py-10">
-              <p className="text-gray-500">No se encontraron ofertas</p>
+            <div className="text-center py-10 col-span-1 md:col-span-2 lg:col-span-3">
+              <p className="text-gray-500">No offers found</p>
             </div>
           )}
         </div>
       )}
 
-      {/* Modal de edición */}
+      {/* Edit modal */}
       <EditOfferModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -287,15 +242,15 @@ export default function SaveOffersPage() {
         initialData={selectedOffer}
       />
 
-      {/* Modal de confirmación de eliminación */}
+      {/* Confirmation modal for deletion */}
       <ConfirmDeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteOffer}
-        title="Eliminar Oferta"
-        message="¿Estás seguro que deseas eliminar esta oferta? Esta acción no se puede deshacer."
-        confirmButtonText="Sí, Eliminar"
-        cancelButtonText="Cancelar"
+        title="Delete offer"
+        message="Are you sure you want to delete this offer? This action cannot be undone."
+        confirmButtonText="Yes, delete"
+        cancelButtonText="Cancel"
       />
     </div>
   );

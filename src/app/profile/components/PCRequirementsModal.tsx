@@ -45,83 +45,60 @@ export default function PCRequirementsModal({
     }
   };
 
-  // Función para subir una imagen al servidor
   const uploadImage = async (file: File, type: string): Promise<string> => {
     try {
-      console.log(`[PCRequirements] Subiendo imagen de ${type}...`);
-
-      // Crear FormData para enviar el archivo
       const formData = new FormData();
       formData.append("image", file);
       formData.append("folder", "andesworkforce");
 
-      // URL del endpoint
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
       const uploadEndpoint = `${apiBase}files/upload/image/IMAGE`;
-      console.log("[PCRequirements] Endpoint de carga:", uploadEndpoint);
 
-      // Realizar la carga con fetch
       const response = await fetch(uploadEndpoint, {
         method: "POST",
         body: formData,
       });
 
-      // Comprobar si la respuesta es correcta
       if (!response.ok) {
         const errorText = await response.text();
         console.error(
-          "[PCRequirements] Error en respuesta:",
+          "[PCRequirements] Error in response:",
           response.status,
           errorText
         );
         throw new Error(`Error HTTP: ${response.status}. ${errorText}`);
       }
 
-      // Primero obtenemos la respuesta como texto
       const responseText = await response.text();
-      console.log(
-        `[PCRequirements] Respuesta del servidor (texto):`,
-        responseText
-      );
 
       let fileUrl: string;
 
-      // Intentamos parsear como JSON, pero si falla asumimos que es la URL directa
       try {
         const result = JSON.parse(responseText);
-        console.log(`[PCRequirements] Respuesta parseada como JSON:`, result);
 
-        // Si es JSON, extraemos la URL del campo fileUrl
         if (result.fileUrl) {
           fileUrl = result.fileUrl;
         } else if (result.success && result.data) {
-          // Otras posibles estructuras de respuesta
           fileUrl = result.data;
         } else {
           throw new Error("La respuesta no contiene una URL de archivo válida");
         }
       } catch (parseError) {
-        // Si no es JSON válido, asumimos que el texto es directamente la URL
-        console.log(
-          `[PCRequirements] La respuesta no es JSON, usando como URL directa`
-        );
         fileUrl = responseText.trim();
 
-        // Verificamos que parezca una URL
         if (!fileUrl.startsWith("http")) {
           console.error(
-            `[PCRequirements] La respuesta no parece ser una URL válida:`,
+            `[PCRequirements] The response does not seem to be a valid URL:`,
             fileUrl
           );
-          throw new Error("La respuesta del servidor no es una URL válida");
+          throw new Error("The server response is not a valid URL");
         }
       }
 
-      console.log(`[PCRequirements] URL final de la imagen:`, fileUrl);
       return fileUrl;
     } catch (error) {
       console.error(
-        `[PCRequirements] Error al subir imagen de ${type}:`,
+        `[PCRequirements] Error uploading image of ${type}:`,
         error
       );
       throw error;
@@ -132,15 +109,12 @@ export default function PCRequirementsModal({
     e.preventDefault();
 
     if (!pcScreenshot || !internetScreenshot) {
-      addNotification(
-        "Por favor, selecciona ambas capturas de pantalla",
-        "error"
-      );
+      addNotification("Please select both screenshots", "error");
       return;
     }
 
     if (!user?.id) {
-      addNotification("No se pudo obtener la información del usuario", "error");
+      addNotification("Unable to get user information", "error");
       return;
     }
 
@@ -148,18 +122,15 @@ export default function PCRequirementsModal({
     setUploadProgress(10);
 
     try {
-      // Subir la primera imagen (PC specs)
       const pcImageUrl = await uploadImage(pcScreenshot, "PC specs");
       setUploadProgress(50);
 
-      // Subir la segunda imagen (Internet speed)
       const internetImageUrl = await uploadImage(
         internetScreenshot,
         "Internet speed"
       );
       setUploadProgress(80);
 
-      // Guardar ambas URLs en el perfil del usuario
       const result = await savePCRequirementsImages(
         user.id,
         pcImageUrl,
@@ -168,18 +139,15 @@ export default function PCRequirementsModal({
       setUploadProgress(100);
 
       if (result.success) {
-        addNotification(
-          "Requisitos de PC verificados correctamente",
-          "success"
-        );
+        addNotification("PC requirements verified correctly", "success");
         onClose();
       } else {
-        throw new Error(result.error || "Error al guardar las imágenes");
+        throw new Error(result.error || "Error saving the images");
       }
     } catch (error) {
-      console.error("[PCRequirements] Error en el proceso de carga:", error);
+      console.error("[PCRequirements] Error in the upload process:", error);
       addNotification(
-        error instanceof Error ? error.message : "Error al subir las imágenes",
+        error instanceof Error ? error.message : "Error uploading the images",
         "error"
       );
     } finally {
@@ -202,7 +170,7 @@ export default function PCRequirementsModal({
         <div className="flex justify-between items-center px-4 py-3">
           <div className="w-6" />
           <h2 className="text-[#0097B2] text-lg font-semibold">
-            Requerimientos PC
+            PC Requirements
           </h2>
           <button onClick={onClose} className="text-gray-400 cursor-pointer">
             <X size={20} />
@@ -211,8 +179,7 @@ export default function PCRequirementsModal({
 
         <form onSubmit={handleSubmit} className="px-4 py-4 space-y-4">
           <p className="text-gray-700 text-sm">
-            Por favor envía capturas de pantalla que confirmen los requisitos
-            mínimos de tu PC:
+            Please send screenshots that confirm your minimum PC requirements:
           </p>
 
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
@@ -221,7 +188,7 @@ export default function PCRequirementsModal({
                 <Info size={18} />
               </div>
               <span className="font-medium text-blue-800">
-                Información Importante
+                Important Information
               </span>
             </div>
 
@@ -263,7 +230,6 @@ export default function PCRequirementsModal({
             </div>
           </div>
 
-          {/* Botones para subir capturas */}
           <div className="space-y-3">
             <div>
               <input
@@ -330,7 +296,6 @@ export default function PCRequirementsModal({
             </div>
           </div>
 
-          {/* Barra de progreso */}
           {isUploading && (
             <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
@@ -350,7 +315,7 @@ export default function PCRequirementsModal({
                   : "bg-[#0097B2] text-white"
               }`}
             >
-              {isUploading ? "Subiendo..." : "Guardar"}
+              {isUploading ? "Uploading..." : "Save"}
             </button>
             <button
               type="button"
@@ -360,7 +325,7 @@ export default function PCRequirementsModal({
                 isUploading ? "opacity-60 cursor-not-allowed" : ""
               }`}
             >
-              Cancelar
+              Cancel
             </button>
           </div>
         </form>

@@ -24,7 +24,6 @@ export default function JobOffersPage() {
   const [showJobDetail, setShowJobDetail] = useState<boolean>(false);
   const [offerToView, setOfferToView] = useState<Offer | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
-  // Estados para los filtros
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [selectedSeniority, setSelectedSeniority] = useState<string[]>([]);
@@ -36,14 +35,11 @@ export default function JobOffersPage() {
   };
 
   const handleApplyFilters = (filterData: FilterValues) => {
-    // Aquí implementaríamos la lógica de filtrado con los nuevos chips
-    // Por ahora, simplemente mantenemos la lista original
     console.log("Filtros aplicados:", filterData);
     setFilteredJobs(filteredJobs);
   };
 
   const handleClearFilters = () => {
-    // Opcional: implementar lógica adicional de limpieza
     setFilteredJobs(filteredJobs);
   };
 
@@ -71,7 +67,6 @@ export default function JobOffersPage() {
       const response = await getOffers();
       if (response.success) {
         setFilteredJobs(response.data.data);
-        // Seleccionar automáticamente la primera oferta para la vista desktop
         if (response.data.data.length > 0) {
           setSelectedJob(response.data.data[0]);
         }
@@ -324,18 +319,10 @@ export default function JobOffersPage() {
       {/* Vista desktop - Layout de dos columnas */}
       <div className="hidden md:flex mt-4 px-4 gap-6">
         {/* Columna izquierda - Listado de ofertas */}
-        <div className="w-1/3 overflow-y-auto max-h-[calc(100vh-150px)]">
+        <div className="w-1/3 overflow-y-auto custom-scrollbar max-h-[calc(100vh-150px)]">
           <div className="space-y-3 pr-2">
             {filteredJobs.map((job) => {
               const isSelected = selectedJob?.id === job.id;
-              console.log(
-                "Renderizando job:",
-                job.id,
-                "isSelected:",
-                isSelected,
-                "selectedJob?.id:",
-                selectedJob?.id
-              );
 
               return (
                 <div

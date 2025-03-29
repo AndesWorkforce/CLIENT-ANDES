@@ -14,7 +14,6 @@ interface ViewOfferModalProps {
   offer?: Offer;
 }
 
-// Estilos CSS para mejorar la visualización del contenido HTML
 const descriptionStyles = `
   .description-content {
     overflow-x: hidden;
@@ -106,30 +105,24 @@ export default function ViewOfferModal({
   useEffect(() => {
     if (contentRef.current && offer?.descripcion) {
       try {
-        // Obtener el contenido HTML
         let htmlContent =
           typeof offer.descripcion === "string"
             ? offer.descripcion
-            : "<p>Contenido no disponible</p>";
+            : "<p>Content not available</p>";
 
-        // Aplicar transformaciones para mejorar el formato
         htmlContent = formatHtmlContent(htmlContent);
 
-        // Insertar el HTML formateado en el contenedor
         contentRef.current.innerHTML = htmlContent;
 
-        // Añadir clases a elementos para mejorar la presentación
         enhanceContent(contentRef.current);
       } catch (error) {
-        console.error("Error al renderizar el contenido HTML:", error);
-        contentRef.current.innerHTML = "<p>Error al cargar el contenido</p>";
+        console.error("Error rendering HTML content:", error);
+        contentRef.current.innerHTML = "<p>Error loading content</p>";
       }
     }
   }, [offer, isOpen]);
 
-  // Función para formatear el contenido HTML
   const formatHtmlContent = (html: string): string => {
-    // Detectar secciones específicas y aplicar formato
     const sections = [
       "About the job",
       "What You'll Do",
@@ -141,7 +134,6 @@ export default function ViewOfferModal({
 
     let formattedHtml = html;
 
-    // Convertir secciones a elementos con clase específica
     sections.forEach((section) => {
       formattedHtml = formattedHtml.replace(
         new RegExp(`(${section})\\s*`, "gi"),
@@ -152,15 +144,12 @@ export default function ViewOfferModal({
     return formattedHtml;
   };
 
-  // Función para mejorar el contenido después de renderizado
   const enhanceContent = (container: HTMLElement) => {
-    // Ajustar imágenes
     const images = container.querySelectorAll("img");
     images.forEach((img) => {
       img.classList.add("max-w-full", "h-auto");
     });
 
-    // Ajustar tablas
     const tables = container.querySelectorAll("table");
     tables.forEach((table) => {
       const wrapper = document.createElement("div");
@@ -169,7 +158,6 @@ export default function ViewOfferModal({
       wrapper.appendChild(table);
     });
 
-    // Ajustar listas con viñetas
     const listItems = container.querySelectorAll("ul > li");
     listItems.forEach((li) => {
       if (!li.classList.contains("custom-list-item")) {
@@ -179,7 +167,7 @@ export default function ViewOfferModal({
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return "Fecha no disponible";
+    if (!dateString) return "Date not available";
 
     try {
       const date = new Date(dateString);
@@ -187,7 +175,7 @@ export default function ViewOfferModal({
       const day = date.getDate();
       return `${month} ${day}`;
     } catch (e) {
-      return dateString.split("T")[0] || "Fecha no disponible";
+      return dateString.split("T")[0] || "Date not available";
     }
   };
 
@@ -201,14 +189,14 @@ export default function ViewOfferModal({
     if (!offerId) return;
     const { success, message } = await applyToOffer(offerId);
     if (success) {
-      addNotification("Oferta aplicada correctamente", "success");
+      addNotification("Offer applied successfully", "success");
       onClose();
     } else {
-      if (message === "Ya te has postulado a esta propuesta") {
+      if (message === "You have already applied to this job") {
         addNotification(message, "info");
         onClose();
       } else {
-        addNotification(message || "Error al aplicar a la oferta", "error");
+        addNotification(message || "Error applying to the offer", "error");
       }
     }
   };
@@ -250,36 +238,33 @@ export default function ViewOfferModal({
             </span>
           </div>
 
-          {/* Contenido de la oferta */}
+          {/* Offer content */}
           <div
             ref={contentRef}
             className="prose prose-sm max-w-none text-gray-600 description-content"
           >
-            {/* El contenido HTML se insertará aquí */}
+            {/* The offer content will be inserted here */}
           </div>
 
-          {/* Botón de aplicar */}
+          {/* Apply button */}
           {!user?.rol.includes("ADMIN") &&
             !user?.rol.includes("EMPLEADO_ADMIN") && (
               <button
                 className="w-full py-3 rounded-md font-medium text-white bg-[#0097B2] hover:bg-[#007A8F] mb-6 cursor-pointer"
                 onClick={() => {
                   if (!user) {
-                    addNotification(
-                      "Debes iniciar sesión para aplicar",
-                      "info"
-                    );
+                    addNotification("You must be logged in to apply", "info");
                     router.push("/auth/login");
                     return;
                   }
                   handleApplyToOffer(offer.id || "");
                 }}
               >
-                Aplicar a la oferta
+                Apply to the offer
               </button>
             )}
 
-          {/* Estado de la oferta */}
+          {/* Offer status */}
           <div className="mt-6 flex justify-between items-center">
             <span
               className={`px-3 py-1 text-xs rounded-full ${
@@ -288,12 +273,12 @@ export default function ViewOfferModal({
                   : "bg-yellow-100 text-yellow-800"
               }`}
             >
-              {offer.estado === "publicado" ? "Publicado" : "Borrador"}
+              {offer.estado === "publicado" ? "Published" : "Draft"}
             </span>
 
             <span className="text-xs text-gray-500">
               {offer.fechaActualizacion
-                ? `Actualizado: ${formatDate(offer.fechaActualizacion)}`
+                ? `Updated: ${formatDate(offer.fechaActualizacion)}`
                 : ""}
             </span>
           </div>
