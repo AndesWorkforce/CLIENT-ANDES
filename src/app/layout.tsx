@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toast } from "@/components/ui/Toast";
@@ -8,6 +8,12 @@ import "react-quill/dist/quill.snow.css";
 import "quill/dist/quill.snow.css";
 
 const inter = Inter({ subsets: ["latin"] });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://andes-workforce.com"),
@@ -87,11 +93,6 @@ export const metadata: Metadata = {
       "Comprehensive platform for human resources management and recruitment.",
     creator: "@andesworkforce",
     images: ["/logo.png"],
-  },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
   },
   icons: {
     icon: [
