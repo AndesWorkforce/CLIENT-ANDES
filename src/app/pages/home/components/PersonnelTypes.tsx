@@ -7,7 +7,7 @@ const personnelTypes = [
     src: "https://appwiseinnovations.dev/Andes/types-1.png",
   },
   {
-    title: "Customer Service Representatives",
+    title: "Customer Service",
     color: "#8A7FEF", // Color morado para el ícono de micrófono
     src: "https://appwiseinnovations.dev/Andes/types-2.png",
   },
