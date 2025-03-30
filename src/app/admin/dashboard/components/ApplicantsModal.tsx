@@ -668,7 +668,7 @@ export default function ApplicantsModal({
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-medium text-gray-700">
-                  Postulantes para servicio de:{" "}
+                  Applicants for the service of:{" "}
                   <span className="text-[#0097B2]">{serviceTitle}</span>
                 </h3>
               </div>
@@ -698,10 +698,10 @@ export default function ApplicantsModal({
                     <thead className="sticky top-0 bg-white z-10">
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
-                          Nombre
+                          Name
                         </th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
-                          Perfil
+                          Profile
                         </th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
                           Video
@@ -710,7 +710,7 @@ export default function ApplicantsModal({
                           Email
                         </th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
-                          Teléfono
+                          Phone
                         </th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
                           Status
@@ -982,7 +982,7 @@ export default function ApplicantsModal({
                                 }
                                 className="text-xs text-[#0097B2] underline cursor-pointer"
                               >
-                                Ver status
+                                View status
                               </button>
                             )}
                           </td>
@@ -1053,7 +1053,7 @@ export default function ApplicantsModal({
                                 }
                                 className="text-xs text-[#0097B2] underline"
                               >
-                                Ver acciones
+                                View actions
                               </button>
                             )}
                           </td>

@@ -364,14 +364,14 @@ export default function ProfilePage() {
     profile.archivos.imagenTestVelocidad;
 
   const isDisabledContainer =
-    !profile.datosFormulario &&
+    profile.datosFormulario &&
     profile.habilidades.length === 0 &&
-    !profile.archivos.videoPresentacion &&
+    profile.archivos.videoPresentacion &&
     isVisibleNotification2 &&
     profile.experiencia.length === 0 &&
     profile.educacion.length === 0 &&
-    !profile.datosPersonales.telefono &&
-    !profile.datosPersonales.residencia;
+    profile.datosPersonales.telefono &&
+    profile.datosPersonales.residencia;
 
   return (
     <div className="min-h-screen bg-white">
@@ -993,20 +993,19 @@ export default function ProfilePage() {
       </div>
 
       {/* Desktop Information view */}
-      <div className="hidden md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
-        {!isVisibleNotification && (
-          <div className="hidden md:flex bg-blue-50 p-4 my-6 rounded-lg items-start space-x-3">
-            <Info className="text-blue-500 shrink-0 mt-1" size={20} />
-            <div>
-              <p className="text-sm text-blue-600">
-                Remember that you have to complete your profile to be able to
-                apply.
-              </p>
+      {!isDisabledContainer ? (
+        <div className="hidden md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
+          {!isVisibleNotification ? (
+            <div className="hidden md:flex bg-blue-50 p-4 my-6 rounded-lg items-start space-x-3">
+              <Info className="text-blue-500 shrink-0 mt-1" size={20} />
+              <div>
+                <p className="text-sm text-blue-600">
+                  Remember that you have to complete your profile to be able to
+                  apply.
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-
-        {isDisabledContainer && (
+          ) : null}
           <div className="relative mt-8">
             {/* Tarjetas */}
             <div className="grid grid-cols-2 gap-6 mb-20">
@@ -1282,8 +1281,8 @@ export default function ProfilePage() {
                 )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       {/* Desktop view */}
       <div className="hidden md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
@@ -1714,23 +1713,19 @@ export default function ProfilePage() {
         onClose={() => setShowPCRequirementsModal(false)}
       />
 
-      {experienceData && (
-        <ExperienceModal
-          isOpen={showExperienceModal}
-          onClose={handleCloseExperienceModal}
-          onSave={handleSaveExperience}
-          experienceData={experienceData}
-        />
-      )}
+      <ExperienceModal
+        isOpen={showExperienceModal}
+        onClose={handleCloseExperienceModal}
+        onSave={handleSaveExperience}
+        experienceData={experienceData || undefined}
+      />
 
-      {educationData && (
-        <EducationModal
-          isOpen={showEducationModal}
-          onClose={handleCloseEducationModal}
-          onSave={handleSaveEducation}
-          educationData={educationData}
-        />
-      )}
+      <EducationModal
+        isOpen={showEducationModal}
+        onClose={handleCloseEducationModal}
+        onSave={handleSaveEducation}
+        educationData={educationData || undefined}
+      />
 
       {/* Nuevos modales de visualización */}
       <ViewFormularioModal

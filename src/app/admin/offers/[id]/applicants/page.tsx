@@ -224,7 +224,7 @@ export default function ApplicantsPage() {
               <ChevronLeft size={20} color="#0097B2" />
             </Link>
             <h1 className="text-xl font-medium">
-              Postulantes para servicio de:{" "}
+              Applicants for the service of:{" "}
             </h1>
           </div>
           <div className="mt-2 flex items-center">
@@ -235,7 +235,7 @@ export default function ApplicantsPage() {
               onClick={() => router.push(`/admin/offers/${offerId}`)}
               className="ml-2 text-[#0097B2] hover:underline text-sm"
             >
-              Ver detalles de la oferta
+              View offer details
             </button>
           </div>
         </div>
@@ -251,7 +251,7 @@ export default function ApplicantsPage() {
             </div>
             <input
               type="text"
-              placeholder="Buscar postulantes..."
+              placeholder="Search applicants..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="focus:ring-[#0097B2] focus:border-[#0097B2] block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
@@ -260,11 +260,11 @@ export default function ApplicantsPage() {
 
           <div className="text-sm text-gray-600">
             {filteredApplicants.length}{" "}
-            {filteredApplicants.length === 1 ? "postulante" : "postulantes"}
+            {filteredApplicants.length === 1 ? "applicant" : "applicants"}
           </div>
         </div>
 
-        {/* Tabla de postulantes */}
+        {/* Applicants table */}
         <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -275,7 +275,7 @@ export default function ApplicantsPage() {
                   onClick={() => handleSort("name")}
                 >
                   <div className="flex items-center">
-                    Nombre
+                    Name
                     {sortField === "name" &&
                       (sortDirection === "asc" ? (
                         <ChevronUp size={16} />
@@ -288,7 +288,7 @@ export default function ApplicantsPage() {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Perfil
+                  Profile
                 </th>
                 <th
                   scope="col"
@@ -306,13 +306,13 @@ export default function ApplicantsPage() {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Teléfono
+                  Phone
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Acciones
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -330,16 +330,16 @@ export default function ApplicantsPage() {
                         Ver
                       </span>
                     ) : (
-                      <span className="text-gray-400">No disponible</span>
+                      <span className="text-gray-400">Not available</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {applicant.hasVideo ? (
                       <span className="text-[#0097B2] underline cursor-pointer">
-                        Ver
+                        View
                       </span>
                     ) : (
-                      <span className="text-gray-400">No disponible</span>
+                      <span className="text-gray-400">Not available</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -348,14 +348,14 @@ export default function ApplicantsPage() {
                         marianalopez@gmail.com
                       </span>
                     ) : (
-                      <span className="text-gray-400">No disponible</span>
+                      <span className="text-gray-400">Not available</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {applicant.hasPhone ? (
                       <span className="text-gray-600">11 4545 4545</span>
                     ) : (
-                      <span className="text-gray-400">No disponible</span>
+                      <span className="text-gray-400">Not available</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -376,12 +376,12 @@ export default function ApplicantsPage() {
         {filteredApplicants.length === 0 && (
           <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
             <h3 className="text-lg font-medium text-gray-900">
-              No se encontraron postulantes
+              No applicants found
             </h3>
             <p className="mt-1 text-sm text-gray-500">
               {searchTerm
-                ? "Intente con otra búsqueda"
-                : "Aún no hay postulantes para esta oferta"}
+                ? "Try with another search"
+                : "There are no applicants for this offer yet"}
             </p>
           </div>
         )}
