@@ -54,7 +54,7 @@ export default function JobOffersPage() {
       if (message === "Ya te has postulado a esta propuesta") {
         addNotification("You have already applied to this job", "info");
       } else {
-        addNotification(message || "Error applying to the job", "error");
+        addNotification("You have already applied to this job", "error");
       }
     }
   };
