@@ -7,7 +7,7 @@ export default function ContactCTA() {
         <div className="max-w-lg mx-auto text-center">
           <p className="text-lg text-gray-700 mb-8">
             We handle regulatory requirements, ensuring compliant hiring for all
-            parties involved. Would you like to hear more about our services?
+            parties involved. Would you like to hear more about our services?
             Please
           </p>
 

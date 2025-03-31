@@ -5,7 +5,7 @@ const services = [
     icon: "https://appwiseinnovations.dev/Andes/service-1.png",
     title: "Administrative Support",
     description:
-      "Our skilled talent pool is ready to provide top-notch administrative and customer service support, helping you scale your business and grow your client base effortlessly.",
+      "Our skilled talent pool is ready to provide top-notch administrative and customer service support, helping you scale your business and grow your client base effortlessly",
   },
   {
     icon: "https://appwiseinnovations.dev/Andes/service-2.png",
