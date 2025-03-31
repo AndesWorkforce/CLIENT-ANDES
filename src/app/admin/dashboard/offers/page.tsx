@@ -78,7 +78,7 @@ export default function OfferDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="container mx-auto min-h-screen bg-white flex flex-col">
       <main className="flex-1 max-w-3xl mx-auto px-4 py-6 w-full">
         <div className="space-y-6">
           <div>

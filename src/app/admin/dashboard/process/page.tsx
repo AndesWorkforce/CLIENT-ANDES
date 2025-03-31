@@ -114,7 +114,7 @@ export default function ProcessPage() {
   }, []);
 
   const renderPagination = () => (
-    <div className="flex justify-center items-center mt-6 pb-6">
+    <div className="container mx-auto grid grid-cols-2 gap-4 mt-6 pb-6">
       <div className="flex items-center border border-gray-200 rounded-md shadow-sm overflow-hidden">
         <button
           onClick={goToPreviousPage}
