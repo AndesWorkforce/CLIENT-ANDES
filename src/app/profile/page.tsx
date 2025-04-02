@@ -1760,7 +1760,7 @@ export default function ProfilePage() {
         onClose={() => setShowDeleteFormularioModal(false)}
         onConfirm={confirmDeleteFormulario}
         title="Delete Form"
-        message="Are you sure you want to delete the form? This action cannot be undone."
+        message="Do you want to delete this form from your account?"
       />
 
       <ConfirmDeleteModal
