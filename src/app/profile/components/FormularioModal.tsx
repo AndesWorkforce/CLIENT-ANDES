@@ -48,8 +48,8 @@ export default function FormularioModal({
       "What type of headset do you currently want? How does it connect with your computer?",
       "What makes you the best candidate for this position?",
       "What 3 words best describe you and why?",
-      "Please write a few sentences about any previous experience you have had with making and/or taking calls.",
-      "On a scale of 1-10, how comfortable are you with making calls with native English speakers? Please explain your rating.",
+      "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
+      "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
     ];
 
     // Verificar que todos los campos tengan valor
@@ -589,8 +589,7 @@ export default function FormularioModal({
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              What type of headset do you currently want? How does it connect
-              with your computer?
+              What unique qualities make your service stand out?*
               <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -612,7 +611,7 @@ export default function FormularioModal({
             ></textarea>
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               What makes you the best candidate for this position?
               <span className="text-red-500">*</span>
@@ -634,7 +633,7 @@ export default function FormularioModal({
                 )
               }
             ></textarea>
-          </div>
+          </div> */}
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -658,8 +657,9 @@ export default function FormularioModal({
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              Please write a few sentences about any previous experience you
-              have had with making and/or taking calls.
+              Please write a few sentences about any previous experiences you
+              have had doing services like Customer Service, Call Center, or
+              Administrative Assistance
               <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -669,12 +669,12 @@ export default function FormularioModal({
               disabled={readOnly}
               value={
                 formData[
-                  "Please write a few sentences about any previous experience you have had with making and/or taking calls."
+                  "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance"
                 ] || ""
               }
               onChange={(e) =>
                 handleInputChange(
-                  "Please write a few sentences about any previous experience you have had with making and/or taking calls.",
+                  "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
                   e.target.value
                 )
               }
@@ -683,8 +683,9 @@ export default function FormularioModal({
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              On a scale of 1-10, how comfortable are you with making calls with
-              native English speakers? Please explain your rating.
+              On a scale of 1-10, how comfortable are you with making and/or
+              taking calls with native English speakers?  Please explain your
+              answer.
               <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -694,12 +695,12 @@ export default function FormularioModal({
               disabled={readOnly}
               value={
                 formData[
-                  "On a scale of 1-10, how comfortable are you with making calls with native English speakers? Please explain your rating."
+                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer."
                 ] || ""
               }
               onChange={(e) =>
                 handleInputChange(
-                  "On a scale of 1-10, how comfortable are you with making calls with native English speakers? Please explain your rating.",
+                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
                   e.target.value
                 )
               }

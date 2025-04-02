@@ -75,7 +75,7 @@ export const RejectPositionEmail = ({
           <Text
             style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
-            Best regards,
+            Best regards.
           </Text>
 
           <img
