@@ -9,8 +9,8 @@ import {
   contactFormSchema,
   type ContactFormValues,
 } from "../schema/contact-schema";
-import { submitContactForm } from "../actions/contact-actions";
-// import { submitContactFormMicrosoft } from "../actions/microsoft-email-actions";
+// import { submitContactForm } from "../actions/contact-actions";
+import { submitContactFormMicrosoft } from "../actions/microsoft-email-actions";
 
 export default function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,8 +59,8 @@ export default function ContactForm() {
         smsConsent: !!data.smsConsent,
       };
 
-      const response = await submitContactForm(formData);
-      // const response = await submitContactFormMicrosoft(formData);
+      // const response = await submitContactForm(formData);
+      const response = await submitContactFormMicrosoft(formData);
       setFormResponse(response);
 
       if (response.success) {
