@@ -4,10 +4,14 @@ import { useEffect, useState } from "react";
 import { User } from "../schemas/user.schema";
 import { getUsersAdmin } from "../actions/user.actions";
 import UsersTable from "../components/UsersTable";
+import CreateUserForm from "../components/CreateUserForm";
+import { PlusIcon } from "lucide-react";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [showCreateUserModal, setShowCreateUserModal] =
+    useState<boolean>(false);
 
   const fetchUsers = async () => {
     try {
@@ -32,6 +36,13 @@ export default function UsersPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-semibold text-[#17323A]">Users</h1>
+          <button
+            onClick={() => setShowCreateUserModal(true)}
+            className="bg-[#0097B2] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#007B8E] transition-colors"
+          >
+            <PlusIcon size={18} />
+            <span>Create User</span>
+          </button>
         </div>
 
         {loading ? (
@@ -43,6 +54,17 @@ export default function UsersPage() {
           <UsersTable users={users} onRefresh={fetchUsers} />
         )}
       </div>
+
+      {showCreateUserModal && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] bg-opacity-50 flex items-center justify-center z-50">
+          <CreateUserForm
+            onClose={() => {
+              setShowCreateUserModal(false);
+              fetchUsers();
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
