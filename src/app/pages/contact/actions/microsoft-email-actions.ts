@@ -64,7 +64,7 @@ export async function submitContactFormMicrosoft(data: ContactFormValues) {
     // Enviar correo
     await transporter.sendMail({
       from: "Andes Team Contact Form <info@teamandes.com>",
-      to: "info@teamandes.com",
+      to: "info@andes-workforce.com",
       replyTo: validatedData.email,
       subject: `New contact message - ${
         validatedData.service === "talent"
