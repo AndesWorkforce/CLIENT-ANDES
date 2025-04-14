@@ -2,7 +2,7 @@
 
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import { useAuthStore } from "@/store/auth.store";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   User,
   LogOut,
@@ -31,6 +31,7 @@ const navigation = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout, isAuthenticated } = useAuthStore();
   const { isNavbarExcluded } = useRouteExclusion();
   const { scrollRef, showLeftShadow, showRightShadow } = useScrollShadow();
@@ -174,7 +175,7 @@ export default function Navbar() {
         {/* Desktop y Mobile Header */}
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex-1 flex items-center">
+          <div className="flex-7 flex items-center">
             <Link href="/" className="flex-shrink-0">
               <Logo />
             </Link>
@@ -198,21 +199,29 @@ export default function Navbar() {
           </div>
 
           {/* Auth Buttons - Desktop y Mobile Activar cuando se tenga el Modulo Completo */}
-          <div className="flex items-center space-x-4">
+          <div className="flex-3 md:flex-2 flex flex-col items-center justify-center space-x-4">
             {!isAuthenticated ? (
               <>
-                <Link
-                  href="/auth/login"
-                  className="text-[#0097B2] hover:text-[#007A8F] px-3 py-2 text-[16px] font-[600] transition-colors"
+                <button
+                  type="button"
+                  className="bg-[#0097B2] text-white w-full max-w-[100px] py-1 px-1 rounded-[5px] text-[12px] hover:underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer m-0"
+                  onClick={() => router.push("/auth/login")}
                 >
                   Login
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] text-white px-4 py-2 rounded text-[16px] font-[600] transition-all hover:shadow-lg"
-                >
-                  Sign In
-                </Link>
+                </button>
+
+                {/* Register link */}
+                <div className="text-center">
+                  <p className="flex flex-col text-[10px] text-[#B6B4B4] m-0 mt-1">
+                    Don&apos;t have an account?{" "}
+                    <Link
+                      href="/auth/register"
+                      className="text-[#0097B2] font-[600] text-[12px] hover:underline"
+                    >
+                      Create account
+                    </Link>
+                  </p>
+                </div>
               </>
             ) : (
               <>

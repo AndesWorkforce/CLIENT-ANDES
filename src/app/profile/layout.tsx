@@ -26,7 +26,7 @@ export default async function ProfileLayout({
   const profile = await response.json();
 
   return (
-    <main className="bg-white">
+    <main className="container mx-auto bg-white">
       <ProfileContextProvider initialValue={{ profile: profile.data }}>
         {children}
       </ProfileContextProvider>
