@@ -26,6 +26,7 @@ export default function FormularioModal({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [wiredConnection, setWiredConnection] = useState<string>("");
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
+  const [missingFieldsCount, setMissingFieldsCount] = useState<number>(0);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -45,36 +46,71 @@ export default function FormularioModal({
       "How much RAM is available on your computer?",
       "How many monitors do you currently have/use for work?",
       "What type of headset do you currently have? How does it connect with your computer?",
-      "What type of headset do you currently want? How does it connect with your computer?",
-      "What makes you the best candidate for this position?",
+      "What unique qualities make your service stand out?",
       "What 3 words best describe you and why?",
       "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
-      "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
+      "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
     ];
+
+    // Lista para guardar campos incompletos
+    const missingFields: string[] = [];
 
     // Verificar que todos los campos tengan valor
     const allFieldsValid = requiredQuestions.every((question) => {
       // Casos especiales
       if (question === "What type of computer do you use?") {
-        return (
+        const isValid =
           computerType !== "" &&
-          (computerType !== "other" || otherComputerText.trim() !== "")
-        );
+          (computerType !== "other" || otherComputerText.trim() !== "");
+        if (!isValid) missingFields.push(question);
+        return isValid;
       }
       if (question === "Do you use a wired internet connection?") {
-        return wiredConnection !== "";
+        const isValid = wiredConnection !== "";
+        if (!isValid) missingFields.push(question);
+        return isValid;
       }
 
       // Resto de campos
-      return formData[question] && formData[question].trim() !== "";
+      const isValid = formData[question] && formData[question].trim() !== "";
+      if (!isValid) missingFields.push(question);
+      return isValid;
     });
+
+    // Para ayudar en la depuración, mostrar campos faltantes en la consola
+    if (missingFields.length > 0) {
+      console.log("Missing fields:", missingFields);
+      // Actualizamos el contador de campos faltantes
+      setMissingFieldsCount(missingFields.length);
+    } else {
+      setMissingFieldsCount(0);
+    }
 
     setIsFormValid(allFieldsValid);
   };
 
   useEffect(() => {
     if (datosFormulario) {
-      setFormData(datosFormulario);
+      // Crear una versión limpia de los datos para asegurar que coincidan con las claves exactas
+      const formDataCleaned = { ...formData };
+
+      // Mapear los nombres antiguos de campos a los nuevos si es necesario
+      if (
+        datosFormulario[
+          "What type of headset do you currently want? How does it connect with your computer?"
+        ]
+      ) {
+        formDataCleaned["What unique qualities make your service stand out?"] =
+          datosFormulario[
+            "What type of headset do you currently want? How does it connect with your computer?"
+          ];
+      }
+
+      // Combinar con el resto de datos existentes
+      setFormData({
+        ...datosFormulario,
+        ...formDataCleaned,
+      });
 
       // Establecer valores específicos para campos con lógica adicional
       if (datosFormulario["What type of computer do you use?"]) {
@@ -96,7 +132,7 @@ export default function FormularioModal({
     }
 
     // Validar el formulario después de cargar datos
-    setTimeout(validateForm, 0);
+    setTimeout(validateForm, 100);
   }, [datosFormulario]);
 
   const handleClickOutside = (e: React.MouseEvent) => {
@@ -589,7 +625,7 @@ export default function FormularioModal({
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              What unique qualities make your service stand out?*
+              What unique qualities make your service stand out?
               <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -599,12 +635,12 @@ export default function FormularioModal({
               disabled={readOnly}
               value={
                 formData[
-                  "What type of headset do you currently want? How does it connect with your computer?"
+                  "What unique qualities make your service stand out?"
                 ] || ""
               }
               onChange={(e) =>
                 handleInputChange(
-                  "What type of headset do you currently want? How does it connect with your computer?",
+                  "What unique qualities make your service stand out?",
                   e.target.value
                 )
               }
@@ -684,7 +720,7 @@ export default function FormularioModal({
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               On a scale of 1-10, how comfortable are you with making and/or
-              taking calls with native English speakers?  Please explain your
+              taking calls with native English speakers? Please explain your
               answer.
               <span className="text-red-500">*</span>
             </label>
@@ -695,12 +731,12 @@ export default function FormularioModal({
               disabled={readOnly}
               value={
                 formData[
-                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer."
+                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer."
                 ] || ""
               }
               onChange={(e) =>
                 handleInputChange(
-                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
+                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
                   e.target.value
                 )
               }
@@ -718,12 +754,14 @@ export default function FormularioModal({
                     : "bg-[#0097B2] text-white hover:bg-[#007d91]"
                 }`}
               >
-                {isSubmitting ? "Guardando..." : "Guardar"}
+                {isSubmitting ? "Saving..." : "Save"}
               </button>
 
               {!isFormValid && (
                 <p className="text-sm text-amber-600 text-center">
-                  Please complete all required fields to enable the save button
+                  Please complete all required fields to enable the save button.
+                  {missingFieldsCount > 0 &&
+                    ` Missing ${missingFieldsCount} fields.`}
                 </p>
               )}
 
