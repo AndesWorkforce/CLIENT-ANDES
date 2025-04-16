@@ -16,12 +16,12 @@ export default function AccountPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [emailPassword, setEmailPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [deletePassword, setDeletePassword] = useState("");
+  // const [deletePassword, setDeletePassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] =
     useState<boolean>(false);
   const [showEmailPassword, setShowEmailPassword] = useState<boolean>(false);
   const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
-  const [showDeletePassword, setShowDeletePassword] = useState<boolean>(false);
+  // const [showDeletePassword, setShowDeletePassword] = useState<boolean>(false);
 
   const handleEmailChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,13 +72,13 @@ export default function AccountPage() {
     }
   };
 
-  const handleDeleteAccount = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (deletePassword) {
-      // Here would be the API call to delete the account
-      setDeletePassword("");
-    }
-  };
+  // const handleDeleteAccount = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (deletePassword) {
+  //     // Here would be the API call to delete the account
+  //     setDeletePassword("");
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-[#F7F7F7]">
@@ -101,7 +101,7 @@ export default function AccountPage() {
       <div className="md:hidden container mx-auto px-4 py-6 max-w-md">
         <div className="space-y-8">
           {/* Profile visibility */}
-          <section>
+          {/* <section>
             <h2 className="text-[#0097B2] font-medium mb-4">
               Profile Visibility
             </h2>
@@ -138,7 +138,7 @@ export default function AccountPage() {
                 companies.
               </p>
             </div>
-          </section>
+          </section> */}
 
           {/* Change email */}
           <section>
@@ -278,7 +278,7 @@ export default function AccountPage() {
           </section>
 
           {/* Delete account */}
-          <section>
+          {/* <section>
             <h2 className="text-[#0097B2] font-medium mb-4">Delete account</h2>
             <form onSubmit={handleDeleteAccount}>
               <div className="space-y-3">
@@ -319,7 +319,7 @@ export default function AccountPage() {
                 </div>
               </div>
             </form>
-          </section>
+          </section> */}
         </div>
       </div>
 
@@ -465,10 +465,10 @@ export default function AccountPage() {
           </div>
 
           {/* Segunda sección: Privacy y Delete Account */}
-          <div className="bg-[#FCFEFF] rounded-lg p-8 shadow-[0px_4px_4px_0px_#00000040]">
-            <div className="grid grid-cols-2 gap-x-16">
-              {/* Privacy */}
-              <div>
+          {/* <div className="bg-[#FCFEFF] rounded-lg p-8 shadow-[0px_4px_4px_0px_#00000040]">
+            <div className="grid grid-cols-2 gap-x-16"> */}
+          {/* Privacy */}
+          {/* <div>
                 <h2 className="text-[#0097B2] font-medium mb-4 pb-2 border-b-2 border-[#6D6D6D]">
                   Privacy
                 </h2>
@@ -505,10 +505,10 @@ export default function AccountPage() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
-              {/* Delete account */}
-              <div>
+          {/* Delete account */}
+          {/* <div>
                 <h2 className="text-[#0097B2] font-medium mb-4 pb-2 border-b-2 border-[#6D6D6D]">
                   Delete my account
                 </h2>
@@ -551,9 +551,9 @@ export default function AccountPage() {
                     </button>
                   </div>
                 </form>
-              </div>
-            </div>
-          </div>
+              </div> */}
+          {/* </div>
+          </div> */}
         </div>
       </div>
     </div>
