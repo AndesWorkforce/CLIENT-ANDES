@@ -2,7 +2,7 @@
 
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import { useAuthStore } from "@/store/auth.store";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   User,
   LogOut,
@@ -22,7 +22,7 @@ import { userIsAppliedToOffer } from "../pages/offers/actions/jobs.actions";
 
 const navigation = [
   { name: "Home", href: "/pages/home" },
-  { name: "Available Contracts", href: "/pages/offers" },
+  // { name: "Available Contracts", href: "/pages/offers" },
   { name: "Services", href: "/pages/services" },
   { name: "About", href: "/pages/about" },
   { name: "Contact", href: "/pages/contact" },
@@ -31,8 +31,8 @@ const navigation = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, logout, isAuthenticated } = useAuthStore();
+  // const router = useRouter();
+  const { user, logout } = useAuthStore();
   const { isNavbarExcluded } = useRouteExclusion();
   const { scrollRef, showLeftShadow, showRightShadow } = useScrollShadow();
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
@@ -105,69 +105,69 @@ export default function Navbar() {
   }
 
   // Renderizar el menú de usuario
-  const renderUserMenu = () => (
-    <>
-      <div className="px-4 py-3 border-b border-gray-100">
-        <p className="text-[#0097B2] font-medium text-sm">
-          {user?.nombre || ""} {user?.apellido || ""}
-        </p>
-      </div>
+  // const renderUserMenu = () => (
+  //   <>
+  //     <div className="px-4 py-3 border-b border-gray-100">
+  //       <p className="text-[#0097B2] font-medium text-sm">
+  //         {user?.nombre || ""} {user?.apellido || ""}
+  //       </p>
+  //     </div>
 
-      <Link
-        href="/profile"
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-        onClick={() => setShowUserMenu(false)}
-      >
-        <UserCircle size={16} className="mr-2 text-[#0097B2]" />
-        <div className="relative">
-          My Profile
-          {isValidProfileUserState !== undefined && (
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 6 6"
-              fill={isValidProfileUserState ? "#10B981" : "#EF4444"}
-              xmlns="http://www.w3.org/2000/svg"
-              className="absolute -top-2 -right-2"
-            >
-              <circle cx="3" cy="3" r="3" />
-            </svg>
-          )}
-        </div>
-      </Link>
+  //     <Link
+  //       href="/profile"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <UserCircle size={16} className="mr-2 text-[#0097B2]" />
+  //       <div className="relative">
+  //         My Profile
+  //         {isValidProfileUserState !== undefined && (
+  //           <svg
+  //             width="12"
+  //             height="12"
+  //             viewBox="0 0 6 6"
+  //             fill={isValidProfileUserState ? "#10B981" : "#EF4444"}
+  //             xmlns="http://www.w3.org/2000/svg"
+  //             className="absolute -top-2 -right-2"
+  //           >
+  //             <circle cx="3" cy="3" r="3" />
+  //           </svg>
+  //         )}
+  //       </div>
+  //     </Link>
 
-      <Link
-        href="/applications"
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-        onClick={() => setShowUserMenu(false)}
-      >
-        <FileText size={16} className="mr-2 text-[#0097B2]" />
-        My Applications
-      </Link>
+  //     <Link
+  //       href="/applications"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <FileText size={16} className="mr-2 text-[#0097B2]" />
+  //       My Applications
+  //     </Link>
 
-      <Link
-        href="/account"
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-        onClick={() => setShowUserMenu(false)}
-      >
-        <User size={16} className="mr-2 text-[#0097B2]" />
-        My Account
-      </Link>
+  //     <Link
+  //       href="/account"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <User size={16} className="mr-2 text-[#0097B2]" />
+  //       My Account
+  //     </Link>
 
-      <hr className="my-1 border-gray-200" />
+  //     <hr className="my-1 border-gray-200" />
 
-      <button
-        onClick={() => {
-          handleLogout();
-          setShowUserMenu(false);
-        }}
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-      >
-        <LogOut size={16} className="mr-2 text-[#0097B2] cursor-pointer" />
-        Logout
-      </button>
-    </>
-  );
+  //     <button
+  //       onClick={() => {
+  //         handleLogout();
+  //         setShowUserMenu(false);
+  //       }}
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+  //     >
+  //       <LogOut size={16} className="mr-2 text-[#0097B2] cursor-pointer" />
+  //       Logout
+  //     </button>
+  //   </>
+  // );
 
   return (
     <header className="w-full bg-[#FCFEFF] shadow-sm z-10">
@@ -199,7 +199,7 @@ export default function Navbar() {
           </div>
 
           {/* Auth Buttons - Desktop y Mobile Activar cuando se tenga el Modulo Completo */}
-          <div className="flex-3 md:flex-2 flex flex-col items-center justify-center space-x-4">
+          {/* <div className="flex-3 md:flex-2 flex flex-col items-center justify-center space-x-4">
             {!isAuthenticated ? (
               <>
                 <button
@@ -209,8 +209,6 @@ export default function Navbar() {
                 >
                   Login
                 </button>
-
-                {/* Register link */}
                 <div className="text-center">
                   <p className="flex flex-col text-[10px] text-[#B6B4B4] m-0 mt-1">
                     Don&apos;t have an account?{" "}
@@ -271,7 +269,6 @@ export default function Navbar() {
                               {user?.nombre || ""} {user?.apellido || ""}
                             </p>
                           </div>
-                          {/* Opción de Super Admin solo visible para usuarios con rol ADMIN */}
                           {user?.rol === "ADMIN" ? (
                             <>
                               <Link
@@ -289,7 +286,6 @@ export default function Navbar() {
                             </>
                           ) : null}
 
-                          {/* Opción para volver al panel de administración */}
                           <Link
                             href="/admin/dashboard"
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
@@ -334,7 +330,7 @@ export default function Navbar() {
                 )}
               </>
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Mobile Navigation Links con desplazamiento táctil */}

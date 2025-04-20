@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+// import Link from "next/link";
 
 export default function HeroSection() {
   return (
@@ -40,12 +40,12 @@ export default function HeroSection() {
             </p>
           </div>
 
-          <Link
+          {/* <Link
             href="/auth/register"
             className="inline-flex items-center bg-[#0097B2] text-white px-4 py-2 text-sm md:px-6 md:py-3 md:text-base rounded-md font-medium transition-all hover:shadow-lg hover:bg-[#00404C]"
           >
             Get Started <span className="ml-2">→</span>
-          </Link>
+          </Link> */}
         </div>
 
         {/* Right Content - Image */}
