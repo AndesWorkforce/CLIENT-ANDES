@@ -114,7 +114,7 @@ export default function ProcessPage() {
   }, []);
 
   const renderPagination = () => (
-    <div className="container mx-auto grid grid-cols-2 gap-4 mt-6 pb-6">
+    <div className="container mx-auto flex justify-center mt-6 pb-6">
       <div className="flex items-center border border-gray-200 rounded-md shadow-sm overflow-hidden">
         <button
           onClick={goToPreviousPage}
@@ -271,7 +271,7 @@ export default function ProcessPage() {
   );
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="container mx-auto min-h-screen bg-white flex flex-col">
       <main className="flex-1 w-full py-6 px-4 md:px-6">
         {isLoading ? (
           <>
@@ -377,7 +377,7 @@ export default function ProcessPage() {
                   </tbody>
                 </table>
               </div>
-              {renderPagination()}
+              {totalPages > 1 && renderPagination()}
             </div>
 
             <div className="block md:hidden">
@@ -523,7 +523,7 @@ export default function ProcessPage() {
                   ))}
                 </div>
               </div>
-              {renderPagination()}
+              {totalPages > 1 && renderPagination()}
             </div>
           </>
         )}

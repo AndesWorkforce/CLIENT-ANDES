@@ -50,3 +50,53 @@ export async function createOffer(formData: FormData) {
     };
   }
 }
+
+export async function getApplicants(page = 1, limit = 10, search = "") {
+  const axiosInstance = await createServerAxios();
+  try {
+    const params = new URLSearchParams();
+    if (search && search.trim()) params.append("search", search.trim());
+    params.append("page", String(page));
+    params.append("limit", String(limit));
+    const requestUrl = `users/postulantes?${params.toString()}`;
+
+    const response = await axiosInstance.get(requestUrl);
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: `Error del servidor: ${response.status} ${
+          response.statusText
+        }. ${response.data.message || ""}`,
+      };
+    }
+
+    const responseData = response.data;
+
+    const total =
+      responseData.meta?.pagination?.total || responseData.total || 0;
+    const totalPages =
+      responseData.meta?.pagination?.totalPages ||
+      Math.ceil(total / limit) ||
+      1;
+    const hasNextPage =
+      responseData.meta?.pagination?.hasNextPage || page < totalPages;
+
+    revalidatePath("/admin/dashboard/postulants");
+
+    return {
+      success: true,
+      message: "Ofertas publicadas y pausadas obtenidas correctamente",
+      data: responseData,
+      currentPage: page,
+      totalPages: totalPages,
+      hasMore: hasNextPage,
+    };
+  } catch (error) {
+    console.error("[Offers] Error en getPublishedOffers:", error);
+    return {
+      success: false,
+      message: "Error en getPublishedOffers: " + error,
+    };
+  }
+}
