@@ -65,6 +65,14 @@ export default function ProfileModal({
 
   if (!isOpen) return null;
 
+  const isProfileIncomplete =
+    !profile?.datosPersonales.nombre ||
+    !profile?.datosPersonales.apellido ||
+    !profile?.datosPersonales.telefono ||
+    !profile?.datosPersonales.correo;
+
+  console.log("ProfileModal", profile);
+
   if (isLoading || !profile) {
     return <ProfileModalSkeleton isOpen={isOpen} onClose={onClose} />;
   }
@@ -79,40 +87,57 @@ export default function ProfileModal({
           {/* Botón de cerrar */}
           <button
             onClick={onClose}
-            className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 cursor-pointer z-10 cursor-pointer"
+            className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 cursor-pointer z-10"
           >
             <X size={20} />
           </button>
 
           <div className="p-6">
             <div className="space-y-4">
+              {/* Mensaje de perfil incompleto */}
+              {isProfileIncomplete && (
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-2">
+                  Perfil incompleto: Faltan datos personales.
+                </div>
+              )}
               {/* Contact Info Card */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
                       <h1 className="text-xl font-medium text-[#0097B2] mb-2">
-                        {profile.datosPersonales.nombre}{" "}
-                        {profile.datosPersonales.apellido}
+                        {profile.datosPersonales.nombre || (
+                          <span className="text-gray-400">Sin nombre</span>
+                        )}{" "}
+                        {profile.datosPersonales.apellido || (
+                          <span className="text-gray-400">Sin apellido</span>
+                        )}
                       </h1>
                       <h2 className="font-medium text-gray-900 mb-3">
                         Contact information
                       </h2>
                     </div>
-                    <PDFDownloadButton profile={profile} />
+
+                    {!isProfileIncomplete && (
+                      <PDFDownloadButton profile={profile} />
+                    )}
                   </div>
                   <hr className="border-[#E2E2E2] my-2" />
                   <div className="space-y-3">
                     <div className="flex items-start">
                       <Phone size={18} className="text-[#0097B2] mr-2 mt-0.5" />
                       <span className="text-gray-700">
-                        {profile.datosPersonales.telefono}
+                        {profile.datosPersonales.telefono || (
+                          <span className="text-gray-400">Sin teléfono</span>
+                        )}
                       </span>
                     </div>
                     <div className="flex items-start">
                       <Mail size={18} className="text-[#0097B2] mr-2 mt-0.5" />
                       <span className="text-gray-700">
-                        {profile.datosPersonales.correo}
+                        {profile.datosPersonales.correo || (
+                          <span className="text-gray-400">Sin correo</span>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -172,14 +197,18 @@ export default function ProfileModal({
                 <div className="p-4">
                   <h2 className="font-medium text-gray-900 mb-3">Skills</h2>
                   <ul className="space-y-2">
-                    {profile.habilidades.map((habilidad) => (
-                      <li key={habilidad.id} className="flex items-start">
-                        <span className="text-[#0097B2] mr-2">•</span>
-                        <span className="text-gray-700">
-                          {habilidad.nombre}
-                        </span>
-                      </li>
-                    ))}
+                    {(profile.habilidades || []).length > 0 ? (
+                      profile.habilidades.map((habilidad) => (
+                        <li key={habilidad.id} className="flex items-start">
+                          <span className="text-[#0097B2] mr-2">•</span>
+                          <span className="text-gray-700">
+                            {habilidad.nombre}
+                          </span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-gray-400">Sin habilidades</li>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -192,8 +221,8 @@ export default function ProfileModal({
                   </h2>
                   <ImageViewer
                     images={[
-                      profile.archivos.imagenTestVelocidad,
-                      profile.archivos.imagenRequerimientosPC,
+                      profile.archivos?.imagenTestVelocidad,
+                      profile.archivos?.imagenRequerimientosPC,
                     ].filter(Boolean)}
                   />
                 </div>
@@ -219,7 +248,7 @@ export default function ProfileModal({
                       onClick={() => setActiveTab("experience")}
                       style={{ cursor: "pointer" }}
                     >
-                      <span className="text-lg font-medium">Experience</span>
+                      <span className="text-lg font-medium">Education</span>
                     </div>
 
                     {/* Educación */}
@@ -243,44 +272,74 @@ export default function ProfileModal({
                   <div className="border-l border-r border-b border-gray-300 rounded-bl-2xl rounded-br-2xl rounded-tr-2xl bg-white relative p-4">
                     {activeTab === "experience" ? (
                       <div className="space-y-6">
-                        {profile.experiencia.map((exp) => (
-                          <div
-                            key={exp.id}
-                            className="pb-6 border-b border-gray-200 last:border-0 last:pb-0"
-                          >
-                            <h3 className="font-medium text-gray-800 text-lg">
-                              {exp.cargo}
-                            </h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {exp.empresa}
-                            </p>
-                            <p className="text-sm text-gray-500 mt-0.5">
-                              {exp.fechaInicio} - {exp.fechaFin || "Presente"}
-                            </p>
-                            <p className="text-sm text-gray-700 mt-3">
-                              {exp.descripcion}
-                            </p>
-                          </div>
-                        ))}
+                        {(profile.experiencia || []).length > 0 ? (
+                          profile.experiencia.map((exp) => (
+                            <div
+                              key={exp.id}
+                              className="pb-6 border-b border-gray-200 last:border-0 last:pb-0"
+                            >
+                              <h3 className="font-medium text-gray-800 text-lg">
+                                {exp.cargo || (
+                                  <span className="text-gray-400">
+                                    Sin cargo
+                                  </span>
+                                )}
+                              </h3>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {exp.empresa || (
+                                  <span className="text-gray-400">
+                                    Sin empresa
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-sm text-gray-500 mt-0.5">
+                                {exp.fechaInicio || "?"} -{" "}
+                                {exp.fechaFin || "Presente"}
+                              </p>
+                              <p className="text-sm text-gray-700 mt-3">
+                                {exp.descripcion || (
+                                  <span className="text-gray-400">
+                                    Sin descripción
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-gray-400">Sin experiencia</div>
+                        )}
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        {profile.educacion.map((edu) => (
-                          <div
-                            key={edu.id}
-                            className="pb-6 border-b border-gray-200 last:border-0 last:pb-0"
-                          >
-                            <h3 className="font-medium text-gray-800 text-lg">
-                              {edu.titulo}
-                            </h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {edu.institucion}
-                            </p>
-                            <p className="text-sm text-gray-500 mt-0.5">
-                              {edu.añoInicio} - {edu.añoFin || "Presente"}
-                            </p>
-                          </div>
-                        ))}
+                        {(profile.educacion || []).length > 0 ? (
+                          profile.educacion.map((edu) => (
+                            <div
+                              key={edu.id}
+                              className="pb-6 border-b border-gray-200 last:border-0 last:pb-0"
+                            >
+                              <h3 className="font-medium text-gray-800 text-lg">
+                                {edu.titulo || (
+                                  <span className="text-gray-400">
+                                    Sin título
+                                  </span>
+                                )}
+                              </h3>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {edu.institucion || (
+                                  <span className="text-gray-400">
+                                    Sin institución
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-sm text-gray-500 mt-0.5">
+                                {edu.añoInicio || "?"} -{" "}
+                                {edu.añoFin || "Presente"}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-gray-400">Sin educación</div>
+                        )}
                       </div>
                     )}
                   </div>

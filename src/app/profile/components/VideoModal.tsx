@@ -26,7 +26,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const MAX_FILE_SIZE = 100 * 1024 * 1024;
+  const MAX_FILE_SIZE = 100 * 1024 * 1024; // Maximum file size is 100MB
 
   const handleClickOutside = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -211,7 +211,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
             Please send a short video (1.5 minutes max) explaining what makes
             you a good candidate for this position.
           </p>
-          <p className="text-red-500 font-bold text-sm">Maximum size 40MB</p>
+          <p className="text-red-500 font-bold text-sm">Maximum size 100MB</p>
 
           <div className="bg-[#FEF9C3] border border-[#F7E99E] rounded-lg p-3">
             <div className="flex items-start space-x-2">
@@ -455,14 +455,155 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
                   </ul>
                 </div>
 
-                <p className="text-gray-700 text-sm">
-                  Finish your video and send us the generated link to:
-                  info@andes-workforce.com and mention@teamandes.com
-                </p>
-                <p className="text-gray-700 text-sm">
-                  Subject line: &quot;Your Name&quot; Introductory Video
-                  DON&apos;T FORGET TO INCLUDE THE LINK
-                </p>
+                <h4 className="font-medium text-sm">Quick Production Tips</h4>
+                <ul className="list-none space-y-1 ml-4 text-sm">
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      {" "}
+                      Good lighting: Face a window or use a ring light.
+                    </span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span> Clean background: Keep it simple and tidy.</span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      {" "}
+                      Clear audio: Use headphones with a mic or a quiet space.
+                    </span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      {" "}
+                      Camera at eye level: Avoid looking down at your laptop.
+                    </span>
+                  </li>
+                </ul>
+
+                <h4 className="font-medium text-sm">
+                  Dress Code: Clean & Polished
+                </h4>
+                <ul className="list-none space-y-1 ml-4 text-sm">
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      {" "}
+                      Smart casual is your best bet—neat but not overly formal
+                    </span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      Solid colors work best (avoid busy patterns, stripes, or
+                      logos).
+                    </span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      {" "}
+                      A collared shirt, blouse, or a nice top works great on
+                      camera.
+                    </span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      If you`&lsquo;`re applying to a more traditional company,
+                      go a little more polished. If it`&lsquo;`s a startup or
+                      creative role, you can keep it more relaxed (but still
+                      tidy).
+                    </span>
+                  </li>
+                </ul>
+
+                <h4 className="font-medium text-sm">Hair & Grooming</h4>
+                <ul className="list-none space-y-1 ml-4 text-sm">
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      {" "}
+                      Clean, brushed hair and light grooming go a long way.
+                    </span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      No need to overdo makeup (if you wear it), but a bit of
+                      polish helps on camera—just enough to look like you’d show
+                      up to a video call ready.
+                    </span>
+                  </li>
+                </ul>
+
+                <h4 className="font-medium text-sm">Hair & Grooming</h4>
+                <ul className="list-none space-y-1 ml-4 text-sm">
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      {" "}
+                      Clean, brushed hair and light grooming go a long way.
+                    </span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      No need to overdo makeup (if you wear it), but a bit of
+                      polish helps on camera—just enough to look like you’d show
+                      up to a video call ready.
+                    </span>
+                  </li>
+                </ul>
+
+                <h4 className="font-medium text-sm">Posture & Presence</h4>
+                <ul className="list-none space-y-1 ml-4 text-sm">
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span> Sit up straight, shoulders relaxed.</span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      Look into the camera when speaking (not at your own
+                      video).
+                    </span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      Smile warmly—people respond to energy, especially on
+                      video!
+                    </span>
+                  </li>
+                </ul>
+
+                <h4 className="font-medium text-sm">Pro Tips</h4>
+                <ul className="list-none space-y-1 ml-4 text-sm">
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      Wear something that makes you feel confident—it shows.
+                    </span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      Do a 10-second test recording before the real one to check
+                      lighting, sound, and how your outfit looks on camera.
+                    </span>
+                  </li>
+                  <li className="flex items-start font-light">
+                    <span className="mr-2">-</span>
+                    <span>
+                      Avoid anything too reflective or noisy (like clunky
+                      jewelry or glossy fabrics).
+                    </span>
+                  </li>
+                </ul>
 
                 <div className="pt-4">
                   <button

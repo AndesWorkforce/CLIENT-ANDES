@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -10,12 +10,19 @@ import { loginAction } from "../actions/login.action";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
+import CryptoJS from "crypto-js";
+
+const REMEMBER_KEY = "andes_remembered_email";
+const SECRET = process.env.NEXT_PUBLIC_CRYPTO_KEY!; // Puedes mover esto a un env si lo deseas
 
 export default function LoginForm() {
   const router = useRouter();
   const { setUser, setAuthenticated, setToken } = useAuthStore();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const addNotification = useNotificationStore(
     (state) => state.addNotification
   );
@@ -24,10 +31,26 @@ export default function LoginForm() {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
+
+  useEffect(() => {
+    const encrypted = localStorage.getItem(REMEMBER_KEY);
+    if (encrypted) {
+      try {
+        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET);
+        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+        if (decrypted) {
+          setEmail(decrypted);
+          setValue("correo", decrypted);
+          setRememberMe(true);
+        }
+      } catch {}
+    }
+  }, [setValue]);
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
@@ -39,6 +62,17 @@ export default function LoginForm() {
         setUser(result.data?.usuario);
         setAuthenticated(true);
         setToken(result.data?.accessToken);
+
+        if (rememberMe) {
+          const encrypted = CryptoJS.AES.encrypt(
+            data.correo,
+            SECRET
+          ).toString();
+          localStorage.setItem(REMEMBER_KEY, encrypted);
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
+        }
+
         reset();
         router.push("/pages/offers");
       } else {
@@ -74,6 +108,8 @@ export default function LoginForm() {
             placeholder="Write your email"
             className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
             {...register("correo")}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           {errors.correo && (
             <span className="text-red-500 text-xs mt-1">
@@ -93,6 +129,16 @@ export default function LoginForm() {
               placeholder="Write your password"
               className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
               {...register("contrasena")}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setValue("contrasena", e.target.value); // sincroniza con RHF
+              }}
+              onInput={(e) => {
+                const value = (e.target as HTMLInputElement).value;
+                setPassword(value);
+                setValue("contrasena", value); // asegura sincronización en autocompletar/pegar
+              }}
             />
             <button
               type="button"
@@ -115,14 +161,19 @@ export default function LoginForm() {
               {errors.contrasena.message}
             </span>
           )}
-          {/* <div className="text-right mt-1">
-            <Link
-              href="/auth/forgot-password"
-              className="text-[#0097B2] w-full py-2 px-4 rounded-sm mt-4 first-letter:text-andes-blue text-[15px] hover:underline"
-            >
-              Forgot your password?
-            </Link>
-          </div> */}
+        </div>
+
+        {/* Remember me checkbox */}
+        <div className="flex items-center mb-4">
+          <input
+            id="rememberMe"
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+          />
+          <label htmlFor="rememberMe" className="text-sm text-gray-700 ml-2">
+            Remember me
+          </label>
         </div>
 
         {/* Login button */}
