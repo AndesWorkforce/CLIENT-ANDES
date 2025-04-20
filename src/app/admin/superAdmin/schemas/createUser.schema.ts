@@ -10,7 +10,10 @@ export const createUserSchema = z.object({
     .min(2, "El apellido debe tener al menos 2 caracteres")
     .max(50, "El apellido no puede tener más de 50 caracteres"),
   correo: z.string().email("El correo electrónico no es válido"),
-  contrasena: z.string().optional(),
+  contrasena: z
+    .string()
+    .min(6, "La contraseña debe tener al menos 6 caracteres")
+    .optional(),
   telefono: z.string().nullable().optional(),
   residencia: z.string().nullable().optional(),
 });

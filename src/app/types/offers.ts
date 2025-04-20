@@ -156,18 +156,20 @@ export const parseOfferContent = (offer: Offer): OfferWithContent => {
 
   let descripcionHTML = "";
   if (offer.descripcion && typeof offer.descripcion === "string") {
-    try {
-      const parsed = JSON.parse(offer.descripcion);
-      if (parsed && typeof parsed === "object") {
-        // This is from the old format, we would convert to HTML if necessary
-        // For now, we just indicate that it's migrated content
-        descripcionHTML = "<p>Content migrated from previous format</p>";
-      } else {
-        // If it's not a JSON object, assume it's already HTML
+    // Si empieza con '{' intentamos parsear como JSON, si no, lo dejamos como HTML
+    if (offer.descripcion.trim().startsWith("{")) {
+      try {
+        const parsed = JSON.parse(offer.descripcion);
+        if (parsed && typeof parsed === "object") {
+          // Aquí puedes convertir el objeto a HTML si lo necesitas
+          descripcionHTML = "<p>Content migrated from previous format</p>";
+        }
+      } catch {
+        // Si falla el parseo, asumimos que es HTML
         descripcionHTML = offer.descripcion;
       }
-    } catch (e) {
-      console.error("[parseOfferContent] Error al parsear la descripción:", e);
+    } else {
+      // Ya es HTML
       descripcionHTML = offer.descripcion;
     }
   }

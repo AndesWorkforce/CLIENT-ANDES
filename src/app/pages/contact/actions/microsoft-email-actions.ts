@@ -30,15 +30,11 @@ export async function submitContactFormMicrosoft(data: ContactFormValues) {
 
     // Crear transportador de nodemailer con autenticación básica (usuario y contraseña)
     const transporter = nodemailer.createTransport({
-      host: "smtp.office365.com",
-      port: 587,
-      secure: false,
+      host: "teamandes-com.mail.protection.outlook.com",
+      port: 25,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: false,
       },
     } as nodemailer.TransportOptions);
 
@@ -67,8 +63,8 @@ export async function submitContactFormMicrosoft(data: ContactFormValues) {
 
     // Enviar correo
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: "info@teamandes.com",
+      from: "Andes Team Contact Form <info@teamandes.com>",
+      to: "info@andes-workforce.com",
       replyTo: validatedData.email,
       subject: `New contact message - ${
         validatedData.service === "talent"

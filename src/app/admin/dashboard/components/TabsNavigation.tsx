@@ -25,8 +25,8 @@ export default function TabsNavigation() {
   }, []);
 
   return (
-    <div className="bg-white border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 relative">
+    <div className="container mx-auto bg-white border-gray-200">
+      <div className="mx-auto px-4 relative">
         {/* Left scroll indicator */}
         {showLeftShadow && (
           <div className="absolute top-0 left-0 w-8 h-full z-10 bg-gradient-to-r from-white to-transparent pointer-events-none" />
@@ -242,6 +242,49 @@ export default function TabsNavigation() {
                 />
               </svg>
               Saved offers
+            </Link>
+            <Link
+              href="/admin/dashboard/postulants"
+              className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
+                pathname === "/admin/dashboard/postulants"
+                  ? "bg-[#B6B4B4] text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="ml-1"
+              >
+                <path
+                  d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                  stroke={
+                    pathname === "/admin/dashboard/postulants"
+                      ? "#FFFFFF"
+                      : "#6D6D6D"
+                  }
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                  stroke={
+                    pathname === "/admin/dashboard/postulants"
+                      ? "#FFFFFF"
+                      : "#6D6D6D"
+                  }
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Postulants
             </Link>
           </div>
         </div>

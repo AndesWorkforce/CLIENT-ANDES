@@ -22,7 +22,7 @@ import { userIsAppliedToOffer } from "../pages/offers/actions/jobs.actions";
 
 const navigation = [
   { name: "Home", href: "/pages/home" },
-  // { name: "Offers", href: "/pages/offers" },
+  // { name: "Available Contracts", href: "/pages/offers" },
   { name: "Services", href: "/pages/services" },
   { name: "About", href: "/pages/about" },
   { name: "Contact", href: "/pages/contact" },
@@ -31,7 +31,8 @@ const navigation = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, logout, isAuthenticated } = useAuthStore();
+  // const router = useRouter();
+  const { user, logout } = useAuthStore();
   const { isNavbarExcluded } = useRouteExclusion();
   const { scrollRef, showLeftShadow, showRightShadow } = useScrollShadow();
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
@@ -104,69 +105,69 @@ export default function Navbar() {
   }
 
   // Renderizar el menú de usuario
-  const renderUserMenu = () => (
-    <>
-      <div className="px-4 py-3 border-b border-gray-100">
-        <p className="text-[#0097B2] font-medium text-sm">
-          {user?.nombre || ""} {user?.apellido || ""}
-        </p>
-      </div>
+  // const renderUserMenu = () => (
+  //   <>
+  //     <div className="px-4 py-3 border-b border-gray-100">
+  //       <p className="text-[#0097B2] font-medium text-sm">
+  //         {user?.nombre || ""} {user?.apellido || ""}
+  //       </p>
+  //     </div>
 
-      <Link
-        href="/profile"
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-        onClick={() => setShowUserMenu(false)}
-      >
-        <UserCircle size={16} className="mr-2 text-[#0097B2]" />
-        <div className="relative">
-          My Profile
-          {isValidProfileUserState !== undefined && (
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 6 6"
-              fill={isValidProfileUserState ? "#10B981" : "#EF4444"}
-              xmlns="http://www.w3.org/2000/svg"
-              className="absolute -top-2 -right-2"
-            >
-              <circle cx="3" cy="3" r="3" />
-            </svg>
-          )}
-        </div>
-      </Link>
+  //     <Link
+  //       href="/profile"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <UserCircle size={16} className="mr-2 text-[#0097B2]" />
+  //       <div className="relative">
+  //         My Profile
+  //         {isValidProfileUserState !== undefined && (
+  //           <svg
+  //             width="12"
+  //             height="12"
+  //             viewBox="0 0 6 6"
+  //             fill={isValidProfileUserState ? "#10B981" : "#EF4444"}
+  //             xmlns="http://www.w3.org/2000/svg"
+  //             className="absolute -top-2 -right-2"
+  //           >
+  //             <circle cx="3" cy="3" r="3" />
+  //           </svg>
+  //         )}
+  //       </div>
+  //     </Link>
 
-      <Link
-        href="/applications"
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-        onClick={() => setShowUserMenu(false)}
-      >
-        <FileText size={16} className="mr-2 text-[#0097B2]" />
-        My Applications
-      </Link>
+  //     <Link
+  //       href="/applications"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <FileText size={16} className="mr-2 text-[#0097B2]" />
+  //       My Applications
+  //     </Link>
 
-      <Link
-        href="/account"
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-        onClick={() => setShowUserMenu(false)}
-      >
-        <User size={16} className="mr-2 text-[#0097B2]" />
-        My Account
-      </Link>
+  //     <Link
+  //       href="/account"
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+  //       onClick={() => setShowUserMenu(false)}
+  //     >
+  //       <User size={16} className="mr-2 text-[#0097B2]" />
+  //       My Account
+  //     </Link>
 
-      <hr className="my-1 border-gray-200" />
+  //     <hr className="my-1 border-gray-200" />
 
-      <button
-        onClick={() => {
-          handleLogout();
-          setShowUserMenu(false);
-        }}
-        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-      >
-        <LogOut size={16} className="mr-2 text-[#0097B2] cursor-pointer" />
-        Logout
-      </button>
-    </>
-  );
+  //     <button
+  //       onClick={() => {
+  //         handleLogout();
+  //         setShowUserMenu(false);
+  //       }}
+  //       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+  //     >
+  //       <LogOut size={16} className="mr-2 text-[#0097B2] cursor-pointer" />
+  //       Logout
+  //     </button>
+  //   </>
+  // );
 
   return (
     <header className="w-full bg-[#FCFEFF] shadow-sm z-10">
@@ -174,7 +175,7 @@ export default function Navbar() {
         {/* Desktop y Mobile Header */}
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex-1 flex items-center">
+          <div className="flex-7 flex items-center">
             <Link href="/" className="flex-shrink-0">
               <Logo />
             </Link>
@@ -198,21 +199,27 @@ export default function Navbar() {
           </div>
 
           {/* Auth Buttons - Desktop y Mobile Activar cuando se tenga el Modulo Completo */}
-          <div className="flex items-center space-x-4">
+          {/* <div className="flex-3 md:flex-2 flex flex-col items-center justify-center space-x-4">
             {!isAuthenticated ? (
               <>
-                <Link
-                  href="/auth/login"
-                  className="text-[#0097B2] hover:text-[#007A8F] px-3 py-2 text-[16px] font-[600] transition-colors"
+                <button
+                  type="button"
+                  className="bg-[#0097B2] text-white w-full max-w-[100px] py-1 px-1 rounded-[5px] text-[12px] hover:underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer m-0"
+                  onClick={() => router.push("/auth/login")}
                 >
                   Login
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] text-white px-4 py-2 rounded text-[16px] font-[600] transition-all hover:shadow-lg"
-                >
-                  Sign In
-                </Link>
+                </button>
+                <div className="text-center">
+                  <p className="flex flex-col text-[10px] text-[#B6B4B4] m-0 mt-1">
+                    Don&apos;t have an account?{" "}
+                    <Link
+                      href="/auth/register"
+                      className="text-[#0097B2] font-[600] text-[12px] hover:underline"
+                    >
+                      Create account
+                    </Link>
+                  </p>
+                </div>
               </>
             ) : (
               <>
@@ -262,7 +269,6 @@ export default function Navbar() {
                               {user?.nombre || ""} {user?.apellido || ""}
                             </p>
                           </div>
-                          {/* Opción de Super Admin solo visible para usuarios con rol ADMIN */}
                           {user?.rol === "ADMIN" ? (
                             <>
                               <Link
@@ -280,7 +286,6 @@ export default function Navbar() {
                             </>
                           ) : null}
 
-                          {/* Opción para volver al panel de administración */}
                           <Link
                             href="/admin/dashboard"
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
@@ -325,7 +330,7 @@ export default function Navbar() {
                 )}
               </>
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Mobile Navigation Links con desplazamiento táctil */}

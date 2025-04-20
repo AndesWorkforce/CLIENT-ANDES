@@ -6,6 +6,14 @@ import { createServerAxios } from "@/services/axios.server";
 export async function createUserEmployeeAdmin(data: CreateUserFormData) {
   const axios = await createServerAxios();
   try {
+    // Asegurarse de que la contraseña esté presente al crear un nuevo usuario
+    if (!data.contrasena) {
+      return {
+        success: false,
+        message: "La contraseña es requerida para crear un nuevo usuario",
+      };
+    }
+
     const response = await axios.post("admin/empleados", {
       ...data,
       rol: "SUPERVISOR",
@@ -26,6 +34,10 @@ export async function createUserEmployeeAdmin(data: CreateUserFormData) {
     };
   } catch (error) {
     console.error("Error al crear usuario:", error);
-    throw new Error("Error al crear usuario");
+
+    return {
+      success: false,
+      message: "Error al conectar con el servidor",
+    };
   }
 }

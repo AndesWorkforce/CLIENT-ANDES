@@ -9,12 +9,14 @@ import {
   PauseCircle,
   PlayCircle,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import ApplicantsModal from "./components/ApplicantsModal";
 import {
   getPublishedOffers,
   toggleOfferStatus,
+  deleteOffer,
 } from "./actions/offers.actions";
 import { Offer } from "@/app/types/offers";
 import ViewOfferModal from "@/app/components/ViewOfferModal";
@@ -43,6 +45,8 @@ export default function AdminDashboardPage() {
   const [isPauseModalOpen, setIsPauseModalOpen] = useState<boolean>(false);
   const [offerToToggle, setOfferToToggle] = useState<Offer | null>(null);
   const [selectedJob, setSelectedJob] = useState<Offer | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -264,6 +268,37 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Función para manejar la eliminación de una oferta
+  const handleDeleteOffer = (offer: Offer) => {
+    setOfferToDelete(offer);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Función para confirmar la eliminación
+  const confirmDeleteOffer = async () => {
+    if (!offerToDelete || !offerToDelete.id) return;
+
+    try {
+      const response = await deleteOffer(offerToDelete.id);
+
+      if (response.success) {
+        addNotification(response.message, "success");
+        await fetchPublishedOffers();
+        if (selectedJob?.id === offerToDelete.id) {
+          setSelectedJob(offers.length > 1 ? offers[0] : null);
+        }
+      } else {
+        addNotification(response.message, "error");
+      }
+    } catch (error) {
+      console.error("Error deleting offer:", error);
+      addNotification("Error deleting offer", "error");
+    } finally {
+      setIsDeleteModalOpen(false);
+      setOfferToDelete(null);
+    }
+  };
+
   useEffect(() => {
     fetchPublishedOffers();
   }, []);
@@ -399,6 +434,17 @@ export default function AdminDashboardPage() {
                         <ChevronRight size={24} className="text-[#6D6D6D]" />
                       </div>
                       <div className="flex items-center gap-3">
+                        {/* Botón de eliminar */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteOffer(offer);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Trash2 size={20} className="text-red-600" />
+                        </button>
+
                         {/* Botón de pausa/reactivar */}
                         <button
                           onClick={(e) => {
@@ -577,6 +623,17 @@ export default function AdminDashboardPage() {
                           <ChevronRight size={24} className="text-[#6D6D6D]" />
                         </div>
                         <div className="flex items-center gap-3">
+                          {/* Botón de eliminar */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteOffer(job);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            <Trash2 size={20} className="text-red-600" />
+                          </button>
+
                           {/* Botón de pausa/reactivar */}
                           <button
                             onClick={(e) => {
@@ -794,6 +851,38 @@ export default function AdminDashboardPage() {
           }
           isPaused={offerToToggle.estado === "pausado"}
         />
+      )}
+
+      {/* Modal de confirmación de eliminación */}
+      {isDeleteModalOpen && offerToDelete && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Delete offer
+            </h3>
+            <p className="text-sm text-gray-500 mb-6">
+              {`Are you sure you want to delete the offer "${offerToDelete.titulo}
+              "? This action cannot be undone.`}
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setOfferToDelete(null);
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteOffer}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

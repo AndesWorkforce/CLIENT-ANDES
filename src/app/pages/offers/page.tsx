@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import FilterModal from "./components/FilterModal";
 
 import type { FilterValues } from "./components/FilterModal";
-import { applyToOffer, getOffers } from "./actions/jobs.actions";
+import {
+  applyToOffer,
+  getOffers,
+  userIsAppliedToOffer,
+} from "./actions/jobs.actions";
 import { Offer } from "@/app/types/offers";
 import ViewOfferModal from "@/app/components/ViewOfferModal";
 import { X } from "lucide-react";
@@ -25,7 +29,29 @@ export default function JobOffersPage() {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [selectedSeniority, setSelectedSeniority] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string[]>([]);
-  const [showInfoMessage, setShowInfoMessage] = useState(true);
+  const [showInfoMessage, setShowInfoMessage] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isValidProfileUserState, setIsValidProfileUserState] =
+    useState<boolean>(false);
+
+  const isValidProfileUser = async () => {
+    try {
+      const response = await userIsAppliedToOffer(user?.id || "");
+
+      if (response.success) {
+        if (response.data?.perfilCompleto === "COMPLETO") {
+          setIsValidProfileUserState(true);
+        } else {
+          setIsValidProfileUserState(false);
+        }
+      }
+    } catch (error) {
+      console.error(
+        "[Navbar] Error al verificar el perfil del usuario:",
+        error
+      );
+    }
+  };
 
   const handleSelectJob = (job: Offer) => {
     setSelectedJob(job);
@@ -53,6 +79,13 @@ export default function JobOffersPage() {
     } else {
       if (message === "Ya te has postulado a esta propuesta") {
         addNotification("You have already applied to this job", "info");
+      } else if (
+        message === "No puedes postularte hasta que tu perfil esté completo"
+      ) {
+        addNotification(
+          "You cannot apply until your profile is complete.",
+          "info"
+        );
       } else {
         addNotification("You have already applied to this job", "error");
       }
@@ -61,6 +94,7 @@ export default function JobOffersPage() {
 
   useEffect(() => {
     const fetchOffers = async () => {
+      setIsLoading(true);
       const response = await getOffers();
       if (response.success) {
         setFilteredJobs(response.data.data);
@@ -68,13 +102,88 @@ export default function JobOffersPage() {
           setSelectedJob(response.data.data[0]);
         }
       }
+      setIsLoading(false);
     };
     fetchOffers();
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      isValidProfileUser();
+    }
+  }, [user]);
+
+  // Skeleton para la vista móvil
+  const MobileSkeletonItem = () => (
+    <div className="bg-white border-[#B6B4B4] border rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]">
+      <div className="p-4 pb-2">
+        <div className="flex justify-between items-center">
+          <div>
+            <div className="h-5 bg-gray-200 rounded-md w-40 mb-2 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded-md w-20 animate-pulse"></div>
+          </div>
+          <div className="w-6 h-6 bg-gray-200 rounded-full animate-pulse"></div>
+        </div>
+      </div>
+      <div className="px-4 pb-4">
+        <div className="border-t border-gray-200" />
+      </div>
+      <div className="px-4 pt-0 pb-4 flex items-center">
+        <div className="w-24 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+      </div>
+    </div>
+  );
+
+  // Skeleton para la vista desktop - Lista de ofertas
+  const DesktopListSkeletonItem = () => (
+    <div className="bg-white border border-[#B6B4B4] rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]">
+      <div className="p-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <div>
+              <div className="h-5 bg-gray-200 rounded-md w-40 mb-2 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded-md w-20 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+        <div className="pb-4">
+          <div className="border-t border-gray-200" />
+        </div>
+        <div className="flex items-center">
+          <div className="w-24 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Skeleton para la vista de detalle
+  const DetailSkeleton = () => (
+    <div>
+      <div className="mb-6">
+        <div className="h-8 bg-gray-200 rounded-md w-3/4 mb-2 animate-pulse"></div>
+        <div className="h-4 bg-gray-200 rounded-md w-1/4 mt-1 mb-2 animate-pulse"></div>
+        <div className="flex items-center mt-2">
+          <div className="w-24 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <div className="h-6 bg-gray-200 rounded-md w-1/4 mb-2 animate-pulse"></div>
+        <div className="h-4 bg-gray-200 rounded-md w-full mb-2 animate-pulse"></div>
+        <div className="h-4 bg-gray-200 rounded-md w-full mb-2 animate-pulse"></div>
+        <div className="h-4 bg-gray-200 rounded-md w-3/4 mb-2 animate-pulse"></div>
+        <div className="h-4 bg-gray-200 rounded-md w-5/6 mb-2 animate-pulse"></div>
+      </div>
+
+      <div className="mt-6">
+        <div className="h-12 bg-gray-200 rounded-md w-full animate-pulse"></div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="container mx-auto bg-white min-h-screen">
-      {showInfoMessage && (
+      {!isValidProfileUserState && showInfoMessage && (
         <div className="bg-blue-50 m-4 rounded-lg p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2">
@@ -136,7 +245,7 @@ export default function JobOffersPage() {
       )}
 
       {/* Servicios Requeridos y Filtros */}
-      <div className="px-4 py-2 flex justify-between items-center">
+      <div className="mt-2 px-4 py-2 flex justify-between items-center">
         <h1 className="text-lg font-semibold text-[#08252A]">
           Required Services
         </h1>
@@ -250,61 +359,70 @@ export default function JobOffersPage() {
 
       {/* Vista móvil - Lista de servicios */}
       <div className="md:hidden px-4 space-y-3 pb-20">
-        {filteredJobs.map((job) => (
-          <div
-            key={job.id}
-            className="bg-white border-[#B6B4B4] border rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
-            onClick={() => handleSelectJob(job)}
-          >
-            <div className="p-4 pb-2">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-medium text-[#08252A]">{job.titulo}</h3>
-                  <p className="text-gray-500 text-sm">
-                    {/* {job.datosExtra.empresa} */}
-                  </p>
-                </div>
-                <div
-                  className="text-[#0097B2] cursor-pointer"
-                  onClick={() => handleViewOffer(job)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+        {isLoading ? (
+          // Skeleton para móvil
+          <>
+            <MobileSkeletonItem />
+            <MobileSkeletonItem />
+            <MobileSkeletonItem />
+          </>
+        ) : (
+          filteredJobs.map((job) => (
+            <div
+              key={job.id}
+              className="bg-white border-[#B6B4B4] border rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
+              onClick={() => handleSelectJob(job)}
+            >
+              <div className="p-4 pb-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-medium text-[#08252A]">{job.titulo}</h3>
+                    <p className="text-gray-500 text-sm">
+                      {/* {job.datosExtra.empresa} */}
+                    </p>
+                  </div>
+                  <div
+                    className="text-[#0097B2] cursor-pointer"
+                    onClick={() => handleViewOffer(job)}
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
+              <div className="px-4 pb-4">
+                <div className="border-t border-gray-200" />
+              </div>
+              <div className="px-4 pt-0 pb-4 flex items-center text-xs text-[#0097B2]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-1 text-[#0097B2]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span>{job.fechaCreacion?.split("T")[0]}</span>
+              </div>
             </div>
-            <div className="px-4 pb-4">
-              <div className="border-t border-gray-200" />
-            </div>
-            <div className="px-4 pt-0 pb-4 flex items-center text-xs text-[#0097B2]">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1 text-[#0097B2]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span>{job.fechaCreacion?.split("T")[0]}</span>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Vista desktop - Layout de dos columnas */}
@@ -312,65 +430,78 @@ export default function JobOffersPage() {
         {/* Columna izquierda - Listado de ofertas */}
         <div className="w-1/3 overflow-y-auto custom-scrollbar max-h-[calc(100vh-150px)]">
           <div className="space-y-3 pr-2">
-            {filteredJobs.map((job) => {
-              const isSelected = selectedJob?.id === job.id;
+            {isLoading ? (
+              // Skeleton para lista desktop
+              <>
+                <DesktopListSkeletonItem />
+                <DesktopListSkeletonItem />
+                <DesktopListSkeletonItem />
+                <DesktopListSkeletonItem />
+              </>
+            ) : (
+              filteredJobs.map((job) => {
+                const isSelected = selectedJob?.id === job.id;
 
-              return (
-                <div
-                  key={job.id}
-                  className={`bg-white border rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] cursor-pointer transition-all ${
-                    isSelected
-                      ? "border-[#0097B2] border-l-8 bg-blue-50"
-                      : "border-[#B6B4B4] border hover:border-[#0097B2]"
-                  }`}
-                  onClick={() => handleSelectJob(job)}
-                >
-                  <div className="p-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        {isSelected && (
-                          <div className="w-2 h-2 rounded-full bg-[#0097B2] mr-2"></div>
-                        )}
-                        <div>
-                          <h3 className="font-medium text-[#08252A]">
-                            {job.titulo}
-                          </h3>
-                          <p className="text-gray-500 text-sm mt-1">
-                            {/* Andes */}
-                          </p>
+                return (
+                  <div
+                    key={job.id}
+                    className={`bg-white border rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] cursor-pointer transition-all ${
+                      isSelected
+                        ? "border-[#0097B2] border-l-8 bg-blue-50"
+                        : "border-[#B6B4B4] border hover:border-[#0097B2]"
+                    }`}
+                    onClick={() => handleSelectJob(job)}
+                  >
+                    <div className="p-4">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center">
+                          {isSelected && (
+                            <div className="w-2 h-2 rounded-full bg-[#0097B2] mr-2"></div>
+                          )}
+                          <div>
+                            <h3 className="font-medium text-[#08252A]">
+                              {job.titulo}
+                            </h3>
+                            <p className="text-gray-500 text-sm mt-1">
+                              {/* Andes */}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="pb-4">
-                      <div className="border-t border-gray-200" />
-                    </div>
-                    <div className="flex items-center text-xs text-[#0097B2]">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1 text-[#0097B2]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      <span>{job.fechaCreacion?.split("T")[0]}</span>
+                      <div className="pb-4">
+                        <div className="border-t border-gray-200" />
+                      </div>
+                      <div className="flex items-center text-xs text-[#0097B2]">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 mr-1 text-[#0097B2]"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <span>{job.fechaCreacion?.split("T")[0]}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
 
         {/* Columna derecha - Detalle de la oferta seleccionada */}
         <div className="w-2/3 border border-[#B6B4B4] rounded-[10px] overflow-hidden shadow-sm p-6">
-          {selectedJob ? (
+          {isLoading ? (
+            // Skeleton para detalle desktop
+            <DetailSkeleton />
+          ) : selectedJob ? (
             <div>
               <div className="mb-6">
                 <h2 className="text-2xl font-semibold text-[#08252A]">

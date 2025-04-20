@@ -236,7 +236,7 @@ export default function EditOfferModal({
 
   return (
     <div className="fixed inset-0 bg-[#08252A33] z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-auto">
+      <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-auto custom-scrollbar">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-semibold">
             {offerId ? "Edit offer" : "New offer"}

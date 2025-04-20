@@ -95,3 +95,33 @@ export async function toggleOfferStatus(
     };
   }
 }
+
+export async function deleteOffer(offerId: string) {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.delete(`offers/${offerId}`);
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: `Error del servidor: ${response.status} ${
+          response.statusText
+        }. ${response.data?.message || ""}`,
+      };
+    }
+
+    revalidatePath("/admin/dashboard");
+
+    return {
+      success: true,
+      message: "Offer deleted successfully",
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("[Offers] Error al eliminar oferta:", error);
+    return {
+      success: false,
+      message: "Error deleting offer: " + error,
+    };
+  }
+}
