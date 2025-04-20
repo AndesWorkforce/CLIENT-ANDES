@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import FilterModal from "./components/FilterModal";
 
 import type { FilterValues } from "./components/FilterModal";
-import { applyToOffer, getOffers } from "./actions/jobs.actions";
+import {
+  applyToOffer,
+  getOffers,
+  userIsAppliedToOffer,
+} from "./actions/jobs.actions";
 import { Offer } from "@/app/types/offers";
 import ViewOfferModal from "@/app/components/ViewOfferModal";
 import { X } from "lucide-react";
@@ -25,8 +29,29 @@ export default function JobOffersPage() {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [selectedSeniority, setSelectedSeniority] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string[]>([]);
-  const [showInfoMessage, setShowInfoMessage] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [showInfoMessage, setShowInfoMessage] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isValidProfileUserState, setIsValidProfileUserState] =
+    useState<boolean>(false);
+
+  const isValidProfileUser = async () => {
+    try {
+      const response = await userIsAppliedToOffer(user?.id || "");
+
+      if (response.success) {
+        if (response.data?.perfilCompleto === "COMPLETO") {
+          setIsValidProfileUserState(true);
+        } else {
+          setIsValidProfileUserState(false);
+        }
+      }
+    } catch (error) {
+      console.error(
+        "[Navbar] Error al verificar el perfil del usuario:",
+        error
+      );
+    }
+  };
 
   const handleSelectJob = (job: Offer) => {
     setSelectedJob(job);
@@ -54,6 +79,13 @@ export default function JobOffersPage() {
     } else {
       if (message === "Ya te has postulado a esta propuesta") {
         addNotification("You have already applied to this job", "info");
+      } else if (
+        message === "No puedes postularte hasta que tu perfil esté completo"
+      ) {
+        addNotification(
+          "You cannot apply until your profile is complete.",
+          "info"
+        );
       } else {
         addNotification("You have already applied to this job", "error");
       }
@@ -74,6 +106,12 @@ export default function JobOffersPage() {
     };
     fetchOffers();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      isValidProfileUser();
+    }
+  }, [user]);
 
   // Skeleton para la vista móvil
   const MobileSkeletonItem = () => (
@@ -145,7 +183,7 @@ export default function JobOffersPage() {
 
   return (
     <div className="container mx-auto bg-white min-h-screen">
-      {showInfoMessage && (
+      {!isValidProfileUserState && showInfoMessage && (
         <div className="bg-blue-50 m-4 rounded-lg p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2">
@@ -207,7 +245,7 @@ export default function JobOffersPage() {
       )}
 
       {/* Servicios Requeridos y Filtros */}
-      <div className="px-4 py-2 flex justify-between items-center">
+      <div className="mt-2 px-4 py-2 flex justify-between items-center">
         <h1 className="text-lg font-semibold text-[#08252A]">
           Required Services
         </h1>

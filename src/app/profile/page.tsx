@@ -48,35 +48,44 @@ export default function ProfilePage() {
   );
 
   // Estados para el formulario de PC requirements
-  const [showPCRequirementsModal, setShowPCRequirementsModal] = useState(false);
+  const [showPCRequirementsModal, setShowPCRequirementsModal] =
+    useState<boolean>(false);
   const [showViewPCRequirementsModal, setShowViewPCRequirementsModal] =
-    useState(false);
+    useState<boolean>(false);
 
   // Estados para los diferentes tipos de formularios
-  const [showExperienceModal, setShowExperienceModal] = useState(false);
-  const [showEducationModal, setShowEducationModal] = useState(false);
-  const [showFormularioModal, setShowFormularioModal] = useState(false);
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const [showSkillsModal, setShowSkillsModal] = useState(false);
-  const [isUpdatingSkills, setIsUpdatingSkills] = useState(false);
-  const [showViewFormularioModal, setShowViewFormularioModal] = useState(false);
-  const [showViewVideoModal, setShowViewVideoModal] = useState(false);
-  const [showViewSkillsModal, setShowViewSkillsModal] = useState(false);
-  const [showDeleteSkillsModal, setShowDeleteSkillsModal] = useState(false);
-  const [showDeleteVideoModal, setShowDeleteVideoModal] = useState(false);
+  const [showExperienceModal, setShowExperienceModal] =
+    useState<boolean>(false);
+  const [showEducationModal, setShowEducationModal] = useState<boolean>(false);
+  const [showFormularioModal, setShowFormularioModal] =
+    useState<boolean>(false);
+  const [showVideoModal, setShowVideoModal] = useState<boolean>(false);
+  const [showSkillsModal, setShowSkillsModal] = useState<boolean>(false);
+  const [isUpdatingSkills, setIsUpdatingSkills] = useState<boolean>(false);
+  const [showViewFormularioModal, setShowViewFormularioModal] =
+    useState<boolean>(false);
+  const [showViewVideoModal, setShowViewVideoModal] = useState<boolean>(false);
+  const [showViewSkillsModal, setShowViewSkillsModal] =
+    useState<boolean>(false);
+  const [showDeleteSkillsModal, setShowDeleteSkillsModal] =
+    useState<boolean>(false);
+  const [showDeleteVideoModal, setShowDeleteVideoModal] =
+    useState<boolean>(false);
   const [showDeletePCRequirementsModal, setShowDeletePCRequirementsModal] =
-    useState(false);
+    useState<boolean>(false);
   const [showDeleteFormularioModal, setShowDeleteFormularioModal] =
-    useState(false);
+    useState<boolean>(false);
   const [showDeleteExperienceModal, setShowDeleteExperienceModal] =
-    useState(false);
+    useState<boolean>(false);
   const [experienceIdToDelete, setExperienceIdToDelete] = useState<string>("");
   const [showDeleteEducationModal, setShowDeleteEducationModal] =
-    useState(false);
+    useState<boolean>(false);
   const [educationIdToDelete, setEducationIdToDelete] = useState<string>("");
-  const [showContactoModal, setShowContactoModal] = useState(false);
-  const [showEditContactoModal, setShowEditContactoModal] = useState(false);
-  const [showViewContactoModal, setShowViewContactoModal] = useState(false);
+  const [showContactoModal, setShowContactoModal] = useState<boolean>(false);
+  const [showEditContactoModal, setShowEditContactoModal] =
+    useState<boolean>(false);
+  const [showViewContactoModal, setShowViewContactoModal] =
+    useState<boolean>(false);
   const [educationData, setEducationData] = useState<Education | null>(null);
   const [experienceData, setExperienceData] = useState<Experience | null>(null);
 
@@ -372,6 +381,15 @@ export default function ProfilePage() {
     profile.educacion.length === 0 &&
     profile.datosPersonales.telefono &&
     profile.datosPersonales.residencia;
+
+  const hasPendingCards =
+    !profile.datosFormulario ||
+    profile.habilidades.length === 0 ||
+    !profile.archivos.videoPresentacion ||
+    isVisibleNotification2 ||
+    profile.experiencia.length === 0 ||
+    profile.educacion.length === 0 ||
+    (!profile.datosPersonales.telefono && !profile.datosPersonales.residencia);
 
   return (
     <div className="min-h-screen bg-white">
@@ -993,19 +1011,20 @@ export default function ProfilePage() {
       </div>
 
       {/* Desktop Information view */}
-      {!isDisabledContainer ? (
+      {!isDisabledContainer && hasPendingCards && (
         <div className="hidden md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
-          {!isVisibleNotification ? (
-            <div className="hidden md:flex bg-blue-50 p-4 my-6 rounded-lg items-start space-x-3">
+          {!isVisibleNotification && (
+            <div className="hidden md:flex md:items-center bg-blue-50 p-4 my-6 rounded-lg items-start space-x-3">
               <Info className="text-blue-500 shrink-0 mt-1" size={20} />
               <div>
                 <p className="text-sm text-blue-600">
-                  Remember that you have to complete your profile to be able to
-                  apply.
+                  Please complete all of the following requirements to create
+                  your profile, which will allow you to apply for available
+                  contracts.
                 </p>
               </div>
             </div>
-          ) : null}
+          )}
           <div className="relative mt-8">
             {/* Tarjetas */}
             <div className="grid grid-cols-2 gap-6 mb-20">
@@ -1282,12 +1301,12 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-      ) : null}
+      )}
 
       {/* Desktop view */}
-      <div className="hidden md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="flex flex-col justify-between gap-4">
+      <div className="hidden md:block md:mt-8 md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
+        <div className="grid md:grid-cols-2 gap-6 items-start mb-20">
+          <div className="flex flex-col justify-between gap-4 h-full">
             {profile.datosFormulario && (
               <div
                 className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
@@ -1503,7 +1522,7 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
-          <div className="flex flex-col justify-between gap-4">
+          <div className="flex flex-col justify-between gap-4 h-full">
             {isVisibleNotification3 && (
               <div
                 className="flex flex-col p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
@@ -1577,7 +1596,7 @@ export default function ProfilePage() {
                     <div
                       className="w-8 h-8 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
                       onClick={() => {
-                        setShowExperienceModal(true);
+                        setShowEducationModal(true);
                       }}
                     >
                       <svg

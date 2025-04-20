@@ -25,8 +25,8 @@ export default function HeaderDashboard() {
   }
 
   return (
-    <header className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+    <header className="container mx-auto bg-white shadow-sm">
+      <div className="mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex-1">
           <div className="flex items-center">
             <Logo />
