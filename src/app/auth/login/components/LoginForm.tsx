@@ -48,7 +48,10 @@ export default function LoginForm() {
           setValue("correo", decrypted);
           setRememberMe(true);
         }
-      } catch {}
+      } catch (error) {
+        console.error("Error al desencriptar email recordado:", error);
+        localStorage.removeItem(REMEMBER_KEY);
+      }
     }
   }, [setValue]);
 
@@ -73,16 +76,13 @@ export default function LoginForm() {
           localStorage.removeItem(REMEMBER_KEY);
         }
 
-        reset();
         router.push("/pages/offers");
       } else {
         addNotification(result.error || "Error logging in", "error");
-        reset();
       }
     } catch (error) {
       console.error("Error in the form:", error);
       addNotification("Unexpected error logging in", "error");
-      reset();
     } finally {
       setIsSubmitting(false);
       reset();
@@ -109,7 +109,10 @@ export default function LoginForm() {
             className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
             {...register("correo")}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setValue("correo", e.target.value);
+            }}
           />
           {errors.correo && (
             <span className="text-red-500 text-xs mt-1">

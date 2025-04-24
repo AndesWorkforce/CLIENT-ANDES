@@ -1,13 +1,32 @@
 "use server";
 
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { InterviewInvitationEmail } from "../emails/InterviewInvitation";
 import { RejectPositionEmail } from "../emails/RejectPosition";
 import { render } from "@react-email/render";
 import { ContractJob } from "../emails/ContratJob";
 import { AdvanceNextStep } from "../emails/AdvanceNextStep";
 
-const resend = new Resend(process.env.SECRET_KEY_RESEND);
+// Crear transportador de nodemailer con autenticación básica
+const createTransporter = async () => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    throw new Error("Faltan variables de entorno necesarias para el email");
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: "teamandes-com.mail.protection.outlook.com",
+    port: 25,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  } as nodemailer.TransportOptions);
+
+  // Verificar la conexión antes de enviar
+  await transporter.verify();
+
+  return transporter;
+};
 
 export const sendInterviewInvitation = async (
   candidateName: string,
@@ -24,22 +43,19 @@ export const sendInterviewInvitation = async (
       })
     );
 
-    const { error, data } = await resend.emails.send({
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
       subject: "Scheduling a Call to Discuss Opportunities at Andes Workforce",
       html: emailHtml,
     });
 
-    if (error) {
-      console.error("[Email] Resend API error:", error);
-      throw new Error(`Resend API error: ${error.message}`);
-    }
-
     return {
       success: true,
       message: "Email sent successfully",
-      data,
+      data: info,
     };
   } catch (error) {
     console.error("Error sending email:", error);
@@ -58,22 +74,19 @@ export const sendAdvanceNextStep = async (
       })
     );
 
-    const { error, data } = await resend.emails.send({
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
       subject: "Congratulations! You've reached the final stage",
       html: emailHtml,
     });
 
-    if (error) {
-      console.error("[Email] Resend API error:", error);
-      throw new Error(`Resend API error: ${error.message}`);
-    }
-
     return {
       success: true,
       message: "Advance next step email sent successfully",
-      data,
+      data: info,
     };
   } catch (error) {
     console.error("Error sending advance next step email:", error);
@@ -92,22 +105,19 @@ export const sendRejectionEmail = async (
       })
     );
 
-    const { error, data } = await resend.emails.send({
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
       subject: "Update on Your Application Status",
       html: emailHtml,
     });
 
-    if (error) {
-      console.error("[Email] Resend API error:", error);
-      throw new Error(`Resend API error: ${error.message}`);
-    }
-
     return {
       success: true,
       message: "Rejection email sent successfully",
-      data,
+      data: info,
     };
   } catch (error) {
     console.error("Error sending rejection email:", error);
@@ -126,22 +136,19 @@ export const sendContractJobEmail = async (
       })
     );
 
-    const { error, data } = await resend.emails.send({
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
       subject: "Congratulations! You've reached the final stage",
       html: emailHtml,
     });
 
-    if (error) {
-      console.error("[Email] Resend API error:", error);
-      throw new Error(`Resend API error: ${error.message}`);
-    }
-
     return {
       success: true,
       message: "Contract job email sent successfully",
-      data,
+      data: info,
     };
   } catch (error) {
     console.error("Error sending contract job email:", error);
