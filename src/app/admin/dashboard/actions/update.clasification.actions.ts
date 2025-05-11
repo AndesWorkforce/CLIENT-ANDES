@@ -129,3 +129,73 @@ export async function createApplicant(
     };
   }
 }
+
+export async function removeCandidate(
+  candidateId: string
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.delete(`${API_URL}usuarios/${candidateId}`);
+
+    return {
+      success: true,
+      message: "Candidato eliminado exitosamente",
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error eliminando candidato:", error);
+
+    if (error instanceof AxiosError) {
+      const errorMessage =
+        error.response?.data?.message || "Error al eliminar el candidato";
+
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data,
+      };
+    }
+
+    return {
+      success: false,
+      message: "Error al eliminar el candidato",
+      error: error,
+    };
+  }
+}
+
+export async function activateCandidate(
+  candidateId: string
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.patch(
+      `${API_URL}usuarios/${candidateId}/activar`
+    );
+
+    return {
+      success: true,
+      message: "Candidato activado exitosamente",
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error activando candidato:", error);
+
+    if (error instanceof AxiosError) {
+      const errorMessage =
+        error.response?.data?.message || "Error al activar el candidato";
+
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data,
+      };
+    }
+
+    return {
+      success: false,
+      message: "Error al activar el candidato",
+      error: error,
+    };
+  }
+}

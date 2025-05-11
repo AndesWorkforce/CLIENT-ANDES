@@ -6,6 +6,7 @@ import { RejectPositionEmail } from "../emails/RejectPosition";
 import { render } from "@react-email/render";
 import { ContractJob } from "../emails/ContratJob";
 import { AdvanceNextStep } from "../emails/AdvanceNextStep";
+import { AssignJobNotification } from "../emails/AssignJobNotification";
 
 // Crear transportador de nodemailer con autenticación básica
 const createTransporter = async () => {
@@ -152,6 +153,39 @@ export const sendContractJobEmail = async (
     };
   } catch (error) {
     console.error("Error sending contract job email:", error);
+    return { success: false, error };
+  }
+};
+
+export const sendAssignJobNotification = async (
+  candidateName: string,
+  candidateEmail: string,
+  jobTitle: string
+) => {
+  try {
+    const emailHtml = await render(
+      AssignJobNotification({
+        candidateName,
+        jobTitle,
+      })
+    );
+
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
+      from: "Andes Workforce <no-reply@teamandes.com>",
+      to: [candidateEmail],
+      subject: "You have been assigned to a new job opportunity",
+      html: emailHtml,
+    });
+
+    return {
+      success: true,
+      message: "Assignment notification email sent successfully",
+      data: info,
+    };
+  } catch (error) {
+    console.error("Error sending assignment notification email:", error);
     return { success: false, error };
   }
 };

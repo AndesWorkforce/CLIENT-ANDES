@@ -3,6 +3,8 @@ import { X, Search } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import { getPublishedOffers } from "../actions/offers.actions";
 import { assignOffer } from "../actions/assign.offert.actions";
+import { sendAssignJobNotification } from "../actions/sendEmail.actions";
+import { getProfile } from "../actions/profile.actions";
 
 interface Offer {
   id: string;
@@ -64,10 +66,7 @@ export default function AssignApplicationModal({
       );
 
       if (!response.success) {
-        addNotification(
-          "Error al cargar ofertas: " + response.message,
-          "error"
-        );
+        addNotification("Error loading offers: " + response.message, "error");
         return;
       }
 
@@ -87,7 +86,7 @@ export default function AssignApplicationModal({
       setHasMore(response.hasMore || false);
     } catch (error) {
       console.error("[Dashboard] Error getting published offers:", error);
-      addNotification("Error al cargar ofertas", "error");
+      addNotification("Error loading offers", "error");
     } finally {
       if (reset) {
         setIsLoading(false);
@@ -123,7 +122,7 @@ export default function AssignApplicationModal({
 
   const handleAssign = async () => {
     if (!selectedOfferId) {
-      addNotification("Por favor selecciona una oferta", "warning");
+      addNotification("Please select a job offer", "warning");
       return;
     }
 
@@ -132,20 +131,56 @@ export default function AssignApplicationModal({
       const response = await assignOffer(candidateId, selectedOfferId);
 
       if (response.success) {
-        addNotification(
-          "Candidato asignado exitosamente a la oferta",
-          "success"
+        // Obtener título de la oferta seleccionada
+        const selectedOffer = offers.find(
+          (offer) => offer.id === selectedOfferId
         );
+        const jobTitle = selectedOffer?.titulo || "Job";
+
+        // Obtener datos del candidato desde el servidor
+        const profileResponse = await getProfile(candidateId);
+
+        if (profileResponse.success && profileResponse.data?.data) {
+          const candidateData = profileResponse.data.data.datosPersonales;
+
+          // Enviar email de notificación
+          const emailResponse = await sendAssignJobNotification(
+            `${candidateData.nombre} ${candidateData.apellido}`,
+            candidateData.correo,
+            jobTitle
+          );
+
+          if (emailResponse.success) {
+            addNotification(
+              "Candidate successfully assigned and notification sent",
+              "success"
+            );
+          } else {
+            addNotification(
+              "Candidate successfully assigned but there was an error sending the notification",
+              "warning"
+            );
+          }
+        } else {
+          addNotification(
+            "Candidate successfully assigned to the job offer",
+            "success"
+          );
+        }
+
         onClose();
       } else {
         addNotification(
-          response.message || "Error al asignar el candidato",
+          response.message || "Error assigning the candidate",
           "error"
         );
       }
     } catch (error) {
-      console.error("Error al asignar candidato:", error);
-      addNotification("Error al asignar el candidato a la oferta", "error");
+      console.error("Error assigning candidate:", error);
+      addNotification(
+        "Error assigning the candidate to the job offer",
+        "error"
+      );
     } finally {
       setIsSubmitting(false);
     }

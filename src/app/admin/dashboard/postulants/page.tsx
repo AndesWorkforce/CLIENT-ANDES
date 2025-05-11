@@ -12,6 +12,7 @@ import {
   Trash2,
   Bookmark,
   FileText,
+  UserPlus,
 } from "lucide-react";
 import type { Candidato } from "@/app/types/offers";
 import CandidateProfileModal from "../components/CandidateProfileModal";
@@ -23,7 +24,12 @@ import TableSkeleton from "../components/TableSkeleton";
 import ActivityLogModal from "../components/ActivityLogModal";
 import { useNotificationStore } from "@/store/notifications.store";
 import StatusChangeModal from "../components/StatusChangeModal";
-import { updateCandidateStatus } from "../actions/update.clasification.actions";
+import {
+  updateCandidateStatus,
+  removeCandidate,
+  activateCandidate,
+} from "../actions/update.clasification.actions";
+import CandidateActionModal from "../components/CandidateActionModal";
 
 interface CandidatoWithPostulationId extends Candidato {
   postulationId: string;
@@ -43,6 +49,7 @@ interface ExtendedCandidate extends CandidatoWithPostulationId {
   lastApplication?: ExtendedApplication;
   applicationStatus?: string;
   clasificacionGlobal: CandidateStatus;
+  activo?: boolean;
   logs: {
     date: string;
     action: string;
@@ -69,6 +76,10 @@ export default function PostulantsPage() {
     {}
   );
   const { addNotification } = useNotificationStore();
+  const [isActionModalOpen, setIsActionModalOpen] = useState<boolean>(false);
+  const [currentAction, setCurrentAction] = useState<"remove" | "activate">(
+    "remove"
+  );
 
   useEffect(() => {
     const fetchProposalTitles = async () => {
@@ -174,8 +185,8 @@ export default function PostulantsPage() {
                 date: "-",
               },
               applicationStatus: "PENDIENTE",
-              // Usar el valor que viene de la base de datos o ACTIVE solo si no existe
               clasificacionGlobal: candidato.clasificacionGlobal || "ACTIVE",
+              activo: candidato.activo,
               logs: candidato.logs || [],
             };
           }
@@ -227,8 +238,8 @@ export default function PostulantsPage() {
             isExpanded: false,
             lastApplication: lastApplication,
             applicationStatus: applicationStatus,
-            // Usar el valor que viene de la base de datos o ACTIVE solo si no existe
             clasificacionGlobal: candidato.clasificacionGlobal || "ACTIVE",
+            activo: candidato.activo,
             logs: candidato.logs || [],
           };
         });
@@ -460,11 +471,91 @@ export default function PostulantsPage() {
     }
   };
 
+  const handleRemoveCandidate = (candidateId: string) => {
+    setSelectedCandidateId(candidateId);
+    setCurrentAction("remove");
+    setIsActionModalOpen(true);
+  };
+
+  const handleActivateCandidate = (candidateId: string) => {
+    setSelectedCandidateId(candidateId);
+    setCurrentAction("activate");
+    setIsActionModalOpen(true);
+  };
+
+  const handleCandidateAction = async () => {
+    if (!selectedCandidateId) return;
+
+    const candidate = applicants.find((c) => c.id === selectedCandidateId);
+    if (!candidate) return;
+
+    const candidateName = `${candidate.nombre} ${candidate.apellido}`;
+
+    try {
+      let response;
+      if (currentAction === "remove") {
+        // La acción es eliminar (desactivar) un candidato activo
+        response = await removeCandidate(selectedCandidateId);
+
+        if (response.success) {
+          // Actualizar el estado del candidato a inactivo
+          setApplicants((prev) =>
+            prev.map((a) =>
+              a.id === selectedCandidateId ? { ...a, activo: false } : a
+            )
+          );
+          addNotification(
+            `Candidato ${candidateName} eliminado exitosamente`,
+            "success"
+          );
+        } else {
+          addNotification(
+            response.message || "Error al eliminar el candidato",
+            "error"
+          );
+        }
+      } else {
+        // La acción es activar un candidato inactivo
+        response = await activateCandidate(selectedCandidateId);
+
+        if (response.success) {
+          // Actualizar el estado del candidato a activo
+          setApplicants((prev) =>
+            prev.map((a) =>
+              a.id === selectedCandidateId ? { ...a, activo: true } : a
+            )
+          );
+          addNotification(
+            `Candidato ${candidateName} activado exitosamente`,
+            "success"
+          );
+        } else {
+          addNotification(
+            response.message || "Error al activar el candidato",
+            "error"
+          );
+        }
+      }
+    } catch (error) {
+      console.error(`Error en acción de candidato (${currentAction}):`, error);
+      addNotification("Ocurrió un error inesperado", "error");
+    }
+  };
+
   const handleDeleteCandidate = (candidateId: string) => {
-    console.log("Deleting candidate:", candidateId);
-    // Aquí puedes implementar la lógica para eliminar el candidato
-    // Por ejemplo, puedes hacer una llamada a la API para eliminar el candidato
-    // También puedes mostrar una notificación al usuario
+    const candidate = applicants.find((c) => c.id === candidateId);
+    if (!candidate) return;
+
+    // Verificar si el candidato está activo o no basado en el campo activo
+    const isActive = candidate.activo === true;
+
+    if (!isActive) {
+      // Si no está activo, ofrecemos activarlo
+      handleActivateCandidate(candidateId);
+    } else {
+      // Si está activo, ofrecemos eliminarlo
+      handleRemoveCandidate(candidateId);
+    }
   };
 
   console.log("[PostulantsPage] applicants", applicants);
@@ -473,7 +564,7 @@ export default function PostulantsPage() {
     <CandidateProfileProvider>
       <div className="w-full max-w-7xl mx-auto mt-8 flex flex-col h-screen">
         {/* Search and Create Button */}
-        <div className="mb-6 flex flex-col md:flex-row gap-3 md:justify-between md:items-center">
+        <div className="mb-6 px-4 flex flex-col md:flex-row gap-3 md:px-0 md:justify-between md:items-center">
           <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
             <input
               type="text"
@@ -593,16 +684,16 @@ export default function PostulantsPage() {
                     </div>
 
                     {/* Status badge */}
-                    <div>
+                    {/* <div>
                       {renderCompanyStatus(applicant.clasificacionGlobal)}
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Expanded content */}
                   {applicant.isExpanded && (
                     <div className="px-4 pb-4 space-y-3 bg-gray-50">
                       {/* Profile action */}
-                      <div className="flex items-center py-2 border-b border-gray-200">
+                      <div className="flex items-center py-2  border-gray-200">
                         <div className="text-[#0097B2] mr-2">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -636,7 +727,7 @@ export default function PostulantsPage() {
                       </div>
 
                       {/* Candidate Status */}
-                      <div className="flex items-center py-2 border-b border-gray-200">
+                      <div className="flex items-center py-2  border-gray-200">
                         <div className="text-[#0097B2] mr-2">
                           <AlertCircle size={22} />
                         </div>
@@ -656,7 +747,7 @@ export default function PostulantsPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center py-2 border-b border-gray-200">
+                      <div className="flex items-center py-2 border-gray-200">
                         <div className="text-[#0097B2] mr-2">
                           <FileText size={22} />
                         </div>
@@ -677,7 +768,7 @@ export default function PostulantsPage() {
                       </div>
 
                       {/* Application status */}
-                      <div className="flex items-center py-2 border-b border-gray-200">
+                      <div className="flex items-center py-2 border-gray-200">
                         <div className="text-[#0097B2] mr-2">
                           <FileText size={22} />
                         </div>
@@ -700,9 +791,10 @@ export default function PostulantsPage() {
                             e.stopPropagation();
                             handleAssignApplicant(applicant.id);
                           }}
-                          className="flex items-center justify-center text-sm text-white bg-[#0097B2] hover:bg-[#007a8f] px-3 py-1.5 rounded-md transition-colors w-full sm:w-auto"
+                          className="flex items-center justify-between text-white bg-[#0097B2] hover:bg-[#007a8f] px-3 py-2 rounded-md transition-colors"
+                          title="Assign"
                         >
-                          <Bookmark size={18} className="mr-1" />
+                          <Bookmark size={18} className="text-white mr-2" />
                           <span>Assign</span>
                         </button>
 
@@ -711,20 +803,40 @@ export default function PostulantsPage() {
                             e.stopPropagation();
                             handleSendPasswordReset(applicant.correo);
                           }}
-                          className="flex items-center justify-center text-sm text-white bg-[#0097B2] hover:bg-[#007a8f] px-3 py-1.5 rounded-md transition-colors w-full sm:w-auto"
+                          className="flex items-center justify-between text-white bg-[#0097B2] hover:bg-[#007a8f] px-3 py-2 rounded-md transition-colors"
+                          title="Reset Password"
                         >
-                          <Mail size={18} className="mr-1" />
-                          <span>Reset Password</span>
+                          <Mail size={18} className="text-white mr-2" />
+                          <span>Reset</span>
                         </button>
 
-                        <Link
-                          href={`/admin/dashboard/candidates/${applicant.id}`}
-                          className="flex items-center justify-center text-sm text-white bg-[#0097B2] hover:bg-[#007a8f] px-3 py-1.5 rounded-md transition-colors w-full sm:w-auto"
-                          onClick={(e) => e.stopPropagation()}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteCandidate(applicant.id);
+                          }}
+                          className={`flex items-center justify-between text-white px-3 py-2 rounded-md transition-colors
+                            ${
+                              applicant.activo === true
+                                ? "bg-red-600 hover:bg-red-700"
+                                : "bg-green-600 hover:bg-green-700"
+                            }`}
+                          title={
+                            applicant.activo === true ? "Delete" : "Activate"
+                          }
                         >
-                          <Edit size={18} className="mr-1" />
-                          <span>Manage</span>
-                        </Link>
+                          {applicant.activo === true ? (
+                            <>
+                              <Trash2 size={18} className="text-white mr-2" />
+                              <span>Delete</span>
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus size={18} className="text-white mr-2" />
+                              <span>Activate</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   )}
@@ -964,7 +1076,7 @@ export default function PostulantsPage() {
                                 <div className="flex space-x-2">
                                   <div className="relative group">
                                     <button
-                                      className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10"
+                                      className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
                                       title="View profile"
                                       onClick={() =>
                                         handleOpenProfile(applicant.id)
@@ -972,14 +1084,17 @@ export default function PostulantsPage() {
                                     >
                                       <Edit size={20} />
                                     </button>
-                                    <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
+                                    {/* <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
                                       Edit/View Profile
-                                    </span>
+                                    </span> */}
                                   </div>
 
                                   <div className="relative group">
                                     <button
-                                      className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10"
+                                      className="p-1 text-[#0097B2] rounded 
+                                    hover:bg-[#0097B2]/10 
+                                      cursor-not-allowed"
+                                      disabled
                                       title="Send password reset"
                                       onClick={() =>
                                         handleSendPasswordReset(
@@ -989,14 +1104,14 @@ export default function PostulantsPage() {
                                     >
                                       <Mail size={20} />
                                     </button>
-                                    <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
+                                    {/* <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
                                       Send Password Reset
-                                    </span>
+                                    </span> */}
                                   </div>
 
                                   <div className="relative group">
                                     <button
-                                      className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10"
+                                      className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
                                       title="Assign to job"
                                       onClick={() =>
                                         handleAssignApplicant(applicant.id)
@@ -1004,23 +1119,37 @@ export default function PostulantsPage() {
                                     >
                                       <Bookmark size={20} />
                                     </button>
-                                    <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
+                                    {/* <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
                                       Assign to Job
-                                    </span>
+                                    </span> */}
                                   </div>
                                   <div className="relative group">
                                     <button
                                       onClick={() =>
                                         handleDeleteCandidate(applicant.id)
                                       }
-                                      className="p-1 text-red-500 rounded hover:bg-red-50 cursor-pointer"
-                                      title="Delete candidate"
+                                      className={`p-1 rounded hover:bg-opacity-10 cursor-pointer ${
+                                        applicant.activo === true
+                                          ? "text-red-500 hover:bg-red-50"
+                                          : "text-green-500 hover:bg-green-100"
+                                      }`}
+                                      title={
+                                        applicant.activo === true
+                                          ? "Delete candidate"
+                                          : "Activate candidate"
+                                      }
                                     >
-                                      <Trash2 size={20} />
+                                      {applicant.activo === true ? (
+                                        <Trash2 size={20} />
+                                      ) : (
+                                        <UserPlus size={20} />
+                                      )}
                                     </button>
-                                    <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
-                                      Delete Candidate
-                                    </span>
+                                    {/* <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
+                                      {applicant.activo === true
+                                        ? "Eliminar Candidato"
+                                        : "Activar Candidato"}
+                                    </span> */}
                                   </div>
                                 </div>
                               </td>
@@ -1149,6 +1278,19 @@ export default function PostulantsPage() {
             applicants.find((a) => a.id === selectedCandidateId)?.nombre
           }
           onStatusChange={handleChangeCompanyStatus}
+        />
+      )}
+      {isActionModalOpen && (
+        <CandidateActionModal
+          isOpen={isActionModalOpen}
+          onClose={() => setIsActionModalOpen(false)}
+          onConfirm={handleCandidateAction}
+          candidateName={`${
+            applicants.find((a) => a.id === selectedCandidateId)?.nombre || ""
+          } ${
+            applicants.find((a) => a.id === selectedCandidateId)?.apellido || ""
+          }`}
+          action={currentAction}
         />
       )}
     </CandidateProfileProvider>
