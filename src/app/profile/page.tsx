@@ -47,13 +47,11 @@ export default function ProfilePage() {
     "experiencia"
   );
 
-  // Estados para el formulario de PC requirements
   const [showPCRequirementsModal, setShowPCRequirementsModal] =
     useState<boolean>(false);
   const [showViewPCRequirementsModal, setShowViewPCRequirementsModal] =
     useState<boolean>(false);
 
-  // Estados para los diferentes tipos de formularios
   const [showExperienceModal, setShowExperienceModal] =
     useState<boolean>(false);
   const [showEducationModal, setShowEducationModal] = useState<boolean>(false);
@@ -98,8 +96,8 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSaveEducation = async (data: Education) => {
-    const response = await addEducation(user?.id || "", data);
+  const handleSaveEducation = async (userId: string, data: Education) => {
+    const response = await addEducation(userId, data);
     if (response.success) {
       addNotification("Education added correctly", "success");
     } else {
@@ -116,17 +114,13 @@ export default function ProfilePage() {
   };
 
   const handleSaveSkills = async (newSkills: Skill[]) => {
-    // Actualizar skills en el backend si hay un usuario logueado
     if (user?.id && newSkills.length > 0) {
       try {
-        // Mostrar indicador de carga
         setIsUpdatingSkills(true);
 
-        // Llamar a la acción del servidor para actualizar skills
         const result = await updateUserSkills(user.id, newSkills);
 
         if (result.success) {
-          // Cerrar modal después de actualizar
           setShowSkillsModal(false);
         } else {
           alert(`Error updating skills: ${result.message}`);
@@ -135,14 +129,11 @@ export default function ProfilePage() {
         console.error("[ProfilePage] Error updating skills:", error);
         alert("An unexpected error occurred while updating skills");
       } finally {
-        // Ocultar indicador de carga
         setIsUpdatingSkills(false);
       }
     } else if (newSkills.length > 0) {
-      // Cerrar modal
       setShowSkillsModal(false);
     } else {
-      // Si no hay skills, cerrar el modal
       setShowSkillsModal(false);
     }
   };
@@ -150,12 +141,7 @@ export default function ProfilePage() {
   const handleDeleteAllSkills = async () => {
     if (user?.id) {
       try {
-        // Mostrar indicador de carga
         setIsUpdatingSkills(true);
-        console.log(
-          "[ProfilePage] Starting to delete all skills for user:",
-          user.id
-        );
 
         const result = await deleteAllSkills(user.id);
 

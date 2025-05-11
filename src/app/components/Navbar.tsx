@@ -85,7 +85,6 @@ export default function Navbar() {
     }
   }, [user]);
 
-  // Función para cerrar sesión
   const handleLogout = async () => {
     try {
       await logoutAction();
@@ -95,7 +94,6 @@ export default function Navbar() {
     }
   };
 
-  // Función para verificar si una ruta está activa
   const isActive = (itemHref: string) => {
     return pathname === itemHref || pathname.startsWith(itemHref);
   };

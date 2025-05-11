@@ -86,6 +86,14 @@ export default function JobOffersPage() {
           "You cannot apply until your profile is complete.",
           "info"
         );
+      } else if (
+        message ===
+        "Tu usuario se encuentra bloqueado, para realizar una postulación, debes solicitar el levantamiento de tu bloqueo en el apartado de reclamos"
+      ) {
+        addNotification(
+          "Your account is blocked. Please request an unblock in the claims section before applying.",
+          "error"
+        );
       } else {
         addNotification("You have already applied to this job", "error");
       }

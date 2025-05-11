@@ -9,9 +9,14 @@ import { useAuthStore } from "@/store/auth.store";
 interface VideoModalProps {
   isOpen: boolean;
   onClose: () => void;
+  candidateId?: string;
 }
 
-export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
+export default function VideoModal({
+  isOpen,
+  onClose,
+  candidateId,
+}: VideoModalProps) {
   const { profile } = useProfileContext();
   const modalRef = useRef<HTMLDivElement>(null);
   const [showInstructions, setShowInstructions] = useState(false);
@@ -153,7 +158,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
           return;
         }
 
-        const result = await saveVideoUrl(userId, uploadUrl);
+        const result = await saveVideoUrl(candidateId || userId, uploadUrl);
 
         if (!result.success) {
           setError(`Error saving the video: ${result.error}`);

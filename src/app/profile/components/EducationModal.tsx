@@ -3,12 +3,14 @@
 import { useRef, useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Education } from "@/app/types/education";
+import { useAuthStore } from "@/store/auth.store";
 
 interface EducationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: Education) => void;
+  onSave: (userId: string, data: Education) => void;
   educationData?: Education;
+  candidateId?: string;
 }
 
 export default function EducationModal({
@@ -16,7 +18,9 @@ export default function EducationModal({
   onClose,
   onSave,
   educationData,
+  candidateId,
 }: EducationModalProps) {
+  const { user } = useAuthStore();
   const modalRef = useRef<HTMLDivElement>(null);
   const [atPresente, setAtPresente] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
@@ -121,7 +125,7 @@ export default function EducationModal({
       data.id = educationData.id;
     }
 
-    onSave(data);
+    onSave(candidateId || user?.id || "", data);
     resetForm();
     onClose();
   };

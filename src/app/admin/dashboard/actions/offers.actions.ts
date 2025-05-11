@@ -11,7 +11,7 @@ export async function getPublishedOffers(page = 1, limit = 10, search = "") {
         ? `&search=${encodeURIComponent(search.trim())}`
         : "";
 
-    const requestUrl = `offers/mis-ofertas?estado=publicado,pausado${searchParam}&page=${page}&limit=${limit}`;
+    const requestUrl = `offers?${searchParam}&page=${page}&limit=${limit}`;
 
     const response = await axios.get(requestUrl);
 
@@ -123,5 +123,31 @@ export async function deleteOffer(offerId: string) {
       success: false,
       message: "Error deleting offer: " + error,
     };
+  }
+}
+
+// Función para obtener una propuesta específica
+export async function getProposal(propuestaId: string) {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/propuestas/${propuestaId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        next: { revalidate: 60 }, // Revalidar cada minuto
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al obtener la propuesta");
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error obteniendo propuesta:", error);
+    return { success: false, error: (error as Error).message };
   }
 }

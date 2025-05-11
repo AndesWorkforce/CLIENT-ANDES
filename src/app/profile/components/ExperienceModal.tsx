@@ -10,6 +10,7 @@ interface ExperienceModalProps {
   onClose: () => void;
   onSave: (userId: string, data: Experience) => void;
   experienceData?: Experience;
+  candidateId?: string;
 }
 
 export default function ExperienceModal({
@@ -17,6 +18,7 @@ export default function ExperienceModal({
   onClose,
   experienceData,
   onSave,
+  candidateId,
 }: ExperienceModalProps) {
   const { user } = useAuthStore();
   const modalRef = useRef<HTMLDivElement>(null);
@@ -132,7 +134,7 @@ export default function ExperienceModal({
       descripcion: formData.get("descripcion") as string,
     };
 
-    onSave(user?.id || "", data);
+    onSave(candidateId || user?.id || "", data);
     resetForm();
     onClose();
   };

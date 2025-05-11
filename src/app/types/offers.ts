@@ -14,6 +14,7 @@ export interface Candidato {
   telefono: string;
   fotoPerfil: string | null;
   videoPresentacion: string | null;
+  clasificacionGlobal?: string;
 }
 
 // Interfaz para documentos de postulación

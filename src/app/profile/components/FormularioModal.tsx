@@ -11,6 +11,7 @@ interface FormularioModalProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datosFormulario?: Record<string, any> | null;
   readOnly?: boolean;
+  candidateId?: string;
 }
 
 export default function FormularioModal({
@@ -18,6 +19,7 @@ export default function FormularioModal({
   onClose,
   datosFormulario = null,
   readOnly = false,
+  candidateId,
 }: FormularioModalProps) {
   const { user } = useAuthStore();
   const modalRef = useRef<HTMLDivElement>(null);
@@ -201,7 +203,7 @@ export default function FormularioModal({
 
       // Llamar a la acción del servidor
       const result = await guardarDatosFormulario(
-        user?.id || "",
+        candidateId || user?.id || "",
         completeFormData
       );
       if (result.success) {

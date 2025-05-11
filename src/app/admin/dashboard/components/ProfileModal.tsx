@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Phone, Mail, FileText, Play, X, Pause } from "lucide-react";
+import { Phone, Mail, FileText, Play, X, Pause, Edit } from "lucide-react";
+import Link from "next/link";
 import ProfileModalSkeleton from "./ProfileModalSkeleton";
 import { getProfile } from "../actions/profile.actions";
 import { useNotificationStore } from "@/store/notifications.store";
@@ -7,6 +8,7 @@ import { PerfilCompleto } from "@/app/types/profile";
 import ViewFormularioModal from "./ViewFormularioModal";
 import ImageViewer from "./ImageViewer";
 import PDFDownloadButton from "./PDFDownloadButton";
+import AdminExperienceManager from "./AdminExperienceManager";
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -23,11 +25,13 @@ export default function ProfileModal({
   const [activeTab, setActiveTab] = useState<"experience" | "education">(
     "experience"
   );
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [profile, setProfile] = useState<PerfilCompleto | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
   const [isFormularioModalOpen, setIsFormularioModalOpen] =
+    useState<boolean>(false);
+  const [isExperienceModalOpen, setIsExperienceModalOpen] =
     useState<boolean>(false);
 
   useEffect(() => {
@@ -69,9 +73,14 @@ export default function ProfileModal({
     !profile?.datosPersonales.nombre ||
     !profile?.datosPersonales.apellido ||
     !profile?.datosPersonales.telefono ||
-    !profile?.datosPersonales.correo;
-
-  console.log("ProfileModal", profile);
+    !profile?.datosPersonales.correo ||
+    !profile?.datosFormulario ||
+    !profile?.educacion.length ||
+    !profile?.experiencia.length ||
+    !profile?.habilidades.length ||
+    !profile?.archivos.videoPresentacion ||
+    !profile?.archivos.imagenTestVelocidad ||
+    !profile?.archivos.imagenRequerimientosPC;
 
   if (isLoading || !profile) {
     return <ProfileModalSkeleton isOpen={isOpen} onClose={onClose} />;
@@ -81,13 +90,13 @@ export default function ProfileModal({
     <>
       <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[rgba(0,0,0,0.5)]">
         <div
-          className="relative bg-white w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto rounded-lg custom-scrollbar"
+          className="relative p-4 bg-white w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto rounded-lg custom-scrollbar"
           style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
         >
           {/* Botón de cerrar */}
           <button
             onClick={onClose}
-            className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 cursor-pointer z-10"
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 cursor-pointer z-10"
           >
             <X size={20} />
           </button>
@@ -97,7 +106,7 @@ export default function ProfileModal({
               {/* Mensaje de perfil incompleto */}
               {isProfileIncomplete && (
                 <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-2">
-                  Perfil incompleto: Faltan datos personales.
+                  Profile incomplete: Missing data.
                 </div>
               )}
               {/* Contact Info Card */}
@@ -107,10 +116,10 @@ export default function ProfileModal({
                     <div>
                       <h1 className="text-xl font-medium text-[#0097B2] mb-2">
                         {profile.datosPersonales.nombre || (
-                          <span className="text-gray-400">Sin nombre</span>
+                          <span className="text-gray-400">No name</span>
                         )}{" "}
                         {profile.datosPersonales.apellido || (
-                          <span className="text-gray-400">Sin apellido</span>
+                          <span className="text-gray-400">No last name</span>
                         )}
                       </h1>
                       <h2 className="font-medium text-gray-900 mb-3">
@@ -118,9 +127,19 @@ export default function ProfileModal({
                       </h2>
                     </div>
 
-                    {!isProfileIncomplete && (
-                      <PDFDownloadButton profile={profile} />
-                    )}
+                    <div className="flex space-x-2">
+                      <Link
+                        href={`/admin/dashboard/candidates/${candidateId}`}
+                        className="flex items-center justify-center px-3 py-1.5 bg-[#0097B2] text-white rounded-md hover:bg-[#007a8f] transition-colors"
+                      >
+                        <Edit size={16} className="mr-1.5" />
+                        <span>Administrar perfil</span>
+                      </Link>
+
+                      {!isProfileIncomplete && (
+                        <PDFDownloadButton profile={profile} />
+                      )}
+                    </div>
                   </div>
                   <hr className="border-[#E2E2E2] my-2" />
                   <div className="space-y-3">
@@ -248,7 +267,7 @@ export default function ProfileModal({
                       onClick={() => setActiveTab("experience")}
                       style={{ cursor: "pointer" }}
                     >
-                      <span className="text-lg font-medium">Education</span>
+                      <span className="text-lg font-medium">Experience</span>
                     </div>
 
                     {/* Educación */}
@@ -266,6 +285,18 @@ export default function ProfileModal({
 
                     {/* Resto del borde superior */}
                     <div className="flex-grow border-b border-gray-300" />
+
+                    {/* Botón de edición de experiencia en la esquina derecha */}
+                    <div className="border-b border-gray-300 flex items-center">
+                      <button
+                        onClick={() => setIsExperienceModalOpen(true)}
+                        className="ml-2 flex items-center text-[#0097B2] hover:text-[#007d8a] px-2"
+                        title="Editar experiencias"
+                      >
+                        <Edit size={16} className="mr-1" />
+                        <span className="text-sm">Editar</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Segunda sección - Panel con contenido */}
@@ -357,6 +388,29 @@ export default function ProfileModal({
         datosFormulario={profile.datosFormulario}
         name={`${profile.datosPersonales.nombre} ${profile.datosPersonales.apellido}`}
       />
+
+      {/* Modal de Experiencia */}
+      {isExperienceModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[rgba(0,0,0,0.5)]">
+          <div
+            className="relative bg-white w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto rounded-lg custom-scrollbar"
+            style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+          >
+            <button
+              onClick={() => setIsExperienceModalOpen(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 cursor-pointer z-10"
+            >
+              <X size={20} />
+            </button>
+            <div className="p-6">
+              <h2 className="text-xl font-medium text-[#0097B2] mb-4">
+                Gestionar Experiencia
+              </h2>
+              <AdminExperienceManager candidateId={candidateId} />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
