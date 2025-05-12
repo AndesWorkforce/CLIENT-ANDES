@@ -6,19 +6,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileHeader from "../../components/ProfileHeader";
 
 interface CandidateDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     tab?: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({
   params,
 }: CandidateDetailPageProps): Promise<Metadata> {
   try {
-    const { data } = await getProfile(params.id);
+    const { id } = await params;
+    const { data } = await getProfile(id);
 
     if (!data) {
       return {
@@ -30,6 +31,7 @@ export async function generateMetadata({
       title: `${data.data.datosPersonales.nombre} ${data.data.datosPersonales.apellido} - Panel de Administración`,
     };
   } catch (error) {
+    console.error("[CandidateDetailPage] Error generating metadata:", error);
     return {
       title: "Candidato - Panel de Administración",
     };
@@ -40,8 +42,8 @@ export default async function CandidateDetailPage({
   params,
   searchParams,
 }: CandidateDetailPageProps) {
-  const { id } = params;
-  const { tab = "experiences" } = searchParams;
+  const { id } = await params;
+  const { tab = "experiences" } = await searchParams;
   const response = await getProfile(id);
 
   if (!response.success || !response.data) {

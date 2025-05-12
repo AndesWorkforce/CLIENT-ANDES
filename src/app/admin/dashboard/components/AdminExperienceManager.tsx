@@ -185,7 +185,6 @@ export default function AdminExperienceManager({
         onClose={handleCloseModal}
         onSave={handleSaveExperience}
         experienceData={currentExperience}
-        candidateId={candidateId}
       />
     </div>
   );

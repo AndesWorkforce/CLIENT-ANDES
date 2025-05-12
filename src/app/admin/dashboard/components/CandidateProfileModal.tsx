@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X, Phone, Mail, FileText, Trash2, Edit, Info } from "lucide-react";
+import { X, Phone, Mail, FileText, Edit } from "lucide-react";
 import { useCandidateProfile } from "../context/CandidateProfileContext";
 import ProfileModalSkeleton from "./ProfileModalSkeleton";
 import ViewFormularioModal from "./ViewFormularioModal";
@@ -71,7 +71,7 @@ export default function CandidateProfileModal({
   const hasLoadedRef = useRef(false);
   const [manualReload, setManualReload] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
-
+  console.log("errorCount", errorCount);
   const validateCandidateProfile = useCallback(async () => {
     const response = await candidateValidationProfile(candidateId);
     if (response.success) {

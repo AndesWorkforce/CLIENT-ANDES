@@ -19,7 +19,6 @@ import CandidateProfileModal from "../components/CandidateProfileModal";
 import { CandidateProfileProvider } from "../context/CandidateProfileContext";
 import CreateApplicantModal from "../components/CreateApplicantModal";
 import AssignApplicationModal from "../components/AssignApplicationModal";
-import Link from "next/link";
 import TableSkeleton from "../components/TableSkeleton";
 import ActivityLogModal from "../components/ActivityLogModal";
 import { useNotificationStore } from "@/store/notifications.store";

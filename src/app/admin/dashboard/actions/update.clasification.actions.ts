@@ -8,7 +8,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 interface ApiResponse {
   success: boolean;
   message?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error?: any;
 }
 
@@ -112,6 +114,7 @@ export async function createApplicant(
         error: response.data.error,
       };
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error creating applicant:", error.response || error);
 

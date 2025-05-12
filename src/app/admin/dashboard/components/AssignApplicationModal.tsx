@@ -33,6 +33,8 @@ export default function AssignApplicationModal({
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [selectedJob, setSelectedJob] = useState<Offer | null>(null);
+  console.log("candidateId", selectedJob);
+  console.log("isSearching", isSearching);
   const { addNotification } = useNotificationStore();
   const observer = useRef<IntersectionObserver | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);

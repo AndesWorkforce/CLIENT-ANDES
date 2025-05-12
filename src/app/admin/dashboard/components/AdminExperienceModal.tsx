@@ -17,7 +17,6 @@ interface AdminExperienceModalProps {
   onClose: () => void;
   onSave: (data: AdminExperience) => Promise<void>;
   experienceData?: AdminExperience;
-  candidateId: string;
 }
 
 export default function AdminExperienceModal({
@@ -25,7 +24,6 @@ export default function AdminExperienceModal({
   onClose,
   experienceData,
   onSave,
-  candidateId,
 }: AdminExperienceModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [atPresent, setAtPresent] = useState(experienceData?.esActual || false);

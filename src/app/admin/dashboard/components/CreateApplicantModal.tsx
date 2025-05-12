@@ -65,6 +65,8 @@ export default function CreateApplicantModal({
       // Extraer confirmContrasena ya que no se envía al API
       const { confirmContrasena, ...applicantData } = data;
 
+      console.log(confirmContrasena);
+
       // Llamar a la API para crear el postulante
       const response = await createApplicant(applicantData);
 

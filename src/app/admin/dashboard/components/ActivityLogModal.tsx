@@ -1,3 +1,5 @@
+//
+
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
@@ -15,6 +17,7 @@ interface Log {
   fechaEvento: string;
   propuesta?: Propuesta;
   creadoPor: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datosAdicionales?: Record<string, any>;
 }
 
@@ -33,6 +36,7 @@ export default function ActivityLogModal({
 }: ActivityLogModalProps) {
   const [logs, setLogs] = useState<Log[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [postulante, setPostulante] = useState<any>(null);
   const [totalRegistros, setTotalRegistros] = useState<number>(0);
   const { addNotification } = useNotificationStore();
@@ -79,6 +83,7 @@ export default function ActivityLogModal({
         minute: "2-digit",
       }).format(date);
     } catch (e) {
+      console.error("[ActivityLogModal] Error formatting date:", e);
       return dateString;
     }
   };
@@ -132,7 +137,7 @@ export default function ActivityLogModal({
               {postulante
                 ? `${postulante.nombre} ${postulante.apellido}`
                 : candidateName}
-              's activity
+              &apos;s activity
             </p>
           )}
           {totalRegistros > 0 && (
