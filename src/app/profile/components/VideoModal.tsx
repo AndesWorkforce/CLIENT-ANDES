@@ -252,7 +252,7 @@ export default function VideoModal({
             <label htmlFor="terms" className="text-xs text-gray-600">
               Disclosure: by sharing your personal video with Andes Workforce
               you agree to share your personal information and resume with your
-              potential employer in efforts to find you a long-term job.
+              potential clients in efforts to award you a contract.
             </label>
           </div>
 
@@ -522,25 +522,6 @@ export default function VideoModal({
                       go a little more polished. If it`&lsquo;`s a startup or
                       creative role, you can keep it more relaxed (but still
                       tidy).
-                    </span>
-                  </li>
-                </ul>
-
-                <h4 className="font-medium text-sm">Hair & Grooming</h4>
-                <ul className="list-none space-y-1 ml-4 text-sm">
-                  <li className="flex items-start font-light">
-                    <span className="mr-2">-</span>
-                    <span>
-                      {" "}
-                      Clean, brushed hair and light grooming go a long way.
-                    </span>
-                  </li>
-                  <li className="flex items-start font-light">
-                    <span className="mr-2">-</span>
-                    <span>
-                      No need to overdo makeup (if you wear it), but a bit of
-                      polish helps on camera—just enough to look like you’d show
-                      up to a video call ready.
                     </span>
                   </li>
                 </ul>

@@ -143,7 +143,7 @@ export default function EducationModal({
         <div className="flex items-center p-4 relative">
           <div className="w-6"></div>
           <h2 className="text-lg font-medium w-full text-center text-[#0097B2]">
-            Educación
+            Education
           </h2>
           <button
             onClick={onClose}

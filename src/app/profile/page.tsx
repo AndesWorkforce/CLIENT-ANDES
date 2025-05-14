@@ -114,7 +114,8 @@ export default function ProfilePage() {
   };
 
   const handleSaveSkills = async (newSkills: Skill[]) => {
-    if (user?.id && newSkills.length > 0) {
+    // Verificamos que tenemos un usuario y al menos un skill con texto
+    if (user?.id && newSkills.length > 0 && newSkills[0].nombre.trim()) {
       try {
         setIsUpdatingSkills(true);
 
@@ -123,16 +124,14 @@ export default function ProfilePage() {
         if (result.success) {
           setShowSkillsModal(false);
         } else {
-          alert(`Error updating skills: ${result.message}`);
+          alert(`Error al actualizar habilidades: ${result.message}`);
         }
       } catch (error) {
-        console.error("[ProfilePage] Error updating skills:", error);
-        alert("An unexpected error occurred while updating skills");
+        console.error("[ProfilePage] Error actualizando habilidades:", error);
+        alert("Ocurrió un error inesperado al actualizar las habilidades");
       } finally {
         setIsUpdatingSkills(false);
       }
-    } else if (newSkills.length > 0) {
-      setShowSkillsModal(false);
     } else {
       setShowSkillsModal(false);
     }
@@ -393,6 +392,22 @@ export default function ProfilePage() {
           </div>
         </div>
       </header>
+
+      {isVisibleNotification && (
+        <div className="md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8 bg-green-50 p-4 my-4 rounded-lg">
+          <div className="flex items-center mb-1">
+            <Info className="text-green-500 mr-2" size={18} />
+            <h3 className="font-medium text-green-800 ">
+              Your profile is complete
+            </h3>
+          </div>
+          <Link href={`/pages/offers`}>
+            <p className="text-sm text-green-600">
+              Visit the Available Contracts page
+            </p>
+          </Link>
+        </div>
+      )}
 
       {/* Información importante */}
       {!isVisibleNotification && (
@@ -679,7 +694,7 @@ export default function ProfilePage() {
               onClick={() => setActiveTab("experiencia")}
               style={{ cursor: "pointer" }}
             >
-              <span className="text-lg font-medium">Experience</span>
+              <span className="text-lg font-medium">Job Experience</span>
             </div>
 
             {/* Educación */}
@@ -1180,7 +1195,7 @@ export default function ProfilePage() {
                   style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
                 >
                   <span className="text-gray-800 font-medium">
-                    Experience doing this service
+                    Job Experience
                   </span>
                   <div
                     className="w-10 h-10 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"

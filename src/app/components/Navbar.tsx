@@ -107,6 +107,17 @@ export default function Navbar() {
     <>
       <div className="px-4 py-3 border-b border-gray-100">
         <p className="text-[#0097B2] font-medium text-sm">
+          {isValidProfileUserState !== undefined && (
+            <span
+              className={`text-[10px] block ${
+                isValidProfileUserState ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              {isValidProfileUserState
+                ? "Profile Completed"
+                : "Profile Incomplete"}
+            </span>
+          )}
           {user?.nombre || ""} {user?.apellido || ""}
         </p>
       </div>
@@ -117,21 +128,7 @@ export default function Navbar() {
         onClick={() => setShowUserMenu(false)}
       >
         <UserCircle size={16} className="mr-2 text-[#0097B2]" />
-        <div className="relative">
-          My Profile
-          {isValidProfileUserState !== undefined && (
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 6 6"
-              fill={isValidProfileUserState ? "#10B981" : "#EF4444"}
-              xmlns="http://www.w3.org/2000/svg"
-              className="absolute -top-2 -right-2"
-            >
-              <circle cx="3" cy="3" r="3" />
-            </svg>
-          )}
-        </div>
+        <div className="relative">My Profile</div>
       </Link>
 
       <Link
@@ -202,7 +199,7 @@ export default function Navbar() {
               <>
                 <button
                   type="button"
-                  className="bg-[#0097B2] text-white w-full max-w-[100px] py-1 px-1 rounded-[5px] text-[12px] hover:underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer m-0"
+                  className="bg-[#0097B2] text-white w-full max-w-[100px] py-1 px-1 rounded-[5px] text-[16px] hover:underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer m-0"
                   onClick={() => router.push("/auth/login")}
                 >
                   Login
@@ -266,6 +263,19 @@ export default function Navbar() {
                         <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                           <div className="px-4 py-3 border-b border-gray-100">
                             <p className="text-[#0097B2] font-medium text-sm cursor-default">
+                              {isValidProfileUserState !== undefined && (
+                                <span
+                                  className={`text-[10px] block ${
+                                    isValidProfileUserState
+                                      ? "text-green-500"
+                                      : "text-red-500"
+                                  }`}
+                                >
+                                  {isValidProfileUserState
+                                    ? "Completed"
+                                    : "Incomplete"}
+                                </span>
+                              )}
                               {user?.nombre || ""} {user?.apellido || ""}
                             </p>
                           </div>
@@ -395,6 +405,17 @@ export default function Navbar() {
             <div className="p-2">
               <div className="flex flex-col space-y-1 py-2">
                 <p className="px-4 text-[#0097B2] font-medium">
+                  {isValidProfileUserState !== undefined && (
+                    <span
+                      className={`text-[10px] block ${
+                        isValidProfileUserState
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {isValidProfileUserState ? "Completed" : "Incomplete"}
+                    </span>
+                  )}
                   {user?.nombre || ""} {user?.apellido || ""}
                 </p>
 

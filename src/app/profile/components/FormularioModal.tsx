@@ -48,7 +48,7 @@ export default function FormularioModal({
       "How much RAM is available on your computer?",
       "How many monitors do you currently have/use for work?",
       "What type of headset do you currently have? How does it connect with your computer?",
-      "What unique qualities make your service stand out?",
+      "What unique qualities make your services stand out?",
       "What 3 words best describe you and why?",
       "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
       "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
@@ -102,7 +102,7 @@ export default function FormularioModal({
           "What type of headset do you currently want? How does it connect with your computer?"
         ]
       ) {
-        formDataCleaned["What unique qualities make your service stand out?"] =
+        formDataCleaned["What unique qualities make your services stand out?"] =
           datosFormulario[
             "What type of headset do you currently want? How does it connect with your computer?"
           ];
@@ -509,6 +509,15 @@ export default function FormularioModal({
               Please run a speed test on your computer: what is the current
               upload speed?
               <span className="text-red-500">*</span>
+              <a
+                href="https://www.speedtest.net/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline"
+              >
+                {" "}
+                Run a speed test
+              </a>
             </label>
             <input
               type="text"
@@ -534,6 +543,15 @@ export default function FormularioModal({
               Please run a speed test on your computer: what is the current
               download speed?
               <span className="text-red-500">*</span>
+              <a
+                href="https://www.speedtest.net/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline"
+              >
+                {" "}
+                Run a speed test
+              </a>
             </label>
             <input
               type="text"
@@ -627,7 +645,7 @@ export default function FormularioModal({
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              What unique qualities make your service stand out?
+              What unique qualities make your services stand out?
               <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -637,12 +655,12 @@ export default function FormularioModal({
               disabled={readOnly}
               value={
                 formData[
-                  "What unique qualities make your service stand out?"
+                  "What unique qualities make your services stand out?"
                 ] || ""
               }
               onChange={(e) =>
                 handleInputChange(
-                  "What unique qualities make your service stand out?",
+                  "What unique qualities make your services stand out?",
                   e.target.value
                 )
               }

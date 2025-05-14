@@ -218,25 +218,19 @@ export default function AdminDashboardPage() {
       if (offerData.id) {
         const response = await updateOffer(offerData.id, formData);
         if (response.success) {
-          addNotification("Oferta actualizada correctamente", "success");
+          addNotification("Offer updated successfully", "success");
 
           // Recargar ofertas
           await fetchPublishedOffers();
         } else {
-          addNotification(
-            `Error al actualizar oferta: ${response.message}`,
-            "error"
-          );
+          addNotification(`Error updating offer: ${response.message}`, "error");
         }
       } else {
-        addNotification(
-          "Función de crear nueva oferta no implementada",
-          "warning"
-        );
+        addNotification("Create new offer function not implemented", "warning");
       }
     } catch (error) {
-      console.error("Error al guardar oferta:", error);
-      addNotification("Error al guardar oferta", "error");
+      console.error("Error saving offer:", error);
+      addNotification("Error saving offer", "error");
     }
   };
 

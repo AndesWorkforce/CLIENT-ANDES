@@ -20,13 +20,14 @@ export default function SkillsModal({
   isLoading = false,
 }: SkillsModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [skills, setSkills] = useState<Skill[]>(initialSkills);
-  const [inputValue, setInputValue] = useState<string>("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [skillText, setSkillText] = useState<string>(
+    initialSkills.length > 0 ? initialSkills[0]?.nombre || "" : ""
+  );
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+    if (isOpen && textareaRef.current) {
+      textareaRef.current.focus();
     }
   }, [isOpen]);
 
@@ -36,36 +37,13 @@ export default function SkillsModal({
     }
   };
 
-  const handleAddSkill = () => {
-    if (
-      inputValue.trim() &&
-      !skills.some((skill) => skill.nombre === inputValue.trim())
-    ) {
-      setSkills([
-        ...skills,
-        { id: Date.now().toString(), nombre: inputValue.trim() },
-      ]);
-      setInputValue("");
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddSkill();
-    }
-  };
-
-  const handleRemoveSkill = (skillToRemove: Skill) => {
-    setSkills(skills.filter((skill) => skill.id !== skillToRemove.id));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim()) {
-      handleAddSkill();
+    const trimmedText = skillText.trim();
+    if (trimmedText) {
+      // Enviamos un array con un solo elemento para mantener compatibilidad
+      onSave([{ id: Date.now().toString(), nombre: trimmedText }]);
     }
-    onSave(skills);
   };
 
   if (!isOpen) return null;
@@ -94,52 +72,27 @@ export default function SkillsModal({
         <form onSubmit={handleSubmit} className="px-4 py-4 space-y-4">
           <div>
             <label className="block text-gray-700 mb-3">
-              Add your skills<span className="text-red-500">*</span>
+              Describe tus habilidades<span className="text-red-500">*</span>
             </label>
 
-            <div className="border border-gray-300 rounded-md min-h-[200px] p-3 focus-within:ring-1 focus-within:ring-[#0097B2] focus-within:border-[#0097B2]">
-              <div className="flex flex-wrap gap-2">
-                {skills.map((skill) => (
-                  <div
-                    key={skill.id}
-                    className="flex items-center bg-[#0097B2] text-white px-3 py-1 rounded-md"
-                  >
-                    <span>{skill.nombre}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(skill)}
-                      className="ml-2 focus:outline-none cursor-pointer"
-                      disabled={isLoading}
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ))}
-
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="flex-grow min-w-[150px] outline-none border-0 py-1 px-0"
-                  placeholder={
-                    skills.length === 0
-                      ? "Type your skills and press Enter"
-                      : ""
-                  }
-                  disabled={isLoading}
-                />
-              </div>
+            <div className="border border-gray-300 rounded-md min-h-[200px] focus-within:ring-1 focus-within:ring-[#0097B2] focus-within:border-[#0097B2]">
+              <textarea
+                ref={textareaRef}
+                value={skillText}
+                onChange={(e) => setSkillText(e.target.value)}
+                className="w-full h-full min-h-[200px] p-3 outline-none resize-none"
+                placeholder="Describe todas tus habilidades aquí"
+                disabled={isLoading}
+              />
             </div>
           </div>
 
           <div className="flex flex-col space-y-2">
             <button
               type="submit"
-              disabled={skills.length === 0 || isLoading}
+              disabled={skillText.trim().length === 0 || isLoading}
               className={`w-full py-2.5 px-6 rounded-md font-medium cursor-pointer flex items-center justify-center ${
-                skills.length === 0 || isLoading
+                skillText.trim().length === 0 || isLoading
                   ? "bg-gray-300 text-gray-700 cursor-not-allowed"
                   : "bg-[#0097B2] hover:bg-[#0097B2]/80 text-white"
               }`}
@@ -147,10 +100,10 @@ export default function SkillsModal({
               {isLoading ? (
                 <>
                   <Loader2 size={20} className="mr-2 animate-spin" />
-                  Saving...
+                  Guardando...
                 </>
               ) : (
-                "Save"
+                "Guardar"
               )}
             </button>
             <button
@@ -159,7 +112,7 @@ export default function SkillsModal({
               className="text-[#0097B2] hover:text-[#0097B2]/80 py-1 cursor-pointer"
               disabled={isLoading}
             >
-              Cancel
+              Cancelar
             </button>
           </div>
         </form>

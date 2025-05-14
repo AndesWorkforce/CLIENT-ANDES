@@ -76,7 +76,11 @@ export default function LoginForm() {
           localStorage.removeItem(REMEMBER_KEY);
         }
 
-        router.push("/pages/offers");
+        if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
+          router.push("/profile");
+        } else {
+          router.push("/pages/offers");
+        }
       } else {
         addNotification(result.error || "Error logging in", "error");
       }

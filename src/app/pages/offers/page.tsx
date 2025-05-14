@@ -33,6 +33,8 @@ export default function JobOffersPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isValidProfileUserState, setIsValidProfileUserState] =
     useState<boolean>(false);
+  const [appliedOfferIds, setAppliedOfferIds] = useState<string[]>([]);
+  const [showCentralNotification, setShowCentralNotification] = useState(false);
 
   const isValidProfileUser = async () => {
     try {
@@ -75,7 +77,17 @@ export default function JobOffersPage() {
     if (!offerId) return;
     const { success, message } = await applyToOffer(offerId);
     if (success) {
-      addNotification("Successfully applied to the job", "success");
+      const newAppliedOffers = [...appliedOfferIds, offerId];
+      setAppliedOfferIds(newAppliedOffers);
+
+      localStorage.setItem(
+        `applied_offers_${user?.id}`,
+        JSON.stringify(newAppliedOffers)
+      );
+
+      setShowCentralNotification(true);
+
+      setTimeout(() => setShowCentralNotification(false), 3000);
     } else {
       if (message === "Ya te has postulado a esta propuesta") {
         addNotification("You have already applied to this job", "info");
@@ -118,6 +130,23 @@ export default function JobOffersPage() {
   useEffect(() => {
     if (user) {
       isValidProfileUser();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.id) {
+      const storedAppliedOffers = localStorage.getItem(
+        `applied_offers_${user.id}`
+      );
+      if (storedAppliedOffers) {
+        try {
+          const parsedOffers = JSON.parse(storedAppliedOffers);
+          setAppliedOfferIds(parsedOffers);
+        } catch (error) {
+          console.error("Error al parsear ofertas aplicadas:", error);
+          setAppliedOfferIds([]);
+        }
+      }
     }
   }, [user]);
 
@@ -563,7 +592,11 @@ export default function JobOffersPage() {
                 {!user?.rol.includes("ADMIN") &&
                   !user?.rol.includes("EMPLEADO_ADMIN") && (
                     <button
-                      className="bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] text-white px-6 py-3 rounded-md text-[16px] font-[600] transition-all hover:shadow-lg w-full cursor-pointer"
+                      className={`${
+                        appliedOfferIds.includes(selectedJob?.id || "")
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] hover:shadow-lg cursor-pointer"
+                      } text-white px-6 py-3 rounded-md text-[16px] font-[600] transition-all w-full`}
                       onClick={() => {
                         if (!user) {
                           addNotification(
@@ -573,10 +606,15 @@ export default function JobOffersPage() {
                           router.push("/auth/login");
                           return;
                         }
-                        handleApplyToOffer(selectedJob.id || "");
+                        if (!appliedOfferIds.includes(selectedJob?.id || "")) {
+                          handleApplyToOffer(selectedJob?.id || "");
+                        }
                       }}
+                      disabled={appliedOfferIds.includes(selectedJob?.id || "")}
                     >
-                      Apply
+                      {appliedOfferIds.includes(selectedJob?.id || "")
+                        ? "Applied"
+                        : "Apply"}
                     </button>
                   )}
               </div>
@@ -595,6 +633,39 @@ export default function JobOffersPage() {
           onClose={() => setIsViewModalOpen(false)}
           offer={offerToView}
         />
+      )}
+
+      {showCentralNotification && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4 text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-10 w-10 text-green-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Your application has been submitted
+            </h3>
+            {/* <p className="text-gray-600">{centralNotificationMessage}</p> */}
+            <button
+              className="mt-6 bg-[#0097B2] text-white px-5 py-2 rounded-md font-medium cursor-pointer"
+              onClick={() => setShowCentralNotification(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
