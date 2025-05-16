@@ -53,47 +53,79 @@ export default function LoginForm() {
     }
   }, [setValue]);
 
+  // Función de redirección limpia
+  const safeRedirect = (url: string) => {
+    console.log("Redirigiendo a:", url);
+    // Dar tiempo para que las cookies se establezcan completamente
+    setTimeout(() => {
+      window.location.href = url;
+    }, 500);
+  };
+
   const onSubmit = async (data: LoginFormValues) => {
     try {
       setIsSubmitting(true);
-      const result = await loginAction(data);
 
-      if (result.success) {
-        if (result.data?.redirectError) {
-          console.log(result.data?.redirectMessage);
+      // Guardar rememberMe antes de la redirección potencial
+      if (rememberMe) {
+        const encrypted = CryptoJS.AES.encrypt(data.correo, SECRET).toString();
+        localStorage.setItem(REMEMBER_KEY, encrypted);
+      } else {
+        localStorage.removeItem(REMEMBER_KEY);
+      }
+
+      // Implementar detección de redirección para producción
+      try {
+        const result = await loginAction(data);
+
+        if (result.success) {
           addNotification("Successfully logged in", "success");
 
-          setTimeout(() => {
-            window.location.href = "/";
-          }, 1000);
-          return;
-        }
-
-        addNotification("Successfully logged in", "success");
-        setUser(result.data?.usuario);
-        setAuthenticated(true);
-        setToken(result.data?.accessToken);
-
-        if (rememberMe) {
-          const encrypted = CryptoJS.AES.encrypt(
-            data.correo,
-            SECRET
-          ).toString();
-          localStorage.setItem(REMEMBER_KEY, encrypted);
-        } else {
-          localStorage.removeItem(REMEMBER_KEY);
-        }
-
-        setTimeout(() => {
-          if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
-            window.location.href = "/profile";
-          } else {
-            window.location.href = "/pages/offers";
+          // Si recibimos información de usuario, guardarla en el estado
+          if (result.data?.usuario) {
+            setUser(result.data.usuario);
+            setAuthenticated(true);
+            setToken(result.data?.accessToken || "");
           }
-        }, 100);
-      } else {
-        addNotification(result.error || "Error logging in", "error");
-        console.error("Error durante el inicio de sesión:", result.error);
+
+          // Si tenemos una URL de redirección explícita, usarla
+          if (result.data?.redirectUrl) {
+            safeRedirect(result.data.redirectUrl);
+            return;
+          }
+
+          // Flujo normal cuando no hay redirección externa - verificar el estado del perfil
+          // Si no tenemos información de usuario, usar la lógica estándar
+          if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
+            safeRedirect("/profile");
+          } else {
+            safeRedirect("/pages/offers");
+          }
+        } else {
+          addNotification(result.error || "Error logging in", "error");
+          console.error("Error durante el inicio de sesión:", result.error);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (loginError: any) {
+        console.log("Error detected:", loginError);
+        // Si detectamos un error que contiene información de redirección
+        if (
+          loginError.message &&
+          (loginError.message.includes("NEXT_REDIRECT") ||
+            loginError.message.includes("307") ||
+            loginError.message.includes("redirect"))
+        ) {
+          // La API respondió con una redirección - es un inicio de sesión exitoso
+          addNotification("Successfully logged in", "success");
+
+          // Redirigir a profile por defecto cuando no estamos seguros
+          // Esta es la opción más segura ya que profile verificará si el perfil está completo
+          console.log("Redirection detected, handling gracefully");
+          safeRedirect("/profile");
+        } else {
+          // Otro tipo de error
+          throw loginError;
+        }
       }
     } catch (error) {
       console.error("Error in the form:", error);
