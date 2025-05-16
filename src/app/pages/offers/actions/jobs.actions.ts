@@ -64,11 +64,18 @@ export async function applyToOffer(offerId: string) {
 export async function userIsAppliedToOffer(userId: string) {
   const axios = await createServerAxios();
   try {
-    const response = await axios.get(`users/${userId}/profile-status`, {
-      headers: {
-        "Cache-Control": "no-cache",
-      },
-    });
+    const timestamp = new Date().getTime();
+    const response = await axios.get(
+      `users/${userId}/profile-status?timestamp=${timestamp}`,
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      }
+    );
 
     if (response.status !== 200) {
       return {

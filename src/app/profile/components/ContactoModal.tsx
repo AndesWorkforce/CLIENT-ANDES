@@ -86,7 +86,7 @@ export default function ContactoModal({
           "https://restcountries.com/v3.1/all?fields=name,cca2,cca3,flags,capital,region"
         );
         if (!response.ok) {
-          throw new Error("Error al obtener la lista de países");
+          throw new Error("Error fetching countries");
         }
         const data = await response.json();
         // Ordenar países por nombre común
@@ -96,7 +96,7 @@ export default function ContactoModal({
         setCountries(sortedCountries);
       } catch (error) {
         console.error("Error fetching countries:", error);
-        addNotification("Error al cargar la lista de países", "error");
+        addNotification("Error fetching countries", "error");
       } finally {
         setLoading(false);
       }
@@ -141,7 +141,7 @@ export default function ContactoModal({
 
   const onSubmit = async (data: ContactoFormValues) => {
     if (!user?.id) {
-      addNotification("Usuario no autenticado", "error");
+      addNotification("User not authenticated", "error");
       return;
     }
 
@@ -152,21 +152,15 @@ export default function ContactoModal({
         data
       );
       if (response.success) {
-        addNotification(
-          "Información de contacto actualizada con éxito",
-          "success"
-        );
+        addNotification("Contact information updated successfully", "success");
         onClose();
         reset();
       } else {
         addNotification(response.message, "error");
       }
     } catch (error) {
-      console.error("Error al actualizar la información de contacto:", error);
-      addNotification(
-        "Error al actualizar la información de contacto",
-        "error"
-      );
+      console.error("Error updating contact information:", error);
+      addNotification("Error updating contact information", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -180,9 +174,7 @@ export default function ContactoModal({
     <div className="fixed inset-0 z-50 bg-[rgba(0,0,0,0.5)] bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">
-            Información de Contacto
-          </h2>
+          <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-4">
               <div>
@@ -190,7 +182,7 @@ export default function ContactoModal({
                   htmlFor="telefono"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Teléfono
+                  Phone
                 </label>
                 <input
                   id="telefono"
@@ -213,7 +205,7 @@ export default function ContactoModal({
                   htmlFor="residencia"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Residencia o Dirección
+                  Residence or Address
                 </label>
                 <input
                   id="residencia"
@@ -236,7 +228,7 @@ export default function ContactoModal({
                   htmlFor="pais"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  País
+                  Country
                 </label>
                 <div className="relative">
                   <select
@@ -248,7 +240,7 @@ export default function ContactoModal({
                     }`}
                     disabled={loading}
                   >
-                    <option value="">Selecciona un país</option>
+                    <option value="">Select a country</option>
                     {countries.map((country) => (
                       <option key={country.cca3} value={country.name.common}>
                         {country.name.common}
@@ -270,12 +262,10 @@ export default function ContactoModal({
 
               {selectedCountry && watch("paisImagen") && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">
-                    Bandera seleccionada:
-                  </span>
+                  <span className="text-sm text-gray-600">Selected flag:</span>
                   <img
                     src={watch("paisImagen")}
-                    alt={`Bandera de ${selectedCountry}`}
+                    alt={`Flag of ${selectedCountry}`}
                     className="h-6 w-auto"
                   />
                 </div>
@@ -292,14 +282,14 @@ export default function ContactoModal({
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
                 disabled={isSubmitting}
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 type="submit"
                 className="px-4 py-2 bg-[#0097B2] text-white rounded-md hover:bg-[#007d8a] cursor-pointer"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Guardando..." : "Guardar"}
+                {isSubmitting ? "Saving..." : "Save"}
               </button>
             </div>
           </form>

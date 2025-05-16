@@ -72,7 +72,7 @@ export default function SkillsModal({
         <form onSubmit={handleSubmit} className="px-4 py-4 space-y-4">
           <div>
             <label className="block text-gray-700 mb-3">
-              Describe tus habilidades<span className="text-red-500">*</span>
+              Describe your skills<span className="text-red-500">*</span>
             </label>
 
             <div className="border border-gray-300 rounded-md min-h-[200px] focus-within:ring-1 focus-within:ring-[#0097B2] focus-within:border-[#0097B2]">
@@ -100,10 +100,10 @@ export default function SkillsModal({
               {isLoading ? (
                 <>
                   <Loader2 size={20} className="mr-2 animate-spin" />
-                  Guardando...
+                  Saving...
                 </>
               ) : (
-                "Guardar"
+                "Save"
               )}
             </button>
             <button
@@ -112,7 +112,7 @@ export default function SkillsModal({
               className="text-[#0097B2] hover:text-[#0097B2]/80 py-1 cursor-pointer"
               disabled={isLoading}
             >
-              Cancelar
+              Cancel
             </button>
           </div>
         </form>

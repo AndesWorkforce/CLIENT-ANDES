@@ -347,7 +347,9 @@ export default function ProfilePage() {
     profile.experiencia.length > 0 &&
     profile.educacion.length > 0 &&
     Boolean(profile.archivos.imagenRequerimientosPC) &&
-    Boolean(profile.archivos.imagenTestVelocidad);
+    Boolean(profile.archivos.imagenTestVelocidad) &&
+    profile.datosPersonales.telefono &&
+    profile.datosPersonales.residencia;
 
   const isVisibleNotification2 =
     !profile.archivos.imagenRequerimientosPC ||
@@ -376,15 +378,21 @@ export default function ProfilePage() {
     profile.educacion.length === 0 ||
     (!profile.datosPersonales.telefono && !profile.datosPersonales.residencia);
 
+  // Función para volver a la página principal con una actualización forzada
+  const handleGoBack = () => {
+    // Usa la API del navegador para forzar una recarga completa
+    window.location.href = "/";
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white shadow-sm mb-2">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <Link href="/" className="text-gray-700">
+            <button onClick={handleGoBack} className="text-gray-700">
               <ChevronLeft size={24} color="#0097B2" />
-            </Link>
+            </button>
             <h1 className="text-xl font-semibold">My Profile</h1>
           </div>
           <div className="flex items-center">

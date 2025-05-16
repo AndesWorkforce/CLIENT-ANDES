@@ -48,22 +48,23 @@ export default function Navbar() {
     showMobileSidebar
   );
 
-  const isValidProfileUser = async () => {
+  const fetchAndUpdateProfileStatus = async () => {
+    if (!user?.id) return;
+
     try {
-      const response = await userIsAppliedToOffer(user?.id || "");
+      const now = new Date().getTime();
+      const response = await userIsAppliedToOffer(user.id);
 
       if (response.success) {
-        if (response.data?.perfilCompleto === "COMPLETO") {
-          setIsValidProfileUserState(true);
-        } else {
-          setIsValidProfileUserState(false);
-        }
+        const isComplete = response.data?.perfilCompleto === "COMPLETO";
+        setIsValidProfileUserState(isComplete);
+        console.log(
+          `[${now}] Perfil verificado:`,
+          isComplete ? "COMPLETO" : "INCOMPLETO"
+        );
       }
     } catch (error) {
-      console.error(
-        "[Navbar] Error al verificar el perfil del usuario:",
-        error
-      );
+      console.error("[Navbar] Error al verificar el perfil:", error);
     }
   };
 
@@ -81,9 +82,9 @@ export default function Navbar() {
 
   useEffect(() => {
     if (user) {
-      isValidProfileUser();
+      fetchAndUpdateProfileStatus();
     }
-  }, [user]);
+  }, [user, pathname]);
 
   const handleLogout = async () => {
     try {
@@ -102,7 +103,6 @@ export default function Navbar() {
     return null;
   }
 
-  // Renderizar el menú de usuario
   const renderUserMenu = () => (
     <>
       <div className="px-4 py-3 border-b border-gray-100">
@@ -167,15 +167,12 @@ export default function Navbar() {
   return (
     <header className="w-full bg-[#FCFEFF] shadow-sm z-10">
       <div className="container mx-auto px-4">
-        {/* Desktop y Mobile Header */}
         <div className="flex items-center justify-between h-20">
-          {/* Logo */}
           <div className="flex-7 flex items-center">
             <Link href="/" className="flex-shrink-0">
               <Logo />
             </Link>
 
-            {/* Navigation Links - Desktop */}
             <div className="hidden md:flex items-center space-x-8 ml-8">
               {navigation.map((item) => (
                 <Link
@@ -193,7 +190,6 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Auth Buttons - Desktop y Mobile Activar cuando se tenga el Modulo Completo */}
           <div className="flex-3 md:flex-2 flex flex-col items-center justify-center space-x-4">
             {!isAuthenticated ? (
               <>
@@ -205,7 +201,6 @@ export default function Navbar() {
                   Login
                 </button>
 
-                {/* Register link */}
                 <div className="text-center">
                   <p className="flex flex-col text-[10px] text-[#B6B4B4] m-0 mt-1">
                     Don&apos;t have an account?{" "}
@@ -279,7 +274,6 @@ export default function Navbar() {
                               {user?.nombre || ""} {user?.apellido || ""}
                             </p>
                           </div>
-                          {/* Opción de Super Admin solo visible para usuarios con rol ADMIN */}
                           {user?.rol === "ADMIN" ? (
                             <>
                               <Link
@@ -297,7 +291,6 @@ export default function Navbar() {
                             </>
                           ) : null}
 
-                          {/* Opción para volver al panel de administración */}
                           <Link
                             href="/admin/dashboard"
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
@@ -345,14 +338,11 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation Links con desplazamiento táctil */}
         <div className="md:hidden relative">
-          {/* Indicador de scroll izquierdo */}
           {showLeftShadow && (
             <div className="absolute top-0 left-0 w-8 h-full z-10 scroll-shadow-left" />
           )}
 
-          {/* Contenedor desplazable */}
           <div
             ref={scrollRef}
             className="overflow-x-auto scrollbar-hide pb-4 pt-2 -mx-4 px-4"
@@ -374,14 +364,12 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Indicador de scroll derecho */}
           {showRightShadow && (
             <div className="absolute top-0 right-0 w-8 h-full z-10 scroll-shadow-right" />
           )}
         </div>
       </div>
 
-      {/* Mobile Sidebar Activar cuando se tenga el Modulo Completo */}
       {showMobileSidebar && (
         <div
           className="fixed inset-0 bg-[#08252A33] z-50 md:hidden animate-fade-in"

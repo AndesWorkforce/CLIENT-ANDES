@@ -83,6 +83,7 @@ export default function LoginForm() {
         }
       } else {
         addNotification(result.error || "Error logging in", "error");
+        console.error("Error durante el inicio de sesión:", result.error);
       }
     } catch (error) {
       console.error("Error in the form:", error);

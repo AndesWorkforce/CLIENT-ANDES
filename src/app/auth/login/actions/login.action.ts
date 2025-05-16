@@ -16,6 +16,7 @@ export async function loginAction(values: LoginFormValues) {
     const { correo, contrasena } = values;
     const axios = await createServerAxios();
 
+    // Configuración para manejar mejor las respuestas de error
     const response = await axios.post("auth/login", {
       correo,
       contrasena,
@@ -63,11 +64,34 @@ export async function loginAction(values: LoginFormValues) {
         error: "Error al iniciar sesión",
       };
     }
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
     console.error("Error en el formulario:", error);
+
+    // Manejar errores específicos de la API si es posible
+    let errorMessage = "Error al iniciar sesión";
+
+    if (error.response) {
+      errorMessage =
+        error.response.data?.message ||
+        `Error ${error.response.status}: ${error.response.statusText}`;
+    } else if (error.request) {
+      errorMessage =
+        "No se pudo conectar con el servidor. Verifique su conexión.";
+    } else if (error.message) {
+      // Ignorar errores específicos de redirección
+      if (error.message === "NEXT_REDIRECT") {
+        return {
+          success: false,
+          error: "Error de redirección. Intente nuevamente.",
+        };
+      }
+      errorMessage = error.message;
+    }
+
     return {
       success: false,
-      error: "Error al iniciar sesión",
+      error: errorMessage,
     };
   }
 }
