@@ -29,31 +29,37 @@ export async function loginAction(values: LoginFormValues) {
       const userData = data.data.usuario || data.data;
       const token = data.data.accessToken || "default-token-placeholder";
 
-      // Establecer cookie para el token (HTTP-only para seguridad)
-      const cookieStore = cookies();
+      try {
+        // Establecer cookie para el token (HTTP-only para seguridad)
+        const cookieStore = cookies();
+        const cookieHandler = await cookieStore;
 
-      (await cookieStore).set({
-        name: AUTH_COOKIE,
-        value: token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: COOKIE_MAX_AGE,
-        path: "/",
-        sameSite: "strict",
-      });
+        cookieHandler.set({
+          name: AUTH_COOKIE,
+          value: token,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: COOKIE_MAX_AGE,
+          path: "/",
+          sameSite: "strict",
+        });
 
-      // Establecer cookie con información del usuario (no HTTP-only para que el cliente pueda leerla)
-      (await cookieStore).set({
-        name: USER_INFO_COOKIE,
-        value: JSON.stringify(userData),
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: COOKIE_MAX_AGE,
-        path: "/",
-        sameSite: "strict",
-      });
+        // Establecer cookie con información del usuario
+        cookieHandler.set({
+          name: USER_INFO_COOKIE,
+          value: JSON.stringify(userData),
+          httpOnly: false,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: COOKIE_MAX_AGE,
+          path: "/",
+          sameSite: "strict",
+        });
 
-      console.log("Cookies establecidas correctamente");
+        console.log("Cookies establecidas correctamente");
+      } catch (cookieError) {
+        console.error("Error al establecer cookies:", cookieError);
+      }
+
       return {
         success: true,
         data: data.data,
@@ -61,7 +67,7 @@ export async function loginAction(values: LoginFormValues) {
     } else {
       return {
         success: false,
-        error: "Error al iniciar sesión",
+        error: "Error al iniciar sesión: Respuesta inválida del servidor",
       };
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,14 +84,17 @@ export async function loginAction(values: LoginFormValues) {
     } else if (error.request) {
       errorMessage =
         "No se pudo conectar con el servidor. Verifique su conexión.";
+    } else if (error.message && error.message.includes("NEXT_REDIRECT")) {
+      // Capturar específicamente errores de redirección de Next.js
+      return {
+        success: true,
+        data: {
+          redirectError: true,
+          redirectMessage:
+            "La sesión se inició correctamente, pero hubo un problema con la redirección.",
+        },
+      };
     } else if (error.message) {
-      // Ignorar errores específicos de redirección
-      if (error.message === "NEXT_REDIRECT") {
-        return {
-          success: false,
-          error: "Error de redirección. Intente nuevamente.",
-        };
-      }
       errorMessage = error.message;
     }
 

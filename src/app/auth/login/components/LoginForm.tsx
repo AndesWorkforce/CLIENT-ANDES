@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormValues } from "../schemas/login.schema";
 import { loginAction } from "../actions/login.action";
 import { useNotificationStore } from "@/store/notifications.store";
-import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import CryptoJS from "crypto-js";
 
@@ -16,7 +15,6 @@ const REMEMBER_KEY = "andes_remembered_email";
 const SECRET = process.env.NEXT_PUBLIC_CRYPTO_KEY!; // Puedes mover esto a un env si lo deseas
 
 export default function LoginForm() {
-  const router = useRouter();
   const { setUser, setAuthenticated, setToken } = useAuthStore();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,6 +59,16 @@ export default function LoginForm() {
       const result = await loginAction(data);
 
       if (result.success) {
+        if (result.data?.redirectError) {
+          console.log(result.data?.redirectMessage);
+          addNotification("Successfully logged in", "success");
+
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 1000);
+          return;
+        }
+
         addNotification("Successfully logged in", "success");
         setUser(result.data?.usuario);
         setAuthenticated(true);
@@ -76,11 +84,13 @@ export default function LoginForm() {
           localStorage.removeItem(REMEMBER_KEY);
         }
 
-        if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
-          router.push("/profile");
-        } else {
-          router.push("/pages/offers");
-        }
+        setTimeout(() => {
+          if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
+            window.location.href = "/profile";
+          } else {
+            window.location.href = "/pages/offers";
+          }
+        }, 100);
       } else {
         addNotification(result.error || "Error logging in", "error");
         console.error("Error durante el inicio de sesión:", result.error);
