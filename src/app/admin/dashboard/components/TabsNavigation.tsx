@@ -284,7 +284,7 @@ export default function TabsNavigation() {
                   strokeLinejoin="round"
                 />
               </svg>
-              Postulants
+              Applicants
             </Link>
           </div>
         </div>

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getApplicants } from "../offers/actions/offers.actions";
-import { getProposal } from "../actions/offers.actions";
 import {
   ChevronDown,
   ChevronUp,
@@ -38,14 +37,14 @@ export type CandidateStatus = "ACTIVE" | "BLACKLIST" | "DISMISS" | "FAVORITE";
 
 interface ExtendedApplication {
   id: string;
-  propuestaId?: string;
-  title: string;
-  date: string;
+  estado: string;
+  titulo: string;
+  fecha: string;
 }
 
 interface ExtendedCandidate extends CandidatoWithPostulationId {
   isExpanded: boolean;
-  lastApplication?: ExtendedApplication;
+  lastRelevantPostulacion?: ExtendedApplication;
   applicationStatus?: string;
   clasificacionGlobal: CandidateStatus;
   activo?: boolean;
@@ -80,77 +79,6 @@ export default function PostulantsPage() {
     "remove"
   );
 
-  useEffect(() => {
-    const fetchProposalTitles = async () => {
-      if (applicants.length === 0) return;
-
-      const propuestasToFetch: string[] = [];
-
-      // Identificar solo las propuestas que necesitamos cargar
-      applicants.forEach((applicant) => {
-        if (
-          applicant.lastApplication?.propuestaId &&
-          !proposalTitles[applicant.lastApplication.propuestaId]
-        ) {
-          propuestasToFetch.push(applicant.lastApplication.propuestaId);
-        }
-      });
-
-      // Si no hay propuestas para cargar, salimos
-      if (propuestasToFetch.length === 0) return;
-
-      // Limitar la cantidad de peticiones simultáneas para no sobrecargar el servidor
-      // Procesar máximo 5 propuestas a la vez
-      const batchSize = 5;
-      for (let i = 0; i < propuestasToFetch.length; i += batchSize) {
-        const batch = propuestasToFetch.slice(i, i + batchSize);
-
-        // Procesar este lote de propuestas
-        const promises = batch.map(async (propuestaId) => {
-          try {
-            const response = await getProposal(propuestaId);
-            if (response.success && response.data) {
-              return {
-                propuestaId,
-                title:
-                  response.data.titulo ||
-                  `Propuesta ${propuestaId.substring(0, 8)}`,
-              };
-            }
-            return {
-              propuestaId,
-              title: `Propuesta ${propuestaId.substring(0, 8)}`,
-            };
-          } catch (error) {
-            console.error(`Error fetching propuesta ${propuestaId}:`, error);
-            return {
-              propuestaId,
-              title: `Propuesta ${propuestaId.substring(0, 8)}`,
-            };
-          }
-        });
-
-        const results = await Promise.all(promises);
-
-        // Actualizar títulos sin causar renderizaciones excesivas
-        setProposalTitles((prev) => {
-          const newTitles = { ...prev };
-          results.forEach(({ propuestaId, title }) => {
-            newTitles[propuestaId] = title;
-          });
-          return newTitles;
-        });
-
-        // Pequeña pausa entre lotes para no saturar el servidor
-        if (i + batchSize < propuestasToFetch.length) {
-          await new Promise((resolve) => setTimeout(resolve, 300));
-        }
-      }
-    };
-
-    fetchProposalTitles();
-  }, [applicants]);
-
   const fetchApplicants = async (page = 1, searchValue = "") => {
     setIsLoading(true);
     try {
@@ -161,89 +89,10 @@ export default function PostulantsPage() {
       );
 
       if (response.success) {
-        // Limpiar el cache de títulos cuando se realiza una nueva búsqueda
         if (searchValue && searchValue !== search) {
           setProposalTitles({});
         }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const data = (response.data?.resultados || []).map((candidato: any) => {
-          // Obtener la última postulación del candidato (ordenar por fecha de postulación descendente)
-          const postulaciones = candidato.postulaciones || [];
-
-          // Si no hay postulaciones, manejar este caso
-          if (postulaciones.length === 0) {
-            return {
-              ...candidato,
-              postulationId: candidato.postulationId || candidato.id,
-              isExpanded: false,
-              lastApplication: {
-                id: "no-app",
-                propuestaId: undefined,
-                title: "No applications",
-                date: "-",
-              },
-              applicationStatus: "PENDIENTE",
-              clasificacionGlobal: candidato.clasificacionGlobal || "ACTIVE",
-              activo: candidato.activo,
-              logs: candidato.logs || [],
-            };
-          }
-
-          // Ordenar postulaciones por fecha, de más reciente a más antigua
-          const sortedPostulaciones = [...postulaciones].sort(
-            (a, b) =>
-              new Date(b.fechaPostulacion).getTime() -
-              new Date(a.fechaPostulacion).getTime()
-          );
-
-          // Encontrar la última postulación con estado diferente a PENDIENTE
-          const lastNonPendingApplication = sortedPostulaciones.find(
-            (p) => p.estadoPostulacion !== "PENDIENTE"
-          );
-
-          // Si hay una postulación con estado diferente a PENDIENTE, usar esa
-          // Si no, usar la última postulación (independientemente de su estado)
-          const relevantApplication =
-            lastNonPendingApplication || sortedPostulaciones[0];
-
-          // Identificar el propuestaId
-          const propuestaId = relevantApplication?.propuestaId;
-
-          // Determinar el título de forma segura
-          let title = "Loading data...";
-          if (!propuestaId) {
-            title = "Unknown offer";
-          } else if (proposalTitles[propuestaId]) {
-            title = proposalTitles[propuestaId];
-          }
-
-          const lastApplication: ExtendedApplication = {
-            id: relevantApplication.id,
-            propuestaId: propuestaId,
-            title: title,
-            date: new Date(relevantApplication.fechaPostulacion)
-              .toISOString()
-              .split("T")[0],
-          };
-
-          // Obtener el estado de la aplicación relevante
-          const applicationStatus =
-            relevantApplication?.estadoPostulacion || "PENDIENTE";
-
-          return {
-            ...candidato,
-            postulationId: candidato.postulationId || candidato.id,
-            isExpanded: false,
-            lastApplication: lastApplication,
-            applicationStatus: applicationStatus,
-            clasificacionGlobal: candidato.clasificacionGlobal || "ACTIVE",
-            activo: candidato.activo,
-            logs: candidato.logs || [],
-          };
-        });
-
-        setApplicants(data);
+        setApplicants(response.data?.resultados);
         setTotalPages(response.totalPages || 1);
       } else {
         setApplicants([]);
@@ -262,8 +111,6 @@ export default function PostulantsPage() {
     fetchApplicants(currentPage, search);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, search]);
-
-  console.log("[PostulantsPage] applicants", applicants);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -319,29 +166,16 @@ export default function PostulantsPage() {
     const candidate = applicants.find((c) => c.id === candidateId);
 
     if (!candidate) {
-      console.error("No se encontró el candidato con ID:", candidateId);
-      addNotification("Error: No se encontró el candidato", "error");
+      addNotification("Error: Candidate not found", "error");
       return;
     }
 
     const candidateName = candidate.nombre || "Candidate";
-    const previousStatus = candidate.clasificacionGlobal || "ACTIVE";
-
-    // Informar para diagnóstico
-    console.log(
-      `Iniciando actualización de estado para ${candidateName} (${candidateId})`
-    );
-    console.log(`Estado actual: ${previousStatus}, Nuevo estado: ${status}`);
-    console.log(`Notas: ${notes || "No se proporcionaron notas"}`);
 
     try {
-      // Hacer la llamada a la API primero
-      console.log("Realizando llamada a updateCandidateStatus...");
       const response = await updateCandidateStatus(candidateId, status, notes);
-      console.log("Respuesta de updateCandidateStatus:", response);
 
       if (response.success) {
-        // Actualizar el estado local DESPUÉS de que la API responda exitosamente
         setApplicants((prev) =>
           prev.map((candidate) =>
             candidate.id === candidateId
@@ -350,38 +184,21 @@ export default function PostulantsPage() {
           )
         );
 
-        // Mostrar efecto visual de actualización
         setRecentlyUpdated(candidateId);
         setTimeout(() => {
           setRecentlyUpdated("");
         }, 2000);
 
-        // Mostrar notificación de actualización exitosa
         addNotification(
-          `Estado de ${candidateName} actualizado a ${status}`,
+          `Status of ${candidateName} updated to ${status}`,
           "success"
         );
       } else {
-        // Error en la respuesta de la API
-        console.error(
-          "Error en la respuesta de updateCandidateStatus:",
-          response
-        );
-        addNotification(
-          response.message || "Error al actualizar el estado",
-          "error"
-        );
-
-        // Mostrar información adicional para diagnóstico
-        console.error("Detalles del error:", {
-          candidateId,
-          status,
-          response,
-        });
+        addNotification(response.message || "Error updating status", "error");
       }
     } catch (error) {
       console.error("Error al actualizar estado del candidato:", error);
-      addNotification("Error al actualizar el estado del candidato", "error");
+      addNotification("Error updating candidate status", "error");
     }
   };
 
@@ -421,11 +238,7 @@ export default function PostulantsPage() {
           </span>
         );
       default:
-        return (
-          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-            Unknown
-          </span>
-        );
+        return <span></span>;
     }
   };
 
@@ -433,40 +246,36 @@ export default function PostulantsPage() {
     switch (status) {
       case "PENDIENTE":
         return (
-          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full uppercase">
             Pending
           </span>
         );
       case "EN_EVALUACION":
         return (
-          <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+          <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full uppercase">
             In Evaluation
           </span>
         );
       case "FINALISTA":
         return (
-          <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+          <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full uppercase">
             Finalist
           </span>
         );
       case "ACEPTADA":
         return (
-          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full uppercase">
             Accepted
           </span>
         );
       case "RECHAZADA":
         return (
-          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full uppercase">
             Rejected
           </span>
         );
       default:
-        return (
-          <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
-            Unknown
-          </span>
-        );
+        return <span></span>;
     }
   };
 
@@ -503,13 +312,10 @@ export default function PostulantsPage() {
               a.id === selectedCandidateId ? { ...a, activo: false } : a
             )
           );
-          addNotification(
-            `Candidato ${candidateName} eliminado exitosamente`,
-            "success"
-          );
+          addNotification(`Candidate ${candidateName} successfully`, "success");
         } else {
           addNotification(
-            response.message || "Error al eliminar el candidato",
+            response.message || "Error deleting candidate",
             "error"
           );
         }
@@ -525,19 +331,19 @@ export default function PostulantsPage() {
             )
           );
           addNotification(
-            `Candidato ${candidateName} activado exitosamente`,
+            `Candidate ${candidateName} successfully activated`,
             "success"
           );
         } else {
           addNotification(
-            response.message || "Error al activar el candidato",
+            response.message || "Error activating candidate",
             "error"
           );
         }
       }
     } catch (error) {
       console.error(`Error en acción de candidato (${currentAction}):`, error);
-      addNotification("Ocurrió un error inesperado", "error");
+      addNotification("An unexpected error occurred", "error");
     }
   };
 
@@ -1018,18 +824,23 @@ export default function PostulantsPage() {
                               </td>
                               <td className="py-4 px-4">{applicant.correo}</td>
                               <td className="py-4 px-4">
-                                {applicant.lastApplication ? (
+                                {applicant.lastRelevantPostulacion ? (
                                   <div className="flex flex-col">
                                     <span className="text-gray-700 text-sm font-medium">
-                                      {applicant.lastApplication.title ===
-                                      "No applications"
+                                      {applicant.lastRelevantPostulacion
+                                        .titulo === "No applications"
                                         ? "No applications"
-                                        : applicant.lastApplication.title}
+                                        : applicant.lastRelevantPostulacion
+                                            .titulo}
                                     </span>
-                                    {applicant.lastApplication.title !==
-                                      "No applications" && (
+                                    {applicant.lastRelevantPostulacion
+                                      .titulo !== "Sin aplicaciones" && (
                                       <span className="text-gray-500 text-xs">
-                                        {applicant.lastApplication.date}
+                                        {
+                                          applicant.lastRelevantPostulacion.fecha.split(
+                                            "T"
+                                          )[0]
+                                        }
                                       </span>
                                     )}
                                   </div>
@@ -1040,9 +851,10 @@ export default function PostulantsPage() {
                                 )}
                               </td>
                               <td className="py-4 px-4">
-                                {applicant.applicationStatus ? (
+                                {applicant.lastRelevantPostulacion &&
+                                applicant.lastRelevantPostulacion.estado ? (
                                   renderApplicationStatus(
-                                    applicant.applicationStatus
+                                    applicant.lastRelevantPostulacion.estado
                                   )
                                 ) : (
                                   <span className="text-gray-400 text-sm">
@@ -1083,9 +895,6 @@ export default function PostulantsPage() {
                                     >
                                       <Edit size={20} />
                                     </button>
-                                    {/* <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
-                                      Edit/View Profile
-                                    </span> */}
                                   </div>
 
                                   <div className="relative group">
@@ -1103,9 +912,6 @@ export default function PostulantsPage() {
                                     >
                                       <Mail size={20} />
                                     </button>
-                                    {/* <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
-                                      Send Password Reset
-                                    </span> */}
                                   </div>
 
                                   <div className="relative group">
@@ -1118,9 +924,6 @@ export default function PostulantsPage() {
                                     >
                                       <Bookmark size={20} />
                                     </button>
-                                    {/* <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
-                                      Assign to Job
-                                    </span> */}
                                   </div>
                                   <div className="relative group">
                                     <button
@@ -1144,11 +947,6 @@ export default function PostulantsPage() {
                                         <UserPlus size={20} />
                                       )}
                                     </button>
-                                    {/* <span className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-xs px-2 py-1 rounded bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1">
-                                      {applicant.activo === true
-                                        ? "Eliminar Candidato"
-                                        : "Activar Candidato"}
-                                    </span> */}
                                   </div>
                                 </div>
                               </td>

@@ -43,8 +43,8 @@ export default function FormularioModal({
       "What Internet provider do you use?",
       "What is the URL for their website?",
       "Do you use a wired internet connection?",
-      "Please run a speed test on your computer: what is the current upload speed?",
-      "Please run a speed test on your computer: what is the current download speed?",
+      // "Please run a speed test on your computer: what is the current upload speed?",
+      // "Please run a speed test on your computer: what is the current download speed?",
       "How much RAM is available on your computer?",
       "How many monitors do you currently have/use for work?",
       "What type of headset do you currently have? How does it connect with your computer?",
@@ -504,7 +504,7 @@ export default function FormularioModal({
             </div>
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               Please run a speed test on your computer: what is the current
               upload speed?
@@ -536,9 +536,9 @@ export default function FormularioModal({
                 )
               }
             />
-          </div>
+          </div> */}
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               Please run a speed test on your computer: what is the current
               download speed?
@@ -570,7 +570,7 @@ export default function FormularioModal({
                 )
               }
             />
-          </div>
+          </div> */}
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -647,6 +647,11 @@ export default function FormularioModal({
             <label className="block text-sm font-medium text-gray-700">
               What unique qualities make your services stand out?
               <span className="text-red-500">*</span>
+              <br />
+              <span className="text-gray-400">
+                Example: punctuality, quality control, proactivity, excellent
+                customer service.
+              </span>
             </label>
             <textarea
               className="w-full p-2 border border-gray-300 rounded-md"

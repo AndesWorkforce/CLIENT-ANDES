@@ -390,7 +390,10 @@ export default function ProfilePage() {
       <header className="bg-white shadow-sm mb-2">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <button onClick={handleGoBack} className="text-gray-700">
+            <button
+              onClick={handleGoBack}
+              className="text-gray-700 cursor-pointer"
+            >
               <ChevronLeft size={24} color="#0097B2" />
             </button>
             <h1 className="text-xl font-semibold">My Profile</h1>
@@ -404,16 +407,20 @@ export default function ProfilePage() {
       {isVisibleNotification && (
         <div className="md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8 bg-green-50 p-4 my-4 rounded-lg">
           <div className="flex items-center mb-1">
-            <Info className="text-green-500 mr-2" size={18} />
+            <Info className="text-green-800 mr-2" size={18} />
             <h3 className="font-medium text-green-800 ">
               Your profile is complete
             </h3>
           </div>
-          <Link href={`/pages/offers`}>
-            <p className="text-sm text-green-600">
-              Visit the Available Contracts page
-            </p>
-          </Link>
+          <p className="text-sm text-green-800">
+            To continue, please visit the{" "}
+            <Link href={`/pages/offers`}>
+              <span className="text-[#0097B2] font-semibold hover:underline cursor-pointer transition-colors">
+                AVAILABLE CONTRACTS
+              </span>
+            </Link>{" "}
+            page
+          </p>
         </div>
       )}
 

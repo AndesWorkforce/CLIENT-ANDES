@@ -166,8 +166,6 @@ export default function ContactoModal({
     }
   };
 
-  console.log("[ContactoModal] profile", profile);
-
   if (!isOpen) return null;
 
   return (

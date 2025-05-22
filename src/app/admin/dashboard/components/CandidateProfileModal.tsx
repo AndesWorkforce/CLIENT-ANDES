@@ -71,7 +71,6 @@ export default function CandidateProfileModal({
   const hasLoadedRef = useRef(false);
   const [manualReload, setManualReload] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
-  console.log("errorCount", errorCount);
   const validateCandidateProfile = useCallback(async () => {
     const response = await candidateValidationProfile(candidateId);
     if (response.success) {
@@ -81,11 +80,6 @@ export default function CandidateProfileModal({
 
   useEffect(() => {
     if (isOpen && candidateId && (!hasLoadedRef.current || manualReload > 0)) {
-      console.log("[CandidateProfileModal] Cargando perfil (evitando bucle):", {
-        candidateId,
-        manualReload,
-      });
-
       const loadData = async () => {
         try {
           hasLoadedRef.current = true;
@@ -140,10 +134,10 @@ export default function CandidateProfileModal({
           setShowSkillsModal(false);
           // Recargar el perfil para mostrar las habilidades actualizadas
           setManualReload((prev) => prev + 1);
-          addNotification("Habilidades actualizadas correctamente", "success");
+          addNotification("Skills updated successfully", "success");
         } else {
           addNotification(
-            `Error al actualizar habilidades: ${result.message}`,
+            `Error updating skills: ${result.message || "Unknown error"}`,
             "error"
           );
         }
@@ -152,7 +146,7 @@ export default function CandidateProfileModal({
           "[CandidateProfileModal] Error al actualizar habilidades:",
           error
         );
-        addNotification("Error inesperado al actualizar habilidades", "error");
+        addNotification("Unexpected error updating skills", "error");
       } finally {
         setIsUpdatingSkills(false);
       }
@@ -166,7 +160,7 @@ export default function CandidateProfileModal({
     // Solo establecemos hasLoadedRef a false para forzar una recarga la próxima vez
     // en lugar de incrementar manualReload
     hasLoadedRef.current = false;
-    addNotification("Datos actualizados correctamente", "success");
+    addNotification("Data updated successfully", "success");
   };
 
   const handleEditExperience = (exp: Experience) => {
@@ -214,8 +208,6 @@ export default function CandidateProfileModal({
   if (isLoading || !profile) {
     return <ProfileModalSkeleton isOpen={isOpen} onClose={onClose} />;
   }
-
-  console.log("[CandidateProfileModal] Perfil disponible:", profile);
 
   const isProfileIncomplete =
     !profile?.datosPersonales.nombre ||
@@ -437,7 +429,7 @@ export default function CandidateProfileModal({
                 <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-medium text-gray-900">
-                      Educación
+                      Education
                     </h2>
                     <button
                       onClick={() => {
@@ -473,14 +465,14 @@ export default function CandidateProfileModal({
                               <h3 className="font-medium text-gray-800">
                                 {edu.titulo || (
                                   <span className="text-gray-400">
-                                    Sin título
+                                    No degree
                                   </span>
                                 )}
                               </h3>
                               <p className="text-sm text-gray-600">
                                 {edu.institucion || (
                                   <span className="text-gray-400">
-                                    Sin institución
+                                    No institution
                                   </span>
                                 )}
                               </p>
@@ -501,7 +493,7 @@ export default function CandidateProfileModal({
                     </div>
                   ) : (
                     <p className="text-gray-500 text-sm">
-                      Sin educación registrada
+                      No education registered
                     </p>
                   )}
                 </div>
@@ -616,21 +608,21 @@ export default function CandidateProfileModal({
                 </div>
               )}
 
-              {/* Información de contacto */}
+              {/* Contact Information */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
                       <h1 className="text-xl font-medium text-[#0097B2] mb-2">
                         {profile.datosPersonales.nombre || (
-                          <span className="text-gray-400">Sin nombre</span>
+                          <span className="text-gray-400">No Name</span>
                         )}{" "}
                         {profile.datosPersonales.apellido || (
-                          <span className="text-gray-400">Sin apellido</span>
+                          <span className="text-gray-400">No Last Name</span>
                         )}
                       </h1>
                       <h2 className="font-medium text-gray-900 mb-3">
-                        Información de contacto
+                        Contact Information
                       </h2>
                     </div>
                   </div>
@@ -640,7 +632,7 @@ export default function CandidateProfileModal({
                       <Phone size={18} className="text-[#0097B2] mr-2 mt-0.5" />
                       <span className="text-gray-700">
                         {profile.datosPersonales.telefono || (
-                          <span className="text-gray-400">Sin teléfono</span>
+                          <span className="text-gray-400">No Phone</span>
                         )}
                       </span>
                     </div>
@@ -648,7 +640,7 @@ export default function CandidateProfileModal({
                       <Mail size={18} className="text-[#0097B2] mr-2 mt-0.5" />
                       <span className="text-gray-700">
                         {profile.datosPersonales.correo || (
-                          <span className="text-gray-400">Sin correo</span>
+                          <span className="text-gray-400">No Email</span>
                         )}
                       </span>
                     </div>
@@ -663,19 +655,17 @@ export default function CandidateProfileModal({
                 </div>
               </div>
 
-              {/* Formulario */}
+              {/* Form */}
               {profile.datosFormulario && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-4 flex justify-between items-center">
-                    <span className="font-medium text-gray-900">
-                      Formulario
-                    </span>
+                    <span className="font-medium text-gray-900">Form</span>
                     <button
                       onClick={() => setIsFormularioModalOpen(true)}
                       className="text-[#0097B2] flex items-center hover:underline cursor-pointer"
                     >
                       <FileText size={18} className="mr-1" />
-                      <span>Ver</span>
+                      <span>View</span>
                     </button>
                   </div>
                 </div>
@@ -686,7 +676,7 @@ export default function CandidateProfileModal({
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-4">
                     <h2 className="font-medium text-gray-900 mb-3">
-                      Video de presentación
+                      Video presentation
                     </h2>
                     <div className="aspect-video bg-gray-100 rounded relative group">
                       <video
@@ -717,12 +707,10 @@ export default function CandidateProfileModal({
                 </div>
               )}
 
-              {/* Habilidades */}
+              {/* Skills */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-4">
-                  <h2 className="font-medium text-gray-900 mb-3">
-                    Habilidades
-                  </h2>
+                  <h2 className="font-medium text-gray-900 mb-3">Skills</h2>
                   <ul className="space-y-2">
                     {(profile.habilidades || []).length > 0 ? (
                       profile.habilidades.map((habilidad) => (
@@ -734,7 +722,7 @@ export default function CandidateProfileModal({
                         </li>
                       ))
                     ) : (
-                      <li className="text-gray-400">Sin habilidades</li>
+                      <li className="text-gray-400">No skills</li>
                     )}
                   </ul>
                 </div>
@@ -744,7 +732,7 @@ export default function CandidateProfileModal({
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-4">
                   <h2 className="font-medium text-gray-900 mb-3">
-                    Especificaciones del PC
+                    PC Specifications
                   </h2>
                   <ImageViewer
                     images={[
@@ -775,7 +763,7 @@ export default function CandidateProfileModal({
                       onClick={() => setActiveTab("experiencia")}
                       style={{ cursor: "pointer" }}
                     >
-                      <span className="text-lg font-medium">Experiencia</span>
+                      <span className="text-lg font-medium">Experience</span>
                     </div>
 
                     {/* Educación */}
@@ -788,7 +776,7 @@ export default function CandidateProfileModal({
                       onClick={() => setActiveTab("educacion")}
                       style={{ cursor: "pointer" }}
                     >
-                      <span className="text-lg font-medium">Educación</span>
+                      <span className="text-lg font-medium">Education</span>
                     </div>
 
                     {/* Resto del borde superior */}
@@ -808,14 +796,14 @@ export default function CandidateProfileModal({
                               <h3 className="font-medium text-gray-800 text-lg">
                                 {exp.cargo || (
                                   <span className="text-gray-400">
-                                    Sin cargo
+                                    No job title
                                   </span>
                                 )}
                               </h3>
                               <p className="text-sm text-gray-600 mt-1">
                                 {exp.empresa || (
                                   <span className="text-gray-400">
-                                    Sin empresa
+                                    No company
                                   </span>
                                 )}
                               </p>
@@ -826,14 +814,14 @@ export default function CandidateProfileModal({
                               <p className="text-sm text-gray-700 mt-3">
                                 {exp.descripcion || (
                                   <span className="text-gray-400">
-                                    Sin descripción
+                                    No description
                                   </span>
                                 )}
                               </p>
                             </div>
                           ))
                         ) : (
-                          <div className="text-gray-400">Sin experiencia</div>
+                          <div className="text-gray-400">No experience</div>
                         )}
                       </div>
                     ) : (
@@ -847,14 +835,14 @@ export default function CandidateProfileModal({
                               <h3 className="font-medium text-gray-800 text-lg">
                                 {edu.titulo || (
                                   <span className="text-gray-400">
-                                    Sin título
+                                    No degree
                                   </span>
                                 )}
                               </h3>
                               <p className="text-sm text-gray-600 mt-1">
                                 {edu.institucion || (
                                   <span className="text-gray-400">
-                                    Sin institución
+                                    No institution
                                   </span>
                                 )}
                               </p>
@@ -865,7 +853,7 @@ export default function CandidateProfileModal({
                             </div>
                           ))
                         ) : (
-                          <div className="text-gray-400">Sin educación</div>
+                          <div className="text-gray-400">No education</div>
                         )}
                       </div>
                     )}

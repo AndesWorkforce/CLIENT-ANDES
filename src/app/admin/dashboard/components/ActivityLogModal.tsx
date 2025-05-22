@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
-import { getCandidateActivityLogs } from "../actions/activity.logs.actions";
-
+import {
+  createManualNote,
+  getCandidateActivityLogs,
+} from "../actions/activity.logs.actions";
+import { axiosClient } from "@/services/axios.client";
 interface Propuesta {
   id: string;
   titulo: string;
@@ -39,6 +42,9 @@ export default function ActivityLogModal({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [postulante, setPostulante] = useState<any>(null);
   const [totalRegistros, setTotalRegistros] = useState<number>(0);
+  const [showAddNote, setShowAddNote] = useState(false);
+  const [note, setNote] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
   const { addNotification } = useNotificationStore();
 
   const fetchCandidateLogs = async () => {
@@ -71,7 +77,6 @@ export default function ActivityLogModal({
     }
   }, [isOpen, candidateId]);
 
-  // Función para formatear la fecha
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -88,7 +93,6 @@ export default function ActivityLogModal({
     }
   };
 
-  // Función para obtener el color según el tipo de evento
   const getEventTypeColor = (tipoEvento: string) => {
     switch (tipoEvento) {
       case "POSTULACION_CREADA":
@@ -102,7 +106,6 @@ export default function ActivityLogModal({
     }
   };
 
-  // Función para obtener una versión amigable del tipo de evento
   const getEventTypeName = (tipoEvento: string) => {
     switch (tipoEvento) {
       case "POSTULACION_CREADA":
@@ -113,6 +116,24 @@ export default function ActivityLogModal({
         return "Postulación rechazada";
       default:
         return tipoEvento.replace(/_/g, " ").toLowerCase();
+    }
+  };
+
+  // Nueva función para agregar nota manual
+  const handleAddNote = async () => {
+    if (!note.trim()) return;
+    setIsAdding(true);
+    try {
+      await createManualNote(candidateId, note);
+      addNotification("Note added successfully", "success");
+      setNote("");
+      setShowAddNote(false);
+      fetchCandidateLogs();
+    } catch (error) {
+      console.error("[ActivityLogModal] Error adding note:", error);
+      addNotification("Error adding note", "error");
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -144,6 +165,48 @@ export default function ActivityLogModal({
             <p className="text-xs text-gray-500 mt-1">
               Total records: {totalRegistros}
             </p>
+          )}
+        </div>
+
+        {/* Add Note Button and Form */}
+        <div className="p-4 border-b border-gray-100 flex items-center gap-2">
+          {!showAddNote ? (
+            <button
+              className="bg-[#0097B2] text-white px-3 py-1 rounded hover:bg-[#007a8f] text-sm"
+              onClick={() => setShowAddNote(true)}
+            >
+              Add manual note
+            </button>
+          ) : (
+            <div className="flex flex-col w-full gap-2">
+              <textarea
+                className="border border-gray-300 rounded px-2 py-1 w-full text-sm"
+                rows={2}
+                placeholder="Write a note for the candidate's log..."
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                disabled={isAdding}
+              />
+              <div className="flex gap-2">
+                <button
+                  className="bg-[#0097B2] text-white px-3 py-1 rounded hover:bg-[#007a8f] text-sm"
+                  onClick={handleAddNote}
+                  disabled={isAdding || !note.trim()}
+                >
+                  {isAdding ? "Saving..." : "Save note"}
+                </button>
+                <button
+                  className="bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 text-sm"
+                  onClick={() => {
+                    setShowAddNote(false);
+                    setNote("");
+                  }}
+                  disabled={isAdding}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
@@ -181,7 +244,7 @@ export default function ActivityLogModal({
                   </div>
                   <p className="text-gray-700 my-2">{log.descripcion}</p>
                   <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
-                    <span>Por: {log.creadoPor}</span>
+                    <span>By: {log.creadoPor}</span>
                   </div>
                 </div>
               ))}

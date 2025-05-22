@@ -188,6 +188,19 @@ export default function AssignApplicationModal({
     }
   };
 
+  const transformedTextState = (state: string) => {
+    switch (state) {
+      case "activo":
+        return "Active";
+      case "publicado":
+        return "Published";
+      case "pendiente":
+        return "Pending";
+      default:
+        return state;
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -231,7 +244,7 @@ export default function AssignApplicationModal({
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0097B2]" />
             </div>
           ) : offers.length > 0 ? (
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+            <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
               {offers.map((offer, index) => (
                 <div
                   key={offer.id}
@@ -248,7 +261,7 @@ export default function AssignApplicationModal({
                   </div>
                   <div className="flex justify-between mt-1">
                     <span className="text-xs text-gray-500">
-                      Created: {offer.fechaCreacion}
+                      Created: {offer.fechaCreacion.split("T")[0]}
                     </span>
                     <span
                       className={`text-xs py-1 px-2 rounded-full ${
@@ -257,7 +270,9 @@ export default function AssignApplicationModal({
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {offer.estado === "activo" ? "Active" : offer.estado}
+                      {offer.estado === "activo"
+                        ? "Active"
+                        : transformedTextState(offer.estado)}
                     </span>
                   </div>
                 </div>

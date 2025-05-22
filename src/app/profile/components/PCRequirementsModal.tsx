@@ -31,7 +31,6 @@ export default function PCRequirementsModal({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Limpiar las URLs de vista previa cuando cambia el componente
   useEffect(() => {
     return () => {
       if (pcPreviewUrl) URL.revokeObjectURL(pcPreviewUrl);
@@ -50,7 +49,6 @@ export default function PCRequirementsModal({
       const file = e.target.files[0];
       setPcScreenshot(file);
 
-      // Limpiar la URL anterior antes de crear una nueva
       if (pcPreviewUrl) URL.revokeObjectURL(pcPreviewUrl);
       setPcPreviewUrl(URL.createObjectURL(file));
     }
@@ -63,7 +61,6 @@ export default function PCRequirementsModal({
       const file = e.target.files[0];
       setInternetScreenshot(file);
 
-      // Limpiar la URL anterior antes de crear una nueva
       if (internetPreviewUrl) URL.revokeObjectURL(internetPreviewUrl);
       setInternetPreviewUrl(URL.createObjectURL(file));
     }

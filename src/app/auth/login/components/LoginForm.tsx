@@ -12,7 +12,7 @@ import { useAuthStore } from "@/store/auth.store";
 import CryptoJS from "crypto-js";
 
 const REMEMBER_KEY = "andes_remembered_email";
-const SECRET = process.env.NEXT_PUBLIC_CRYPTO_KEY!; // Puedes mover esto a un env si lo deseas
+const SECRET = process.env.NEXT_PUBLIC_CRYPTO_KEY!;
 
 export default function LoginForm() {
   const { setUser, setAuthenticated, setToken } = useAuthStore();
@@ -53,10 +53,7 @@ export default function LoginForm() {
     }
   }, [setValue]);
 
-  // Función de redirección limpia
   const safeRedirect = (url: string) => {
-    console.log("Redirigiendo a:", url);
-    // Dar tiempo para que las cookies se establezcan completamente
     setTimeout(() => {
       window.location.href = url;
     }, 500);
@@ -66,7 +63,6 @@ export default function LoginForm() {
     try {
       setIsSubmitting(true);
 
-      // Guardar rememberMe antes de la redirección potencial
       if (rememberMe) {
         const encrypted = CryptoJS.AES.encrypt(data.correo, SECRET).toString();
         localStorage.setItem(REMEMBER_KEY, encrypted);
@@ -74,28 +70,16 @@ export default function LoginForm() {
         localStorage.removeItem(REMEMBER_KEY);
       }
 
-      // Implementar detección de redirección para producción
       try {
         const result = await loginAction(data);
 
         if (result.success) {
           addNotification("Successfully logged in", "success");
+          setUser(result.data?.usuario);
+          setAuthenticated(true);
+          setToken(result.data?.accessToken);
 
-          // Si recibimos información de usuario, guardarla en el estado
-          if (result.data?.usuario) {
-            setUser(result.data.usuario);
-            setAuthenticated(true);
-            setToken(result.data?.accessToken || "");
-          }
-
-          // Si tenemos una URL de redirección explícita, usarla
-          if (result.data?.redirectUrl) {
-            safeRedirect(result.data.redirectUrl);
-            return;
-          }
-
-          // Flujo normal cuando no hay redirección externa - verificar el estado del perfil
-          // Si no tenemos información de usuario, usar la lógica estándar
+          // Usar safeRedirect en lugar de router.push
           if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
             safeRedirect("/profile");
           } else {
@@ -105,25 +89,20 @@ export default function LoginForm() {
           addNotification(result.error || "Error logging in", "error");
           console.error("Error durante el inicio de sesión:", result.error);
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (loginError: any) {
-        console.log("Error detected:", loginError);
-        // Si detectamos un error que contiene información de redirección
+        // Si parece una redirección, manejarlo como login exitoso
         if (
           loginError.message &&
           (loginError.message.includes("NEXT_REDIRECT") ||
             loginError.message.includes("307") ||
             loginError.message.includes("redirect"))
         ) {
-          // La API respondió con una redirección - es un inicio de sesión exitoso
+          console.log("Redirección detectada, manejando respuesta");
           addNotification("Successfully logged in", "success");
 
-          // Redirigir a profile por defecto cuando no estamos seguros
-          // Esta es la opción más segura ya que profile verificará si el perfil está completo
-          console.log("Redirection detected, handling gracefully");
+          // Redirección por defecto a profile (más seguro)
           safeRedirect("/profile");
         } else {
-          // Otro tipo de error
           throw loginError;
         }
       }

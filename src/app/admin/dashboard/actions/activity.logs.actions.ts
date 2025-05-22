@@ -30,3 +30,32 @@ export async function getCandidateActivityLogs(candidateId: string) {
     };
   }
 }
+
+export async function createManualNote(candidateId: string, note: string) {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.post(
+      `${API_URL}admin/postulantes/${candidateId}/bitacora`,
+      {
+        nota: note,
+      }
+    );
+    const data = await response.data;
+
+    return {
+      success: true,
+      data: data,
+    };
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return {
+        success: false,
+        message: error.response?.data.message,
+      };
+    }
+    return {
+      success: false,
+      message: "Error getting candidate activity logs",
+    };
+  }
+}

@@ -13,6 +13,8 @@ export async function updateProfilePersonal(
     const response = await axios.patch(`usuarios/${userId}`, {
       telefono: profileData.telefono,
       residencia: profileData.residencia,
+      pais: profileData.pais,
+      paisImagen: profileData.paisImagen
     });
 
     if (response.status !== 200) {

@@ -411,7 +411,7 @@ export default function Navbar() {
                   <>
                     <Link
                       href="/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md cursor-pointer"
                       onClick={() => setShowMobileSidebar(false)}
                     >
                       <UserCircle size={20} className="mr-2 text-[#0097B2]" />
