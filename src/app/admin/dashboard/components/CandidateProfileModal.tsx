@@ -6,7 +6,6 @@ import { useCandidateProfile } from "../context/CandidateProfileContext";
 import ProfileModalSkeleton from "./ProfileModalSkeleton";
 import ViewFormularioModal from "./ViewFormularioModal";
 import AdminExperienceManager from "./AdminExperienceManager";
-import ImageViewer from "./ImageViewer";
 import FormularioModal from "@/app/profile/components/FormularioModal";
 import VideoModal from "@/app/profile/components/VideoModal";
 import SkillsModal from "@/app/profile/components/SkillsModal";
@@ -25,6 +24,7 @@ import { ProfileContextProvider } from "@/app/profile/context/ProfileContext";
 import { addEducation } from "@/app/profile/actions/education.actions";
 import ContactoModal from "@/app/profile/components/ContactoModal";
 import { candidateValidationProfile } from "../actions/applicants.actions";
+import IdentificationModal from "@/app/profile/components/IdentificationModal";
 
 interface CandidateProfileModalProps {
   isOpen: boolean;
@@ -66,11 +66,14 @@ export default function CandidateProfileModal({
   const [experienceData, setExperienceData] = useState<Experience | null>(null);
   const [isUpdatingSkills, setIsUpdatingSkills] = useState<boolean>(false);
   const [showContactoModal, setShowContactoModal] = useState<boolean>(false);
+  const [showIdentificationModal, setShowIdentificationModal] =
+    useState<boolean>(false);
 
   // Usar useRef para evitar múltiples cargas
   const hasLoadedRef = useRef(false);
   const [manualReload, setManualReload] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
+  console.log("[CandidateProfileModal] errorCount:", errorCount);
   const validateCandidateProfile = useCallback(async () => {
     const response = await candidateValidationProfile(candidateId);
     if (response.success) {
@@ -203,6 +206,9 @@ export default function CandidateProfileModal({
     }
   };
 
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  console.log("profile", profile);
   if (!isOpen) return null;
 
   if (isLoading || !profile) {
@@ -221,7 +227,9 @@ export default function CandidateProfileModal({
     !profile?.habilidades.length ||
     !profile?.archivos.videoPresentacion ||
     !profile?.archivos.imagenTestVelocidad ||
-    !profile?.archivos.imagenRequerimientosPC;
+    !profile?.archivos.imagenRequerimientosPC ||
+    !profile?.archivos.fotoCedulaFrente ||
+    !profile?.archivos.fotoCedulaDorso;
 
   // Renderizado del modo de edición
   if (isEditMode) {
@@ -342,6 +350,20 @@ export default function CandidateProfileModal({
                   </span>
                   <button
                     onClick={() => setShowPCRequirementsModal(true)}
+                    className="text-[#0097B2] flex items-center hover:bg-blue-50 p-2 rounded"
+                  >
+                    <Edit size={16} className="mr-1" />
+                    <span>Edit</span>
+                  </button>
+                </div>
+
+                {/* Identification */}
+                <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                  <span className="text-gray-800 font-medium">
+                    Identification Document
+                  </span>
+                  <button
+                    onClick={() => setShowIdentificationModal(true)}
                     className="text-[#0097B2] flex items-center hover:bg-blue-50 p-2 rounded"
                   >
                     <Edit size={16} className="mr-1" />
@@ -558,6 +580,15 @@ export default function CandidateProfileModal({
             onClose={() => setShowContactoModal(false)}
             candidateId={candidateId}
           />
+
+          <IdentificationModal
+            isOpen={showIdentificationModal}
+            onClose={() => {
+              setShowIdentificationModal(false);
+              notifyChangesAndReload();
+            }}
+            candidateId={candidateId}
+          />
         </div>
       </ProfileContextProvider>
     );
@@ -734,12 +765,107 @@ export default function CandidateProfileModal({
                   <h2 className="font-medium text-gray-900 mb-3">
                     PC Specifications
                   </h2>
-                  <ImageViewer
-                    images={[
+                  <div className="flex flex-wrap gap-4 justify-center">
+                    {[
                       profile.archivos?.imagenTestVelocidad,
                       profile.archivos?.imagenRequerimientosPC,
-                    ].filter(Boolean)}
-                  />
+                    ]
+                      .filter(Boolean)
+                      .map((image, index) => (
+                        <div
+                          key={index}
+                          className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
+                          onClick={() => setSelectedImage(image as string)}
+                        >
+                          <img
+                            src={image as string}
+                            alt={`PC Specification ${index + 1}`}
+                            className="w-full h-full object-contain rounded-lg p-1"
+                          />
+                          <div className="absolute inset-0 bg-[#0097B2] bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
+                            <div className="text-[#0097B2] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white px-3 py-1 rounded-full shadow-sm">
+                              Ver imagen
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Documento de Identidad */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="p-4">
+                  <h2 className="font-medium text-gray-900 mb-3">
+                    Identity Document
+                  </h2>
+                  {profile.archivos?.fotoCedulaFrente ||
+                  profile.archivos?.fotoCedulaDorso ? (
+                    <div className="flex flex-wrap gap-4 justify-center">
+                      {profile.archivos?.fotoCedulaFrente && (
+                        <div className="flex-1 flex flex-col items-center max-w-[160px]">
+                          <span className="text-gray-700 mb-2 font-medium">
+                            Front photo
+                          </span>
+                          <div
+                            className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
+                            onClick={() =>
+                              setSelectedImage(
+                                profile.archivos.fotoCedulaFrente as string
+                              )
+                            }
+                          >
+                            <img
+                              src={profile.archivos.fotoCedulaFrente as string}
+                              alt="ID Front"
+                              className="w-full h-full object-contain rounded-lg p-1"
+                            />
+                            <div className="absolute inset-0 bg-[#0097B2] bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
+                              <div className="text-[#0097B2] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white px-3 py-1 rounded-full shadow-sm">
+                                Ver imagen
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {profile.archivos?.fotoCedulaDorso && (
+                        <div className="flex-1 flex flex-col items-center max-w-[160px]">
+                          <span className="text-gray-700 mb-2 font-medium">
+                            Back photo
+                          </span>
+                          <div
+                            className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
+                            onClick={() =>
+                              setSelectedImage(
+                                profile.archivos.fotoCedulaDorso as string
+                              )
+                            }
+                          >
+                            <img
+                              src={profile.archivos.fotoCedulaDorso as string}
+                              alt="ID Back"
+                              className="w-full h-full object-contain rounded-lg p-1"
+                            />
+                            <div className="absolute inset-0 bg-[#0097B2] bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
+                              <div className="text-[#0097B2] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white px-3 py-1 rounded-full shadow-sm">
+                                Ver imagen
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-gray-500">
+                        No identity document images uploaded
+                      </p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        The candidate needs to upload both front and back photos
+                        of their ID
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -896,6 +1022,28 @@ export default function CandidateProfileModal({
               </h2>
               <AdminExperienceManager candidateId={candidateId} />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para ver imagen completa */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(0,0,0,0.5)]"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] p-2">
+            <img
+              src={selectedImage}
+              alt="PC Specification"
+              className="max-w-full max-h-[85vh] object-contain"
+            />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 text-white hover:text-gray-300"
+            >
+              <X size={24} />
+            </button>
           </div>
         </div>
       )}

@@ -9,7 +9,6 @@ import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notifications.store";
 import { updateProfilePersonal } from "../actions/profile.actions";
 
-// Tipo para países
 interface Country {
   name: {
     common: string;
@@ -27,7 +26,6 @@ interface Country {
   region: string;
 }
 
-// Tipo extendido para los datos personales
 interface DatosPersonalesExtendidos {
   nombre?: string;
   apellido?: string;
@@ -39,7 +37,6 @@ interface DatosPersonalesExtendidos {
   paisImagen?: string;
 }
 
-// Esquema de validación con Zod
 const contactoSchema = z.object({
   telefono: z
     .string()
@@ -74,7 +71,6 @@ export default function ContactoModal({
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Tratamos los datos personales como un tipo extendido
   const datosPersonales =
     profile.datosPersonales as unknown as DatosPersonalesExtendidos;
 
@@ -89,7 +85,6 @@ export default function ContactoModal({
           throw new Error("Error fetching countries");
         }
         const data = await response.json();
-        // Ordenar países por nombre común
         const sortedCountries = data.sort((a: Country, b: Country) =>
           a.name.common.localeCompare(b.name.common)
         );
@@ -124,7 +119,6 @@ export default function ContactoModal({
 
   const selectedCountry = watch("pais");
 
-  // Actualizar la imagen de la bandera cuando se selecciona un país
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCountryName = e.target.value;
     const country = countries.find(

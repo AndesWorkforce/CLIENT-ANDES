@@ -44,14 +44,14 @@ export async function getProfile(id: string) {
     console.log("[profile.actions] Perfil obtenido correctamente");
     return {
       success: true,
-      message: "Perfil obtenido correctamente",
+      message: "Profile obtained successfully",
       data: responseData,
     };
   } catch (error) {
-    console.error("[profile.actions] Error en getProfile:", error);
+    console.error("[profile.actions] Error in getProfile:", error);
     return {
       success: false,
-      message: "Error en getProfile: " + error,
+      message: "Error in getProfile: " + error,
     };
   }
 }

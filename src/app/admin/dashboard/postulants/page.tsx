@@ -28,6 +28,7 @@ import {
   activateCandidate,
 } from "../actions/update.clasification.actions";
 import CandidateActionModal from "../components/CandidateActionModal";
+import SendEmailModal from "../components/SendEmailModal";
 
 interface CandidatoWithPostulationId extends Candidato {
   postulationId: string;
@@ -78,6 +79,11 @@ export default function PostulantsPage() {
   const [currentAction, setCurrentAction] = useState<"remove" | "activate">(
     "remove"
   );
+  const [isSendEmailModalOpen, setIsSendEmailModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
+
+  console.log("[PostulantsPage] proposalTitles:", proposalTitles);
 
   const fetchApplicants = async (page = 1, searchValue = "") => {
     setIsLoading(true);
@@ -362,8 +368,11 @@ export default function PostulantsPage() {
       handleRemoveCandidate(candidateId);
     }
   };
-
-  console.log("[PostulantsPage] applicants", applicants);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleOpenSendEmailModal = (applicant: any) => {
+    setSelectedApplicant(applicant);
+    setIsSendEmailModalOpen(true);
+  };
 
   return (
     <CandidateProfileProvider>
@@ -590,29 +599,27 @@ export default function PostulantsPage() {
                       </div>
 
                       {/* Additional actions */}
-                      <div className="flex flex-wrap justify-between gap-2 pt-3">
+                      <div className="flex justify-end gap-3 pt-3 border-t border-[#0097B2]/20">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleAssignApplicant(applicant.id);
                           }}
-                          className="flex items-center justify-between text-white bg-[#0097B2] hover:bg-[#007a8f] px-3 py-2 rounded-md transition-colors"
-                          title="Assign"
+                          className="p-2 text-[#0097B2] hover:bg-[#0097B2]/10 rounded-full transition-colors"
+                          title="Assign to job"
                         >
-                          <Bookmark size={18} className="text-white mr-2" />
-                          <span>Assign</span>
+                          <Bookmark size={22} />
                         </button>
 
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleSendPasswordReset(applicant.correo);
+                            handleOpenSendEmailModal(applicant);
                           }}
-                          className="flex items-center justify-between text-white bg-[#0097B2] hover:bg-[#007a8f] px-3 py-2 rounded-md transition-colors"
-                          title="Reset Password"
+                          className="p-2 text-[#0097B2] hover:bg-[#0097B2]/10 rounded-full transition-colors"
+                          title="Send email"
                         >
-                          <Mail size={18} className="text-white mr-2" />
-                          <span>Reset</span>
+                          <Mail size={22} />
                         </button>
 
                         <button
@@ -620,26 +627,21 @@ export default function PostulantsPage() {
                             e.stopPropagation();
                             handleDeleteCandidate(applicant.id);
                           }}
-                          className={`flex items-center justify-between text-white px-3 py-2 rounded-md transition-colors
-                            ${
-                              applicant.activo === true
-                                ? "bg-red-600 hover:bg-red-700"
-                                : "bg-green-600 hover:bg-green-700"
-                            }`}
+                          className={`p-2 rounded-full transition-colors ${
+                            applicant.activo === true
+                              ? "text-red-500 hover:bg-red-50"
+                              : "text-green-500 hover:bg-green-50"
+                          }`}
                           title={
-                            applicant.activo === true ? "Delete" : "Activate"
+                            applicant.activo === true
+                              ? "Delete candidate"
+                              : "Activate candidate"
                           }
                         >
                           {applicant.activo === true ? (
-                            <>
-                              <Trash2 size={18} className="text-white mr-2" />
-                              <span>Delete</span>
-                            </>
+                            <Trash2 size={22} />
                           ) : (
-                            <>
-                              <UserPlus size={18} className="text-white mr-2" />
-                              <span>Activate</span>
-                            </>
+                            <UserPlus size={22} />
                           )}
                         </button>
                       </div>
@@ -759,7 +761,7 @@ export default function PostulantsPage() {
             <div className="flex-1 overflow-hidden relative p-6">
               {isLoading ? (
                 <div className="p-6">
-                  <TableSkeleton rows={APPLICANTS_PER_PAGE} />
+                  <TableSkeleton />
                 </div>
               ) : applicants.length > 0 ? (
                 <>
@@ -901,13 +903,10 @@ export default function PostulantsPage() {
                                     <button
                                       className="p-1 text-[#0097B2] rounded 
                                     hover:bg-[#0097B2]/10 
-                                      cursor-not-allowed"
-                                      disabled
+                                      cursor-pointer"
                                       title="Send password reset"
                                       onClick={() =>
-                                        handleSendPasswordReset(
-                                          applicant.correo
-                                        )
+                                        handleOpenSendEmailModal(applicant)
                                       }
                                     >
                                       <Mail size={20} />
@@ -1088,6 +1087,13 @@ export default function PostulantsPage() {
             applicants.find((a) => a.id === selectedCandidateId)?.apellido || ""
           }`}
           action={currentAction}
+        />
+      )}
+      {isSendEmailModalOpen && (
+        <SendEmailModal
+          isOpen={isSendEmailModalOpen}
+          onClose={() => setIsSendEmailModalOpen(false)}
+          applicant={selectedApplicant}
         />
       )}
     </CandidateProfileProvider>

@@ -22,6 +22,8 @@ export interface Archivos {
   imagenTestExterno: string;
   imagenTestVelocidad: string;
   imagenRequerimientosPC: string;
+  fotoCedulaFrente: string | null;
+  fotoCedulaDorso: string | null;
 }
 
 export interface DatosFormulario {

@@ -12,14 +12,12 @@ import { useAuthStore } from "@/store/auth.store";
 import CryptoJS from "crypto-js";
 
 const REMEMBER_KEY = "andes_remembered_email";
-const SECRET = process.env.NEXT_PUBLIC_CRYPTO_KEY!;
+const SECRET = process.env.NEXT_PUBLIC_CRYPTO_KEY || "default-secret-key";
 
 export default function LoginForm() {
   const { setUser, setAuthenticated, setToken } = useAuthStore();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -28,28 +26,33 @@ export default function LoginForm() {
   const {
     register,
     handleSubmit,
-    reset,
     setValue,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      correo: "",
+      contrasena: "",
+    },
   });
 
   useEffect(() => {
-    const encrypted = localStorage.getItem(REMEMBER_KEY);
-    if (encrypted) {
-      try {
-        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET);
-        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-        if (decrypted) {
-          setEmail(decrypted);
-          setValue("correo", decrypted);
+    try {
+      const remembered = localStorage.getItem(REMEMBER_KEY);
+      if (remembered) {
+        const bytes = CryptoJS.AES.decrypt(remembered, SECRET);
+        const decryptedEmail = bytes.toString(CryptoJS.enc.Utf8);
+
+        if (decryptedEmail && decryptedEmail.includes("@")) {
+          setValue("correo", decryptedEmail);
           setRememberMe(true);
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
         }
-      } catch (error) {
-        console.error("Error al desencriptar email recordado:", error);
-        localStorage.removeItem(REMEMBER_KEY);
       }
+    } catch (error) {
+      console.error("Error loading remembered email:", error);
+      localStorage.removeItem(REMEMBER_KEY);
     }
   }, [setValue]);
 
@@ -63,13 +66,22 @@ export default function LoginForm() {
     try {
       setIsSubmitting(true);
 
-      if (rememberMe) {
-        const encrypted = CryptoJS.AES.encrypt(data.correo, SECRET).toString();
-        localStorage.setItem(REMEMBER_KEY, encrypted);
+      // Manejar Remember Me
+      if (rememberMe && data.correo) {
+        try {
+          const encrypted = CryptoJS.AES.encrypt(
+            data.correo,
+            SECRET
+          ).toString();
+          localStorage.setItem(REMEMBER_KEY, encrypted);
+        } catch (error) {
+          console.error("Error saving remembered email:", error);
+        }
       } else {
         localStorage.removeItem(REMEMBER_KEY);
       }
 
+      // Intentar login
       try {
         const result = await loginAction(data);
 
@@ -79,7 +91,6 @@ export default function LoginForm() {
           setAuthenticated(true);
           setToken(result.data?.accessToken);
 
-          // Usar safeRedirect en lugar de router.push
           if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
             safeRedirect("/profile");
           } else {
@@ -87,31 +98,27 @@ export default function LoginForm() {
           }
         } else {
           addNotification(result.error || "Error logging in", "error");
-          console.error("Error durante el inicio de sesión:", result.error);
+          console.error("Login error:", result.error);
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (loginError: any) {
-        // Si parece una redirección, manejarlo como login exitoso
         if (
           loginError.message &&
           (loginError.message.includes("NEXT_REDIRECT") ||
             loginError.message.includes("307") ||
             loginError.message.includes("redirect"))
         ) {
-          console.log("Redirección detectada, manejando respuesta");
           addNotification("Successfully logged in", "success");
-
-          // Redirección por defecto a profile (más seguro)
           safeRedirect("/profile");
         } else {
           throw loginError;
         }
       }
     } catch (error) {
-      console.error("Error in the form:", error);
-      addNotification("Unexpected error logging in", "error");
+      console.error("Form submission error:", error);
+      addNotification("Unexpected error during login", "error");
     } finally {
       setIsSubmitting(false);
-      reset();
     }
   };
 
@@ -134,11 +141,6 @@ export default function LoginForm() {
             placeholder="Write your email"
             className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
             {...register("correo")}
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setValue("correo", e.target.value);
-            }}
           />
           {errors.correo && (
             <span className="text-red-500 text-xs mt-1">
@@ -158,16 +160,6 @@ export default function LoginForm() {
               placeholder="Write your password"
               className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
               {...register("contrasena")}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setValue("contrasena", e.target.value); // sincroniza con RHF
-              }}
-              onInput={(e) => {
-                const value = (e.target as HTMLInputElement).value;
-                setPassword(value);
-                setValue("contrasena", value); // asegura sincronización en autocompletar/pegar
-              }}
             />
             <button
               type="button"
@@ -199,6 +191,7 @@ export default function LoginForm() {
             type="checkbox"
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
+            className="form-checkbox h-4 w-4 text-[#0097B2] transition duration-150 ease-in-out"
           />
           <label htmlFor="rememberMe" className="text-sm text-gray-700 ml-2">
             Remember me

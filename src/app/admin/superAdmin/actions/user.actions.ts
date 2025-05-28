@@ -4,39 +4,76 @@ import { createServerAxios } from "@/services/axios.server";
 import type { CreateUserFormData } from "../schemas/createUser.schema";
 import type { UserResponse } from "../schemas/user.schema";
 import { revalidatePath } from "next/cache";
+import { ApiResponse } from "@/interfaces/api.interface";
 
-export async function getUsersAdmin() {
+interface GetUsersResponse extends ApiResponse {
+  data: {
+    data: Array<{
+      id: string;
+      usuario: {
+        id: string;
+        nombre: string;
+        apellido: string;
+        correo: string;
+        telefono?: string;
+        residencia?: string;
+      };
+    }>;
+  };
+}
+
+export const getUsersAdmin = async (
+  search: string = ""
+): Promise<GetUsersResponse> => {
   const axios = await createServerAxios();
   try {
-    const response = await axios.get("admin/empleados");
+    const response = await axios.get(
+      `admin/empleados${search ? `?search=${encodeURIComponent(search)}` : ""}`
+    );
 
     if (response.status === 200) {
       revalidatePath("/admin/superAdmin/users");
+      const users = Array.isArray(response.data.data) ? response.data.data : [];
       return {
         success: true,
         message: "Users fetched successfully",
-        data: response.data,
+        data: {
+          data: users.map((user: any) => ({
+            id: user.id,
+            usuarioId: user.usuario.id,
+            activo: true,
+            rol: "EMPLEADO_ADMIN",
+            fechaCreacion: new Date().toISOString(),
+            fechaActualizacion: new Date().toISOString(),
+            actualizadoPorId: "",
+            usuario: {
+              ...user.usuario,
+              telefono: user.usuario.telefono || "",
+              residencia: user.usuario.residencia || "",
+            },
+          })),
+        },
       };
     }
 
     return {
       success: false,
-      message: "Error getting users",
+      message: "Error fetching users",
       data: {
         data: [],
-        meta: {
-          status: 404,
-          message: "No users found",
-          timestamp: new Date().toISOString(),
-          path: "/api/admin/empleados",
-        },
       },
     };
   } catch (error) {
-    console.error("Error al obtener usuarios:", error);
-    throw new Error("Error getting users");
+    console.error("Error in getUsersAdmin:", error);
+    return {
+      success: false,
+      message: "Error fetching users",
+      data: {
+        data: [],
+      },
+    };
   }
-}
+};
 
 export async function updateUser(userId: string, data: CreateUserFormData) {
   const axios = await createServerAxios();

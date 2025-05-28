@@ -50,21 +50,21 @@ export const CandidateProfileProvider = ({
       console.log("[CandidateProfileContext] Respuesta de API:", response);
 
       if (response.success) {
-        console.log("[CandidateProfileContext] Perfil obtenido con éxito");
+        console.log("[CandidateProfileContext] Profile obtained successfully");
         // Verificamos la estructura de los datos
         if (response.data && response.data.data) {
           console.log(
             "[CandidateProfileContext] Estructura de datos correcta, actualizando estado"
           );
           setProfile(response.data.data);
-          addNotification("Perfil cargado correctamente", "success");
+          addNotification("Profile loaded successfully", "success");
         } else {
           console.error(
-            "[CandidateProfileContext] Estructura de datos incorrecta:",
+            "[CandidateProfileContext] Incorrect data structure:",
             response.data
           );
           addNotification(
-            "Error en la estructura de datos del perfil",
+            "Error in the data structure of the profile",
             "error"
           );
           setProfile(null);
@@ -74,28 +74,27 @@ export const CandidateProfileProvider = ({
           "[CandidateProfileContext] Error en la respuesta:",
           response
         );
-        addNotification("Error al cargar el perfil", "error");
-        setProfile(null);
+        addNotification("Error loading profile", "error");
       }
     } catch (error) {
-      console.error("[CandidateProfileContext] Error en la petición:", error);
+      console.error("[CandidateProfileContext] Error in the request:", error);
       // Mensajes específicos para ciertos errores
       const errorMsg = String(error);
       if (errorMsg.includes("429")) {
-        addNotification("Demasiadas peticiones. Espera un momento.", "error");
+        addNotification("Too many requests. Wait a moment.", "error");
       } else {
-        addNotification("Error al cargar el perfil", "error");
+        addNotification("Error loading profile", "error");
       }
       setProfile(null);
     } finally {
       setIsLoading(false);
-      console.log("[CandidateProfileContext] Estado de carga finalizado");
+      console.log("[CandidateProfileContext] Finalized loading state");
     }
   };
 
   // Función para limpiar el perfil actual
   const clearProfile = () => {
-    console.log("[CandidateProfileContext] Limpiando perfil");
+    console.log("[CandidateProfileContext] Cleaning profile");
     setProfile(null);
   };
 

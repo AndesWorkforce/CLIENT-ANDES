@@ -142,6 +142,7 @@ export async function getProposal(propuestaId: string) {
       success: true,
       data: responseData,
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     // Registrar información detallada sobre el error
     console.error(

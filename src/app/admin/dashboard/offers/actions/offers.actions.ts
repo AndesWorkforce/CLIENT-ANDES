@@ -100,3 +100,31 @@ export async function getApplicants(page = 1, limit = 10, search = "") {
     };
   }
 }
+
+export const assignOfferToCompanies = async (
+  offerId: string,
+  empresaIds: string[]
+) => {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.put(`offers/${offerId}/assign`, {
+      empresaIds,
+    });
+
+    if (response.status !== 200) {
+      throw new Error(response.data.message || "Error assigning offer");
+    }
+
+    return {
+      success: true,
+      message: "Offer assignments updated successfully",
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error in assignOfferToCompanies:", error);
+    return {
+      success: false,
+      message: "Error updating offer assignments",
+    };
+  }
+};

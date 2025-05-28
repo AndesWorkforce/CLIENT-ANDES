@@ -92,7 +92,7 @@ export default function ApplicationsPage() {
           <span className="text-red-500 font-medium">Finalist</span>
         </div>
       );
-    } else if (status === "ACEPTADO") {
+    } else if (status === "ACEPTADA") {
       return (
         <div className="flex items-center">
           <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>

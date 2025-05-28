@@ -65,50 +65,72 @@ export default function VideoModal({
   const uploadVideo = async (file: File) => {
     try {
       setUploadState("uploading");
-      setUploadProgress(15);
+      setUploadProgress(10);
 
-      const formData = new FormData();
-      formData.append("file", file);
+      const apiBase = process.env.NEXT_PUBLIC_API_URL!;
+      console.log("[VideoUpload] API Base:", apiBase);
 
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-      const uploadEndpoint = `${apiBase}files/upload-video`;
+      // 1. Primero obtenemos la URL prefirmada y demás información
+      const url = `${apiBase}files/video-upload-url?fileName=${encodeURIComponent(
+        file.name
+      )}`;
+      console.log("[VideoUpload] Request URL:", url);
 
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          const next = prev + 5;
-          return next < 90 ? next : prev;
-        });
-      }, 300);
+      const urlResponse = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      try {
-        const response = await fetch(uploadEndpoint, {
-          method: "POST",
-          body: formData,
-        });
+      console.log("[VideoUpload] Response status:", urlResponse.status);
+      console.log("[VideoUpload] Response ok:", urlResponse.ok);
 
-        clearInterval(progressInterval);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          setUploadState("error");
-          throw new Error(`Error HTTP: ${response.status}. ${errorText}`);
-        }
-
-        const result = await response.json();
-
-        if (!result.fileUrl) {
-          throw new Error("The response does not contain a valid file URL");
-        }
-
-        setUploadProgress(100);
-        setUploadUrl(result.fileUrl);
-        setUploadState("success");
-
-        return result.fileUrl;
-      } catch (error) {
-        clearInterval(progressInterval);
-        throw error;
+      if (!urlResponse.ok) {
+        const errorText = await urlResponse.text();
+        console.error("[VideoUpload] Error response:", errorText);
+        throw new Error("Error al obtener la URL de subida");
       }
+
+      const { uploadUrl, publicUrl, contentType } = await urlResponse.json();
+      setUploadProgress(20);
+
+      // 2. Subimos el video directamente a S3 usando XMLHttpRequest para seguimiento del progreso
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            // Calculamos el progreso real (20-90%)
+            const progressPercent = (event.loaded / event.total) * 70;
+            setUploadProgress(20 + progressPercent);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            setUploadProgress(100);
+            setUploadUrl(publicUrl);
+            setUploadState("success");
+            resolve(publicUrl);
+          } else {
+            reject(new Error("Error al subir el video a S3"));
+          }
+        };
+
+        xhr.onerror = () => {
+          console.error("[VideoUpload] Error XHR:", xhr.status, xhr.statusText);
+          reject(new Error("Error de red al subir el video"));
+        };
+
+        xhr.open("PUT", uploadUrl);
+        xhr.setRequestHeader("Content-Type", contentType);
+
+        console.log("[VideoUpload] Iniciando subida a S3 con URL:", uploadUrl);
+        console.log("[VideoUpload] Content-Type:", contentType);
+
+        xhr.send(file);
+      });
     } catch (err) {
       console.error("[VideoUpload] Error durante la carga:", err);
       setUploadState("error");
@@ -518,10 +540,9 @@ export default function VideoModal({
                   <li className="flex items-start font-light">
                     <span className="mr-2">-</span>
                     <span>
-                      If you`&lsquo;`re applying to a more traditional company,
-                      go a little more polished. If it`&lsquo;`s a startup or
-                      creative role, you can keep it more relaxed (but still
-                      tidy).
+                      If you&apos;re applying to a more traditional company, go
+                      a little more polished. If it&apos;s a startup or creative
+                      role, you can keep it more relaxed (but still tidy).
                     </span>
                   </li>
                 </ul>
@@ -539,8 +560,8 @@ export default function VideoModal({
                     <span className="mr-2">-</span>
                     <span>
                       No need to overdo makeup (if you wear it), but a bit of
-                      polish helps on camera—just enough to look like you’d show
-                      up to a video call ready.
+                      polish helps on camera—just enough to look like you&apos;d
+                      show up to a video call ready.
                     </span>
                   </li>
                 </ul>

@@ -7,7 +7,6 @@ import {
   createManualNote,
   getCandidateActivityLogs,
 } from "../actions/activity.logs.actions";
-import { axiosClient } from "@/services/axios.client";
 interface Propuesta {
   id: string;
   titulo: string;

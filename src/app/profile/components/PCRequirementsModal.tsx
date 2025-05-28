@@ -70,7 +70,7 @@ export default function PCRequirementsModal({
     try {
       const formData = new FormData();
       formData.append("image", file);
-      formData.append("folder", "andesworkforce");
+      formData.append("folder", "images");
 
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
       const uploadEndpoint = `${apiBase}files/upload/image/IMAGE`;
@@ -81,50 +81,12 @@ export default function PCRequirementsModal({
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(
-          "[PCRequirements] Error in response:",
-          response.status,
-          errorText
-        );
-        throw new Error(`Error HTTP: ${response.status}. ${errorText}`);
+        throw new Error(`Error HTTP: ${response.status}`);
       }
 
-      const responseText = await response.text();
-
-      if (responseText.trim().startsWith("http")) {
-        return responseText.trim();
-      }
-
-      let fileUrl: string;
-
-      try {
-        const result = JSON.parse(responseText);
-
-        if (result.fileUrl) {
-          fileUrl = result.fileUrl;
-        } else if (result.success && result.data) {
-          fileUrl = result.data;
-        } else {
-          throw new Error("La respuesta no contiene una URL de archivo válida");
-        }
-      } catch (parseError) {
-        console.error(
-          "[PCRequirements] Error parsing the response:",
-          parseError
-        );
-        fileUrl = responseText.trim();
-
-        if (!fileUrl.startsWith("http")) {
-          console.error(
-            `[PCRequirements] The response does not seem to be a valid URL:`,
-            fileUrl
-          );
-          throw new Error("The server response is not a valid URL");
-        }
-      }
-
-      return fileUrl;
+      // Ahora el endpoint devuelve directamente la URL pública
+      const publicUrl = await response.text();
+      return publicUrl;
     } catch (error) {
       console.error(
         `[PCRequirements] Error uploading image of ${type}:`,
