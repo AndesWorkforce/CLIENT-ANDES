@@ -153,12 +153,6 @@ export default function PostulantsPage() {
     setIsLogModalOpen(true);
   };
 
-  const handleSendPasswordReset = (email: string) => {
-    // Implementar lógica para enviar correo de restablecimiento de contraseña
-    console.log("Sending password reset to:", email);
-    alert(`Password reset email would be sent to ${email}`);
-  };
-
   const handleOpenStatusModal = (candidateId: string) => {
     setSelectedCandidateId(candidateId);
     setIsStatusModalOpen(true);
@@ -1071,7 +1065,10 @@ export default function PostulantsPage() {
               ?.clasificacionGlobal
           }
           candidateName={
-            applicants.find((a) => a.id === selectedCandidateId)?.nombre
+            applicants.find((a) => a.id === selectedCandidateId)?.nombre || ""
+          }
+          candidateEmail={
+            applicants.find((a) => a.id === selectedCandidateId)?.correo || ""
           }
           onStatusChange={handleChangeCompanyStatus}
         />

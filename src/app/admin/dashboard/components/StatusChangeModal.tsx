@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, CheckCircle } from "lucide-react";
 import type { CandidateStatus } from "../postulants/page";
+import { sendBlacklistNotification } from "../actions/sendEmail.actions";
 
 interface StatusChangeModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface StatusChangeModalProps {
   ) => void;
   candidateName?: string;
   candidateId: string;
+  candidateEmail: string;
 }
 
 export default function StatusChangeModal({
@@ -22,6 +24,7 @@ export default function StatusChangeModal({
   onStatusChange,
   candidateName = "this candidate",
   candidateId,
+  candidateEmail,
 }: StatusChangeModalProps) {
   const [selectedStatus, setSelectedStatus] =
     useState<CandidateStatus>(currentStatus);
@@ -81,6 +84,16 @@ export default function StatusChangeModal({
         selectedStatus,
         statusNotes || undefined
       );
+
+      // Enviar email si el estado es BLACKLIST
+      if (selectedStatus === "BLACKLIST") {
+        try {
+          await sendBlacklistNotification(candidateName, candidateEmail);
+        } catch (error) {
+          console.error("Error sending blacklist notification:", error);
+        }
+      }
+
       onClose();
     } catch (error) {
       console.error("Error updating status:", error);

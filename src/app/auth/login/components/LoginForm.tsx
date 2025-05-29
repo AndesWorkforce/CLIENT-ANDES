@@ -91,10 +91,22 @@ export default function LoginForm() {
           setAuthenticated(true);
           setToken(result.data?.accessToken);
 
-          if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
-            safeRedirect("/profile");
+          if (
+            result.data?.usuario?.rol === "EMPRESA" ||
+            result.data?.usuario?.rol === "EMPLEADO_EMPRESA"
+          ) {
+            safeRedirect("/companies/dashboard");
+          } else if (
+            result.data?.usuario?.rol === "ADMIN" ||
+            result.data?.usuario?.rol === "EMPLEADO_ADMIN"
+          ) {
+            safeRedirect("/admin/dashboard");
           } else {
-            safeRedirect("/pages/offers");
+            if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
+              safeRedirect("/profile");
+            } else {
+              safeRedirect("/pages/offers");
+            }
           }
         } else {
           addNotification(result.error || "Error logging in", "error");

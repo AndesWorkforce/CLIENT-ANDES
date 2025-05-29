@@ -38,6 +38,7 @@ export const getUsersAdmin = async (
         success: true,
         message: "Users fetched successfully",
         data: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           data: users.map((user: any) => ({
             id: user.id,
             usuarioId: user.usuario.id,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuthStore } from "@/store/auth.store";
-import { LogOut, Settings, LayoutDashboard, User } from "lucide-react";
+import { LogOut, Settings, User } from "lucide-react";
 import { useRef, useState } from "react";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
@@ -26,7 +26,11 @@ export default function HeaderDashboard() {
     }
   }
 
-  if (pathname === "/admin/dashboard/account") return null;
+  if (
+    pathname === "/admin/dashboard/account" ||
+    pathname === "/companies/account"
+  )
+    return null;
 
   return (
     <header className="container mx-auto bg-white shadow-sm">
@@ -70,7 +74,7 @@ export default function HeaderDashboard() {
                   </>
                 )}
 
-                <Link
+                {/* <Link
                   href="/admin/dashboard"
                   className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
                   onClick={() => setShowUserMenu(false)}
@@ -82,14 +86,14 @@ export default function HeaderDashboard() {
                   Offers Management
                 </Link>
 
-                <hr className="my-1 border-gray-200" />
+                <hr className="my-1 border-gray-200" /> */}
                 <Link
-                  href="/admin/dashboard/account"
+                  href="/companies/account"
                   className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                   onClick={() => setShowUserMenu(false)}
                 >
                   <User size={16} className="mr-2 text-[#0097B2]" />
-                  My Account!
+                  My Account
                 </Link>
                 <hr className="my-1 border-gray-200" />
 

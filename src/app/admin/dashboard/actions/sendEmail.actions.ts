@@ -7,6 +7,7 @@ import { render } from "@react-email/render";
 import { ContractJob } from "../emails/ContratJob";
 import { AdvanceNextStep } from "../emails/AdvanceNextStep";
 import { AssignJobNotification } from "../emails/AssignJobNotification";
+import { BlacklistNotificationEmail } from "../emails/BlacklistNotification";
 
 // Crear transportador de nodemailer con autenticación básica
 const createTransporter = async () => {
@@ -186,6 +187,37 @@ export const sendAssignJobNotification = async (
     };
   } catch (error) {
     console.error("Error sending assignment notification email:", error);
+    return { success: false, error };
+  }
+};
+
+export const sendBlacklistNotification = async (
+  candidateName: string,
+  candidateEmail: string
+) => {
+  try {
+    const emailHtml = await render(
+      BlacklistNotificationEmail({
+        candidateName,
+      })
+    );
+
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
+      from: "Andes Workforce <no-reply@teamandes.com>",
+      to: [candidateEmail],
+      subject: "Access Restricted",
+      html: emailHtml,
+    });
+
+    return {
+      success: true,
+      message: "Blacklist notification email sent successfully",
+      data: info,
+    };
+  } catch (error) {
+    console.error("Error sending blacklist notification email:", error);
     return { success: false, error };
   }
 };

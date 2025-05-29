@@ -1,6 +1,17 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+interface Empresa {
+  id: string;
+  nombre: string;
+}
+
+interface EmpleadoEmpresa {
+  id: string;
+  rol: string;
+  empresa: Empresa;
+}
+
 export interface User {
   id: string;
   nombre: string;
@@ -8,6 +19,8 @@ export interface User {
   correo: string;
   rol: string;
   token: string;
+  empresaId?: string; // ID de la empresa si el usuario es una empresa
+  empleadoEmpresa?: EmpleadoEmpresa;
 }
 
 interface AuthState {

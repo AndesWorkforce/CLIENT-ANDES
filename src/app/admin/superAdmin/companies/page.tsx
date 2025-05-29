@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Company } from "../schemas/company.schema";
-import { PlusIcon, Search, Loader2 } from "lucide-react";
+import { PlusIcon, Search } from "lucide-react";
 import { getCompaniesAdmin } from "../actions/company.actions";
 import CompaniesTable from "../components/CompaniesTable";
 import CreateCompanyForm from "../components/CreateCompanyForm";
@@ -18,6 +18,8 @@ export default function CompaniesPage() {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
   const [isSearching, setIsSearching] = useState<boolean>(false);
+
+  console.log(isSearching);
 
   const fetchCompanies = async (page = 1, searchValue = "") => {
     setLoading(true);

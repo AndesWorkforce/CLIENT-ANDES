@@ -381,7 +381,7 @@ export default function AdminDashboardPage() {
                         </h3>
                         {offer.estado === "pausado" && (
                           <span className="ml-2 px-2 py-1 text-xs font-medium rounded-md bg-amber-100 text-amber-800">
-                            Pausada
+                            Paused
                           </span>
                         )}
                       </div>
@@ -522,12 +522,12 @@ export default function AdminDashboardPage() {
           ) : (
             <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900">
-                No se encontraron ofertas
+                No offers found
               </h3>
               <p className="mt-1 text-sm text-gray-500">
                 {searchTerm
-                  ? `No hay resultados para "${searchTerm}"`
-                  : "Comience creando una nueva oferta"}
+                  ? `No results found for "${searchTerm}"`
+                  : "Start creating a new offer"}
               </p>
               {!searchTerm && (
                 <div className="mt-6">
@@ -536,7 +536,7 @@ export default function AdminDashboardPage() {
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#0097B2] hover:bg-[#007A8F] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0097B2]"
                   >
                     <PlusCircle size={16} className="mr-2" />
-                    Crear nueva oferta
+                    Create new offer
                   </Link>
                 </div>
               )}
@@ -790,12 +790,12 @@ export default function AdminDashboardPage() {
         ) : (
           <div className="hidden md:block text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-medium text-gray-900">
-              No se encontraron ofertas
+              No offers found
             </h3>
             <p className="mt-1 text-sm text-gray-500">
               {searchTerm
-                ? `No hay resultados para "${searchTerm}"`
-                : "Comience creando una nueva oferta"}
+                ? `No results found for "${searchTerm}"`
+                : "Start creating a new offer"}
             </p>
             {!searchTerm && (
               <div className="mt-6">
@@ -804,7 +804,7 @@ export default function AdminDashboardPage() {
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#0097B2] hover:bg-[#007A8F] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0097B2]"
                 >
                   <PlusCircle size={16} className="mr-2" />
-                  Crear nueva oferta
+                  Create new offer
                 </Link>
               </div>
             )}

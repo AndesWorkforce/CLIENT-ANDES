@@ -37,6 +37,15 @@ const superAdminRoutes = [
   // Agregar aquí todas las rutas de super administrador
 ];
 
+// Rutas exclusivas para empresas
+const companyRoutes = [
+  "/companies/dashboard",
+  "/companies/dashboard/offers",
+  "/companies/dashboard/employees",
+  "/companies/dashboard/employees/new",
+  "/companies/account",
+];
+
 // Rutas públicas que todos pueden ver (incluso administradores)
 const publicRoutes = [
   "/",
@@ -63,10 +72,12 @@ export function middleware(request: NextRequest) {
     console.error("Error al parsear cookie de usuario:", error);
   }
 
-  // Determinar si el usuario es administrador o super administrador
+  // Determinar roles de usuario
   const isAdmin =
     userInfo?.rol === "ADMIN" || userInfo?.rol === "EMPLEADO_ADMIN";
   const isSuperAdmin = userInfo?.rol === "ADMIN";
+  const isCompany =
+    userInfo?.rol === "EMPRESA" || userInfo?.rol === "EMPLEADO_EMPRESA";
 
   // 1. Si ya está autenticado e intenta ir a páginas de login/registro
   if (
@@ -80,6 +91,8 @@ export function middleware(request: NextRequest) {
     // Redireccionar según el rol
     if (isAdmin) {
       url.pathname = "/admin/dashboard"; // Redirección para administradores
+    } else if (isCompany) {
+      url.pathname = "/companies/dashboard"; // Redirección para empresas
     } else {
       url.pathname = "/pages/offers"; // Redirección para usuarios normales
     }
@@ -87,76 +100,90 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 2. Si es administrador e intenta acceder a rutas de usuario normal o landing page
+  // 2. Si es empresa e intenta acceder a rutas que no le corresponden
   if (
     isAuthenticated &&
-    isAdmin &&
-    !adminRoutes.some(
-      (route) => pathname === route || pathname.startsWith(`${route}/`)
-    ) &&
-    !superAdminRoutes.some(
+    isCompany &&
+    !companyRoutes.some(
       (route) => pathname === route || pathname.startsWith(`${route}/`)
     ) &&
     !publicRoutes.some(
       (route) => pathname === route || pathname.startsWith(`${route}/`)
     )
   ) {
-    // Redirigir al administrador a su dashboard
+    // Redirigir a la empresa a su dashboard
     const url = request.nextUrl.clone();
-    url.pathname = "/admin/dashboard";
+    url.pathname = "/companies/dashboard";
     return NextResponse.redirect(url);
   }
 
-  // 3. Verificar si la ruta actual es una ruta exclusiva de super administrador
-  const requiresSuperAdmin = superAdminRoutes.some(
+  // 3. Verificar si la ruta actual es una ruta exclusiva de empresa
+  const requiresCompany = companyRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 
-  // 4. Si requiere ser super administrador pero el usuario no lo es, redirigir
-  if (requiresSuperAdmin && (!isAuthenticated || !isSuperAdmin)) {
+  // 4. Si requiere ser empresa pero el usuario no lo es, redirigir
+  if (requiresCompany && (!isAuthenticated || !isCompany)) {
     const url = request.nextUrl.clone();
 
     if (!isAuthenticated) {
-      // Si no está autenticado, enviar al login
       url.pathname = "/auth/forced-logout";
       url.searchParams.set("reason", "session_expired");
       url.searchParams.set("callbackUrl", pathname);
     } else {
-      // Si está autenticado pero no es super admin, enviar a página para administradores normales
+      // Si está autenticado pero no es empresa, enviar a su página correspondiente
+      url.pathname = isAdmin ? "/admin/dashboard" : "/pages/offers";
+    }
+
+    return NextResponse.redirect(url);
+  }
+
+  // 5. Verificar si la ruta actual es una ruta exclusiva de super administrador
+  const requiresSuperAdmin = superAdminRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+
+  // 6. Si requiere ser super administrador pero el usuario no lo es, redirigir
+  if (requiresSuperAdmin && (!isAuthenticated || !isSuperAdmin)) {
+    const url = request.nextUrl.clone();
+
+    if (!isAuthenticated) {
+      url.pathname = "/auth/forced-logout";
+      url.searchParams.set("reason", "session_expired");
+      url.searchParams.set("callbackUrl", pathname);
+    } else {
       url.pathname = "/admin/dashboard";
     }
 
     return NextResponse.redirect(url);
   }
 
-  // 5. Verificar si la ruta actual es una ruta exclusiva de administrador
+  // 7. Verificar si la ruta actual es una ruta exclusiva de administrador
   const requiresAdmin = adminRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 
-  // 6. Si requiere ser administrador pero el usuario no lo es, redirigir
+  // 8. Si requiere ser administrador pero el usuario no lo es, redirigir
   if (requiresAdmin && (!isAuthenticated || !isAdmin)) {
     const url = request.nextUrl.clone();
 
     if (!isAuthenticated) {
-      // Si no está autenticado, enviar al login
       url.pathname = "/auth/forced-logout";
       url.searchParams.set("reason", "session_expired");
       url.searchParams.set("callbackUrl", pathname);
     } else {
-      // Si está autenticado pero no es admin, enviar a página para usuarios normales
       url.pathname = "/pages/offers";
     }
 
     return NextResponse.redirect(url);
   }
 
-  // 7. Verificamos si la ruta actual es una ruta protegida que requiere autenticación
+  // 9. Verificamos si la ruta actual es una ruta protegida que requiere autenticación
   const requiresAuth = protectedRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 
-  // 8. Si requiere autenticación y el usuario no está autenticado, redirigir al login
+  // 10. Si requiere autenticación y el usuario no está autenticado, redirigir al login
   if (requiresAuth && !isAuthenticated) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/forced-logout";
@@ -165,7 +192,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 9. En cualquier otro caso, permitir la navegación
   return NextResponse.next();
 }
 

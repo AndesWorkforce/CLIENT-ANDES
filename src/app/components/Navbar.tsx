@@ -258,23 +258,42 @@ export default function Navbar() {
                         <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                           <div className="px-4 py-3 border-b border-gray-100">
                             <p className="text-[#0097B2] font-medium text-sm cursor-default">
-                              {isValidProfileUserState !== undefined && (
-                                <span
-                                  className={`text-[10px] block ${
-                                    isValidProfileUserState
-                                      ? "text-green-500"
-                                      : "text-red-500"
-                                  }`}
-                                >
-                                  {isValidProfileUserState
-                                    ? "Completed"
-                                    : "Incomplete"}
-                                </span>
-                              )}
                               {user?.nombre || ""} {user?.apellido || ""}
                             </p>
                           </div>
-                          {user?.rol === "ADMIN" ? (
+
+                          {user?.rol === "EMPRESA" ||
+                          user?.rol === "EMPLEADO_EMPRESA" ? (
+                            <>
+                              <Link
+                                href="/companies/dashboard"
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                                onClick={() => setShowUserMenu(false)}
+                              >
+                                <LayoutDashboard
+                                  size={16}
+                                  className="mr-2 text-[#0097B2] cursor-pointer"
+                                />
+                                Panel de Empresa
+                              </Link>
+
+                              <hr className="my-1 border-gray-200" />
+
+                              <button
+                                onClick={() => {
+                                  handleLogout();
+                                  setShowUserMenu(false);
+                                }}
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                              >
+                                <LogOut
+                                  size={16}
+                                  className="mr-2 text-[#0097B2] cursor-pointer"
+                                />
+                                Cerrar sesión
+                              </button>
+                            </>
+                          ) : user?.rol === "ADMIN" ? (
                             <>
                               <Link
                                 href="/admin/superAdmin"
@@ -288,36 +307,33 @@ export default function Navbar() {
                                 Panel de Super Admin
                               </Link>
                               <hr className="my-1 border-gray-200" />
+                              <Link
+                                href="/admin/dashboard"
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                                onClick={() => setShowUserMenu(false)}
+                              >
+                                <LayoutDashboard
+                                  size={16}
+                                  className="mr-2 text-[#0097B2] cursor-pointer"
+                                />
+                                Gestión de Ofertas
+                              </Link>
+                              <hr className="my-1 border-gray-200" />
+                              <button
+                                onClick={() => {
+                                  handleLogout();
+                                  setShowUserMenu(false);
+                                }}
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                              >
+                                <LogOut
+                                  size={16}
+                                  className="mr-2 text-[#0097B2] cursor-pointer"
+                                />
+                                Cerrar sesión
+                              </button>
                             </>
                           ) : null}
-
-                          <Link
-                            href="/admin/dashboard"
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-                            onClick={() => setShowUserMenu(false)}
-                          >
-                            <LayoutDashboard
-                              size={16}
-                              className="mr-2 text-[#0097B2] cursor-pointer"
-                            />
-                            Gestión de Ofertas
-                          </Link>
-
-                          <hr className="my-1 border-gray-200" />
-
-                          <button
-                            onClick={() => {
-                              handleLogout();
-                              setShowUserMenu(false);
-                            }}
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-                          >
-                            <LogOut
-                              size={16}
-                              className="mr-2 text-[#0097B2] cursor-pointer"
-                            />
-                            Cerrar sesión
-                          </button>
                         </div>
                       )}
                     </div>
@@ -454,29 +470,50 @@ export default function Navbar() {
                   </>
                 ) : (
                   <>
-                    {user?.rol === "ADMIN" && (
-                      <Link
-                        href="/admin/superAdmin"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                        onClick={() => setShowMobileSidebar(false)}
-                      >
-                        <Settings size={20} className="mr-2 text-[#0097B2]" />
-                        Panel de Super Admin
-                      </Link>
-                    )}
-                    <hr className="my-1 border-gray-200" />
+                    {user?.rol === "EMPRESA" ? (
+                      <>
+                        <Link
+                          href="/companies/dashboard"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                          onClick={() => setShowMobileSidebar(false)}
+                        >
+                          <LayoutDashboard
+                            size={20}
+                            className="mr-2 text-[#0097B2]"
+                          />
+                          Panel de Empresa
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        {user?.rol === "ADMIN" && (
+                          <Link
+                            href="/admin/superAdmin"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                            onClick={() => setShowMobileSidebar(false)}
+                          >
+                            <Settings
+                              size={20}
+                              className="mr-2 text-[#0097B2]"
+                            />
+                            Panel de Super Admin
+                          </Link>
+                        )}
+                        <hr className="my-1 border-gray-200" />
 
-                    <Link
-                      href="/admin/dashboard"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setShowMobileSidebar(false)}
-                    >
-                      <LayoutDashboard
-                        size={20}
-                        className="mr-2 text-[#0097B2]"
-                      />
-                      Gestión de Ofertas
-                    </Link>
+                        <Link
+                          href="/admin/dashboard"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                          onClick={() => setShowMobileSidebar(false)}
+                        >
+                          <LayoutDashboard
+                            size={20}
+                            className="mr-2 text-[#0097B2]"
+                          />
+                          Gestión de Ofertas
+                        </Link>
+                      </>
+                    )}
                   </>
                 )}
 

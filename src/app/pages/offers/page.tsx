@@ -675,8 +675,8 @@ export default function JobOffersPage() {
             </h3>
             <p className="text-gray-600 text-center mb-6">
               You can only apply to one offer at a time. Once this application
-              is completed, you'll be able to apply to another offer. Are you
-              sure this is the offer you want to apply to?
+              is completed, you&apos;ll be able to apply to another offer. Are
+              you sure this is the offer you want to apply to?
             </p>
             <div className="flex justify-center gap-4">
               <button

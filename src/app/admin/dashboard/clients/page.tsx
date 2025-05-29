@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { getCompaniesAdmin } from "../../superAdmin/actions/company.actions";
 import { Mail, Edit, Trash2, UserPlus } from "lucide-react";
-import { useNotificationStore } from "@/store/notifications.store";
 import TableSkeleton, {
   MobileTableSkeleton,
 } from "../components/TableSkeleton";
@@ -32,7 +31,6 @@ export default function ClientsPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
-  const { addNotification } = useNotificationStore();
 
   const fetchClients = async (page = 1, searchValue = "") => {
     setIsLoading(true);
