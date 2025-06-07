@@ -13,7 +13,9 @@ import {
   Bookmark,
 } from "lucide-react";
 import Link from "next/link";
-import ApplicantsModal from "./components/ApplicantsModal";
+import ApplicantsModal, {
+  EstadoPostulacion,
+} from "@/app/admin/dashboard/components/ApplicantsModal";
 import {
   getPublishedOffers,
   toggleOfferStatus,
@@ -829,6 +831,8 @@ export default function AdminDashboardPage() {
               fotoPerfil: postulacion.candidato.fotoPerfil,
               videoPresentacion: postulacion.candidato.videoPresentacion,
               postulationId: postulacion.id,
+              estadoPostulacion: (postulacion.estado ||
+                "PENDIENTE") as EstadoPostulacion,
             })) || []
           }
         />

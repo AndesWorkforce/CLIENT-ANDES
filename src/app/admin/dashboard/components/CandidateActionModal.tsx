@@ -23,17 +23,17 @@ export default function CandidateActionModal({
   if (!isOpen) return null;
 
   const getTitle = () => {
-    return action === "remove" ? "Eliminar Candidato" : "Activar Candidato";
+    return action === "remove" ? "Remove Candidate" : "Activate Candidate";
   };
 
   const getMessage = () => {
     return action === "remove"
-      ? `¿Estás seguro que deseas eliminar a ${candidateName}? Esta acción no se puede deshacer.`
-      : `¿Estás seguro que deseas activar a ${candidateName}? El candidato recuperará acceso a la plataforma.`;
+      ? `Are you sure you want to remove ${candidateName}? This action cannot be undone.`
+      : `Are you sure you want to activate ${candidateName}? The candidate will regain access to the platform.`;
   };
 
   const getButtonText = () => {
-    return action === "remove" ? "Eliminar" : "Activar";
+    return action === "remove" ? "Remove" : "Activate";
   };
 
   const getButtonClass = () => {
@@ -96,7 +96,7 @@ export default function CandidateActionModal({
             disabled={isProcessing}
             className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={handleConfirm}
@@ -106,7 +106,7 @@ export default function CandidateActionModal({
             {isProcessing ? (
               <>
                 <span className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full"></span>
-                Procesando...
+                Processing...
               </>
             ) : (
               getButtonText()

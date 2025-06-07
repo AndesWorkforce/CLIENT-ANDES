@@ -31,7 +31,7 @@ export default function VideoModal({
   );
   const [error, setError] = useState<string | null>(null);
 
-  const MAX_FILE_SIZE = 100 * 1024 * 1024; // Maximum file size is 100MB
+  const MAX_FILE_SIZE = 200 * 1024 * 1024; // Maximum file size is 200MB
 
   const handleClickOutside = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -49,7 +49,7 @@ export default function VideoModal({
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
         setError(
-          `The file exceeds the 100MB limit. Current size: ${(
+          `The file exceeds the 200MB limit. Current size: ${(
             file.size /
             (1024 * 1024)
           ).toFixed(2)}MB`
@@ -238,7 +238,24 @@ export default function VideoModal({
             Please send a short video (1.5 minutes max) explaining what makes
             you a good candidate for this position.
           </p>
-          <p className="text-red-500 font-bold text-sm">Maximum size 100MB</p>
+          <p className="text-red-500 font-bold text-sm">Maximum size 200MB</p>
+
+          {uploadUrl && uploadState === "idle" && (
+            <div className="mt-2 space-y-2">
+              <p className="text-sm font-medium text-gray-700">
+                Current video:
+              </p>
+              <div className="relative aspect-video w-full">
+                <video
+                  src={uploadUrl}
+                  controls
+                  className="w-full h-full rounded-lg border border-gray-200"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          )}
 
           <div className="bg-[#FEF9C3] border border-[#F7E99E] rounded-lg p-3">
             <div className="flex items-start space-x-2">
@@ -303,7 +320,11 @@ export default function VideoModal({
               >
                 <Upload className="h-5 w-5 mr-2" />
                 <span className="font-medium">
-                  {agreeToTerms ? "Upload video" : "Accept the terms to upload"}
+                  {agreeToTerms
+                    ? uploadUrl
+                      ? "Change video"
+                      : "Upload video"
+                    : "Accept the terms to upload"}
                 </span>
               </label>
             )}

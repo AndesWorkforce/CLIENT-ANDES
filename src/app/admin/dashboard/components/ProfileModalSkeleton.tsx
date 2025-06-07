@@ -5,7 +5,7 @@ interface ProfileModalSkeletonProps {
   isOpen: boolean;
   onClose: () => void;
   onReload?: () => void;
-  errorCount?: number; // Contador de errores
+  errorCount?: number; // Error counter
 }
 
 export default function ProfileModalSkeleton({
@@ -15,7 +15,7 @@ export default function ProfileModalSkeleton({
   errorCount = 0,
 }: ProfileModalSkeletonProps) {
   console.log(
-    "[ProfileModalSkeleton] Mostrando skeleton - isOpen:",
+    "[ProfileModalSkeleton] Showing skeleton - isOpen:",
     isOpen,
     "errorCount:",
     errorCount
@@ -23,7 +23,7 @@ export default function ProfileModalSkeleton({
 
   if (!isOpen) return null;
 
-  // Si ha habido varios intentos, mostrar mensaje de error específico
+  // If there have been several attempts, show specific error message
   const showTooManyRequestsWarning = errorCount > 1;
 
   return (
@@ -32,7 +32,7 @@ export default function ProfileModalSkeleton({
         className="relative p-4 bg-white w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto rounded-lg"
         style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
       >
-        {/* Botón de cerrar */}
+        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 cursor-pointer z-10"
@@ -40,19 +40,19 @@ export default function ProfileModalSkeleton({
           <X size={20} />
         </button>
 
-        {/* Botón de recarga */}
+        {/* Reload button */}
         {onReload && (
           <button
             onClick={onReload}
             className="absolute top-2 right-10 text-gray-500 hover:text-[#0097B2] cursor-pointer z-10 flex items-center"
           >
             <RefreshCw size={18} className="mr-1" />
-            <span className="text-sm">Recargar perfil</span>
+            <span className="text-sm">Reload profile</span>
           </button>
         )}
 
         <div className="p-6">
-          {/* Mensaje de carga */}
+          {/* Loading message */}
           <div
             className={`${
               showTooManyRequestsWarning
@@ -65,17 +65,16 @@ export default function ProfileModalSkeleton({
                 <>
                   <div className="flex items-center">
                     <AlertCircle size={20} className="mr-2" />
-                    <p className="font-bold">Demasiadas peticiones</p>
+                    <p className="font-bold">Too many requests</p>
                   </div>
                   <p className="text-sm">
-                    El servidor está ocupado. Por favor espera unos segundos y
-                    vuelve a intentarlo.
+                    The server is busy. Please wait a few seconds and try again.
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="font-bold">Cargando perfil...</p>
-                  <p className="text-sm">Esto puede tardar unos segundos.</p>
+                  <p className="font-bold">Loading profile...</p>
+                  <p className="text-sm">This may take a few seconds.</p>
                 </>
               )}
             </div>
@@ -85,7 +84,7 @@ export default function ProfileModalSkeleton({
           </div>
 
           <div className="space-y-4">
-            {/* Datos personales */}
+            {/* Personal data */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="p-4">
                 <div className="animate-pulse flex flex-col">
@@ -96,7 +95,7 @@ export default function ProfileModalSkeleton({
               </div>
             </div>
 
-            {/* Formulario */}
+            {/* Form */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="p-4 animate-pulse flex justify-between items-center">
                 <div className="h-5 bg-gray-200 rounded w-1/4"></div>
@@ -112,7 +111,7 @@ export default function ProfileModalSkeleton({
               </div>
             </div>
 
-            {/* Habilidades */}
+            {/* Skills */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="p-4">
                 <div className="h-5 bg-gray-200 rounded w-1/4 mb-3 animate-pulse"></div>

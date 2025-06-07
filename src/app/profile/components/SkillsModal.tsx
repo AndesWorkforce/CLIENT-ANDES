@@ -81,7 +81,7 @@ export default function SkillsModal({
                 value={skillText}
                 onChange={(e) => setSkillText(e.target.value)}
                 className="w-full h-full min-h-[200px] p-3 outline-none resize-none"
-                placeholder="Describe todas tus habilidades aquí"
+                placeholder="Describe all your skills here"
                 disabled={isLoading}
               />
             </div>

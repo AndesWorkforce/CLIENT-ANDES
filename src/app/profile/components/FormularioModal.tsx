@@ -137,12 +137,6 @@ export default function FormularioModal({
     setTimeout(validateForm, 100);
   }, [datosFormulario]);
 
-  const handleClickOutside = (e: React.MouseEvent) => {
-    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
-
   const handleInputChange = (question: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -224,13 +218,16 @@ export default function FormularioModal({
     }
   };
 
+  console.log(
+    "\n\n [FormularioModal] datosFormulario",
+    datosFormulario,
+    "\n\n"
+  );
+
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-[#08252A33] z-50 flex items-center justify-center p-4"
-      onClick={handleClickOutside}
-    >
+    <div className="fixed inset-0 bg-[#08252A33] z-50 flex items-center justify-center p-4">
       <div
         ref={modalRef}
         className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg shadow-lg custom-scrollbar"

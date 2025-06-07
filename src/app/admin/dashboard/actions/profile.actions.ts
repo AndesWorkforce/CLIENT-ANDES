@@ -29,23 +29,46 @@ export async function getProfile(id: string) {
       };
     }
 
-    // Verificación de la estructura de datos
-    if (!responseData || !responseData.data) {
-      console.error(
-        "[profile.actions] Estructura de datos inválida:",
-        responseData
-      );
+    // Verificación más detallada de la estructura de datos
+    if (!responseData) {
+      console.error("[profile.actions] No hay datos en la respuesta");
       return {
         success: false,
-        message: "Estructura de datos inválida en la respuesta",
+        message: "No se recibieron datos del servidor",
       };
     }
 
-    console.log("[profile.actions] Perfil obtenido correctamente");
+    // Si los datos vienen directamente en responseData
+    if (responseData.datosPersonales) {
+      console.log(
+        "[profile.actions] Datos encontrados directamente en responseData"
+      );
+      return {
+        success: true,
+        message: "Profile obtained successfully",
+        data: {
+          data: responseData,
+        },
+      };
+    }
+
+    // Si los datos vienen en responseData.data
+    if (responseData.data && responseData.data.datosPersonales) {
+      console.log("[profile.actions] Datos encontrados en responseData.data");
+      return {
+        success: true,
+        message: "Profile obtained successfully",
+        data: responseData,
+      };
+    }
+
+    console.error(
+      "[profile.actions] Estructura de datos inválida:",
+      responseData
+    );
     return {
-      success: true,
-      message: "Profile obtained successfully",
-      data: responseData,
+      success: false,
+      message: "Estructura de datos inválida en la respuesta",
     };
   } catch (error) {
     console.error("[profile.actions] Error in getProfile:", error);

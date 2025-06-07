@@ -205,7 +205,7 @@ export default function ApplicationsPage() {
       {/* Modal para ver detalles completos */}
       {showModal && selectedApplication && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-center p-4 border-b">
               <h2 className="text-xl font-medium text-[#0097B2]">
                 {selectedApplication?.propuesta.titulo}
@@ -220,9 +220,7 @@ export default function ApplicationsPage() {
 
             <div className="p-6">
               <div className="mb-6">
-                <h3 className="text-lg font-medium mb-2">
-                  Oferta del servicio
-                </h3>
+                <h3 className="text-lg font-medium mb-2">Service Offer</h3>
                 <div
                   className="text-gray-700 prose max-w-none"
                   dangerouslySetInnerHTML={{

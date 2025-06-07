@@ -13,41 +13,54 @@ export async function currentStageStatus(
       `applications/offer/${postulationId}/candidate/${candidateId}`
     );
 
-    console.log("[response] ", response.data);
     if (response.status !== 200) {
       return {
         success: false,
-        message: "Error al obtener el estado de la etapa",
+        message: "Error getting stage status",
       };
     }
+
     revalidatePath(`/admin/dashboard`);
     return {
       success: true,
-      message: "Etapa actualizada correctamente",
+      message: "Stage status retrieved successfully",
       data: response.data,
     };
   } catch (error) {
     console.log("[error] ", error);
+    // El interceptor de Axios manejará el error 401 automáticamente
     return {
       success: false,
-      message: "Error al obtener el estado de la etapa",
+      message: "Error getting stage status",
     };
   }
 }
+
 export async function advancedStage(
   postulationId: string,
-  currentStage: string,
+  candidateId: string,
+  currentStage:
+    | "PENDIENTE"
+    | "EN_EVALUACION"
+    | "FINALISTA"
+    | "ACEPTADA"
+    | "RECHAZADA",
   action: "NEXT" | "CONTRACT" = "NEXT"
 ) {
   const axios = await createServerAxios();
   try {
-    let nextStage = "";
+    let nextStage:
+      | "PENDIENTE"
+      | "EN_EVALUACION"
+      | "FINALISTA"
+      | "ACEPTADA"
+      | "RECHAZADA";
     let additionalData = {};
 
     if (action === "CONTRACT") {
       nextStage = "ACEPTADA";
       additionalData = {
-        notasInternas: "Candidato contratado",
+        notasInternas: "Candidate hired",
       };
     } else {
       switch (currentStage) {
@@ -56,25 +69,41 @@ export async function advancedStage(
           additionalData = {
             fechaEntrevista: new Date().toISOString(),
             linkEntrevista: "https://meet.google.com/abc123",
-            notasInternas: "Candidato seleccionado para entrevista inicial",
+            notasInternas: "Candidate selected for initial interview",
           };
           break;
         case "EN_EVALUACION":
           nextStage = "FINALISTA";
           additionalData = {
-            notasInternas: "Candidato seleccionado como finalista",
+            notasInternas: "Candidate selected as finalist",
           };
           break;
+        case "FINALISTA":
+          nextStage = "ACEPTADA";
+          additionalData = {
+            notasInternas: "Candidate approved for hiring",
+          };
+          break;
+        case "ACEPTADA":
+          return {
+            success: false,
+            message: "Candidate is already in ACEPTADA stage",
+          };
+        case "RECHAZADA":
+          return {
+            success: false,
+            message: "Cannot advance a rejected candidate",
+          };
         default:
           return {
             success: false,
-            message: "No se puede avanzar más en el proceso",
+            message: `Invalid current stage: ${currentStage}`,
           };
       }
     }
 
     const response = await axios.patch(
-      `admin/postulaciones/${postulationId}/status`,
+      `admin/postulaciones/${postulationId}/candidate/${candidateId}/status`,
       {
         estadoPostulacion: nextStage,
         ...additionalData,
@@ -84,50 +113,53 @@ export async function advancedStage(
     if (response.status !== 200) {
       return {
         success: false,
-        message: "Error al actualizar la etapa",
+        message: "Error updating stage",
       };
     }
 
+    revalidatePath(`/admin/dashboard`);
     return {
       success: true,
-      message: "Etapa actualizada correctamente",
+      message: "Stage updated successfully",
+      nextStage,
     };
   } catch (error) {
     console.log("[error] ", error);
     return {
       success: false,
-      message: "Error al actualizar la etapa",
+      message: "Error updating stage",
     };
   }
 }
 
-export async function rejectStage(postulationId: string) {
+export async function rejectStage(postulationId: string, candidateId: string) {
   const axios = await createServerAxios();
   try {
     const response = await axios.patch(
-      `admin/postulaciones/${postulationId}/status`,
+      `admin/postulaciones/${postulationId}/candidate/${candidateId}/status`,
       {
         estadoPostulacion: "RECHAZADA",
-        notasInternas: "Candidato rechazado, no cumple con los requisitos",
+        notasInternas: "Candidate rejected, does not meet requirements",
       }
     );
 
     if (response.status !== 200) {
       return {
         success: false,
-        message: "Error al actualizar la etapa",
+        message: "Error updating stage",
       };
     }
 
+    revalidatePath(`/admin/dashboard`);
     return {
       success: true,
-      message: "Etapa actualizada correctamente",
+      message: "Stage updated successfully",
     };
   } catch (error) {
     console.log("[error] ", error);
     return {
       success: false,
-      message: "Error al actualizar la etapa",
+      message: "Error updating stage",
     };
   }
 }

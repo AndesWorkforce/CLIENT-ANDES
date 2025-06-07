@@ -10,12 +10,16 @@ interface PCRequirementsModalProps {
   isOpen: boolean;
   onClose: () => void;
   candidateId?: string;
+  imagenRequerimientosPC?: string;
+  imagenTestVelocidad?: string;
 }
 
 export default function PCRequirementsModal({
   isOpen,
   onClose,
   candidateId,
+  imagenRequerimientosPC,
+  imagenTestVelocidad,
 }: PCRequirementsModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const { user } = useAuthStore();
@@ -24,25 +28,29 @@ export default function PCRequirementsModal({
   const [internetScreenshot, setInternetScreenshot] = useState<File | null>(
     null
   );
-  const [pcPreviewUrl, setPcPreviewUrl] = useState<string | null>(null);
+  const [pcPreviewUrl, setPcPreviewUrl] = useState<string | null>(
+    imagenRequerimientosPC || null
+  );
   const [internetPreviewUrl, setInternetPreviewUrl] = useState<string | null>(
-    null
+    imagenTestVelocidad || null
   );
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
+    setPcPreviewUrl(imagenRequerimientosPC || null);
+    setInternetPreviewUrl(imagenTestVelocidad || null);
+  }, [imagenRequerimientosPC, imagenTestVelocidad]);
+
+  useEffect(() => {
     return () => {
-      if (pcPreviewUrl) URL.revokeObjectURL(pcPreviewUrl);
-      if (internetPreviewUrl) URL.revokeObjectURL(internetPreviewUrl);
+      // Solo revocamos las URLs si son URLs de objeto local
+      if (pcPreviewUrl && pcPreviewUrl.startsWith("blob:"))
+        URL.revokeObjectURL(pcPreviewUrl);
+      if (internetPreviewUrl && internetPreviewUrl.startsWith("blob:"))
+        URL.revokeObjectURL(internetPreviewUrl);
     };
   }, [pcPreviewUrl, internetPreviewUrl]);
-
-  const handleClickOutside = (e: React.MouseEvent) => {
-    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
 
   const handlePcScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -159,10 +167,7 @@ export default function PCRequirementsModal({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4"
-      onClick={handleClickOutside}
-    >
+    <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4">
       <div
         ref={modalRef}
         className="bg-white w-full max-w-md rounded-lg shadow-lg overflow-hidden flex flex-col max-h-[90vh]"
@@ -257,7 +262,7 @@ export default function PCRequirementsModal({
                     <Upload className="h-5 w-5 text-white" />
                   </div>
                 </label>
-                {pcScreenshot && pcPreviewUrl && (
+                {pcPreviewUrl && (
                   <div className="mt-2">
                     <div className="flex flex-col">
                       <img
@@ -266,7 +271,7 @@ export default function PCRequirementsModal({
                         className="h-32 w-full object-contain rounded border border-gray-300 mb-1"
                       />
                       <p className="text-xs text-gray-500">
-                        {pcScreenshot.name}
+                        {pcScreenshot?.name || "Current PC specs screenshot"}
                       </p>
                     </div>
                   </div>
@@ -298,7 +303,7 @@ export default function PCRequirementsModal({
                     <Upload className="h-5 w-5 text-white" />
                   </div>
                 </label>
-                {internetScreenshot && internetPreviewUrl && (
+                {internetPreviewUrl && (
                   <div className="mt-2">
                     <div className="flex flex-col">
                       <img
@@ -307,7 +312,8 @@ export default function PCRequirementsModal({
                         className="h-32 w-full object-contain rounded border border-gray-300 mb-1"
                       />
                       <p className="text-xs text-gray-500">
-                        {internetScreenshot.name}
+                        {internetScreenshot?.name ||
+                          "Current internet speed screenshot"}
                       </p>
                     </div>
                   </div>

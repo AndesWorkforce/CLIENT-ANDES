@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X, Phone, Mail, FileText, Edit } from "lucide-react";
+import { X, Phone, Mail, FileText, Edit, CheckCircle } from "lucide-react";
 import { useCandidateProfile } from "../context/CandidateProfileContext";
 import ProfileModalSkeleton from "./ProfileModalSkeleton";
 import ViewFormularioModal from "./ViewFormularioModal";
@@ -25,6 +25,7 @@ import { addEducation } from "@/app/profile/actions/education.actions";
 import ContactoModal from "@/app/profile/components/ContactoModal";
 import { candidateValidationProfile } from "../actions/applicants.actions";
 import IdentificationModal from "@/app/profile/components/IdentificationModal";
+import { useAuthStore } from "@/store/auth.store";
 
 interface CandidateProfileModalProps {
   isOpen: boolean;
@@ -39,6 +40,9 @@ export default function CandidateProfileModal({
 }: CandidateProfileModalProps) {
   const { profile, isLoading, loadProfile } = useCandidateProfile();
   const { addNotification } = useNotificationStore();
+  const { user } = useAuthStore();
+  const isCompanyUser =
+    user?.rol === "EMPRESA" || user?.rol === "EMPLEADO_EMPRESA";
   const [activeTab, setActiveTab] = useState<"experiencia" | "educacion">(
     "experiencia"
   );
@@ -294,27 +298,44 @@ export default function CandidateProfileModal({
                   <span className="text-gray-800 font-medium">
                     Contact Information
                   </span>
-                  <div className="flex items-center justify-center gap-4">
+                  <div className="flex items-center gap-3">
                     <button
                       onClick={() => setShowContactoModal(true)}
-                      className="text-[#0097B2] flex items-center hover:bg-blue-50 p-2 rounded"
+                      className="text-[#0097B2] flex items-center justify-center hover:bg-blue-50 p-2 rounded-full w-11 h-11"
                     >
-                      <Edit size={16} className="mr-1" />
-                      <span>Edit</span>
+                      <Edit size={26} />
                     </button>
+                    {profile.datosPersonales.nombre &&
+                      profile.datosPersonales.apellido && (
+                        <div className="flex items-center justify-center w-11 h-11">
+                          <CheckCircle
+                            size={30}
+                            className="text-[#0097B2] fill-white stroke-[#0097B2] stroke-[1.5]"
+                          />
+                        </div>
+                      )}
                   </div>
                 </div>
 
                 {/* Form */}
                 <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
                   <span className="text-gray-800 font-medium">Form</span>
-                  <button
-                    onClick={() => setShowFormularioModal(true)}
-                    className="text-[#0097B2] flex items-center hover:bg-blue-50 p-2 rounded"
-                  >
-                    <Edit size={16} className="mr-1" />
-                    <span>Edit</span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowFormularioModal(true)}
+                      className="text-[#0097B2] flex items-center justify-center hover:bg-blue-50 p-2 rounded-full w-11 h-11"
+                    >
+                      <Edit size={26} />
+                    </button>
+                    {profile.datosFormulario && (
+                      <div className="flex items-center justify-center w-11 h-11">
+                        <CheckCircle
+                          size={30}
+                          className="text-[#0097B2] fill-white stroke-[#0097B2] stroke-[1.5]"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Video Presentation */}
@@ -322,39 +343,67 @@ export default function CandidateProfileModal({
                   <span className="text-gray-800 font-medium">
                     Video Presentation
                   </span>
-                  <button
-                    onClick={() => setShowVideoModal(true)}
-                    className="text-[#0097B2] flex items-center hover:bg-blue-50 p-2 rounded"
-                  >
-                    <Edit size={16} className="mr-1" />
-                    <span>Edit</span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowVideoModal(true)}
+                      className="text-[#0097B2] flex items-center justify-center hover:bg-blue-50 p-2 rounded-full w-11 h-11"
+                    >
+                      <Edit size={26} />
+                    </button>
+                    {profile.archivos.videoPresentacion && (
+                      <div className="flex items-center justify-center w-11 h-11">
+                        <CheckCircle
+                          size={30}
+                          className="text-[#0097B2] fill-white stroke-[#0097B2] stroke-[1.5]"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Habilidades */}
+                {/* Skills */}
                 <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
                   <span className="text-gray-800 font-medium">Skills</span>
-                  <button
-                    onClick={() => setShowSkillsModal(true)}
-                    className="text-[#0097B2] flex items-center hover:bg-blue-50 p-2 rounded"
-                  >
-                    <Edit size={16} className="mr-1" />
-                    <span>Edit</span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowSkillsModal(true)}
+                      className="text-[#0097B2] flex items-center justify-center hover:bg-blue-50 p-2 rounded-full w-11 h-11"
+                    >
+                      <Edit size={26} />
+                    </button>
+                    {profile.habilidades && profile.habilidades.length > 0 && (
+                      <div className="flex items-center justify-center w-11 h-11">
+                        <CheckCircle
+                          size={30}
+                          className="text-[#0097B2] fill-white stroke-[#0097B2] stroke-[1.5]"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Especificaciones del PC */}
+                {/* PC Specifications */}
                 <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
                   <span className="text-gray-800 font-medium">
                     PC Specifications
                   </span>
-                  <button
-                    onClick={() => setShowPCRequirementsModal(true)}
-                    className="text-[#0097B2] flex items-center hover:bg-blue-50 p-2 rounded"
-                  >
-                    <Edit size={16} className="mr-1" />
-                    <span>Edit</span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowPCRequirementsModal(true)}
+                      className="text-[#0097B2] flex items-center justify-center hover:bg-blue-50 p-2 rounded-full w-11 h-11"
+                    >
+                      <Edit size={26} />
+                    </button>
+                    {(profile.archivos?.imagenTestVelocidad ||
+                      profile.archivos?.imagenRequerimientosPC) && (
+                      <div className="flex items-center justify-center w-11 h-11">
+                        <CheckCircle
+                          size={30}
+                          className="text-[#0097B2] fill-white stroke-[#0097B2] stroke-[1.5]"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Identification */}
@@ -362,13 +411,23 @@ export default function CandidateProfileModal({
                   <span className="text-gray-800 font-medium">
                     Identification Document
                   </span>
-                  <button
-                    onClick={() => setShowIdentificationModal(true)}
-                    className="text-[#0097B2] flex items-center hover:bg-blue-50 p-2 rounded"
-                  >
-                    <Edit size={16} className="mr-1" />
-                    <span>Edit</span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowIdentificationModal(true)}
+                      className="text-[#0097B2] flex items-center justify-center hover:bg-blue-50 p-2 rounded-full w-11 h-11"
+                    >
+                      <Edit size={26} />
+                    </button>
+                    {profile.archivos.fotoCedulaFrente &&
+                      profile.archivos.fotoCedulaDorso && (
+                        <div className="flex items-center justify-center w-11 h-11">
+                          <CheckCircle
+                            size={30}
+                            className="text-[#0097B2] fill-white stroke-[#0097B2] stroke-[1.5]"
+                          />
+                        </div>
+                      )}
+                  </div>
                 </div>
               </div>
 
@@ -377,9 +436,18 @@ export default function CandidateProfileModal({
                 {/* Experiencia */}
                 <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-medium text-gray-900">
-                      Experience
-                    </h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-medium text-gray-900">
+                        Experience
+                      </h2>
+                      {profile.experiencia &&
+                        profile.experiencia.length > 0 && (
+                          <CheckCircle
+                            size={20}
+                            className="text-[#0097B2] fill-[#0097B2] stroke-white"
+                          />
+                        )}
+                    </div>
                     <button
                       onClick={() => {
                         setExperienceData(null);
@@ -450,9 +518,17 @@ export default function CandidateProfileModal({
                 {/* Educación */}
                 <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-medium text-gray-900">
-                      Education
-                    </h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-medium text-gray-900">
+                        Education
+                      </h2>
+                      {profile.educacion && profile.educacion.length > 0 && (
+                        <CheckCircle
+                          size={20}
+                          className="text-[#0097B2] fill-[#0097B2] stroke-white"
+                        />
+                      )}
+                    </div>
                     <button
                       onClick={() => {
                         setEducationData(null);
@@ -531,6 +607,7 @@ export default function CandidateProfileModal({
               notifyChangesAndReload();
             }}
             candidateId={candidateId}
+            datosFormulario={profile.datosFormulario}
           />
 
           <VideoModal
@@ -557,6 +634,8 @@ export default function CandidateProfileModal({
               notifyChangesAndReload();
             }}
             candidateId={candidateId}
+            imagenRequerimientosPC={profile.archivos?.imagenRequerimientosPC}
+            imagenTestVelocidad={profile.archivos?.imagenTestVelocidad}
           />
 
           <ExperienceModal
@@ -612,31 +691,35 @@ export default function CandidateProfileModal({
 
           <div className="p-6">
             <div className="space-y-4">
-              {/* Mensaje de perfil incompleto */}
-              {isProfileIncomplete && (
-                <div className="flex justify-between bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-2 cursor-pointer">
-                  Incomplete profile: Missing data.
-                  <button
-                    onClick={() => setIsEditMode(true)}
-                    className="ml-2 flex items-center text-[#0097B2] hover:text-[#007d8a] px-2"
-                    title="Editar perfil"
-                  >
-                    <Edit size={16} className="mr-1" />
-                    <span className="text-sm">Edit</span>
-                  </button>
-                </div>
-              )}
-              {!isProfileIncomplete && (
-                <div className="flex items-center justify-end cursor-pointer">
-                  <button
-                    onClick={() => setIsEditMode(true)}
-                    className="ml-2 flex items-center text-[#0097B2] hover:text-[#007d8a] px-2"
-                    title="Editar perfil"
-                  >
-                    <Edit size={16} className="mr-1" />
-                    <span className="text-sm">Edit</span>
-                  </button>
-                </div>
+              {/* Mensaje de perfil incompleto y botón de edición */}
+              {!isCompanyUser && (
+                <>
+                  {isProfileIncomplete && (
+                    <div className="flex justify-between bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-2 cursor-pointer">
+                      Incomplete profile: Missing data.
+                      <button
+                        onClick={() => setIsEditMode(true)}
+                        className="ml-2 flex items-center text-[#0097B2] hover:text-[#007d8a] px-2"
+                        title="Editar perfil"
+                      >
+                        <Edit size={16} className="mr-1" />
+                        <span className="text-sm">Edit</span>
+                      </button>
+                    </div>
+                  )}
+                  {!isProfileIncomplete && (
+                    <div className="flex items-center justify-end cursor-pointer">
+                      <button
+                        onClick={() => setIsEditMode(true)}
+                        className="ml-2 flex items-center text-[#0097B2] hover:text-[#007d8a] px-2"
+                        title="Editar perfil"
+                      >
+                        <Edit size={16} className="mr-1" />
+                        <span className="text-sm">Edit</span>
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Contact Information */}
@@ -652,42 +735,57 @@ export default function CandidateProfileModal({
                           <span className="text-gray-400">No Last Name</span>
                         )}
                       </h1>
-                      <h2 className="font-medium text-gray-900 mb-3">
-                        Contact Information
-                      </h2>
+                      {!isCompanyUser && (
+                        <>
+                          <h2 className="font-medium text-gray-900 mb-3">
+                            Contact Information
+                          </h2>
+                          <hr className="border-[#E2E2E2] my-2" />
+                          <div className="space-y-3">
+                            <div className="flex items-start">
+                              <Phone
+                                size={18}
+                                className="text-[#0097B2] mr-2 mt-0.5"
+                              />
+                              <span className="text-gray-700">
+                                {profile.datosPersonales.telefono || (
+                                  <span className="text-gray-400">
+                                    No Phone
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                            <div className="flex items-start">
+                              <Mail
+                                size={18}
+                                className="text-[#0097B2] mr-2 mt-0.5"
+                              />
+                              <span className="text-gray-700">
+                                {profile.datosPersonales.correo || (
+                                  <span className="text-gray-400">
+                                    No Email
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                            {profile.datosPersonales.residencia && (
+                              <div className="flex items-start">
+                                <span className="text-gray-700">
+                                  Residence:{" "}
+                                  {profile.datosPersonales.residencia}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
-                  </div>
-                  <hr className="border-[#E2E2E2] my-2" />
-                  <div className="space-y-3">
-                    <div className="flex items-start">
-                      <Phone size={18} className="text-[#0097B2] mr-2 mt-0.5" />
-                      <span className="text-gray-700">
-                        {profile.datosPersonales.telefono || (
-                          <span className="text-gray-400">No Phone</span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex items-start">
-                      <Mail size={18} className="text-[#0097B2] mr-2 mt-0.5" />
-                      <span className="text-gray-700">
-                        {profile.datosPersonales.correo || (
-                          <span className="text-gray-400">No Email</span>
-                        )}
-                      </span>
-                    </div>
-                    {profile.datosPersonales.residencia && (
-                      <div className="flex items-start">
-                        <span className="text-gray-700">
-                          Residence: {profile.datosPersonales.residencia}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Form */}
-              {profile.datosFormulario && (
+              {/* Form - Solo mostrar si no es usuario empresa */}
+              {profile.datosFormulario && !isCompanyUser && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-4 flex justify-between items-center">
                     <span className="font-medium text-gray-900">Form</span>
@@ -759,39 +857,42 @@ export default function CandidateProfileModal({
                 </div>
               </div>
 
-              {/* Imágenes PC */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="p-4">
-                  <h2 className="font-medium text-gray-900 mb-3">
-                    PC Specifications
-                  </h2>
-                  <div className="flex flex-wrap gap-4 justify-center">
-                    {[
-                      profile.archivos?.imagenTestVelocidad,
-                      profile.archivos?.imagenRequerimientosPC,
-                    ]
-                      .filter(Boolean)
-                      .map((image, index) => (
-                        <div
-                          key={index}
-                          className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
-                          onClick={() => setSelectedImage(image as string)}
-                        >
-                          <img
-                            src={image as string}
-                            alt={`PC Specification ${index + 1}`}
-                            className="w-full h-full object-contain rounded-lg p-1"
-                          />
-                          <div className="absolute inset-0 bg-[#0097B2] bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
-                            <div className="text-[#0097B2] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white px-3 py-1 rounded-full shadow-sm">
-                              Ver imagen
+              {/* PC Specifications */}
+              {(profile.archivos?.imagenTestVelocidad ||
+                profile.archivos?.imagenRequerimientosPC) && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="p-4">
+                    <h2 className="font-medium text-gray-900 mb-3">
+                      PC Specifications
+                    </h2>
+                    <div className="flex flex-wrap gap-4 justify-center">
+                      {[
+                        profile.archivos?.imagenTestVelocidad,
+                        profile.archivos?.imagenRequerimientosPC,
+                      ]
+                        .filter(Boolean)
+                        .map((image, index) => (
+                          <div
+                            key={index}
+                            className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
+                            onClick={() => setSelectedImage(image as string)}
+                          >
+                            <img
+                              src={image as string}
+                              alt={`PC Specification ${index + 1}`}
+                              className="w-full h-full object-contain rounded-lg p-1"
+                            />
+                            <div className="absolute inset-0 bg-[#0097B2] bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
+                              <div className="text-[#0097B2] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white px-3 py-1 rounded-full shadow-sm">
+                                Ver imagen
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Documento de Identidad */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -992,12 +1093,14 @@ export default function CandidateProfileModal({
       </div>
 
       {/* Modal del Formulario */}
-      <ViewFormularioModal
-        isOpen={isFormularioModalOpen}
-        onClose={() => setIsFormularioModalOpen(false)}
-        datosFormulario={profile.datosFormulario}
-        name={`${profile.datosPersonales.nombre} ${profile.datosPersonales.apellido}`}
-      />
+      {!isCompanyUser && (
+        <ViewFormularioModal
+          isOpen={isFormularioModalOpen}
+          onClose={() => setIsFormularioModalOpen(false)}
+          datosFormulario={profile.datosFormulario}
+          name={`${profile.datosPersonales.nombre} ${profile.datosPersonales.apellido}`}
+        />
+      )}
 
       {/* Modal de Experiencia */}
       {isExperienceModalOpen && (
