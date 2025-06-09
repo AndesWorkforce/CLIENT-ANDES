@@ -25,6 +25,8 @@ interface Archivos {
   documentosAdicionales: string[];
   imagenTestVelocidad?: string;
   imagenRequerimientosPC?: string;
+  fotoCedulaFrente: string | null;
+  fotoCedulaDorso: string | null;
 }
 
 interface Habilidad {

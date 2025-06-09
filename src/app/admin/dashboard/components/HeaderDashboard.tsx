@@ -1,14 +1,16 @@
 "use client";
 
 import { useAuthStore } from "@/store/auth.store";
-import { LogOut, Settings, LayoutDashboard } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, User } from "lucide-react";
 import { useRef, useState } from "react";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Logo from "@/components/ui/Logo";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function HeaderDashboard() {
+  const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
@@ -23,6 +25,8 @@ export default function HeaderDashboard() {
       console.error("Error logging out:", error);
     }
   }
+
+  if (pathname === "/admin/dashboard/account") return null;
 
   return (
     <header className="container mx-auto bg-white shadow-sm">
@@ -78,6 +82,15 @@ export default function HeaderDashboard() {
                   Offers Management
                 </Link>
 
+                <hr className="my-1 border-gray-200" />
+                <Link
+                  href="/admin/dashboard/account"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <User size={16} className="mr-2 text-[#0097B2]" />
+                  My Account!
+                </Link>
                 <hr className="my-1 border-gray-200" />
 
                 <button

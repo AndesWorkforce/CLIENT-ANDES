@@ -20,9 +20,8 @@ export default function ViewPCRequirementsModal({
     null
   );
 
-  const pcSpecsImageUrl = profile.archivos.documentosAdicionales?.[0] || "";
-  const internetSpeedImageUrl =
-    profile.archivos.documentosAdicionales?.[1] || "";
+  const pcSpecsImageUrl = profile.archivos.imagenRequerimientosPC || "";
+  const internetSpeedImageUrl = profile.archivos.imagenTestVelocidad || "";
 
   const handleClickOutside = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -283,13 +282,6 @@ export default function ViewPCRequirementsModal({
                     }}
                   />
                 </div>
-
-                <button
-                  onClick={verCapturaPC}
-                  className="w-full mt-2 text-xs text-[#0097B2] hover:underline flex justify-center"
-                >
-                  View full screen
-                </button>
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg">
@@ -314,13 +306,6 @@ export default function ViewPCRequirementsModal({
                     }}
                   />
                 </div>
-
-                <button
-                  onClick={verCapturaInternet}
-                  className="w-full mt-2 text-xs text-[#0097B2] hover:underline flex justify-center"
-                >
-                  Full screen
-                </button>
               </div>
             </div>
 

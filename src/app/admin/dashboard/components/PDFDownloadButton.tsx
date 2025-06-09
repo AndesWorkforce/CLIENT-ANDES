@@ -170,10 +170,10 @@ export default function PDFDownloadButton({ profile }: PDFDownloadButtonProps) {
           <Download size={18} />
           <span>
             {loading
-              ? "Generando PDF..."
+              ? "Generating PDF..."
               : error
-              ? "Error al generar PDF"
-              : "Descargar PDF"}
+              ? "Error generating PDF"
+              : "Download PDF"}
           </span>
         </>
       )}

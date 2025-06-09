@@ -9,9 +9,14 @@ import { useAuthStore } from "@/store/auth.store";
 interface VideoModalProps {
   isOpen: boolean;
   onClose: () => void;
+  candidateId?: string;
 }
 
-export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
+export default function VideoModal({
+  isOpen,
+  onClose,
+  candidateId,
+}: VideoModalProps) {
   const { profile } = useProfileContext();
   const modalRef = useRef<HTMLDivElement>(null);
   const [showInstructions, setShowInstructions] = useState(false);
@@ -26,7 +31,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const MAX_FILE_SIZE = 100 * 1024 * 1024; // Maximum file size is 100MB
+  const MAX_FILE_SIZE = 200 * 1024 * 1024; // Maximum file size is 200MB
 
   const handleClickOutside = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -44,7 +49,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
         setError(
-          `The file exceeds the 100MB limit. Current size: ${(
+          `The file exceeds the 200MB limit. Current size: ${(
             file.size /
             (1024 * 1024)
           ).toFixed(2)}MB`
@@ -60,50 +65,72 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
   const uploadVideo = async (file: File) => {
     try {
       setUploadState("uploading");
-      setUploadProgress(15);
+      setUploadProgress(10);
 
-      const formData = new FormData();
-      formData.append("file", file);
+      const apiBase = process.env.NEXT_PUBLIC_API_URL!;
+      console.log("[VideoUpload] API Base:", apiBase);
 
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-      const uploadEndpoint = `${apiBase}files/upload-video`;
+      // 1. Primero obtenemos la URL prefirmada y demás información
+      const url = `${apiBase}files/video-upload-url?fileName=${encodeURIComponent(
+        file.name
+      )}`;
+      console.log("[VideoUpload] Request URL:", url);
 
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          const next = prev + 5;
-          return next < 90 ? next : prev;
-        });
-      }, 300);
+      const urlResponse = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      try {
-        const response = await fetch(uploadEndpoint, {
-          method: "POST",
-          body: formData,
-        });
+      console.log("[VideoUpload] Response status:", urlResponse.status);
+      console.log("[VideoUpload] Response ok:", urlResponse.ok);
 
-        clearInterval(progressInterval);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          setUploadState("error");
-          throw new Error(`Error HTTP: ${response.status}. ${errorText}`);
-        }
-
-        const result = await response.json();
-
-        if (!result.fileUrl) {
-          throw new Error("The response does not contain a valid file URL");
-        }
-
-        setUploadProgress(100);
-        setUploadUrl(result.fileUrl);
-        setUploadState("success");
-
-        return result.fileUrl;
-      } catch (error) {
-        clearInterval(progressInterval);
-        throw error;
+      if (!urlResponse.ok) {
+        const errorText = await urlResponse.text();
+        console.error("[VideoUpload] Error response:", errorText);
+        throw new Error("Error al obtener la URL de subida");
       }
+
+      const { uploadUrl, publicUrl, contentType } = await urlResponse.json();
+      setUploadProgress(20);
+
+      // 2. Subimos el video directamente a S3 usando XMLHttpRequest para seguimiento del progreso
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            // Calculamos el progreso real (20-90%)
+            const progressPercent = (event.loaded / event.total) * 70;
+            setUploadProgress(20 + progressPercent);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            setUploadProgress(100);
+            setUploadUrl(publicUrl);
+            setUploadState("success");
+            resolve(publicUrl);
+          } else {
+            reject(new Error("Error al subir el video a S3"));
+          }
+        };
+
+        xhr.onerror = () => {
+          console.error("[VideoUpload] Error XHR:", xhr.status, xhr.statusText);
+          reject(new Error("Error de red al subir el video"));
+        };
+
+        xhr.open("PUT", uploadUrl);
+        xhr.setRequestHeader("Content-Type", contentType);
+
+        console.log("[VideoUpload] Iniciando subida a S3 con URL:", uploadUrl);
+        console.log("[VideoUpload] Content-Type:", contentType);
+
+        xhr.send(file);
+      });
     } catch (err) {
       console.error("[VideoUpload] Error durante la carga:", err);
       setUploadState("error");
@@ -153,7 +180,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
           return;
         }
 
-        const result = await saveVideoUrl(userId, uploadUrl);
+        const result = await saveVideoUrl(candidateId || userId, uploadUrl);
 
         if (!result.success) {
           setError(`Error saving the video: ${result.error}`);
@@ -211,7 +238,24 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
             Please send a short video (1.5 minutes max) explaining what makes
             you a good candidate for this position.
           </p>
-          <p className="text-red-500 font-bold text-sm">Maximum size 100MB</p>
+          <p className="text-red-500 font-bold text-sm">Maximum size 200MB</p>
+
+          {uploadUrl && uploadState === "idle" && (
+            <div className="mt-2 space-y-2">
+              <p className="text-sm font-medium text-gray-700">
+                Current video:
+              </p>
+              <div className="relative aspect-video w-full">
+                <video
+                  src={uploadUrl}
+                  controls
+                  className="w-full h-full rounded-lg border border-gray-200"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          )}
 
           <div className="bg-[#FEF9C3] border border-[#F7E99E] rounded-lg p-3">
             <div className="flex items-start space-x-2">
@@ -247,7 +291,7 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
             <label htmlFor="terms" className="text-xs text-gray-600">
               Disclosure: by sharing your personal video with Andes Workforce
               you agree to share your personal information and resume with your
-              potential employer in efforts to find you a long-term job.
+              potential clients in efforts to award you a contract.
             </label>
           </div>
 
@@ -276,7 +320,11 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
               >
                 <Upload className="h-5 w-5 mr-2" />
                 <span className="font-medium">
-                  {agreeToTerms ? "Upload video" : "Accept the terms to upload"}
+                  {agreeToTerms
+                    ? uploadUrl
+                      ? "Change video"
+                      : "Upload video"
+                    : "Accept the terms to upload"}
                 </span>
               </label>
             )}
@@ -513,10 +561,9 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
                   <li className="flex items-start font-light">
                     <span className="mr-2">-</span>
                     <span>
-                      If you`&lsquo;`re applying to a more traditional company,
-                      go a little more polished. If it`&lsquo;`s a startup or
-                      creative role, you can keep it more relaxed (but still
-                      tidy).
+                      If you&apos;re applying to a more traditional company, go
+                      a little more polished. If it&apos;s a startup or creative
+                      role, you can keep it more relaxed (but still tidy).
                     </span>
                   </li>
                 </ul>
@@ -534,27 +581,8 @@ export default function VideoModal({ isOpen, onClose }: VideoModalProps) {
                     <span className="mr-2">-</span>
                     <span>
                       No need to overdo makeup (if you wear it), but a bit of
-                      polish helps on camera—just enough to look like you’d show
-                      up to a video call ready.
-                    </span>
-                  </li>
-                </ul>
-
-                <h4 className="font-medium text-sm">Hair & Grooming</h4>
-                <ul className="list-none space-y-1 ml-4 text-sm">
-                  <li className="flex items-start font-light">
-                    <span className="mr-2">-</span>
-                    <span>
-                      {" "}
-                      Clean, brushed hair and light grooming go a long way.
-                    </span>
-                  </li>
-                  <li className="flex items-start font-light">
-                    <span className="mr-2">-</span>
-                    <span>
-                      No need to overdo makeup (if you wear it), but a bit of
-                      polish helps on camera—just enough to look like you’d show
-                      up to a video call ready.
+                      polish helps on camera—just enough to look like you&apos;d
+                      show up to a video call ready.
                     </span>
                   </li>
                 </ul>

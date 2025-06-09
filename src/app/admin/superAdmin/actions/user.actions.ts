@@ -4,39 +4,83 @@ import { createServerAxios } from "@/services/axios.server";
 import type { CreateUserFormData } from "../schemas/createUser.schema";
 import type { UserResponse } from "../schemas/user.schema";
 import { revalidatePath } from "next/cache";
+import { ApiResponse } from "@/interfaces/api.interface";
 
-export async function getUsersAdmin() {
+interface GetUsersResponse extends ApiResponse {
+  data: {
+    data: Array<{
+      id: string;
+      rol: string;
+      usuario: {
+        id: string;
+        nombre: string;
+        apellido: string;
+        correo: string;
+        telefono?: string;
+        residencia?: string;
+      };
+    }>;
+  };
+}
+
+export const getUsersAdmin = async (
+  search: string = ""
+): Promise<GetUsersResponse> => {
   const axios = await createServerAxios();
   try {
-    const response = await axios.get("admin/empleados");
+    const response = await axios.get(
+      `admin/empleados${search ? `?search=${encodeURIComponent(search)}` : ""}`,
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
+    );
 
     if (response.status === 200) {
       revalidatePath("/admin/superAdmin/users");
+      const users = Array.isArray(response.data.data) ? response.data.data : [];
       return {
         success: true,
         message: "Users fetched successfully",
-        data: response.data,
+        data: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data: users.map((user: any) => ({
+            id: user.id,
+            usuarioId: user.usuario.id,
+            activo: true,
+            rol: user.usuario.rol,
+            fechaCreacion: new Date().toISOString(),
+            fechaActualizacion: new Date().toISOString(),
+            actualizadoPorId: "",
+            usuario: {
+              ...user.usuario,
+              telefono: user.usuario.telefono || "",
+              residencia: user.usuario.residencia || "",
+            },
+          })),
+        },
       };
     }
 
     return {
       success: false,
-      message: "Error getting users",
+      message: "Error fetching users",
       data: {
         data: [],
-        meta: {
-          status: 404,
-          message: "No users found",
-          timestamp: new Date().toISOString(),
-          path: "/api/admin/empleados",
-        },
       },
     };
   } catch (error) {
-    console.error("Error al obtener usuarios:", error);
-    throw new Error("Error getting users");
+    console.error("Error in getUsersAdmin:", error);
+    return {
+      success: false,
+      message: "Error fetching users",
+      data: {
+        data: [],
+      },
+    };
   }
-}
+};
 
 export async function updateUser(userId: string, data: CreateUserFormData) {
   const axios = await createServerAxios();
@@ -60,7 +104,7 @@ export async function updateUser(userId: string, data: CreateUserFormData) {
       data: response.data,
     };
   } catch (error) {
-    console.error("Error al actualizar usuario:", error);
+    console.error("Error updating user:", error);
     throw new Error("Error updating user");
   }
 }
@@ -90,7 +134,7 @@ export async function toggleUserStatus(userId: string, activo: boolean) {
       data: response.data,
     };
   } catch (error) {
-    console.error("Error al actualizar el estado del usuario:", error);
+    console.error("Error updating user status:", error);
     return {
       success: false,
       message: "Error updating user status",
@@ -119,11 +163,41 @@ export async function deleteUser(userId: string) {
       data: response.data,
     };
   } catch (error) {
-    console.error("Error al eliminar el usuario:", error);
+    console.error("Error deleting user:", error);
     revalidatePath("/admin/superAdmin/users");
     return {
       success: false,
       message: "Error deleting user",
+    };
+  }
+}
+
+export async function updateUserRole(userId: string, rol: string) {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.patch(`admin/empleados/usuario/${userId}`, {
+      rol,
+    });
+
+    if (response.status === 200) {
+      revalidatePath("/admin/superAdmin/users");
+      return {
+        success: true,
+        message: "User role updated successfully",
+        data: response.data,
+      };
+    }
+
+    return {
+      success: false,
+      message: "Error updating user role",
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    return {
+      success: false,
+      message: "Error updating user role",
     };
   }
 }

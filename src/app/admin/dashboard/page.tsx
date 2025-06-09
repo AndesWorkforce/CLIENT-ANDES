@@ -10,9 +10,12 @@ import {
   PlayCircle,
   Loader2,
   Trash2,
+  Bookmark,
 } from "lucide-react";
 import Link from "next/link";
-import ApplicantsModal from "./components/ApplicantsModal";
+import ApplicantsModal, {
+  EstadoPostulacion,
+} from "@/app/admin/dashboard/components/ApplicantsModal";
 import {
   getPublishedOffers,
   toggleOfferStatus,
@@ -27,6 +30,7 @@ import { updateOffer } from "./save-offers/actions/save-offers.actions";
 import OfferCardSkeleton from "./components/OfferCardSkeleton";
 import { useAuthStore } from "@/store/auth.store";
 import OffersSkeleton from "./components/OffersSkeleton";
+import AssignOfferModal from "./components/AssignOfferModal";
 
 export default function AdminDashboardPage() {
   const { user } = useAuthStore();
@@ -47,6 +51,8 @@ export default function AdminDashboardPage() {
   const [selectedJob, setSelectedJob] = useState<Offer | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState<boolean>(false);
+  const [offerToAssign, setOfferToAssign] = useState<Offer | null>(null);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -218,25 +224,19 @@ export default function AdminDashboardPage() {
       if (offerData.id) {
         const response = await updateOffer(offerData.id, formData);
         if (response.success) {
-          addNotification("Oferta actualizada correctamente", "success");
+          addNotification("Offer updated successfully", "success");
 
           // Recargar ofertas
           await fetchPublishedOffers();
         } else {
-          addNotification(
-            `Error al actualizar oferta: ${response.message}`,
-            "error"
-          );
+          addNotification(`Error updating offer: ${response.message}`, "error");
         }
       } else {
-        addNotification(
-          "Función de crear nueva oferta no implementada",
-          "warning"
-        );
+        addNotification("Create new offer function not implemented", "warning");
       }
     } catch (error) {
-      console.error("Error al guardar oferta:", error);
-      addNotification("Error al guardar oferta", "error");
+      console.error("Error saving offer:", error);
+      addNotification("Error saving offer", "error");
     }
   };
 
@@ -299,19 +299,30 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleAssignOffer = (offer: Offer) => {
+    setOfferToAssign(offer);
+    setIsAssignModalOpen(true);
+  };
+
   useEffect(() => {
     fetchPublishedOffers();
   }, []);
 
+  console.log(
+    "\n\n\n [AdminDashboardPage] selectedOffer",
+    selectedOffer,
+    "\n\n\n"
+  );
+
   const LoadingIndicator = () => (
     <div className="flex justify-center py-4">
       <div className="animate-pulse flex space-x-2">
-        <div className="w-2 h-2 bg-[#0097B2] rounded-full"></div>
-        <div className="w-2 h-2 bg-[#0097B2] rounded-full"></div>
-        <div className="w-2 h-2 bg-[#0097B2] rounded-full"></div>
-        <div className="w-2 h-2 bg-[#0097B2] rounded-full"></div>
-        <div className="w-2 h-2 bg-[#0097B2] rounded-full"></div>
-        <div className="w-2 h-2 bg-[#0097B2] rounded-full"></div>
+        <div className="w-2 h-2 bg-[#0097B2] rounded-full" />
+        <div className="w-2 h-2 bg-[#0097B2] rounded-full" />
+        <div className="w-2 h-2 bg-[#0097B2] rounded-full" />
+        <div className="w-2 h-2 bg-[#0097B2] rounded-full" />
+        <div className="w-2 h-2 bg-[#0097B2] rounded-full" />
+        <div className="w-2 h-2 bg-[#0097B2] rounded-full" />
       </div>
     </div>
   );
@@ -378,7 +389,7 @@ export default function AdminDashboardPage() {
                         </h3>
                         {offer.estado === "pausado" && (
                           <span className="ml-2 px-2 py-1 text-xs font-medium rounded-md bg-amber-100 text-amber-800">
-                            Pausada
+                            Paused
                           </span>
                         )}
                       </div>
@@ -388,6 +399,15 @@ export default function AdminDashboardPage() {
                           onClick={() => handleViewOffer(offer)}
                         >
                           <ChevronRight size={24} className="text-[#0097B2]" />
+                        </button>
+                        <button
+                          className="text-gray-400 hover:text-[#0097B2] cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAssignOffer(offer);
+                          }}
+                        >
+                          <Bookmark size={20} className="text-[#0097B2]" />
                         </button>
                       </div>
                     </div>
@@ -430,7 +450,7 @@ export default function AdminDashboardPage() {
                             strokeLinejoin="round"
                           />
                         </svg>
-                        <span>{offer.postulacionesCount || 0} postulantes</span>
+                        <span>{offer.postulacionesCount || 0} applicants</span>
                         <ChevronRight size={24} className="text-[#6D6D6D]" />
                       </div>
                       <div className="flex items-center gap-3">
@@ -510,12 +530,12 @@ export default function AdminDashboardPage() {
           ) : (
             <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900">
-                No se encontraron ofertas
+                No offers found
               </h3>
               <p className="mt-1 text-sm text-gray-500">
                 {searchTerm
-                  ? `No hay resultados para "${searchTerm}"`
-                  : "Comience creando una nueva oferta"}
+                  ? `No results found for "${searchTerm}"`
+                  : "Start creating a new offer"}
               </p>
               {!searchTerm && (
                 <div className="mt-6">
@@ -524,7 +544,7 @@ export default function AdminDashboardPage() {
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#0097B2] hover:bg-[#007A8F] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0097B2]"
                   >
                     <PlusCircle size={16} className="mr-2" />
-                    Crear nueva oferta
+                    Create new offer
                   </Link>
                 </div>
               )}
@@ -549,18 +569,24 @@ export default function AdminDashboardPage() {
                     onClick={() => handleSelectJob(job)}
                   >
                     <div className="p-4">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center">
+                      <div className="flex justify-between items-center w-full">
+                        <div className="flex items-center w-full">
                           {selectedJob?.id === job.id && (
-                            <div className="w-2 h-2 rounded-full bg-[#0097B2] mr-2"></div>
+                            <div className="w-2 h-2 rounded-full bg-[#0097B2] mr-2" />
                           )}
-                          <div>
+                          <div className="flex items-center justify-between w-full">
                             <h3 className="font-medium text-[#08252A]">
                               {job.titulo}
                             </h3>
-                            <p className="text-gray-500 text-sm mt-1">
-                              {/* Andes */}
-                            </p>
+                            <button
+                              className="text-gray-400 hover:text-[#0097B2] cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAssignOffer(job);
+                              }}
+                            >
+                              <Bookmark size={20} className="text-[#0097B2]" />
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -619,7 +645,7 @@ export default function AdminDashboardPage() {
                               strokeLinejoin="round"
                             />
                           </svg>
-                          <span>{job.postulacionesCount || 0} postulantes</span>
+                          <span>{job.postulacionesCount || 0} applicants</span>
                           <ChevronRight size={24} className="text-[#6D6D6D]" />
                         </div>
                         <div className="flex items-center gap-3">
@@ -772,12 +798,12 @@ export default function AdminDashboardPage() {
         ) : (
           <div className="hidden md:block text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-medium text-gray-900">
-              No se encontraron ofertas
+              No offers found
             </h3>
             <p className="mt-1 text-sm text-gray-500">
               {searchTerm
-                ? `No hay resultados para "${searchTerm}"`
-                : "Comience creando una nueva oferta"}
+                ? `No results found for "${searchTerm}"`
+                : "Start creating a new offer"}
             </p>
             {!searchTerm && (
               <div className="mt-6">
@@ -786,7 +812,7 @@ export default function AdminDashboardPage() {
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#0097B2] hover:bg-[#007A8F] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0097B2]"
                 >
                   <PlusCircle size={16} className="mr-2" />
-                  Crear nueva oferta
+                  Create new offer
                 </Link>
               </div>
             )}
@@ -811,6 +837,8 @@ export default function AdminDashboardPage() {
               fotoPerfil: postulacion.candidato.fotoPerfil,
               videoPresentacion: postulacion.candidato.videoPresentacion,
               postulationId: postulacion.id,
+              estadoPostulacion:
+                postulacion.estadoPostulacion as EstadoPostulacion,
             })) || []
           }
         />
@@ -884,6 +912,14 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Modal de asignación */}
+      <AssignOfferModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        offerId={offerToAssign?.id || ""}
+        offerTitle={offerToAssign?.titulo || ""}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { AxiosError } from "axios";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function getOffers() {
+  const axios = await createServerAxios();
   try {
     if (!API_URL) {
       return {
@@ -14,8 +15,12 @@ export async function getOffers() {
       };
     }
 
-    const response = await fetch(`${API_URL}offers/search`);
-    const data = await response.json();
+    const response = await axios.get(`${API_URL}offers/search`, {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
+    const data = await response.data;
 
     return {
       success: true,
@@ -59,7 +64,18 @@ export async function applyToOffer(offerId: string) {
 export async function userIsAppliedToOffer(userId: string) {
   const axios = await createServerAxios();
   try {
-    const response = await axios.get(`users/${userId}/profile-status`);
+    const timestamp = new Date().getTime();
+    const response = await axios.get(
+      `users/${userId}/profile-status?timestamp=${timestamp}`,
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      }
+    );
 
     if (response.status !== 200) {
       return {

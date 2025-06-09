@@ -11,7 +11,7 @@ export async function getPublishedOffers(page = 1, limit = 10, search = "") {
         ? `&search=${encodeURIComponent(search.trim())}`
         : "";
 
-    const requestUrl = `offers/mis-ofertas?estado=publicado,pausado${searchParam}&page=${page}&limit=${limit}`;
+    const requestUrl = `offers?${searchParam}&page=${page}&limit=${limit}`;
 
     const response = await axios.get(requestUrl);
 
@@ -122,6 +122,55 @@ export async function deleteOffer(offerId: string) {
     return {
       success: false,
       message: "Error deleting offer: " + error,
+    };
+  }
+}
+
+// Función para obtener una propuesta específica
+export async function getProposal(propuestaId: string) {
+  const axios = await createServerAxios();
+  try {
+    // Utilizamos axios que ya tiene la configuración de autenticación
+    // Registrar información detallada sobre la solicitud
+    // Intentar obtener la propuesta - corregimos la ruta de API
+    const response = await axios.get(`offers/${propuestaId}`);
+
+    // Algunos APIs devuelven los datos dentro de un objeto 'data', otros directamente
+    const responseData = response.data.data || response.data;
+
+    return {
+      success: true,
+      data: responseData,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    // Registrar información detallada sobre el error
+    console.error(
+      `[getProposal] Error obteniendo propuesta ${propuestaId}:`,
+      error
+    );
+
+    if (error.response) {
+      // Respuesta del servidor con un código de error
+      console.error(`[getProposal] Detalles del error:`, {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data,
+        headers: error.response.headers,
+      });
+    } else if (error.request) {
+      // No hubo respuesta del servidor
+      console.error(
+        "[getProposal] No hubo respuesta del servidor:",
+        error.request
+      );
+    }
+
+    return {
+      success: false,
+      error: `Error al obtener la propuesta ${propuestaId}`,
+      errorDetails: error.message || "Error desconocido",
+      propuestaId,
     };
   }
 }

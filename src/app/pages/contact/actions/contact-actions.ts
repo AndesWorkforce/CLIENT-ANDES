@@ -16,18 +16,21 @@ const contactFormSchema = z.object({
   message: z.string().min(10, "Message must be at least 10 characters"),
 });
 
+// Nuevo schema para envío de correos con plantilla
+const emailTemplateSchema = z.object({
+  to: z.string().email("Invalid email"),
+  subject: z.string().min(1, "Subject is required"),
+  html: z.string().min(1, "HTML content is required"),
+  replyTo: z.string().email("Invalid reply-to email").optional(),
+});
+
 export type ContactFormValues = z.infer<typeof contactFormSchema>;
+export type EmailTemplateValues = z.infer<typeof emailTemplateSchema>;
 
 export async function submitContactForm(data: ContactFormValues) {
   try {
     // Validate data
     const validatedData = contactFormSchema.parse(data);
-
-    const resend = new Resend(process.env.SECRET_KEY_RESEND);
-
-    if (!process.env.SECRET_KEY_RESEND) {
-      throw new Error("SECRET_KEY_RESEND not found in environment variables");
-    }
 
     // Prepare email content
     const emailHtml = `
@@ -49,27 +52,16 @@ export async function submitContactForm(data: ContactFormValues) {
       <p>${validatedData.message}</p>
     `;
 
-    const { error } = await resend.emails.send({
-      from: "Andes Workforce <no-reply@teamandes.com>",
-      to: ["info@teamandes.com"],
-      replyTo: validatedData.email,
+    return await sendEmail({
+      to: "info@teamandes.com",
       subject: `New contact message - ${
         validatedData.service === "talent"
           ? "Looking for talent"
           : "Service offering"
       }`,
       html: emailHtml,
+      replyTo: validatedData.email,
     });
-
-    if (error) {
-      console.error("[Email] Resend API error:", error);
-      throw new Error(`Resend API error: ${error.message}`);
-    }
-
-    return {
-      success: true,
-      message: "Thank you for your message! We will contact you soon.",
-    };
   } catch (error) {
     console.error("[Email] Error sending form:", error);
 
@@ -83,6 +75,43 @@ export async function submitContactForm(data: ContactFormValues) {
     return {
       success: false,
       message: "There was an error sending your message. Please try again.",
+    };
+  }
+}
+
+export async function sendEmail(data: EmailTemplateValues) {
+  try {
+    // Validate email data
+    const validatedData = emailTemplateSchema.parse(data);
+
+    const resend = new Resend(process.env.SECRET_KEY_RESEND);
+
+    if (!process.env.SECRET_KEY_RESEND) {
+      throw new Error("SECRET_KEY_RESEND not found in environment variables");
+    }
+
+    const { error } = await resend.emails.send({
+      from: "Andes Workforce <no-reply@teamandes.com>",
+      to: [validatedData.to],
+      replyTo: validatedData.replyTo,
+      subject: validatedData.subject,
+      html: validatedData.html,
+    });
+
+    if (error) {
+      console.error("[Email] Resend API error:", error);
+      throw new Error(`Resend API error: ${error.message}`);
+    }
+
+    return {
+      success: true,
+      message: "Email sent successfully!",
+    };
+  } catch (error) {
+    console.error("[Email] Error sending email:", error);
+    return {
+      success: false,
+      message: "There was an error sending the email. Please try again.",
     };
   }
 }

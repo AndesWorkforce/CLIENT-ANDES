@@ -11,6 +11,7 @@ interface FormularioModalProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datosFormulario?: Record<string, any> | null;
   readOnly?: boolean;
+  candidateId?: string;
 }
 
 export default function FormularioModal({
@@ -18,6 +19,7 @@ export default function FormularioModal({
   onClose,
   datosFormulario = null,
   readOnly = false,
+  candidateId,
 }: FormularioModalProps) {
   const { user } = useAuthStore();
   const modalRef = useRef<HTMLDivElement>(null);
@@ -41,12 +43,12 @@ export default function FormularioModal({
       "What Internet provider do you use?",
       "What is the URL for their website?",
       "Do you use a wired internet connection?",
-      "Please run a speed test on your computer: what is the current upload speed?",
-      "Please run a speed test on your computer: what is the current download speed?",
+      // "Please run a speed test on your computer: what is the current upload speed?",
+      // "Please run a speed test on your computer: what is the current download speed?",
       "How much RAM is available on your computer?",
       "How many monitors do you currently have/use for work?",
       "What type of headset do you currently have? How does it connect with your computer?",
-      "What unique qualities make your service stand out?",
+      "What unique qualities make your services stand out?",
       "What 3 words best describe you and why?",
       "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
       "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
@@ -100,7 +102,7 @@ export default function FormularioModal({
           "What type of headset do you currently want? How does it connect with your computer?"
         ]
       ) {
-        formDataCleaned["What unique qualities make your service stand out?"] =
+        formDataCleaned["What unique qualities make your services stand out?"] =
           datosFormulario[
             "What type of headset do you currently want? How does it connect with your computer?"
           ];
@@ -134,12 +136,6 @@ export default function FormularioModal({
     // Validar el formulario después de cargar datos
     setTimeout(validateForm, 100);
   }, [datosFormulario]);
-
-  const handleClickOutside = (e: React.MouseEvent) => {
-    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
 
   const handleInputChange = (question: string, value: string) => {
     setFormData((prev) => ({
@@ -201,7 +197,7 @@ export default function FormularioModal({
 
       // Llamar a la acción del servidor
       const result = await guardarDatosFormulario(
-        user?.id || "",
+        candidateId || user?.id || "",
         completeFormData
       );
       if (result.success) {
@@ -222,13 +218,16 @@ export default function FormularioModal({
     }
   };
 
+  console.log(
+    "\n\n [FormularioModal] datosFormulario",
+    datosFormulario,
+    "\n\n"
+  );
+
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-[#08252A33] z-50 flex items-center justify-center p-4"
-      onClick={handleClickOutside}
-    >
+    <div className="fixed inset-0 bg-[#08252A33] z-50 flex items-center justify-center p-4">
       <div
         ref={modalRef}
         className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg shadow-lg custom-scrollbar"
@@ -502,11 +501,20 @@ export default function FormularioModal({
             </div>
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               Please run a speed test on your computer: what is the current
               upload speed?
               <span className="text-red-500">*</span>
+              <a
+                href="https://www.speedtest.net/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline"
+              >
+                {" "}
+                Run a speed test
+              </a>
             </label>
             <input
               type="text"
@@ -525,13 +533,22 @@ export default function FormularioModal({
                 )
               }
             />
-          </div>
+          </div> */}
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               Please run a speed test on your computer: what is the current
               download speed?
               <span className="text-red-500">*</span>
+              <a
+                href="https://www.speedtest.net/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline"
+              >
+                {" "}
+                Run a speed test
+              </a>
             </label>
             <input
               type="text"
@@ -550,7 +567,7 @@ export default function FormularioModal({
                 )
               }
             />
-          </div>
+          </div> */}
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -625,8 +642,13 @@ export default function FormularioModal({
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              What unique qualities make your service stand out?
+              What unique qualities make your services stand out?
               <span className="text-red-500">*</span>
+              <br />
+              <span className="text-gray-400">
+                Example: punctuality, quality control, proactivity, excellent
+                customer service.
+              </span>
             </label>
             <textarea
               className="w-full p-2 border border-gray-300 rounded-md"
@@ -635,12 +657,12 @@ export default function FormularioModal({
               disabled={readOnly}
               value={
                 formData[
-                  "What unique qualities make your service stand out?"
+                  "What unique qualities make your services stand out?"
                 ] || ""
               }
               onChange={(e) =>
                 handleInputChange(
-                  "What unique qualities make your service stand out?",
+                  "What unique qualities make your services stand out?",
                   e.target.value
                 )
               }

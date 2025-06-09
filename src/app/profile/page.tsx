@@ -36,6 +36,7 @@ import {
   Experience,
 } from "./actions/experience.actions";
 import { addEducation, deleteEducation } from "./actions/education.actions";
+import IdentificationModal from "./components/IdentificationModal";
 
 export default function ProfilePage() {
   const { profile } = useProfileContext();
@@ -47,13 +48,11 @@ export default function ProfilePage() {
     "experiencia"
   );
 
-  // Estados para el formulario de PC requirements
   const [showPCRequirementsModal, setShowPCRequirementsModal] =
     useState<boolean>(false);
   const [showViewPCRequirementsModal, setShowViewPCRequirementsModal] =
     useState<boolean>(false);
 
-  // Estados para los diferentes tipos de formularios
   const [showExperienceModal, setShowExperienceModal] =
     useState<boolean>(false);
   const [showEducationModal, setShowEducationModal] = useState<boolean>(false);
@@ -88,6 +87,8 @@ export default function ProfilePage() {
     useState<boolean>(false);
   const [educationData, setEducationData] = useState<Education | null>(null);
   const [experienceData, setExperienceData] = useState<Experience | null>(null);
+  const [showIdentificationModal, setShowIdentificationModal] =
+    useState<boolean>(false);
 
   const handleSaveExperience = async (userId: string, data: Experience) => {
     const response = await addExperience(userId, data);
@@ -98,8 +99,8 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSaveEducation = async (data: Education) => {
-    const response = await addEducation(user?.id || "", data);
+  const handleSaveEducation = async (userId: string, data: Education) => {
+    const response = await addEducation(userId, data);
     if (response.success) {
       addNotification("Education added correctly", "success");
     } else {
@@ -116,33 +117,25 @@ export default function ProfilePage() {
   };
 
   const handleSaveSkills = async (newSkills: Skill[]) => {
-    // Actualizar skills en el backend si hay un usuario logueado
-    if (user?.id && newSkills.length > 0) {
+    // Verificamos que tenemos un usuario y al menos un skill con texto
+    if (user?.id && newSkills.length > 0 && newSkills[0].nombre.trim()) {
       try {
-        // Mostrar indicador de carga
         setIsUpdatingSkills(true);
 
-        // Llamar a la acción del servidor para actualizar skills
         const result = await updateUserSkills(user.id, newSkills);
 
         if (result.success) {
-          // Cerrar modal después de actualizar
           setShowSkillsModal(false);
         } else {
-          alert(`Error updating skills: ${result.message}`);
+          alert(`Error al actualizar habilidades: ${result.message}`);
         }
       } catch (error) {
-        console.error("[ProfilePage] Error updating skills:", error);
-        alert("An unexpected error occurred while updating skills");
+        console.error("[ProfilePage] Error actualizando habilidades:", error);
+        alert("Ocurrió un error inesperado al actualizar las habilidades");
       } finally {
-        // Ocultar indicador de carga
         setIsUpdatingSkills(false);
       }
-    } else if (newSkills.length > 0) {
-      // Cerrar modal
-      setShowSkillsModal(false);
     } else {
-      // Si no hay skills, cerrar el modal
       setShowSkillsModal(false);
     }
   };
@@ -150,12 +143,7 @@ export default function ProfilePage() {
   const handleDeleteAllSkills = async () => {
     if (user?.id) {
       try {
-        // Mostrar indicador de carga
         setIsUpdatingSkills(true);
-        console.log(
-          "[ProfilePage] Starting to delete all skills for user:",
-          user.id
-        );
 
         const result = await deleteAllSkills(user.id);
 
@@ -362,7 +350,11 @@ export default function ProfilePage() {
     profile.experiencia.length > 0 &&
     profile.educacion.length > 0 &&
     Boolean(profile.archivos.imagenRequerimientosPC) &&
-    Boolean(profile.archivos.imagenTestVelocidad);
+    Boolean(profile.archivos.imagenTestVelocidad) &&
+    profile.datosPersonales.telefono &&
+    profile.datosPersonales.residencia &&
+    profile.archivos.fotoCedulaFrente &&
+    profile.archivos.fotoCedulaDorso;
 
   const isVisibleNotification2 =
     !profile.archivos.imagenRequerimientosPC ||
@@ -389,7 +381,16 @@ export default function ProfilePage() {
     isVisibleNotification2 ||
     profile.experiencia.length === 0 ||
     profile.educacion.length === 0 ||
-    (!profile.datosPersonales.telefono && !profile.datosPersonales.residencia);
+    !profile.datosPersonales.telefono ||
+    !profile.datosPersonales.residencia ||
+    !profile.archivos.fotoCedulaFrente ||
+    !profile.archivos.fotoCedulaDorso;
+
+  // Función para volver a la página principal con una actualización forzada
+  const handleGoBack = () => {
+    // Usa la API del navegador para forzar una recarga completa
+    window.location.href = "/";
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -397,9 +398,12 @@ export default function ProfilePage() {
       <header className="bg-white shadow-sm mb-2">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <Link href="/" className="text-gray-700">
+            <button
+              onClick={handleGoBack}
+              className="text-gray-700 cursor-pointer"
+            >
               <ChevronLeft size={24} color="#0097B2" />
-            </Link>
+            </button>
             <h1 className="text-xl font-semibold">My Profile</h1>
           </div>
           <div className="flex items-center">
@@ -407,6 +411,26 @@ export default function ProfilePage() {
           </div>
         </div>
       </header>
+
+      {isVisibleNotification && (
+        <div className="md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8 bg-green-50 p-4 my-4 rounded-lg">
+          <div className="flex items-center mb-1">
+            <Info className="text-green-800 mr-2" size={18} />
+            <h3 className="font-medium text-green-800 ">
+              Your profile is complete
+            </h3>
+          </div>
+          <p className="text-sm text-green-800">
+            To continue, please visit the{" "}
+            <Link href={`/pages/offers`}>
+              <span className="text-[#0097B2] font-semibold hover:underline cursor-pointer transition-colors">
+                AVAILABLE CONTRACTS
+              </span>
+            </Link>{" "}
+            page
+          </p>
+        </div>
+      )}
 
       {/* Información importante */}
       {!isVisibleNotification && (
@@ -673,6 +697,61 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+        <div
+          className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+          style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+        >
+          <span className="text-gray-800 font-medium">Identity Document</span>
+          <div className="flex items-center justify-center gap-4">
+            {profile.archivos?.fotoCedulaFrente ||
+            profile.archivos?.fotoCedulaDorso ? (
+              <div className="flex items-center gap-2">
+                <Edit
+                  className="cursor-pointer"
+                  onClick={() => setShowIdentificationModal(true)}
+                />
+              </div>
+            ) : (
+              <svg
+                width="35"
+                height="35"
+                viewBox="0 0 25 25"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="cursor-pointer"
+                onClick={() => setShowIdentificationModal(true)}
+              >
+                <circle cx="12.5" cy="12.5" r="12.5" fill="#0097B2" />
+                <g clipPath="url(#clip0_161_384)">
+                  <path
+                    d="M11.875 7.5H7.5C7.16848 7.5 6.85054 7.6317 6.61612 7.86612C6.3817 8.10054 6.25 8.41848 6.25 8.75V17.5C6.25 17.8315 6.3817 18.1495 6.61612 18.3839C6.85054 18.6183 7.16848 18.75 7.5 18.75H16.25C16.5815 18.75 16.8995 18.6183 17.1339 18.3839C17.3683 18.1495 17.5 17.8315 17.5 17.5V13.125"
+                    stroke="#FCFEFF"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M16.5625 6.5625C16.8111 6.31386 17.1484 6.17417 17.5 6.17417C17.8516 6.17417 18.1889 6.31386 18.4375 6.5625C18.6861 6.81114 18.8258 7.14837 18.8258 7.5C18.8258 7.85163 18.6861 8.18886 18.4375 8.4375L12.5 14.375L10 15L10.625 12.5L16.5625 6.5625Z"
+                    stroke="#FCFEFF"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </g>
+                <defs>
+                  <clipPath id="clip0_161_384">
+                    <rect
+                      width="15"
+                      height="15"
+                      fill="white"
+                      transform="translate(5 5)"
+                    />
+                  </clipPath>
+                </defs>
+              </svg>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Tabs mobile view */}
@@ -693,7 +772,7 @@ export default function ProfilePage() {
               onClick={() => setActiveTab("experiencia")}
               style={{ cursor: "pointer" }}
             >
-              <span className="text-lg font-medium">Experience</span>
+              <span className="text-lg font-medium">Job Experience</span>
             </div>
 
             {/* Educación */}
@@ -1194,7 +1273,7 @@ export default function ProfilePage() {
                   style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
                 >
                   <span className="text-gray-800 font-medium">
-                    Experience doing this service
+                    Job Experience
                   </span>
                   <div
                     className="w-10 h-10 rounded-full bg-[#0097B2] flex items-center justify-center cursor-pointer"
@@ -1400,6 +1479,65 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
+            {/* Documento de Identidad - Versión simplificada */}
+            <div
+              className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+              style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+            >
+              <span className="text-gray-800 font-medium">
+                Identity Document
+              </span>
+              <div className="flex items-center justify-center gap-4">
+                {profile.archivos?.fotoCedulaFrente ||
+                profile.archivos?.fotoCedulaDorso ? (
+                  <div className="flex items-center gap-2">
+                    <Edit
+                      className="cursor-pointer"
+                      onClick={() => setShowIdentificationModal(true)}
+                    />
+                  </div>
+                ) : (
+                  <svg
+                    width="35"
+                    height="35"
+                    viewBox="0 0 25 25"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="cursor-pointer"
+                    onClick={() => setShowIdentificationModal(true)}
+                  >
+                    <circle cx="12.5" cy="12.5" r="12.5" fill="#0097B2" />
+                    <g clipPath="url(#clip0_161_384)">
+                      <path
+                        d="M11.875 7.5H7.5C7.16848 7.5 6.85054 7.6317 6.61612 7.86612C6.3817 8.10054 6.25 8.41848 6.25 8.75V17.5C6.25 17.8315 6.3817 18.1495 6.61612 18.3839C6.85054 18.6183 7.16848 18.75 7.5 18.75H16.25C16.5815 18.75 16.8995 18.6183 17.1339 18.3839C17.3683 18.1495 17.5 17.8315 17.5 17.5V13.125"
+                        stroke="#FCFEFF"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M16.5625 6.5625C16.8111 6.31386 17.1484 6.17417 17.5 6.17417C17.8516 6.17417 18.1889 6.31386 18.4375 6.5625C18.6861 6.81114 18.8258 7.14837 18.8258 7.5C18.8258 7.85163 18.6861 8.18886 18.4375 8.4375L12.5 14.375L10 15L10.625 12.5L16.5625 6.5625Z"
+                        stroke="#FCFEFF"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </g>
+                    <defs>
+                      <clipPath id="clip0_161_384">
+                        <rect
+                          width="15"
+                          height="15"
+                          fill="white"
+                          transform="translate(5 5)"
+                        />
+                      </clipPath>
+                    </defs>
+                  </svg>
+                )}
+              </div>
+            </div>
+
             {profile.experiencia.length > 0 && (
               <div
                 className="flex flex-col p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
@@ -1839,6 +1977,16 @@ export default function ProfilePage() {
       <ContactoModal
         isOpen={showEditContactoModal}
         onClose={() => setShowEditContactoModal(false)}
+      />
+
+      {/* Modal de Identificación */}
+      <IdentificationModal
+        isOpen={showIdentificationModal}
+        onClose={() => {
+          setShowIdentificationModal(false);
+          window.location.href =
+            window.location.pathname + "?ts=" + new Date().getTime();
+        }}
       />
     </div>
   );

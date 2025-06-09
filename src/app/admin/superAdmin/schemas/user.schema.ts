@@ -43,10 +43,8 @@ export const usersResponseSchema = z.object({
 
 export type UsersResponse = z.infer<typeof usersResponseSchema>;
 
-export const userResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-  data: userSchema,
-});
-
-export type UserResponse = z.infer<typeof userResponseSchema>;
+export interface UserResponse {
+  success: boolean;
+  message: string;
+  data: User;
+}

@@ -27,11 +27,11 @@ export default function AdminLoginPage() {
         localStorage.setItem("adminLoggedIn", "true");
         router.push("/admin/dashboard");
       } else {
-        setError("Credenciales incorrectas");
+        setError("Invalid credentials");
       }
     } catch (error) {
       console.log("error", error);
-      setError("Error al iniciar sesión. Intente nuevamente.");
+      setError("Unexpected error, please try again.");
     } finally {
       setLoading(false);
     }

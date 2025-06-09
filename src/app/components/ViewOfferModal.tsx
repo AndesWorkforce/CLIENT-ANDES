@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { X, Calendar } from "lucide-react";
 import { Offer } from "@/app/types/offers";
 import { useAuthStore } from "@/store/auth.store";
@@ -101,6 +101,7 @@ export default function ViewOfferModal({
   const { addNotification } = useNotificationStore();
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [hasApplied, setHasApplied] = useState(false);
 
   useEffect(() => {
     if (contentRef.current && offer?.descripcion) {
@@ -121,6 +122,27 @@ export default function ViewOfferModal({
       }
     }
   }, [offer, isOpen]);
+
+  useEffect(() => {
+    if (isOpen && offer?.id && user?.id) {
+      // Verificar en localStorage si ya aplicó
+      const storedAppliedOffers = localStorage.getItem(
+        `applied_offers_${user.id}`
+      );
+      if (storedAppliedOffers) {
+        try {
+          const appliedOffers = JSON.parse(storedAppliedOffers);
+          setHasApplied(appliedOffers.includes(offer.id));
+        } catch (error) {
+          console.error(
+            "[ViewOfferModal] Error al verificar ofertas aplicadas:",
+            error
+          );
+          setHasApplied(false);
+        }
+      }
+    }
+  }, [isOpen, offer, user]);
 
   const formatHtmlContent = (html: string): string => {
     const sections = [
@@ -190,14 +212,29 @@ export default function ViewOfferModal({
     if (!offerId) return;
     const { success, message } = await applyToOffer(offerId);
     if (success) {
-      addNotification("Offer applied successfully", "success");
+      const storedAppliedOffers = localStorage.getItem(
+        `applied_offers_${user?.id}`
+      );
+      const appliedOffers = storedAppliedOffers
+        ? JSON.parse(storedAppliedOffers)
+        : [];
+      if (!appliedOffers.includes(offerId)) {
+        appliedOffers.push(offerId);
+        localStorage.setItem(
+          `applied_offers_${user?.id}`,
+          JSON.stringify(appliedOffers)
+        );
+      }
+
+      setHasApplied(true);
+      addNotification("Your application has been submitted", "success");
       onClose();
     } else {
       if (message === "You have already applied to this job") {
-        addNotification(message, "info");
+        addNotification("You have already applied to this job", "info");
         onClose();
       } else {
-        addNotification(message || "Error applying to the offer", "error");
+        addNotification("Error applying to the offer", "error");
       }
     }
   };
@@ -251,17 +288,24 @@ export default function ViewOfferModal({
           {!user?.rol.includes("ADMIN") &&
             !user?.rol.includes("EMPLEADO_ADMIN") && (
               <button
-                className="w-full py-3 rounded-md font-medium text-white bg-[#0097B2] hover:bg-[#007A8F] mb-6 cursor-pointer"
+                className={`w-full py-3 rounded-md font-medium text-white ${
+                  hasApplied
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#0097B2] hover:bg-[#007A8F] cursor-pointer"
+                } mb-6`}
                 onClick={() => {
                   if (!user) {
                     addNotification("You must be logged in to apply", "info");
                     router.push("/auth/login");
                     return;
                   }
-                  handleApplyToOffer(offer.id || "");
+                  if (!hasApplied) {
+                    handleApplyToOffer(offer.id || "");
+                  }
                 }}
+                disabled={hasApplied}
               >
-                Apply to the offer
+                {hasApplied ? "Applied" : "Apply"}
               </button>
             )}
 

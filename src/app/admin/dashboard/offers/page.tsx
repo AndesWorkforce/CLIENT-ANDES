@@ -23,7 +23,7 @@ export default function OfferDetailPage() {
 
   const handlePublish = async () => {
     if (!title || isContentEmpty(descriptionHTML)) {
-      addNotification("Debes completar el título y la descripción", "error");
+      addNotification("You must complete the title and description", "error");
       return;
     }
 
@@ -34,18 +34,18 @@ export default function OfferDetailPage() {
 
     const response = await createOffer(formData);
     if (response.success) {
-      addNotification("Oferta publicada", "success");
+      addNotification("Offer published", "success");
       resetForm();
       router.refresh();
       router.push("/admin/dashboard/offers");
     } else {
-      addNotification("Error al publicar oferta", "error");
+      addNotification("Error publishing offer", "error");
     }
   };
 
   const handleSave = async () => {
     if (!title || isContentEmpty(descriptionHTML)) {
-      addNotification("Debes completar el título y la descripción", "error");
+      addNotification("You must complete the title and description", "error");
       return;
     }
 
@@ -56,12 +56,12 @@ export default function OfferDetailPage() {
 
     const response = await createOffer(formData);
     if (response.success) {
-      addNotification("Oferta guardada como borrador", "success");
+      addNotification("Offer saved as draft", "success");
       resetForm();
       router.refresh();
       router.push("/admin/dashboard/offers");
     } else {
-      addNotification("Error al guardar cambios", "error");
+      addNotification("Error saving changes", "error");
     }
   };
 
@@ -73,7 +73,7 @@ export default function OfferDetailPage() {
 
   const handleDiscard = () => {
     resetForm();
-    addNotification("Cambios descartados", "info");
+    addNotification("Changes discarded", "info");
     router.push("/admin/dashboard/offers/list");
   };
 

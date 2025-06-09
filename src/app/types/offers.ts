@@ -14,6 +14,7 @@ export interface Candidato {
   telefono: string;
   fotoPerfil: string | null;
   videoPresentacion: string | null;
+  clasificacionGlobal?: string;
 }
 
 // Interfaz para documentos de postulación
@@ -141,6 +142,9 @@ export interface ApiResponse {
   message: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
+  currentPage?: number;
+  totalPages?: number;
+  hasMore?: boolean;
 }
 
 // Funciones helper para convertir entre tipos

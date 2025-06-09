@@ -1,15 +1,14 @@
-import { X, ChevronDown, ChevronUp } from "lucide-react";
+import { X, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Candidato } from "@/app/types/offers";
 import VideoModal from "./VideoModal";
-import ProfileModal from "./ProfileModal";
 import { useNotificationStore } from "@/store/notifications.store";
 import {
   advancedStage,
   currentStageStatus,
   rejectStage,
 } from "../actions/stage.actions";
-import { ExpandContentSkeleton } from "./expandContent.skeleton";
+import { useAuthStore } from "@/store/auth.store";
 import {
   sendAdvanceNextStep,
   sendContractJobEmail,
@@ -17,9 +16,27 @@ import {
   sendRejectionEmail,
 } from "../actions/sendEmail.actions";
 import { toggleOfferStatus } from "../actions/offers.actions";
+import CandidateProfileModal from "./CandidateProfileModal";
+import { CandidateProfileProvider } from "../context/CandidateProfileContext";
+
+export type EstadoPostulacion =
+  | "PENDIENTE"
+  | "EN_EVALUACION"
+  | "FINALISTA"
+  | "ACEPTADA"
+  | "RECHAZADA";
+
+const STATUS_TRANSLATIONS: Record<EstadoPostulacion, string> = {
+  PENDIENTE: "Pending",
+  EN_EVALUACION: "In Evaluation",
+  FINALISTA: "Finalist",
+  ACEPTADA: "Hired",
+  RECHAZADA: "Rejected",
+};
 
 interface CandidatoWithPostulationId extends Candidato {
   postulationId: string;
+  estadoPostulacion: EstadoPostulacion;
 }
 
 interface ApplicantsModalProps {
@@ -28,6 +45,7 @@ interface ApplicantsModalProps {
   serviceTitle: string;
   applicants: CandidatoWithPostulationId[];
   offerId: string;
+  onUpdate?: () => void;
 }
 
 export default function ApplicantsModal({
@@ -36,21 +54,30 @@ export default function ApplicantsModal({
   serviceTitle,
   applicants: initialApplicants,
   offerId,
+  onUpdate,
 }: ApplicantsModalProps) {
+  console.log("\n\n\n [ApplicantsModal] onUpdate", onUpdate, "\n\n\n");
   const { addNotification } = useNotificationStore();
+  const { user } = useAuthStore();
+  const isCompanyUser =
+    user?.rol === "EMPRESA" || user?.rol === "EMPLEADO_EMPRESA";
   const [applicants, setApplicants] = useState<
     (CandidatoWithPostulationId & { isExpanded: boolean })[]
   >(
-    initialApplicants.map((applicant) => ({ ...applicant, isExpanded: false }))
+    initialApplicants.map((applicant) => ({
+      ...applicant,
+      isExpanded: false,
+    }))
   );
   const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
   const [selectedVideo, setSelectedVideo] = useState<string>("");
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
+  const [selectedApplicant, setSelectedApplicant] =
+    useState<CandidatoWithPostulationId | null>(null);
+  const [isCandidateProfileModalOpen, setIsCandidateProfileModalOpen] =
+    useState<boolean>(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [currentStage, setCurrentStage] = useState<string>("");
 
-  // Estados para paginación
+  // States for pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [paginatedApplicants, setPaginatedApplicants] = useState<
@@ -58,7 +85,9 @@ export default function ApplicantsModal({
   >([]);
   const APPLICANTS_PER_PAGE = 7;
 
-  // Función para paginar aplicantes
+  console.log(selectedApplicant, paginatedApplicants);
+
+  // Function to paginate applicants
   const paginateApplicants = (
     applicants: (CandidatoWithPostulationId & { isExpanded: boolean })[],
     page: number
@@ -68,116 +97,81 @@ export default function ApplicantsModal({
     return applicants.slice(startIndex, endIndex);
   };
 
-  // Actualizar paginación cuando cambian los aplicantes o la página
+  // Update pagination when applicants or page changes
   useEffect(() => {
     const totalPages = Math.ceil(applicants.length / APPLICANTS_PER_PAGE);
     setTotalPages(totalPages || 1);
     setPaginatedApplicants(paginateApplicants(applicants, currentPage));
   }, [applicants, currentPage]);
 
-  // Funciones para controlar la paginación
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  const handleCurrentStageStatus = async (userId: string) => {
-    try {
-      setIsLoading(true);
-      const response = await currentStageStatus(offerId, userId);
-
-      if (response.success) {
-        setCurrentStage(response.data?.postulacion?.estadoPostulacion);
-        setIsLoading(false);
-      } else {
-        addNotification(response.message, "error");
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.error("Error al obtener el estado de la etapa", error);
-      addNotification("Error al obtener el estado de la etapa", "error");
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (selectedCandidateId) {
-      handleCurrentStageStatus(selectedCandidateId);
+    // Load application status for each candidate
+    const loadStages = async () => {
+      const updatedApplicants = await Promise.all(
+        applicants.map(async (applicant) => {
+          try {
+            const response = await currentStageStatus(
+              applicant.postulationId,
+              applicant.id
+            );
+            if (response.success && response.data?.estadoPostulacion) {
+              return {
+                ...applicant,
+                estadoPostulacion: response.data
+                  .estadoPostulacion as EstadoPostulacion,
+              };
+            }
+            return applicant;
+          } catch (error) {
+            console.error("Error loading stage for applicant:", error);
+            return applicant;
+          }
+        })
+      );
+      setApplicants(updatedApplicants);
+    };
+
+    if (isOpen) {
+      loadStages();
     }
-  }, [selectedCandidateId]);
-
-  if (!isOpen) return null;
-
-  const toggleApplicant = (id: string) => {
-    setSelectedCandidateId(id);
-    setApplicants(
-      applicants.map((applicant) =>
-        applicant.id === id
-          ? { ...applicant, isExpanded: !applicant.isExpanded }
-          : applicant
-      )
-    );
-  };
-
-  const handleOpenVideo = (videoUrl: string | null) => {
-    if (videoUrl) {
-      setSelectedVideo(videoUrl);
-      setIsVideoModalOpen(true);
-    }
-  };
-
-  const handleOpenProfile = (candidateId: string) => {
-    setSelectedCandidateId(candidateId);
-    setIsProfileModalOpen(true);
-  };
-
-  const confirmTogglePause = async () => {
-    const newStatus = "pausado";
-
-    try {
-      const response = await toggleOfferStatus(offerId, newStatus);
-      if (response.success) {
-        addNotification(response.message, "success");
-        onClose();
-      } else {
-        addNotification(`Error: ${response.message}`, "error");
-      }
-    } catch (error) {
-      console.error("Error al cambiar estado de la oferta:", error);
-      addNotification("Error al cambiar estado de la oferta", "error");
-    }
-  };
+  }, [isOpen]);
 
   const handleSelectCandidate = async (
     postulationId: string,
+    candidateId: string,
     candidateName: string,
     candidateEmail: string,
+    currentStage: EstadoPostulacion,
     action: "NEXT" | "CONTRACT" = "NEXT"
   ) => {
     try {
-      const response = await advancedStage(postulationId, currentStage, action);
+      const response = await advancedStage(
+        postulationId,
+        candidateId,
+        currentStage,
+        action
+      );
 
-      if (response.success) {
+      if (response && response.success && response.nextStage) {
+        // Update candidate status in the list
+        setApplicants((prevApplicants) =>
+          prevApplicants.map((app) =>
+            app.id === candidateId
+              ? {
+                  ...app,
+                  estadoPostulacion: response.nextStage as EstadoPostulacion,
+                }
+              : app
+          )
+        );
+
         if (currentStage === "PENDIENTE") {
           const emailResponse = await sendInterviewInvitation(
             candidateName,
             candidateEmail
           );
 
-          if (emailResponse.success) {
+          if (emailResponse && emailResponse.success) {
             addNotification(
               "Candidate selected and email sent successfully",
               "success"
@@ -194,7 +188,7 @@ export default function ApplicantsModal({
             candidateEmail
           );
 
-          if (emailResponse.success) {
+          if (emailResponse && emailResponse.success) {
             addNotification(
               "Candidate contracted and email sent successfully",
               "success"
@@ -212,7 +206,7 @@ export default function ApplicantsModal({
             candidateEmail
           );
 
-          if (emailResponse.success) {
+          if (emailResponse && emailResponse.success) {
             addNotification(
               "Candidate advanced and email sent successfully",
               "success"
@@ -227,9 +221,12 @@ export default function ApplicantsModal({
 
         onClose();
       } else {
-        addNotification(response.message, "error");
+        console.log("\n\n\n [response] ", response, "\n\n\n");
+        const errorMessage = response?.message || "Error selecting candidate";
+        addNotification(errorMessage, "error");
       }
     } catch (error) {
+      console.log("\n\n\n [error] ", error, "\n\n\n");
       console.error("Error selecting candidate", error);
       addNotification("Error selecting candidate", "error");
     }
@@ -237,19 +234,21 @@ export default function ApplicantsModal({
 
   const handleRejectCandidate = async (
     postulationId: string,
+    candidateId: string,
     candidateName: string,
     candidateEmail: string
   ) => {
     try {
-      const response = await rejectStage(postulationId);
+      const response = await rejectStage(postulationId, candidateId);
 
-      if (response.success) {
+      // Verificar que response existe y tiene la estructura esperada
+      if (response && response.success) {
         const emailResponse = await sendRejectionEmail(
           candidateName,
           candidateEmail
         );
 
-        if (emailResponse.success) {
+        if (emailResponse && emailResponse.success) {
           addNotification(
             "Candidate rejected and email sent successfully",
             "success"
@@ -263,11 +262,65 @@ export default function ApplicantsModal({
 
         onClose();
       } else {
-        addNotification(response.message, "error");
+        // Manejar el caso donde response es undefined o no tiene success
+        const errorMessage = response?.message || "Error rejecting candidate";
+        addNotification(errorMessage, "error");
       }
     } catch (error) {
-      console.error("Error selecting candidate", error);
-      addNotification("Error selecting candidate", "error");
+      console.error("Error rejecting candidate", error);
+      addNotification("Error rejecting candidate", "error");
+    }
+  };
+
+  const handleViewVideo = (applicant: CandidatoWithPostulationId) => {
+    if (!applicant.videoPresentacion) {
+      addNotification(
+        "This candidate does not have a presentation video",
+        "info"
+      );
+      return;
+    }
+    setSelectedApplicant(applicant);
+    setSelectedVideo(applicant.videoPresentacion);
+    setIsVideoModalOpen(true);
+  };
+
+  if (!isOpen) return null;
+
+  const confirmTogglePause = async () => {
+    const newStatus = "pausado";
+
+    try {
+      const response = await toggleOfferStatus(offerId, newStatus);
+      if (response && response.success) {
+        addNotification(response.message, "success");
+        onClose();
+      } else {
+        const errorMessage = response?.message || "Error changing offer status";
+        addNotification(`Error: ${errorMessage}`, "error");
+      }
+    } catch (error) {
+      console.error("Error changing offer status:", error);
+      addNotification("Error changing offer status", "error");
+    }
+  };
+
+  // Pagination functions
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
   };
 
@@ -303,303 +356,162 @@ export default function ApplicantsModal({
               scrollbarColor: "#0097B2 #f3f4f6",
             }}
           >
-            {paginatedApplicants.length > 0 ? (
-              paginatedApplicants.map((applicant) => (
+            {applicants.length > 0 ? (
+              applicants.map((applicant) => (
                 <div key={applicant.id} className="border-b border-[#E2E2E2]">
-                  <div
-                    className="px-4 py-3 flex items-center cursor-pointer"
-                    onClick={() => toggleApplicant(applicant.id)}
-                  >
-                    {/* Chevron indicator */}
-                    <div className="mr-2">
-                      {applicant.isExpanded ? (
-                        <ChevronUp size={20} className="text-[#0097B2]" />
-                      ) : (
-                        <ChevronDown size={20} className="text-[#0097B2]" />
-                      )}
+                  <div className="px-4 py-3">
+                    <div className="grid grid-cols-2 w-full mb-4">
+                      <p className="text-gray-700 text-sm">Name</p>
+                      <p className="text-gray-900 text-sm font-medium">{`${applicant.nombre} ${applicant.apellido}`}</p>
                     </div>
 
-                    {/* Applicant name */}
-                    <div className="grid grid-cols-2 w-full">
-                      <p className="text-lg font-medium mb-0">Name</p>
-                      <p className="text-lg font-medium">{`${applicant.nombre} ${applicant.apellido}`}</p>
-                    </div>
-                  </div>
-
-                  {/* Expanded content */}
-                  {isLoading ? (
-                    <ExpandContentSkeleton />
-                  ) : (
-                    applicant.isExpanded &&
-                    currentStage && (
-                      <div className="px-10 pb-4 space-y-4 bg-gray-50">
-                        {applicant.id && (
-                          <div className="grid grid-cols-2 w-full">
-                            <div className="flex items-center">
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#0097B2"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2"
-                              >
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                              </svg>
-                              <span className="text-gray-700 text-sm">
-                                Profile
-                              </span>
-                            </div>
-                            <button
-                              onClick={() => handleOpenProfile(applicant.id)}
-                              className="text-[#0097B2] font-medium text-sm text-start cursor-pointer"
-                            >
-                              View
-                            </button>
-                          </div>
-                        )}
-                        {applicant.videoPresentacion && (
-                          <div className="grid grid-cols-2 w-full">
-                            <div className="flex items-center">
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#0097B2"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2"
-                              >
-                                <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                                <rect
-                                  x="1"
-                                  y="5"
-                                  width="15"
-                                  height="14"
-                                  rx="2"
-                                  ry="2"
-                                ></rect>
-                              </svg>
-                              <span className="text-gray-700 text-sm">
-                                Video
-                              </span>
-                            </div>
-                            <button
-                              onClick={() =>
-                                handleOpenVideo(applicant.videoPresentacion)
-                              }
-                              className="text-[#0097B2] text-start font-medium text-sm cursor-pointer"
-                            >
-                              View
-                            </button>
-                          </div>
-                        )}
-                        {applicant.correo && (
-                          <div className="grid grid-cols-2 w-full">
-                            <div className="flex items-center">
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#0097B2"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2"
-                              >
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                <polyline points="22,6 12,13 2,6"></polyline>
-                              </svg>
-                              <span className="text-gray-700 text-sm">
-                                Email
-                              </span>
-                            </div>
-                            <span className="text-gray-600 text-sm">
-                              {applicant.correo}
-                            </span>
-                          </div>
-                        )}
-                        {applicant.telefono && (
-                          <div className="grid grid-cols-2 w-full">
-                            <div className="flex items-center">
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#0097B2"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2"
-                              >
-                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                              </svg>
-                              <span className="text-gray-700 text-sm">
-                                Phone
-                              </span>
-                            </div>
-                            <span className="text-gray-600 text-sm">
-                              {applicant.telefono}
-                            </span>
-                          </div>
-                        )}
-                        <div className="grid grid-cols-2 w-full">
-                          <div className="flex items-center">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="#0097B2"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="mr-2"
-                            >
-                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                            <span className="text-gray-700 text-sm font-medium">
-                              Status
-                            </span>
-                          </div>
-                          {currentStage === "PENDIENTE" && (
-                            <div className="py-1 font-semibold  text-[#0097B2] text-xs rounded-md flex items-center">
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-1"
-                              >
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                              </svg>
-                              Verify Info
-                            </div>
-                          )}
-                          {currentStage === "EN_EVALUACION" && (
-                            <div className="py-1 font-semibold  text-blue-800 text-xs rounded-md flex items-center">
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-1"
-                              >
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                              </svg>
-                              In Evaluation
-                            </div>
-                          )}
-                          {currentStage === "FINALISTA" && (
-                            <div className="py-1 font-semibold  text-blue-800 text-xs rounded-md flex items-center">
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-1"
-                              >
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                              </svg>
-                              Finalist
-                            </div>
-                          )}
-                          {currentStage === "ACEPTADA" && (
-                            <div className="py-1  text-green-800 text-xs rounded-md flex items-center">
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-1"
-                              >
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                              </svg>
-                              Contract
-                            </div>
-                          )}
-                          {currentStage === "RECHAZADA" && (
-                            <div className="py-1  text-red-800 text-xs rounded-md font-semibold  flex items-center">
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-1"
-                              >
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="15" y1="9" x2="9" y2="15"></line>
-                                <line x1="9" y1="9" x2="15" y2="15"></line>
-                              </svg>
-                              Rejected
-                            </div>
-                          )}
+                    {!isCompanyUser && (
+                      <>
+                        <div className="grid grid-cols-2 w-full mb-4">
+                          <p className="text-gray-700 text-sm">Profile</p>
+                          <button
+                            onClick={() => {
+                              setSelectedCandidateId(applicant.id);
+                              setIsCandidateProfileModalOpen(true);
+                            }}
+                            className="text-[#0097B2] text-start font-medium text-sm cursor-pointer flex items-center"
+                          >
+                            View profile
+                            <User size={16} className="ml-1" />
+                          </button>
                         </div>
-                        <div className="grid grid-cols-2 w-full">
-                          <div className="flex items-center">
+                        <div className="grid grid-cols-2 w-full mb-4">
+                          <p className="text-gray-700 text-sm">Video</p>
+                          <button
+                            onClick={() => handleViewVideo(applicant)}
+                            className="text-[#0097B2] text-start font-medium text-sm cursor-pointer flex items-center"
+                          >
+                            View video
                             <svg
                               width="16"
                               height="16"
                               viewBox="0 0 24 24"
                               fill="none"
-                              stroke="#0097B2"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="mr-2"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="ml-1"
                             >
-                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                              <polygon
+                                points="23 7 16 12 23 17 23 7"
+                                stroke="#0097B2"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <rect
+                                x="1"
+                                y="5"
+                                width="15"
+                                height="14"
+                                rx="2"
+                                ry="2"
+                                stroke="#0097B2"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
-                            <span className="text-gray-700 text-sm font-medium">
-                              Actions
-                            </span>
-                          </div>
-                          <div className="flex space-x-2">
-                            {currentStage !== "ACEPTADA" &&
-                              currentStage !== "RECHAZADA" && (
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 w-full mb-4">
+                          <p className="text-gray-700 text-sm">Email</p>
+                          <p className="text-gray-900 text-sm">
+                            {applicant.correo}
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 w-full mb-4">
+                          <p className="text-gray-700 text-sm">Phone</p>
+                          <p className="text-gray-900 text-sm">
+                            {applicant.telefono}
+                          </p>
+                        </div>
+                      </>
+                    )}
+
+                    {isCompanyUser && (
+                      <div className="grid grid-cols-2 w-full mb-4">
+                        <p className="text-gray-700 text-sm">Profile</p>
+                        <button
+                          onClick={() => {
+                            setSelectedCandidateId(applicant.id);
+                            setIsCandidateProfileModalOpen(true);
+                          }}
+                          className="text-[#0097B2] text-start font-medium text-sm cursor-pointer flex items-center"
+                        >
+                          View profile
+                          <User size={16} className="ml-1" />
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 w-full">
+                      <p className="text-gray-700 text-sm">Actions</p>
+                      <div className="flex flex-col space-y-2">
+                        {/* For company users: only show actions if FINALIST */}
+                        {isCompanyUser ? (
+                          <>
+                            {applicant.estadoPostulacion === "FINALISTA" && (
+                              <>
+                                <button
+                                  className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handleSelectCandidate(
+                                      applicant.postulationId,
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo,
+                                      applicant.estadoPostulacion,
+                                      "CONTRACT"
+                                    )
+                                  }
+                                >
+                                  Contract
+                                </button>
+                                <button
+                                  className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handleRejectCandidate(
+                                      applicant.postulationId,
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo
+                                    )
+                                  }
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                            {applicant.estadoPostulacion !== "FINALISTA" && (
+                              <div className="text-gray-400 text-xs">
+                                Waiting for evaluation
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          /* For admin users: original logic */
+                          <>
+                            {applicant.estadoPostulacion !== "ACEPTADA" &&
+                              applicant.estadoPostulacion !== "RECHAZADA" && (
                                 <>
-                                  {currentStage !== "FINALISTA" && (
+                                  {applicant.estadoPostulacion !==
+                                    "FINALISTA" && (
                                     <button
                                       className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
                                       onClick={() =>
                                         handleSelectCandidate(
                                           applicant.postulationId,
+                                          applicant.id,
                                           `${applicant.nombre} ${applicant.apellido}`,
                                           applicant.correo,
+                                          applicant.estadoPostulacion ||
+                                            "PENDIENTE",
                                           "NEXT"
                                         )
                                       }
@@ -612,6 +524,7 @@ export default function ApplicantsModal({
                                     onClick={() =>
                                       handleRejectCandidate(
                                         applicant.postulationId,
+                                        applicant.id,
                                         `${applicant.nombre} ${applicant.apellido}`,
                                         applicant.correo
                                       )
@@ -619,15 +532,19 @@ export default function ApplicantsModal({
                                   >
                                     Reject
                                   </button>
-                                  {(currentStage === "EN_EVALUACION" ||
-                                    currentStage === "FINALISTA") && (
+                                  {(applicant.estadoPostulacion ===
+                                    "FINALISTA" ||
+                                    applicant.estadoPostulacion ===
+                                      "EN_EVALUACION") && (
                                     <button
                                       className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
                                       onClick={() =>
                                         handleSelectCandidate(
                                           applicant.postulationId,
+                                          applicant.id,
                                           `${applicant.nombre} ${applicant.apellido}`,
                                           applicant.correo,
+                                          applicant.estadoPostulacion,
                                           "CONTRACT"
                                         )
                                       }
@@ -637,22 +554,22 @@ export default function ApplicantsModal({
                                   )}
                                 </>
                               )}
-                            {(currentStage === "ACEPTADA" ||
-                              currentStage === "RECHAZADA") && (
+                            {(applicant.estadoPostulacion === "ACEPTADA" ||
+                              applicant.estadoPostulacion === "RECHAZADA") && (
                               <div className="text-gray-400 text-xs">
                                 No actions available
                               </div>
                             )}
-                          </div>
-                        </div>
+                          </>
+                        )}
                       </div>
-                    )
-                  )}
+                    </div>
+                  </div>
                 </div>
               ))
             ) : (
               <div className="p-6 text-center text-gray-500">
-                No hay aplicantes para esta oferta.
+                There are no applicants for this offer.
               </div>
             )}
           </div>
@@ -688,7 +605,7 @@ export default function ApplicantsModal({
                 scrollbarColor: "#0097B2 #f3f4f6",
               }}
             >
-              {paginatedApplicants.length > 0 ? (
+              {applicants.length > 0 ? (
                 <>
                   <div className="mb-4 text-gray-500 text-sm">
                     Total: {applicants.length} applicants | Showing page{" "}
@@ -700,18 +617,27 @@ export default function ApplicantsModal({
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
                           Name
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">
-                          Profile
-                        </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">
-                          Video
-                        </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">
-                          Email
-                        </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">
-                          Phone
-                        </th>
+                        {isCompanyUser && (
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">
+                            Profile
+                          </th>
+                        )}
+                        {!isCompanyUser && (
+                          <>
+                            <th className="text-left py-3 px-4 font-medium text-gray-700">
+                              Video
+                            </th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-700">
+                              Email
+                            </th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-700">
+                              Phone
+                            </th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-700">
+                              Profile
+                            </th>
+                          </>
+                        )}
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
                           Status
                         </th>
@@ -721,299 +647,139 @@ export default function ApplicantsModal({
                       </tr>
                     </thead>
                     <tbody>
-                      {paginatedApplicants.map((applicant) => (
+                      {applicants.map((applicant) => (
                         <tr
                           key={applicant.id}
                           className="border-b border-gray-200 hover:bg-gray-50"
-                          onClick={() => {
-                            if (!currentStage) {
-                              setSelectedCandidateId(applicant.id);
-                            }
-                          }}
                         >
                           <td className="py-4 px-4 text-gray-700">
                             {`${applicant.nombre} ${applicant.apellido}`}
                           </td>
-                          <td className="py-4 px-4">
-                            <button
-                              onClick={() => handleOpenProfile(applicant.id)}
-                              className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
-                            >
-                              View profile
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="ml-1"
-                              >
-                                <path
-                                  d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                                  stroke="#0097B2"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <circle
-                                  cx="12"
-                                  cy="7"
-                                  r="4"
-                                  stroke="#0097B2"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </button>
-                          </td>
-                          <td className="py-4 px-4">
-                            {applicant.videoPresentacion ? (
+
+                          {!isCompanyUser && (
+                            <>
+                              <td className="py-4 px-4">
+                                <button
+                                  onClick={() => {
+                                    setSelectedCandidateId(applicant.id);
+                                    setIsCandidateProfileModalOpen(true);
+                                  }}
+                                  className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
+                                >
+                                  View profile
+                                  <User size={16} className="ml-1" />
+                                </button>
+                              </td>
+                              <td className="py-4 px-4">
+                                <button
+                                  onClick={() => handleViewVideo(applicant)}
+                                  className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
+                                >
+                                  View video
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="ml-1"
+                                  >
+                                    <polygon
+                                      points="23 7 16 12 23 17 23 7"
+                                      stroke="#0097B2"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <rect
+                                      x="1"
+                                      y="5"
+                                      width="15"
+                                      height="14"
+                                      rx="2"
+                                      ry="2"
+                                      stroke="#0097B2"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </td>
+                              <td className="py-4 px-4 text-gray-700">
+                                {applicant.correo}
+                              </td>
+                              <td className="py-4 px-4 text-gray-700">
+                                {applicant.telefono}
+                              </td>
+                            </>
+                          )}
+
+                          {isCompanyUser && (
+                            <td className="py-4 px-4">
                               <button
-                                onClick={() =>
-                                  handleOpenVideo(applicant.videoPresentacion)
-                                }
+                                onClick={() => {
+                                  setSelectedCandidateId(applicant.id);
+                                  setIsCandidateProfileModalOpen(true);
+                                }}
                                 className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
                               >
-                                View video
-                                <svg
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="ml-1"
-                                >
-                                  <path
-                                    d="M23 7L16 12L23 17V7Z"
-                                    stroke="#0097B2"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <rect
-                                    x="1"
-                                    y="5"
-                                    width="15"
-                                    height="14"
-                                    rx="2"
-                                    ry="2"
-                                    stroke="#0097B2"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
+                                View profile
+                                <User size={16} className="ml-1" />
                               </button>
-                            ) : (
-                              <span className="text-gray-400 text-sm">
-                                Not available
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center">
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="text-[#0097B2] mr-2"
+                            </td>
+                          )}
+
+                          <td className="py-4 px-4 text-gray-700">
+                            <div className="flex flex-col">
+                              <span
+                                className={`text-sm ${
+                                  applicant.estadoPostulacion === "ACEPTADA"
+                                    ? "text-green-600"
+                                    : applicant.estadoPostulacion ===
+                                      "RECHAZADA"
+                                    ? "text-red-600"
+                                    : "text-gray-600"
+                                }`}
                               >
-                                <path
-                                  d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <polyline
-                                  points="22,6 12,13 2,6"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span className="text-gray-700 text-sm">
-                                {applicant.correo}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center">
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="text-[#0097B2] mr-2"
-                              >
-                                <path
-                                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span className="text-gray-700 text-sm">
-                                {applicant.telefono}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4">
-                            {applicant.id === selectedCandidateId &&
-                            !isLoading ? (
-                              <>
-                                {currentStage === "PENDIENTE" && (
-                                  <div className="py-1 font-semibold text-[#0097B2] text-xs rounded-md flex items-center">
-                                    <svg
-                                      width="12"
-                                      height="12"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      className="mr-1"
-                                    >
-                                      <circle cx="12" cy="12" r="10"></circle>
-                                      <polyline points="12 6 12 12 16 14"></polyline>
-                                    </svg>
-                                    Verify Info
-                                  </div>
-                                )}
-                                {currentStage === "EN_EVALUACION" && (
-                                  <div className="py-1 font-semibold text-blue-800 text-xs rounded-md flex items-center">
-                                    <svg
-                                      width="12"
-                                      height="12"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      className="mr-1"
-                                    >
-                                      <circle cx="12" cy="12" r="10"></circle>
-                                      <polyline points="12 6 12 12 16 14"></polyline>
-                                    </svg>
-                                    In Evaluation
-                                  </div>
-                                )}
-                                {currentStage === "FINALISTA" && (
-                                  <div className="py-1 font-semibold text-blue-800 text-xs rounded-md flex items-center">
-                                    <svg
-                                      width="12"
-                                      height="12"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      className="mr-1"
-                                    >
-                                      <circle cx="12" cy="12" r="10"></circle>
-                                      <polyline points="12 6 12 12 16 14"></polyline>
-                                    </svg>
-                                    Finalist
-                                  </div>
-                                )}
-                                {currentStage === "ACEPTADA" && (
-                                  <div className="py-1 text-green-800 text-xs rounded-md flex items-center">
-                                    <svg
-                                      width="12"
-                                      height="12"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      className="mr-1"
-                                    >
-                                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                    </svg>
-                                    Contract
-                                  </div>
-                                )}
-                                {currentStage === "RECHAZADA" && (
-                                  <div className="py-1 text-red-800 text-xs rounded-md font-semibold flex items-center">
-                                    <svg
-                                      width="12"
-                                      height="12"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      className="mr-1"
-                                    >
-                                      <circle cx="12" cy="12" r="10"></circle>
-                                      <line
-                                        x1="15"
-                                        y1="9"
-                                        x2="9"
-                                        y2="15"
-                                      ></line>
-                                      <line
-                                        x1="9"
-                                        y1="9"
-                                        x2="15"
-                                        y2="15"
-                                      ></line>
-                                    </svg>
-                                    Rejected
-                                  </div>
-                                )}
-                              </>
-                            ) : (
-                              <button
-                                onClick={() =>
-                                  setSelectedCandidateId(applicant.id)
+                                {
+                                  STATUS_TRANSLATIONS[
+                                    applicant.estadoPostulacion
+                                  ]
                                 }
-                                className="text-xs text-[#0097B2] underline cursor-pointer"
-                              >
-                                View status
-                              </button>
-                            )}
+                              </span>
+                            </div>
                           </td>
+
                           <td className="py-4 px-4">
-                            {applicant.id === selectedCandidateId &&
-                            !isLoading &&
-                            currentStage ? (
-                              <div className="flex space-x-2">
-                                {currentStage !== "ACEPTADA" &&
-                                  currentStage !== "RECHAZADA" && (
+                            <div className="flex space-x-2">
+                              {/* For company users: only show actions if FINALIST */}
+                              {isCompanyUser ? (
+                                <>
+                                  {applicant.estadoPostulacion ===
+                                    "FINALISTA" && (
                                     <>
-                                      {currentStage !== "FINALISTA" && (
-                                        <button
-                                          className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
-                                          onClick={() =>
-                                            handleSelectCandidate(
-                                              applicant.postulationId,
-                                              `${applicant.nombre} ${applicant.apellido}`,
-                                              applicant.correo,
-                                              "NEXT"
-                                            )
-                                          }
-                                        >
-                                          Next Stage
-                                        </button>
-                                      )}
+                                      <button
+                                        className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                        onClick={() =>
+                                          handleSelectCandidate(
+                                            applicant.postulationId,
+                                            applicant.id,
+                                            `${applicant.nombre} ${applicant.apellido}`,
+                                            applicant.correo,
+                                            applicant.estadoPostulacion,
+                                            "CONTRACT"
+                                          )
+                                        }
+                                      >
+                                        Contract
+                                      </button>
                                       <button
                                         className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
                                         onClick={() =>
                                           handleRejectCandidate(
                                             applicant.postulationId,
+                                            applicant.id,
                                             `${applicant.nombre} ${applicant.apellido}`,
                                             applicant.correo
                                           )
@@ -1021,41 +787,87 @@ export default function ApplicantsModal({
                                       >
                                         Reject
                                       </button>
-                                      {(currentStage === "EN_EVALUACION" ||
-                                        currentStage === "FINALISTA") && (
+                                    </>
+                                  )}
+                                  {applicant.estadoPostulacion !==
+                                    "FINALISTA" && (
+                                    <div className="text-gray-400 text-xs">
+                                      Waiting for evaluation
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                /* For admin users: original logic */
+                                <>
+                                  {applicant.estadoPostulacion !== "ACEPTADA" &&
+                                    applicant.estadoPostulacion !==
+                                      "RECHAZADA" && (
+                                      <>
+                                        {applicant.estadoPostulacion !==
+                                          "FINALISTA" && (
+                                          <button
+                                            className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
+                                            onClick={() =>
+                                              handleSelectCandidate(
+                                                applicant.postulationId,
+                                                applicant.id,
+                                                `${applicant.nombre} ${applicant.apellido}`,
+                                                applicant.correo,
+                                                applicant.estadoPostulacion ||
+                                                  "PENDIENTE",
+                                                "NEXT"
+                                              )
+                                            }
+                                          >
+                                            Next Stage
+                                          </button>
+                                        )}
                                         <button
                                           className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
                                           onClick={() =>
-                                            handleSelectCandidate(
+                                            handleRejectCandidate(
                                               applicant.postulationId,
+                                              applicant.id,
                                               `${applicant.nombre} ${applicant.apellido}`,
-                                              applicant.correo,
-                                              "CONTRACT"
+                                              applicant.correo
                                             )
                                           }
                                         >
-                                          Contract
+                                          Reject
                                         </button>
-                                      )}
-                                    </>
+                                        {(applicant.estadoPostulacion ===
+                                          "FINALISTA" ||
+                                          applicant.estadoPostulacion ===
+                                            "EN_EVALUACION") && (
+                                          <button
+                                            className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                            onClick={() =>
+                                              handleSelectCandidate(
+                                                applicant.postulationId,
+                                                applicant.id,
+                                                `${applicant.nombre} ${applicant.apellido}`,
+                                                applicant.correo,
+                                                applicant.estadoPostulacion,
+                                                "CONTRACT"
+                                              )
+                                            }
+                                          >
+                                            Contract
+                                          </button>
+                                        )}
+                                      </>
+                                    )}
+                                  {(applicant.estadoPostulacion ===
+                                    "ACEPTADA" ||
+                                    applicant.estadoPostulacion ===
+                                      "RECHAZADA") && (
+                                    <div className="text-gray-400 text-xs">
+                                      No actions available
+                                    </div>
                                   )}
-                                {(currentStage === "ACEPTADA" ||
-                                  currentStage === "RECHAZADA") && (
-                                  <div className="text-gray-400 text-xs">
-                                    No actions available
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() =>
-                                  setSelectedCandidateId(applicant.id)
-                                }
-                                className="text-xs text-[#0097B2] underline"
-                              >
-                                View actions
-                              </button>
-                            )}
+                                </>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1064,12 +876,12 @@ export default function ApplicantsModal({
                 </>
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-500">
-                  No hay aplicantes para esta oferta.
+                  There are no applicants for this offer.
                 </div>
               )}
             </div>
 
-            {/* Paginación - solo mostrar si hay aplicantes */}
+            {/* Pagination - only show if there are applicants */}
             {applicants.length > 0 && (
               <div className="border-t border-gray-200 p-4 flex justify-center">
                 <div className="inline-flex border border-gray-300 rounded-md">
@@ -1143,17 +955,21 @@ export default function ApplicantsModal({
         </div>
       </div>
 
-      <VideoModal
-        isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
-        videoUrl={selectedVideo}
-      />
+      {!isCompanyUser && (
+        <VideoModal
+          isOpen={isVideoModalOpen}
+          onClose={() => setIsVideoModalOpen(false)}
+          videoUrl={selectedVideo}
+        />
+      )}
 
-      <ProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        candidateId={selectedCandidateId}
-      />
+      <CandidateProfileProvider>
+        <CandidateProfileModal
+          isOpen={isCandidateProfileModalOpen}
+          onClose={() => setIsCandidateProfileModalOpen(false)}
+          candidateId={selectedCandidateId}
+        />
+      </CandidateProfileProvider>
     </>
   );
 }

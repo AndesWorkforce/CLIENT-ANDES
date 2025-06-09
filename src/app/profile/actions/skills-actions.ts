@@ -3,6 +3,7 @@
 import { Skill } from "@/app/types/skill";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { createServerAxios } from "@/services/axios.server";
 
 interface SkillPayload {
   nombre: string;
@@ -21,6 +22,7 @@ export async function updateUserSkills(
   userId: string,
   skills: Skill[]
 ): Promise<{ success: boolean; message: string }> {
+  const axios = await createServerAxios();
   try {
     // Verificar que tenemos una URL de API válida
     if (!API_URL) {
@@ -40,34 +42,29 @@ export async function updateUserSkills(
       };
     }
 
-    const skillsPayload: SkillPayload[] = skills.map((skill) => ({
-      nombre: skill.nombre,
-      nivel: 5,
-    }));
+    // Ahora solo enviamos un único skill que contiene todo el texto
+    // Si hay más de uno por compatibilidad con código anterior, usamos solo el primero
+    const skillsPayload: SkillPayload[] = [
+      {
+        nombre: skills.length > 0 ? skills[0].nombre : "",
+        nivel: 5,
+      },
+    ];
 
     const apiUrl = `${API_URL}users/${userId}/skills`;
 
-    const response = await fetch(apiUrl, {
-      method: "PATCH",
+    // Corregimos la forma de enviar datos con axios.patch
+    // El payload va como segundo parámetro y las opciones como tercero
+    const response = await axios.patch(apiUrl, skillsPayload, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(skillsPayload),
-      cache: "no-store",
     });
 
-    const responseText = await response.text();
+    const responseData = await response.data;
 
-    let responseData;
-    try {
-      responseData = JSON.parse(responseText);
-    } catch (e) {
-      console.error("[Skills] Error al analizar la respuesta:", e);
-      responseData = { message: responseText };
-    }
-
-    if (!response.ok) {
+    if (response.status !== 200) {
       return {
         success: false,
         message: `Error del servidor: ${response.status} ${
@@ -94,6 +91,7 @@ export async function updateUserSkills(
 }
 
 export async function deleteAllSkills(userId: string) {
+  const axios = await createServerAxios();
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
@@ -107,27 +105,16 @@ export async function deleteAllSkills(userId: string) {
 
     const apiUrl = `${API_URL}users/${userId}/skills`;
 
-    const response = await fetch(apiUrl, {
-      method: "DELETE",
+    const response = await axios.delete(apiUrl, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      cache: "no-store",
     });
 
-    const responseText = await response.text();
+    const responseData = await response.data;
 
-    let responseData;
-    try {
-      responseData = JSON.parse(responseText);
-      console.log("[Skills] Respuesta del servidor (JSON):", responseData);
-    } catch (e) {
-      console.error("[Skills] Error al analizar la respuesta:", e);
-      responseData = { message: responseText };
-    }
-
-    if (!response.ok) {
+    if (response.status !== 200) {
       return {
         success: false,
         message: `Error del servidor: ${response.status} ${
@@ -135,6 +122,10 @@ export async function deleteAllSkills(userId: string) {
         }. ${responseData.message || ""}`,
       };
     }
+
+    revalidatePath("/profile", "layout");
+
+    revalidatePath("/profile", "page");
 
     try {
       revalidatePath("/profile", "layout");

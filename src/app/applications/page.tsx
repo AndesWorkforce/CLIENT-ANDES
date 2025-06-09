@@ -92,7 +92,7 @@ export default function ApplicationsPage() {
           <span className="text-red-500 font-medium">Finalist</span>
         </div>
       );
-    } else if (status === "ACEPTADO") {
+    } else if (status === "ACEPTADA") {
       return (
         <div className="flex items-center">
           <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
@@ -103,7 +103,7 @@ export default function ApplicationsPage() {
       return (
         <div className="flex items-center">
           <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-          <span className="text-red-500 font-medium">Finalist</span>
+          <span className="text-red-500 font-medium">Rejected</span>
         </div>
       );
     }
@@ -196,16 +196,18 @@ export default function ApplicationsPage() {
         )}
 
         {!hasMore && applications.length > 0 && (
-          <p className="text-center text-gray-500 py-4">
-            No more applications to show
-          </p>
+          <div className="text-center py-8 mt-4">
+            <p className="text-gray-400 text-sm">
+              ✓ You&apos;ve reached the end of your applications
+            </p>
+          </div>
         )}
       </div>
 
       {/* Modal para ver detalles completos */}
       {showModal && selectedApplication && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-center p-4 border-b">
               <h2 className="text-xl font-medium text-[#0097B2]">
                 {selectedApplication?.propuesta.titulo}
@@ -220,9 +222,7 @@ export default function ApplicationsPage() {
 
             <div className="p-6">
               <div className="mb-6">
-                <h3 className="text-lg font-medium mb-2">
-                  Oferta del servicio
-                </h3>
+                <h3 className="text-lg font-medium mb-2">Service Offer</h3>
                 <div
                   className="text-gray-700 prose max-w-none"
                   dangerouslySetInnerHTML={{

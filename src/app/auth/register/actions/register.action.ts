@@ -6,7 +6,7 @@ import { createServerAxios } from "@/services/axios.server";
 export async function registerAction(data: RegisterFormValues) {
   const axios = await createServerAxios();
   try {
-    console.log("DATOS PARA ENVIAR", data);
+    console.log("DATA TO SEND", data);
 
     const { nombre, apellido, correo, contrasena } = data;
 
@@ -20,7 +20,7 @@ export async function registerAction(data: RegisterFormValues) {
     if (response.status !== 201) {
       return {
         success: false,
-        error: "Error al crear la cuenta. Por favor, intenta nuevamente.",
+        error: "Error creating account. Please try again.",
       };
     }
 
@@ -28,14 +28,14 @@ export async function registerAction(data: RegisterFormValues) {
 
     return {
       success: true,
-      message: "Cuenta creada exitosamente",
+      message: "Account created successfully",
       data: responseData,
     };
   } catch (error) {
-    console.error("Error en el registro:", error);
+    console.error("Registration error:", error);
     return {
       success: false,
-      error: "Error al crear la cuenta. Por favor, intenta nuevamente.",
+      error: "Error creating account. Please try again.",
     };
   }
 }
