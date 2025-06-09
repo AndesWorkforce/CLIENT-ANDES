@@ -90,7 +90,11 @@ export default function LoginForm() {
           setUser(result.data?.usuario);
           setAuthenticated(true);
           setToken(result.data?.accessToken);
-
+          console.log(
+            "\n\n\n result.data?.usuario?.rol",
+            result.data?.usuario?.rol,
+            "\n\n\n"
+          );
           if (
             result.data?.usuario?.rol === "EMPRESA" ||
             result.data?.usuario?.rol === "EMPLEADO_EMPRESA"
@@ -98,7 +102,8 @@ export default function LoginForm() {
             safeRedirect("/companies/dashboard");
           } else if (
             result.data?.usuario?.rol === "ADMIN" ||
-            result.data?.usuario?.rol === "EMPLEADO_ADMIN"
+            result.data?.usuario?.rol === "EMPLEADO_ADMIN" ||
+            result.data?.usuario?.rol === "ADMIN_RECLUTAMIENTO"
           ) {
             safeRedirect("/admin/dashboard");
           } else {

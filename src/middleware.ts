@@ -74,7 +74,9 @@ export function middleware(request: NextRequest) {
 
   // Determinar roles de usuario
   const isAdmin =
-    userInfo?.rol === "ADMIN" || userInfo?.rol === "EMPLEADO_ADMIN";
+    userInfo?.rol === "ADMIN" ||
+    userInfo?.rol === "EMPLEADO_ADMIN" ||
+    userInfo?.rol === "ADMIN_RECLUTAMIENTO";
   const isSuperAdmin = userInfo?.rol === "ADMIN";
   const isCompany =
     userInfo?.rol === "EMPRESA" || userInfo?.rol === "EMPLEADO_EMPRESA";

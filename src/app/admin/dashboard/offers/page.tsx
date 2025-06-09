@@ -45,7 +45,7 @@ export default function OfferDetailPage() {
 
   const handleSave = async () => {
     if (!title || isContentEmpty(descriptionHTML)) {
-      addNotification("Debes completar el título y la descripción", "error");
+      addNotification("You must complete the title and description", "error");
       return;
     }
 
