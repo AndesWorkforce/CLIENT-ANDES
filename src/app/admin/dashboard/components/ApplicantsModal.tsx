@@ -67,7 +67,6 @@ export default function ApplicantsModal({
     initialApplicants.map((applicant) => ({
       ...applicant,
       isExpanded: false,
-      estadoPostulacion: "PENDIENTE",
     }))
   );
   const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
@@ -78,7 +77,7 @@ export default function ApplicantsModal({
     useState<boolean>(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>("");
 
-  // Estados para paginación
+  // States for pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [paginatedApplicants, setPaginatedApplicants] = useState<
@@ -86,14 +85,9 @@ export default function ApplicantsModal({
   >([]);
   const APPLICANTS_PER_PAGE = 7;
 
-  console.log(
-    "\n\n\n [ApplicantsModal] applicants",
-    selectedApplicant,
-    paginatedApplicants,
-    "\n\n\n"
-  );
+  console.log(selectedApplicant, paginatedApplicants);
 
-  // Función para paginar aplicantes
+  // Function to paginate applicants
   const paginateApplicants = (
     applicants: (CandidatoWithPostulationId & { isExpanded: boolean })[],
     page: number
@@ -103,7 +97,7 @@ export default function ApplicantsModal({
     return applicants.slice(startIndex, endIndex);
   };
 
-  // Actualizar paginación cuando cambian los aplicantes o la página
+  // Update pagination when applicants or page changes
   useEffect(() => {
     const totalPages = Math.ceil(applicants.length / APPLICANTS_PER_PAGE);
     setTotalPages(totalPages || 1);
@@ -111,7 +105,7 @@ export default function ApplicantsModal({
   }, [applicants, currentPage]);
 
   useEffect(() => {
-    // Cargar el estado de la postulación para cada candidato
+    // Load application status for each candidate
     const loadStages = async () => {
       const updatedApplicants = await Promise.all(
         applicants.map(async (applicant) => {
@@ -158,8 +152,8 @@ export default function ApplicantsModal({
         action
       );
 
-      if (response.success && response.nextStage) {
-        // Actualizar el estado del candidato en la lista
+      if (response && response.success && response.nextStage) {
+        // Update candidate status in the list
         setApplicants((prevApplicants) =>
           prevApplicants.map((app) =>
             app.id === candidateId
@@ -177,7 +171,7 @@ export default function ApplicantsModal({
             candidateEmail
           );
 
-          if (emailResponse.success) {
+          if (emailResponse && emailResponse.success) {
             addNotification(
               "Candidate selected and email sent successfully",
               "success"
@@ -194,7 +188,7 @@ export default function ApplicantsModal({
             candidateEmail
           );
 
-          if (emailResponse.success) {
+          if (emailResponse && emailResponse.success) {
             addNotification(
               "Candidate contracted and email sent successfully",
               "success"
@@ -212,7 +206,7 @@ export default function ApplicantsModal({
             candidateEmail
           );
 
-          if (emailResponse.success) {
+          if (emailResponse && emailResponse.success) {
             addNotification(
               "Candidate advanced and email sent successfully",
               "success"
@@ -228,7 +222,8 @@ export default function ApplicantsModal({
         onClose();
       } else {
         console.log("\n\n\n [response] ", response, "\n\n\n");
-        addNotification(response.message, "error");
+        const errorMessage = response?.message || "Error selecting candidate";
+        addNotification(errorMessage, "error");
       }
     } catch (error) {
       console.log("\n\n\n [error] ", error, "\n\n\n");
@@ -246,13 +241,14 @@ export default function ApplicantsModal({
     try {
       const response = await rejectStage(postulationId, candidateId);
 
-      if (response.success) {
+      // Verificar que response existe y tiene la estructura esperada
+      if (response && response.success) {
         const emailResponse = await sendRejectionEmail(
           candidateName,
           candidateEmail
         );
 
-        if (emailResponse.success) {
+        if (emailResponse && emailResponse.success) {
           addNotification(
             "Candidate rejected and email sent successfully",
             "success"
@@ -266,17 +262,22 @@ export default function ApplicantsModal({
 
         onClose();
       } else {
-        addNotification(response.message, "error");
+        // Manejar el caso donde response es undefined o no tiene success
+        const errorMessage = response?.message || "Error rejecting candidate";
+        addNotification(errorMessage, "error");
       }
     } catch (error) {
-      console.error("Error selecting candidate", error);
-      addNotification("Error selecting candidate", "error");
+      console.error("Error rejecting candidate", error);
+      addNotification("Error rejecting candidate", "error");
     }
   };
 
   const handleViewVideo = (applicant: CandidatoWithPostulationId) => {
     if (!applicant.videoPresentacion) {
-      addNotification("Este candidato no tiene video de presentación", "info");
+      addNotification(
+        "This candidate does not have a presentation video",
+        "info"
+      );
       return;
     }
     setSelectedApplicant(applicant);
@@ -291,19 +292,20 @@ export default function ApplicantsModal({
 
     try {
       const response = await toggleOfferStatus(offerId, newStatus);
-      if (response.success) {
+      if (response && response.success) {
         addNotification(response.message, "success");
         onClose();
       } else {
-        addNotification(`Error: ${response.message}`, "error");
+        const errorMessage = response?.message || "Error changing offer status";
+        addNotification(`Error: ${errorMessage}`, "error");
       }
     } catch (error) {
-      console.error("Error al cambiar estado de la oferta:", error);
-      addNotification("Error al cambiar estado de la oferta", "error");
+      console.error("Error changing offer status:", error);
+      addNotification("Error changing offer status", "error");
     }
   };
 
-  // Funciones de paginación
+  // Pagination functions
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -451,41 +453,11 @@ export default function ApplicantsModal({
                     <div className="grid grid-cols-2 w-full">
                       <p className="text-gray-700 text-sm">Actions</p>
                       <div className="flex flex-col space-y-2">
-                        {applicant.estadoPostulacion !== "ACEPTADA" &&
-                          applicant.estadoPostulacion !== "RECHAZADA" && (
-                            <>
-                              {applicant.estadoPostulacion !== "FINALISTA" && (
-                                <button
-                                  className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
-                                  onClick={() =>
-                                    handleSelectCandidate(
-                                      applicant.postulationId,
-                                      applicant.id,
-                                      `${applicant.nombre} ${applicant.apellido}`,
-                                      applicant.correo,
-                                      applicant.estadoPostulacion ||
-                                        "PENDIENTE",
-                                      "NEXT"
-                                    )
-                                  }
-                                >
-                                  Next Stage
-                                </button>
-                              )}
-                              <button
-                                className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
-                                onClick={() =>
-                                  handleRejectCandidate(
-                                    applicant.postulationId,
-                                    applicant.id,
-                                    `${applicant.nombre} ${applicant.apellido}`,
-                                    applicant.correo
-                                  )
-                                }
-                              >
-                                Reject
-                              </button>
-                              {applicant.estadoPostulacion === "FINALISTA" && (
+                        {/* For company users: only show actions if FINALIST */}
+                        {isCompanyUser ? (
+                          <>
+                            {applicant.estadoPostulacion === "FINALISTA" && (
+                              <>
                                 <button
                                   className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
                                   onClick={() =>
@@ -501,14 +473,94 @@ export default function ApplicantsModal({
                                 >
                                   Contract
                                 </button>
+                                <button
+                                  className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handleRejectCandidate(
+                                      applicant.postulationId,
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo
+                                    )
+                                  }
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                            {applicant.estadoPostulacion !== "FINALISTA" && (
+                              <div className="text-gray-400 text-xs">
+                                Waiting for evaluation
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          /* For admin users: original logic */
+                          <>
+                            {applicant.estadoPostulacion !== "ACEPTADA" &&
+                              applicant.estadoPostulacion !== "RECHAZADA" && (
+                                <>
+                                  {applicant.estadoPostulacion !==
+                                    "FINALISTA" && (
+                                    <button
+                                      className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
+                                      onClick={() =>
+                                        handleSelectCandidate(
+                                          applicant.postulationId,
+                                          applicant.id,
+                                          `${applicant.nombre} ${applicant.apellido}`,
+                                          applicant.correo,
+                                          applicant.estadoPostulacion ||
+                                            "PENDIENTE",
+                                          "NEXT"
+                                        )
+                                      }
+                                    >
+                                      Next Stage
+                                    </button>
+                                  )}
+                                  <button
+                                    className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                    onClick={() =>
+                                      handleRejectCandidate(
+                                        applicant.postulationId,
+                                        applicant.id,
+                                        `${applicant.nombre} ${applicant.apellido}`,
+                                        applicant.correo
+                                      )
+                                    }
+                                  >
+                                    Reject
+                                  </button>
+                                  {(applicant.estadoPostulacion ===
+                                    "FINALISTA" ||
+                                    applicant.estadoPostulacion ===
+                                      "EN_EVALUACION") && (
+                                    <button
+                                      className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                      onClick={() =>
+                                        handleSelectCandidate(
+                                          applicant.postulationId,
+                                          applicant.id,
+                                          `${applicant.nombre} ${applicant.apellido}`,
+                                          applicant.correo,
+                                          applicant.estadoPostulacion,
+                                          "CONTRACT"
+                                        )
+                                      }
+                                    >
+                                      Contract
+                                    </button>
+                                  )}
+                                </>
                               )}
-                            </>
-                          )}
-                        {(applicant.estadoPostulacion === "ACEPTADA" ||
-                          applicant.estadoPostulacion === "RECHAZADA") && (
-                          <div className="text-gray-400 text-xs">
-                            No actions available
-                          </div>
+                            {(applicant.estadoPostulacion === "ACEPTADA" ||
+                              applicant.estadoPostulacion === "RECHAZADA") && (
+                              <div className="text-gray-400 text-xs">
+                                No actions available
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -517,7 +569,7 @@ export default function ApplicantsModal({
               ))
             ) : (
               <div className="p-6 text-center text-gray-500">
-                No hay aplicantes para esta oferta.
+                There are no applicants for this offer.
               </div>
             )}
           </div>
@@ -701,43 +753,12 @@ export default function ApplicantsModal({
 
                           <td className="py-4 px-4">
                             <div className="flex space-x-2">
-                              {applicant.estadoPostulacion !== "ACEPTADA" &&
-                                applicant.estadoPostulacion !== "RECHAZADA" && (
-                                  <>
-                                    {applicant.estadoPostulacion !==
-                                      "FINALISTA" && (
-                                      <button
-                                        className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
-                                        onClick={() =>
-                                          handleSelectCandidate(
-                                            applicant.postulationId,
-                                            applicant.id,
-                                            `${applicant.nombre} ${applicant.apellido}`,
-                                            applicant.correo,
-                                            applicant.estadoPostulacion ||
-                                              "PENDIENTE",
-                                            "NEXT"
-                                          )
-                                        }
-                                      >
-                                        Next Stage
-                                      </button>
-                                    )}
-                                    <button
-                                      className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
-                                      onClick={() =>
-                                        handleRejectCandidate(
-                                          applicant.postulationId,
-                                          applicant.id,
-                                          `${applicant.nombre} ${applicant.apellido}`,
-                                          applicant.correo
-                                        )
-                                      }
-                                    >
-                                      Reject
-                                    </button>
-                                    {applicant.estadoPostulacion ===
-                                      "FINALISTA" && (
+                              {/* For company users: only show actions if FINALIST */}
+                              {isCompanyUser ? (
+                                <>
+                                  {applicant.estadoPostulacion ===
+                                    "FINALISTA" && (
+                                    <>
                                       <button
                                         className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
                                         onClick={() =>
@@ -753,15 +774,98 @@ export default function ApplicantsModal({
                                       >
                                         Contract
                                       </button>
+                                      <button
+                                        className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                        onClick={() =>
+                                          handleRejectCandidate(
+                                            applicant.postulationId,
+                                            applicant.id,
+                                            `${applicant.nombre} ${applicant.apellido}`,
+                                            applicant.correo
+                                          )
+                                        }
+                                      >
+                                        Reject
+                                      </button>
+                                    </>
+                                  )}
+                                  {applicant.estadoPostulacion !==
+                                    "FINALISTA" && (
+                                    <div className="text-gray-400 text-xs">
+                                      Waiting for evaluation
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                /* For admin users: original logic */
+                                <>
+                                  {applicant.estadoPostulacion !== "ACEPTADA" &&
+                                    applicant.estadoPostulacion !==
+                                      "RECHAZADA" && (
+                                      <>
+                                        {applicant.estadoPostulacion !==
+                                          "FINALISTA" && (
+                                          <button
+                                            className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
+                                            onClick={() =>
+                                              handleSelectCandidate(
+                                                applicant.postulationId,
+                                                applicant.id,
+                                                `${applicant.nombre} ${applicant.apellido}`,
+                                                applicant.correo,
+                                                applicant.estadoPostulacion ||
+                                                  "PENDIENTE",
+                                                "NEXT"
+                                              )
+                                            }
+                                          >
+                                            Next Stage
+                                          </button>
+                                        )}
+                                        <button
+                                          className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                          onClick={() =>
+                                            handleRejectCandidate(
+                                              applicant.postulationId,
+                                              applicant.id,
+                                              `${applicant.nombre} ${applicant.apellido}`,
+                                              applicant.correo
+                                            )
+                                          }
+                                        >
+                                          Reject
+                                        </button>
+                                        {(applicant.estadoPostulacion ===
+                                          "FINALISTA" ||
+                                          applicant.estadoPostulacion ===
+                                            "EN_EVALUACION") && (
+                                          <button
+                                            className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                            onClick={() =>
+                                              handleSelectCandidate(
+                                                applicant.postulationId,
+                                                applicant.id,
+                                                `${applicant.nombre} ${applicant.apellido}`,
+                                                applicant.correo,
+                                                applicant.estadoPostulacion,
+                                                "CONTRACT"
+                                              )
+                                            }
+                                          >
+                                            Contract
+                                          </button>
+                                        )}
+                                      </>
                                     )}
-                                  </>
-                                )}
-                              {(applicant.estadoPostulacion === "ACEPTADA" ||
-                                applicant.estadoPostulacion ===
-                                  "RECHAZADA") && (
-                                <div className="text-gray-400 text-xs">
-                                  No actions available
-                                </div>
+                                  {(applicant.estadoPostulacion ===
+                                    "ACEPTADA" ||
+                                    applicant.estadoPostulacion ===
+                                      "RECHAZADA") && (
+                                    <div className="text-gray-400 text-xs">
+                                      No actions available
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
                           </td>
@@ -772,12 +876,12 @@ export default function ApplicantsModal({
                 </>
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-500">
-                  No hay aplicantes para esta oferta.
+                  There are no applicants for this offer.
                 </div>
               )}
             </div>
 
-            {/* Paginación - solo mostrar si hay aplicantes */}
+            {/* Pagination - only show if there are applicants */}
             {applicants.length > 0 && (
               <div className="border-t border-gray-200 p-4 flex justify-center">
                 <div className="inline-flex border border-gray-300 rounded-md">

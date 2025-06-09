@@ -8,6 +8,9 @@ import CreateUserForm from "../components/CreateUserForm";
 import { PlusIcon, Search } from "lucide-react";
 import TableSkeleton from "../../dashboard/components/TableSkeleton";
 
+// Tipos de roles de empleados
+type EmployeeRole = "ADMIN" | "EMPLEADO_ADMIN" | "ADMIN_RECLUTADOR";
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -26,7 +29,7 @@ export default function UsersPage() {
             ...user,
             usuarioId: user.usuario.id,
             activo: true,
-            rol: "EMPLEADO_ADMIN",
+            rol: user.rol as EmployeeRole,
             fechaCreacion: new Date().toISOString(),
             fechaActualizacion: new Date().toISOString(),
             actualizadoPorId: "",

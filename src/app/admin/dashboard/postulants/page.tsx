@@ -29,6 +29,14 @@ import {
 } from "../actions/update.clasification.actions";
 import CandidateActionModal from "../components/CandidateActionModal";
 import SendEmailModal from "../components/SendEmailModal";
+// Importar acciones para manejar aplicaciones
+import { advancedStage, rejectStage } from "../actions/stage.actions";
+import {
+  sendAdvanceNextStep,
+  sendContractJobEmail,
+  sendInterviewInvitation,
+  sendRejectionEmail,
+} from "../actions/sendEmail.actions";
 
 interface CandidatoWithPostulationId extends Candidato {
   postulationId: string;
@@ -71,9 +79,6 @@ export default function PostulantsPage() {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState<boolean>(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [recentlyUpdated, setRecentlyUpdated] = useState<string>("");
-  const [proposalTitles, setProposalTitles] = useState<Record<string, string>>(
-    {}
-  );
   const { addNotification } = useNotificationStore();
   const [isActionModalOpen, setIsActionModalOpen] = useState<boolean>(false);
   const [currentAction, setCurrentAction] = useState<"remove" | "activate">(
@@ -82,8 +87,6 @@ export default function PostulantsPage() {
   const [isSendEmailModalOpen, setIsSendEmailModalOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
-
-  console.log("[PostulantsPage] proposalTitles:", proposalTitles);
 
   const fetchApplicants = async (page = 1, searchValue = "") => {
     setIsLoading(true);
@@ -95,9 +98,6 @@ export default function PostulantsPage() {
       );
 
       if (response.success) {
-        if (searchValue && searchValue !== search) {
-          setProposalTitles({});
-        }
         setApplicants(response.data?.resultados);
         setTotalPages(response.totalPages || 1);
       } else {
@@ -265,7 +265,7 @@ export default function PostulantsPage() {
       case "ACEPTADA":
         return (
           <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full uppercase">
-            Accepted
+            Hired
           </span>
         );
       case "RECHAZADA":
@@ -366,6 +366,182 @@ export default function PostulantsPage() {
   const handleOpenSendEmailModal = (applicant: any) => {
     setSelectedApplicant(applicant);
     setIsSendEmailModalOpen(true);
+  };
+
+  // Mapeo de tipos de estado de postulación
+  const mapEstadoPostulacion = (
+    estado: string
+  ): "PENDIENTE" | "EN_EVALUACION" | "FINALISTA" | "ACEPTADA" | "RECHAZADA" => {
+    switch (estado) {
+      case "PENDIENTE":
+        return "PENDIENTE";
+      case "EN_EVALUACION":
+        return "EN_EVALUACION";
+      case "FINALISTA":
+        return "FINALISTA";
+      case "ACEPTADA":
+        return "ACEPTADA";
+      case "RECHAZADA":
+        return "RECHAZADA";
+      case "ACEPTADO":
+        return "ACEPTADA";
+      case "RECHAZADO":
+        return "RECHAZADA";
+      case "EN_PROCESO":
+        return "FINALISTA";
+      default:
+        return "PENDIENTE";
+    }
+  };
+
+  // Funciones para manejar acciones de aplicación
+  const handleSelectCandidate = async (
+    postulationId: string,
+    candidateId: string,
+    candidateName: string,
+    candidateEmail: string,
+    currentStage: string,
+    action: "NEXT" | "CONTRACT" = "NEXT"
+  ) => {
+    try {
+      const response = await advancedStage(
+        postulationId,
+        candidateId,
+        mapEstadoPostulacion(currentStage),
+        action
+      );
+
+      if (response && response.success && response.nextStage) {
+        // Actualizar el estado de la aplicación en la lista
+        setApplicants((prevApplicants) =>
+          prevApplicants.map((applicant) =>
+            applicant.id === candidateId
+              ? {
+                  ...applicant,
+                  lastRelevantPostulacion: applicant.lastRelevantPostulacion
+                    ? {
+                        ...applicant.lastRelevantPostulacion,
+                        estado: response.nextStage,
+                      }
+                    : undefined,
+                }
+              : applicant
+          )
+        );
+
+        if (currentStage === "PENDIENTE") {
+          const emailResponse = await sendInterviewInvitation(
+            candidateName,
+            candidateEmail
+          );
+
+          if (emailResponse && emailResponse.success) {
+            addNotification(
+              "Candidate selected and email sent successfully",
+              "success"
+            );
+          } else {
+            addNotification(
+              "Candidate selected but there was an error sending the email",
+              "warning"
+            );
+          }
+        } else if (action === "CONTRACT") {
+          const emailResponse = await sendContractJobEmail(
+            candidateName,
+            candidateEmail
+          );
+
+          if (emailResponse && emailResponse.success) {
+            addNotification(
+              "Candidate contracted and email sent successfully",
+              "success"
+            );
+          } else {
+            addNotification(
+              "Candidate contracted but there was an error sending the email",
+              "warning"
+            );
+          }
+        } else {
+          const emailResponse = await sendAdvanceNextStep(
+            candidateName,
+            candidateEmail
+          );
+
+          if (emailResponse && emailResponse.success) {
+            addNotification(
+              "Candidate advanced and email sent successfully",
+              "success"
+            );
+          } else {
+            addNotification(
+              "Candidate advanced but there was an error sending the email",
+              "warning"
+            );
+          }
+        }
+      } else {
+        const errorMessage = response?.message || "Error selecting candidate";
+        addNotification(errorMessage, "error");
+      }
+    } catch (error) {
+      console.error("Error selecting candidate", error);
+      addNotification("Error selecting candidate", "error");
+    }
+  };
+
+  const handleRejectCandidate = async (
+    postulationId: string,
+    candidateId: string,
+    candidateName: string,
+    candidateEmail: string
+  ) => {
+    try {
+      const response = await rejectStage(postulationId, candidateId);
+
+      if (response && response.success) {
+        // Actualizar el estado en la lista
+        setApplicants((prevApplicants) =>
+          prevApplicants.map((applicant) =>
+            applicant.id === candidateId
+              ? {
+                  ...applicant,
+                  lastRelevantPostulacion: applicant.lastRelevantPostulacion
+                    ? {
+                        ...applicant.lastRelevantPostulacion,
+                        estado: "RECHAZADA",
+                      }
+                    : undefined,
+                }
+              : applicant
+          )
+        );
+
+        const emailResponse = await sendRejectionEmail(
+          candidateName,
+          candidateEmail
+        );
+
+        if (emailResponse && emailResponse.success) {
+          addNotification(
+            "Candidate rejected and email sent successfully",
+            "success"
+          );
+        } else {
+          addNotification(
+            "Candidate rejected but there was an error sending the email",
+            "warning"
+          );
+        }
+      } else {
+        const errorMessage = response?.message || "Error rejecting candidate";
+        addNotification(errorMessage, "error");
+      }
+    } catch (error) {
+      console.error("Error rejecting candidate", error);
+      addNotification("Error rejecting candidate", "error");
+    }
   };
 
   return (
@@ -775,25 +951,28 @@ export default function PostulantsPage() {
                     <table className="w-full border-collapse">
                       <thead className="sticky top-0 bg-white z-20 shadow-sm">
                         <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/5">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/6">
                             Name
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/5">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/6">
                             Email
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/5">
-                            Last Application
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/6">
+                            Current Application
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/5">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/6">
                             Application Status
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/5">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/6">
+                            Application Actions
+                          </th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/6">
                             Candidate Status
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/5">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/6">
                             Logs
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/5">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/6">
                             Actions
                           </th>
                         </tr>
@@ -829,16 +1008,6 @@ export default function PostulantsPage() {
                                         : applicant.lastRelevantPostulacion
                                             .titulo}
                                     </span>
-                                    {applicant.lastRelevantPostulacion
-                                      .titulo !== "Sin aplicaciones" && (
-                                      <span className="text-gray-500 text-xs">
-                                        {
-                                          applicant.lastRelevantPostulacion.fecha.split(
-                                            "T"
-                                          )[0]
-                                        }
-                                      </span>
-                                    )}
                                   </div>
                                 ) : (
                                   <span className="text-gray-400 text-sm">
@@ -855,6 +1024,102 @@ export default function PostulantsPage() {
                                 ) : (
                                   <span className="text-gray-400 text-sm">
                                     N/A
+                                  </span>
+                                )}
+                              </td>
+                              {/* Nueva columna de Application Actions */}
+                              <td className="py-4 px-4">
+                                {applicant.lastRelevantPostulacion &&
+                                applicant.lastRelevantPostulacion.estado ? (
+                                  <div className="flex space-x-2">
+                                    {/* Lógica para mostrar botones según el estado - igual que ApplicantsModal */}
+                                    {applicant.lastRelevantPostulacion
+                                      .estado !== "ACEPTADA" &&
+                                      applicant.lastRelevantPostulacion
+                                        .estado !== "RECHAZADA" && (
+                                        <>
+                                          {/* Next Stage Button - solo si NO es FINALISTA */}
+                                          {applicant.lastRelevantPostulacion
+                                            .estado !== "FINALISTA" && (
+                                            <button
+                                              className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
+                                              onClick={() =>
+                                                handleSelectCandidate(
+                                                  applicant
+                                                    .lastRelevantPostulacion
+                                                    ?.id || "",
+                                                  applicant.id,
+                                                  `${applicant.nombre} ${applicant.apellido}`,
+                                                  applicant.correo,
+                                                  applicant
+                                                    .lastRelevantPostulacion
+                                                    ?.estado ?? "PENDIENTE",
+                                                  "NEXT"
+                                                )
+                                              }
+                                            >
+                                              Next Stage
+                                            </button>
+                                          )}
+
+                                          {/* Reject Button - siempre disponible */}
+                                          <button
+                                            className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
+                                            onClick={() =>
+                                              handleRejectCandidate(
+                                                applicant
+                                                  .lastRelevantPostulacion
+                                                  ?.id || "",
+                                                applicant.id,
+                                                `${applicant.nombre} ${applicant.apellido}`,
+                                                applicant.correo
+                                              )
+                                            }
+                                          >
+                                            Reject
+                                          </button>
+
+                                          {/* Contract Button - para FINALISTA y EN_EVALUACION */}
+                                          {(applicant.lastRelevantPostulacion
+                                            .estado === "FINALISTA" ||
+                                            applicant.lastRelevantPostulacion
+                                              .estado === "EN_EVALUACION") && (
+                                            <button
+                                              className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
+                                              onClick={() =>
+                                                handleSelectCandidate(
+                                                  applicant
+                                                    .lastRelevantPostulacion
+                                                    ?.id || "",
+                                                  applicant.id,
+                                                  `${applicant.nombre} ${applicant.apellido}`,
+                                                  applicant.correo,
+                                                  applicant
+                                                    .lastRelevantPostulacion
+                                                    ?.estado ?? "FINALISTA",
+                                                  "CONTRACT"
+                                                )
+                                              }
+                                            >
+                                              Contract
+                                            </button>
+                                          )}
+                                        </>
+                                      )}
+
+                                    {/* Mensaje para estados finales */}
+                                    {(applicant.lastRelevantPostulacion
+                                      .estado === "ACEPTADA" ||
+                                      applicant.lastRelevantPostulacion
+                                        .estado === "RECHAZADA") && (
+                                      <div className="text-gray-400 text-xs">
+                                        Process completed
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400 text-xs">
+                                    No active application
                                   </span>
                                 )}
                               </td>

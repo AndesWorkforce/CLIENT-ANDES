@@ -308,6 +308,12 @@ export default function AdminDashboardPage() {
     fetchPublishedOffers();
   }, []);
 
+  console.log(
+    "\n\n\n [AdminDashboardPage] selectedOffer",
+    selectedOffer,
+    "\n\n\n"
+  );
+
   const LoadingIndicator = () => (
     <div className="flex justify-center py-4">
       <div className="animate-pulse flex space-x-2">
@@ -831,8 +837,8 @@ export default function AdminDashboardPage() {
               fotoPerfil: postulacion.candidato.fotoPerfil,
               videoPresentacion: postulacion.candidato.videoPresentacion,
               postulationId: postulacion.id,
-              estadoPostulacion: (postulacion.estado ||
-                "PENDIENTE") as EstadoPostulacion,
+              estadoPostulacion:
+                postulacion.estadoPostulacion as EstadoPostulacion,
             })) || []
           }
         />

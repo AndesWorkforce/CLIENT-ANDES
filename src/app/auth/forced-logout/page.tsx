@@ -19,8 +19,8 @@ export default function ForcedLogoutPage() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
-        <h1 className="text-xl font-semibold mb-2">Cerrando sesión...</h1>
-        <p>Serás redirigido en un momento.</p>
+        <h1 className="text-xl font-semibold mb-2">Logging out...</h1>
+        <p>You will be redirected in a moment.</p>
       </div>
     </div>
   );

@@ -498,8 +498,8 @@ export default function CompanyDashboard() {
               fotoPerfil: postulacion.candidato.fotoPerfil,
               videoPresentacion: postulacion.candidato.videoPresentacion,
               postulationId: postulacion.id,
-              estadoPostulacion: (postulacion.estado ||
-                "PENDIENTE") as EstadoPostulacion,
+              estadoPostulacion:
+                postulacion.estadoPostulacion as EstadoPostulacion,
             })) || []
           }
         />

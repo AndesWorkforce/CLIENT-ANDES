@@ -77,11 +77,11 @@ export default function CandidateProfileModal({
   const hasLoadedRef = useRef(false);
   const [manualReload, setManualReload] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
-  console.log("[CandidateProfileModal] errorCount:", errorCount);
+  console.log(" ", !!errorCount);
   const validateCandidateProfile = useCallback(async () => {
     const response = await candidateValidationProfile(candidateId);
     if (response.success) {
-      console.log("[CandidateProfileModal] Perfil validado correctamente");
+      console.log("");
     }
   }, [candidateId]);
 
@@ -97,8 +97,7 @@ export default function CandidateProfileModal({
           }
           // Reset error count on success
           setErrorCount(0);
-        } catch (error) {
-          console.error("[CandidateProfileModal] Error al cargar:", error);
+        } catch {
           // Increment error count
           setErrorCount((prev) => prev + 1);
         }
@@ -148,11 +147,7 @@ export default function CandidateProfileModal({
             "error"
           );
         }
-      } catch (error) {
-        console.error(
-          "[CandidateProfileModal] Error al actualizar habilidades:",
-          error
-        );
+      } catch {
         addNotification("Unexpected error updating skills", "error");
       } finally {
         setIsUpdatingSkills(false);
@@ -884,7 +879,7 @@ export default function CandidateProfileModal({
                             />
                             <div className="absolute inset-0 bg-[#0097B2] bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
                               <div className="text-[#0097B2] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white px-3 py-1 rounded-full shadow-sm">
-                                Ver imagen
+                                View image
                               </div>
                             </div>
                           </div>
@@ -894,81 +889,85 @@ export default function CandidateProfileModal({
                 </div>
               )}
 
-              {/* Documento de Identidad */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="p-4">
-                  <h2 className="font-medium text-gray-900 mb-3">
-                    Identity Document
-                  </h2>
-                  {profile.archivos?.fotoCedulaFrente ||
-                  profile.archivos?.fotoCedulaDorso ? (
-                    <div className="flex flex-wrap gap-4 justify-center">
-                      {profile.archivos?.fotoCedulaFrente && (
-                        <div className="flex-1 flex flex-col items-center max-w-[160px]">
-                          <span className="text-gray-700 mb-2 font-medium">
-                            Front photo
-                          </span>
-                          <div
-                            className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
-                            onClick={() =>
-                              setSelectedImage(
-                                profile.archivos.fotoCedulaFrente as string
-                              )
-                            }
-                          >
-                            <img
-                              src={profile.archivos.fotoCedulaFrente as string}
-                              alt="ID Front"
-                              className="w-full h-full object-contain rounded-lg p-1"
-                            />
-                            <div className="absolute inset-0 bg-[#0097B2] bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
-                              <div className="text-[#0097B2] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white px-3 py-1 rounded-full shadow-sm">
-                                Ver imagen
+              {/* Documento de Identidad - Solo visible para usuarios no empresa */}
+              {!isCompanyUser && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="p-4">
+                    <h2 className="font-medium text-gray-900 mb-3">
+                      Identity Document
+                    </h2>
+                    {profile.archivos?.fotoCedulaFrente ||
+                    profile.archivos?.fotoCedulaDorso ? (
+                      <div className="flex flex-wrap gap-4 justify-center">
+                        {profile.archivos?.fotoCedulaFrente && (
+                          <div className="flex-1 flex flex-col items-center max-w-[160px]">
+                            <span className="text-gray-700 mb-2 font-medium">
+                              Front photo
+                            </span>
+                            <div
+                              className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
+                              onClick={() =>
+                                setSelectedImage(
+                                  profile.archivos.fotoCedulaFrente as string
+                                )
+                              }
+                            >
+                              <img
+                                src={
+                                  profile.archivos.fotoCedulaFrente as string
+                                }
+                                alt="ID Front"
+                                className="w-full h-full object-contain rounded-lg p-1"
+                              />
+                              <div className="absolute inset-0 bg-[#0097B2] bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
+                                <div className="text-[#0097B2] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white px-3 py-1 rounded-full shadow-sm">
+                                  View image
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                      {profile.archivos?.fotoCedulaDorso && (
-                        <div className="flex-1 flex flex-col items-center max-w-[160px]">
-                          <span className="text-gray-700 mb-2 font-medium">
-                            Back photo
-                          </span>
-                          <div
-                            className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
-                            onClick={() =>
-                              setSelectedImage(
-                                profile.archivos.fotoCedulaDorso as string
-                              )
-                            }
-                          >
-                            <img
-                              src={profile.archivos.fotoCedulaDorso as string}
-                              alt="ID Back"
-                              className="w-full h-full object-contain rounded-lg p-1"
-                            />
-                            <div className="absolute inset-0 bg-[#0097B2] bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
-                              <div className="text-[#0097B2] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white px-3 py-1 rounded-full shadow-sm">
-                                Ver imagen
+                        )}
+                        {profile.archivos?.fotoCedulaDorso && (
+                          <div className="flex-1 flex flex-col items-center max-w-[160px]">
+                            <span className="text-gray-700 mb-2 font-medium">
+                              Back photo
+                            </span>
+                            <div
+                              className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
+                              onClick={() =>
+                                setSelectedImage(
+                                  profile.archivos.fotoCedulaDorso as string
+                                )
+                              }
+                            >
+                              <img
+                                src={profile.archivos.fotoCedulaDorso as string}
+                                alt="ID Back"
+                                className="w-full h-full object-contain rounded-lg p-1"
+                              />
+                              <div className="absolute inset-0 bg-[#0097B2] bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
+                                <div className="text-[#0097B2] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white px-3 py-1 rounded-full shadow-sm">
+                                  View image
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-gray-500">
-                        No identity document images uploaded
-                      </p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        The candidate needs to upload both front and back photos
-                        of their ID
-                      </p>
-                    </div>
-                  )}
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-500">
+                          No identity document images uploaded
+                        </p>
+                        <p className="text-sm text-gray-400 mt-1">
+                          The candidate needs to upload both front and back
+                          photos of their ID
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Experiencia/Educación tabs */}
               <div className="mt-6 mb-4 relative">
@@ -1129,7 +1128,7 @@ export default function CandidateProfileModal({
         </div>
       )}
 
-      {/* Modal para ver imagen completa */}
+      {/* Modal to view full image */}
       {selectedImage && (
         <div
           className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(0,0,0,0.5)]"

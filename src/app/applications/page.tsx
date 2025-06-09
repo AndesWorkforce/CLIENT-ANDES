@@ -103,7 +103,7 @@ export default function ApplicationsPage() {
       return (
         <div className="flex items-center">
           <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-          <span className="text-red-500 font-medium">Finalist</span>
+          <span className="text-red-500 font-medium">Rejected</span>
         </div>
       );
     }
@@ -196,9 +196,11 @@ export default function ApplicationsPage() {
         )}
 
         {!hasMore && applications.length > 0 && (
-          <p className="text-center text-gray-500 py-4">
-            No more applications to show
-          </p>
+          <div className="text-center py-8 mt-4">
+            <p className="text-gray-400 text-sm">
+              ✓ You&apos;ve reached the end of your applications
+            </p>
+          </div>
         )}
       </div>
 

@@ -52,19 +52,14 @@ export default function Navbar() {
     if (!user?.id) return;
 
     try {
-      const now = new Date().getTime();
       const response = await userIsAppliedToOffer(user.id);
 
       if (response.success) {
         const isComplete = response.data?.perfilCompleto === "COMPLETO";
         setIsValidProfileUserState(isComplete);
-        console.log(
-          `[${now}] Perfil verificado:`,
-          isComplete ? "COMPLETO" : "INCOMPLETO"
-        );
       }
     } catch (error) {
-      console.error("[Navbar] Error al verificar el perfil:", error);
+      console.error("[Navbar] Error verifying profile:", error);
     }
   };
 
@@ -274,7 +269,7 @@ export default function Navbar() {
                                   size={16}
                                   className="mr-2 text-[#0097B2] cursor-pointer"
                                 />
-                                Panel de Empresa
+                                Company Dashboard
                               </Link>
 
                               <hr className="my-1 border-gray-200" />
@@ -290,7 +285,7 @@ export default function Navbar() {
                                   size={16}
                                   className="mr-2 text-[#0097B2] cursor-pointer"
                                 />
-                                Cerrar sesión
+                                Logout
                               </button>
                             </>
                           ) : user?.rol === "ADMIN" ? (
@@ -330,7 +325,7 @@ export default function Navbar() {
                                   size={16}
                                   className="mr-2 text-[#0097B2] cursor-pointer"
                                 />
-                                Cerrar sesión
+                                Logout
                               </button>
                             </>
                           ) : null}
@@ -530,7 +525,7 @@ export default function Navbar() {
                     size={20}
                     className="mr-2 text-[#0097B2] cursor-pointer"
                   />
-                  {user?.rol === "CANDIDATO" ? "Logout" : "Cerrar sesión"}
+                  {user?.rol === "CANDIDATO" ? "Logout" : "Logout"}
                 </button>
               </div>
             </div>

@@ -2,11 +2,24 @@
 
 import { useState } from "react";
 import type { User } from "../schemas/user.schema";
-import { toggleUserStatus, deleteUser } from "../actions/user.actions";
+import {
+  toggleUserStatus,
+  deleteUser,
+  updateUserRole,
+} from "../actions/user.actions";
 import CreateUserForm from "./CreateUserForm";
 import ConfirmStatusModal from "./ConfirmStatusModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { useNotificationStore } from "@/store/notifications.store";
+
+// Employee role types
+type EmployeeRole = "ADMIN" | "EMPLEADO_ADMIN" | "ADMIN_RECLUTAMIENTO";
+
+const ROLE_TRANSLATIONS: Record<EmployeeRole, string> = {
+  ADMIN: "Administrator",
+  EMPLEADO_ADMIN: "Admin Employee",
+  ADMIN_RECLUTAMIENTO: "Recruitment Admin",
+};
 
 interface Props {
   users: User[];
@@ -38,7 +51,7 @@ export default function UsersTable({ users, onRefresh }: Props) {
         addNotification(response.message, "error");
       }
     } catch (error) {
-      console.error("Error al cambiar el estado:", error);
+      console.error("Error changing status:", error);
       addNotification("Error changing user status", "error");
     } finally {
       setIsUpdatingStatus(false);
@@ -60,13 +73,50 @@ export default function UsersTable({ users, onRefresh }: Props) {
         addNotification(response.message, "error");
       }
     } catch (error) {
-      console.error("Error al eliminar usuario:", error);
-      addNotification("Error al eliminar el usuario", "error");
+      console.error("Error deleting user:", error);
+      addNotification("Error deleting user", "error");
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
       setSelectedUser(null);
     }
+  };
+
+  const handleUpdateRole = async (userId: string, newRole: EmployeeRole) => {
+    try {
+      const response = await updateUserRole(userId, newRole);
+
+      if (response.success) {
+        addNotification(
+          `Role updated to ${ROLE_TRANSLATIONS[newRole]}`,
+          "success"
+        );
+        onRefresh();
+      } else {
+        addNotification(response.message, "error");
+      }
+    } catch (error) {
+      console.error("Error updating role:", error);
+      addNotification("Error updating role", "error");
+    }
+  };
+
+  const renderRoleSelector = (user: User) => {
+    return (
+      <select
+        value={user.rol as EmployeeRole}
+        onChange={(e) =>
+          handleUpdateRole(user.usuario.id, e.target.value as EmployeeRole)
+        }
+        className="text-sm text-[#17323A] bg-transparent border-none outline-none cursor-pointer hover:bg-gray-50 rounded px-2 py-1"
+      >
+        {Object.entries(ROLE_TRANSLATIONS).map(([role, translation]) => (
+          <option key={role} value={role}>
+            {translation}
+          </option>
+        ))}
+      </select>
+    );
   };
 
   return (
@@ -110,9 +160,7 @@ export default function UsersTable({ users, onRefresh }: Props) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-[#17323A]">
-                      {user.rol.toUpperCase()}
-                    </div>
+                    {renderRoleSelector(user)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button

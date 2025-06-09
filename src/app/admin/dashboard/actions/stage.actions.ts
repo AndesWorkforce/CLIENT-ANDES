@@ -118,12 +118,15 @@ export async function advancedStage(
     }
 
     revalidatePath(`/admin/dashboard`);
+    revalidatePath(`/admin/dashboard/postulants`);
     return {
       success: true,
       message: "Stage updated successfully",
       nextStage,
     };
   } catch (error) {
+    revalidatePath(`/admin/dashboard`);
+    revalidatePath(`/admin/dashboard/postulants`);
     console.log("[error] ", error);
     return {
       success: false,
@@ -153,13 +156,13 @@ export async function rejectStage(postulationId: string, candidateId: string) {
     revalidatePath(`/admin/dashboard`);
     return {
       success: true,
-      message: "Stage updated successfully",
+      message: "Candidate rejected successfully",
     };
   } catch (error) {
-    console.log("[error] ", error);
+    console.error("[rejectStage] Error:", error);
     return {
       success: false,
-      message: "Error updating stage",
+      message: "Error rejecting candidate",
     };
   }
 }
