@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import {
-  X,
-  Phone,
-  Mail,
-  FileText,
-  Edit,
-  CheckCircle,
-  Download,
-} from "lucide-react";
+import { X, Phone, Mail, FileText, Edit, CheckCircle } from "lucide-react";
 import { useCandidateProfile } from "../context/CandidateProfileContext";
 import ProfileModalSkeleton from "./ProfileModalSkeleton";
 import ViewFormularioModal from "./ViewFormularioModal";
