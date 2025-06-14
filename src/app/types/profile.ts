@@ -5,6 +5,7 @@ export interface DatosPersonales {
   telefono: string;
   residencia: string;
   fotoPerfil: string;
+  pais: string;
 }
 
 export interface RequisitosDispositivo {

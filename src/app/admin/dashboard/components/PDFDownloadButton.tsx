@@ -9,6 +9,7 @@ import {
   View,
   StyleSheet,
   PDFDownloadLink,
+  Image,
 } from "@react-pdf/renderer";
 
 interface PDFDownloadButtonProps {
@@ -20,6 +21,15 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     backgroundColor: "#ffffff",
     padding: 30,
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  logo: {
+    width: 150,
+    height: 50,
+    objectFit: "contain",
   },
   section: {
     marginBottom: 20,
@@ -46,27 +56,44 @@ const styles = StyleSheet.create({
   bullet: {
     width: 10,
   },
+  imageContainer: {
+    marginBottom: 10,
+  },
+  image: {
+    width: 200,
+    height: 150,
+    objectFit: "contain",
+  },
 });
 
 const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
+      {/* Logo de Andes */}
+      <View style={styles.logoContainer}>
+        <Image src="/images/logo-andes.png" style={styles.logo} />
+      </View>
+
       {/* Datos Personales */}
       <View style={styles.section}>
+        <Text style={styles.subtitle}>Contact Information</Text>
         <Text style={styles.title}>
           {profile.datosPersonales.nombre} {profile.datosPersonales.apellido}
         </Text>
-        <Text style={styles.subtitle}>Datos de contacto</Text>
+        {/* <Text style={styles.text}>Email: {profile.datosPersonales.correo}</Text> */}
+        {/* <Text style={styles.text}>
+          Phone Number: {profile.datosPersonales.telefono}
+        </Text> */}
         <Text style={styles.text}>
-          Teléfono: {profile.datosPersonales.telefono}
+          Address: {profile.datosPersonales.residencia}
         </Text>
-        <Text style={styles.text}>Email: {profile.datosPersonales.correo}</Text>
+        <Text style={styles.text}>Country: {profile.datosPersonales.pais}</Text>
       </View>
 
       {/* Video */}
       {profile.archivos.videoPresentacion && (
         <View style={styles.section}>
-          <Text style={styles.subtitle}>Video Presentación</Text>
+          <Text style={styles.subtitle}>Video Presentation</Text>
           <Text style={styles.text}>
             URL: {profile.archivos.videoPresentacion}
           </Text>
@@ -86,12 +113,12 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
 
       {/* Especificaciones PC */}
       <View style={styles.section}>
-        <Text style={styles.subtitle}>Especificaciones PC</Text>
+        <Text style={styles.subtitle}>PC Specifications</Text>
         {profile.archivos.imagenTestVelocidad && (
           <View style={styles.listItem}>
             <Text style={styles.bullet}>•</Text>
             <Text style={styles.text}>
-              Test de Velocidad: {profile.archivos.imagenTestVelocidad}
+              Speed Test: {profile.archivos.imagenTestVelocidad}
             </Text>
           </View>
         )}
@@ -99,7 +126,7 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
           <View style={styles.listItem}>
             <Text style={styles.bullet}>•</Text>
             <Text style={styles.text}>
-              Requerimientos PC: {profile.archivos.imagenRequerimientosPC}
+              PC Requirements: {profile.archivos.imagenRequerimientosPC}
             </Text>
           </View>
         )}
@@ -107,7 +134,7 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
 
       {/* Experiencia */}
       <View style={styles.section}>
-        <Text style={styles.subtitle}>Experiencia</Text>
+        <Text style={styles.subtitle}>Experience</Text>
         {profile.experiencia.map((exp) => (
           <View key={exp.id} style={{ marginBottom: 10 }}>
             <Text style={{ ...styles.text, fontWeight: "bold" }}>
@@ -126,7 +153,7 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
     <Page size="A4" style={styles.page}>
       {/* Educación */}
       <View style={styles.section}>
-        <Text style={styles.subtitle}>Educación</Text>
+        <Text style={styles.subtitle}>Education</Text>
         {profile.educacion.map((edu) => (
           <View key={edu.id} style={{ marginBottom: 10 }}>
             <Text style={{ ...styles.text, fontWeight: "bold" }}>
@@ -142,17 +169,24 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
 
       {/* Formulario */}
       <View style={styles.section}>
-        <Text style={styles.subtitle}>Formulario</Text>
-        {Object.entries(profile.datosFormulario).map(
-          ([pregunta, respuesta], index) => (
+        <Text style={styles.subtitle}>Form</Text>
+        {Object.entries(profile.datosFormulario)
+          .filter(([pregunta]) => {
+            const preguntaLower = pregunta.toLowerCase();
+            return (
+              !preguntaLower.includes("whatsapp") &&
+              !preguntaLower.includes("gmail") &&
+              !preguntaLower.includes("correo")
+            );
+          })
+          .map(([pregunta, respuesta], index) => (
             <View key={index} style={{ marginBottom: 10 }}>
               <Text style={{ ...styles.text, fontWeight: "bold" }}>
                 {pregunta}
               </Text>
               <Text style={styles.text}>{respuesta}</Text>
             </View>
-          )
-        )}
+          ))}
       </View>
     </Page>
   </Document>

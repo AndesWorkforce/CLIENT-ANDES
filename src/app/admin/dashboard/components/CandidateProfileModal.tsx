@@ -26,6 +26,7 @@ import ContactoModal from "@/app/profile/components/ContactoModal";
 import { candidateValidationProfile } from "../actions/applicants.actions";
 import IdentificationModal from "@/app/profile/components/IdentificationModal";
 import { useAuthStore } from "@/store/auth.store";
+import PDFDownloadButton from "./PDFDownloadButton";
 
 interface CandidateProfileModalProps {
   isOpen: boolean;
@@ -724,54 +725,55 @@ export default function CandidateProfileModal({
                     <div>
                       <h1 className="text-xl font-medium text-[#0097B2] mb-2">
                         {profile.datosPersonales.nombre || (
-                          <span className="text-gray-400">No Name</span>
+                          <span className="text-gray-400">No name</span>
                         )}{" "}
                         {profile.datosPersonales.apellido || (
-                          <span className="text-gray-400">No Last Name</span>
+                          <span className="text-gray-400">No last name</span>
                         )}
                       </h1>
+                      <h2 className="font-medium text-gray-900 mb-3">
+                        Contact information
+                      </h2>
+                      <hr className="border-[#E2E2E2] my-2" />
+                      <div className="space-y-3">
+                        <div className="flex items-start">
+                          <Phone
+                            size={18}
+                            className="text-[#0097B2] mr-2 mt-0.5"
+                          />
+                          <span className="text-gray-700">
+                            {profile.datosPersonales.telefono || (
+                              <span className="text-gray-400">No phone</span>
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex items-start">
+                          <Mail
+                            size={18}
+                            className="text-[#0097B2] mr-2 mt-0.5"
+                          />
+                          <span className="text-gray-700">
+                            {profile.datosPersonales.correo || (
+                              <span className="text-gray-400">No email</span>
+                            )}
+                          </span>
+                        </div>
+                        {profile.datosPersonales.residencia && (
+                          <div className="flex items-start">
+                            <span className="text-gray-700">
+                              Residence: {profile.datosPersonales.residencia}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-2">
                       {!isCompanyUser && (
                         <>
-                          <h2 className="font-medium text-gray-900 mb-3">
-                            Contact Information
-                          </h2>
-                          <hr className="border-[#E2E2E2] my-2" />
-                          <div className="space-y-3">
-                            <div className="flex items-start">
-                              <Phone
-                                size={18}
-                                className="text-[#0097B2] mr-2 mt-0.5"
-                              />
-                              <span className="text-gray-700">
-                                {profile.datosPersonales.telefono || (
-                                  <span className="text-gray-400">
-                                    No Phone
-                                  </span>
-                                )}
-                              </span>
-                            </div>
-                            <div className="flex items-start">
-                              <Mail
-                                size={18}
-                                className="text-[#0097B2] mr-2 mt-0.5"
-                              />
-                              <span className="text-gray-700">
-                                {profile.datosPersonales.correo || (
-                                  <span className="text-gray-400">
-                                    No Email
-                                  </span>
-                                )}
-                              </span>
-                            </div>
-                            {profile.datosPersonales.residencia && (
-                              <div className="flex items-start">
-                                <span className="text-gray-700">
-                                  Residence:{" "}
-                                  {profile.datosPersonales.residencia}
-                                </span>
-                              </div>
-                            )}
-                          </div>
+                          {!isProfileIncomplete && (
+                            <PDFDownloadButton profile={profile} />
+                          )}
                         </>
                       )}
                     </div>
