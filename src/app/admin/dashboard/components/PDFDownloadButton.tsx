@@ -80,10 +80,10 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
         <Text style={styles.title}>
           {profile.datosPersonales.nombre} {profile.datosPersonales.apellido}
         </Text>
-        <Text style={styles.text}>Email: {profile.datosPersonales.correo}</Text>
-        <Text style={styles.text}>
+        {/* <Text style={styles.text}>Email: {profile.datosPersonales.correo}</Text> */}
+        {/* <Text style={styles.text}>
           Phone Number: {profile.datosPersonales.telefono}
-        </Text>
+        </Text> */}
         <Text style={styles.text}>
           Address: {profile.datosPersonales.residencia}
         </Text>
@@ -170,16 +170,23 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
       {/* Formulario */}
       <View style={styles.section}>
         <Text style={styles.subtitle}>Form</Text>
-        {Object.entries(profile.datosFormulario).map(
-          ([pregunta, respuesta], index) => (
+        {Object.entries(profile.datosFormulario)
+          .filter(([pregunta]) => {
+            const preguntaLower = pregunta.toLowerCase();
+            return (
+              !preguntaLower.includes("whatsapp") &&
+              !preguntaLower.includes("gmail") &&
+              !preguntaLower.includes("correo")
+            );
+          })
+          .map(([pregunta, respuesta], index) => (
             <View key={index} style={{ marginBottom: 10 }}>
               <Text style={{ ...styles.text, fontWeight: "bold" }}>
                 {pregunta}
               </Text>
               <Text style={styles.text}>{respuesta}</Text>
             </View>
-          )
-        )}
+          ))}
       </View>
     </Page>
   </Document>
