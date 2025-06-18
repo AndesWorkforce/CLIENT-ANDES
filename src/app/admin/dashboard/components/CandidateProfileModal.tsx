@@ -801,14 +801,36 @@ export default function CandidateProfileModal({
               {profile.archivos.videoPresentacion && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-4">
-                    <h2 className="font-medium text-gray-900 mb-3">
-                      Video presentation
-                    </h2>
+                    <div className="flex justify-between items-center mb-3">
+                      <h2 className="font-medium text-gray-900">
+                        Video presentation
+                      </h2>
+                      <button
+                        onClick={() =>
+                          setSelectedImage(
+                            profile.archivos.videoPresentacion as string
+                          )
+                        }
+                        className="text-[#0097B2] text-sm hover:underline flex items-center gap-1"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Expandir
+                      </button>
+                    </div>
                     <div className="aspect-video bg-gray-100 rounded relative group">
                       <video
                         ref={setVideoRef}
                         src={profile.archivos.videoPresentacion as string}
-                        className="w-full h-full object-cover rounded"
+                        className="w-full h-full object-contain rounded"
                         onEnded={() => setIsVideoPlaying(false)}
                         controls={false}
                       />
@@ -1130,21 +1152,32 @@ export default function CandidateProfileModal({
         </div>
       )}
 
-      {/* Modal to view full image */}
+      {/* Modal to view full image/video */}
       {selectedImage && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(0,0,0,0.5)]"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(0,0,0,0.8)]"
           onClick={() => setSelectedImage(null)}
         >
-          <div className="relative max-w-4xl max-h-[90vh] p-2">
-            <img
-              src={selectedImage}
-              alt="PC Specification"
-              className="max-w-full max-h-[85vh] object-contain"
-            />
+          <div className="relative max-w-6xl max-h-[95vh] p-4 w-full h-full flex items-center justify-center">
+            {selectedImage === profile.archivos.videoPresentacion ? (
+              <video
+                src={selectedImage}
+                className="max-w-full max-h-full object-contain"
+                controls
+                autoPlay
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <img
+                src={selectedImage}
+                alt="PC Specification"
+                className="max-w-full max-h-full object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
             <button
               onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 text-white hover:text-gray-300"
+              className="absolute top-4 right-4 text-white hover:text-gray-300 bg-black/50 rounded-full p-2"
             >
               <X size={24} />
             </button>
