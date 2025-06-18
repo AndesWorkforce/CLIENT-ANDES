@@ -10,6 +10,7 @@ import {
   StyleSheet,
   PDFDownloadLink,
   Image,
+  Link,
 } from "@react-pdf/renderer";
 
 interface PDFDownloadButtonProps {
@@ -48,6 +49,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 5,
     color: "#4B5563",
+  },
+  linkText: {
+    fontSize: 12,
+    marginBottom: 5,
+    color: "#0097B2",
+    textDecoration: "underline",
   },
   listItem: {
     flexDirection: "row",
@@ -94,9 +101,12 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
       {profile.archivos.videoPresentacion && (
         <View style={styles.section}>
           <Text style={styles.subtitle}>Video Presentation</Text>
-          <Text style={styles.text}>
-            URL: {profile.archivos.videoPresentacion}
-          </Text>
+          <Link
+            src={profile.archivos.videoPresentacion}
+            style={styles.linkText}
+          >
+            Ver video de presentación
+          </Link>
         </View>
       )}
 
@@ -115,19 +125,25 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
       <View style={styles.section}>
         <Text style={styles.subtitle}>PC Specifications</Text>
         {profile.archivos.imagenTestVelocidad && (
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.text}>
-              Speed Test: {profile.archivos.imagenTestVelocidad}
-            </Text>
+          <View style={{ marginBottom: 10 }}>
+            <Text style={styles.text}>Speed Test:</Text>
+            <Link
+              src={profile.archivos.imagenTestVelocidad}
+              style={styles.linkText}
+            >
+              Ver imagen del test de velocidad
+            </Link>
           </View>
         )}
         {profile.archivos.imagenRequerimientosPC && (
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.text}>
-              PC Requirements: {profile.archivos.imagenRequerimientosPC}
-            </Text>
+          <View style={{ marginBottom: 10 }}>
+            <Text style={styles.text}>PC Requirements:</Text>
+            <Link
+              src={profile.archivos.imagenRequerimientosPC}
+              style={styles.linkText}
+            >
+              Ver imagen de requerimientos de PC
+            </Link>
           </View>
         )}
       </View>
