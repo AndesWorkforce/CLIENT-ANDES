@@ -208,7 +208,6 @@ export default function CandidateProfileModal({
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  console.log("profile", profile);
   if (!isOpen) return null;
 
   if (isLoading || !profile) {
@@ -770,11 +769,7 @@ export default function CandidateProfileModal({
 
                     <div className="flex space-x-2">
                       {!isCompanyUser && (
-                        <>
-                          {!isProfileIncomplete && (
-                            <PDFDownloadButton profile={profile} />
-                          )}
-                        </>
+                        <PDFDownloadButton profile={profile} />
                       )}
                     </div>
                   </div>

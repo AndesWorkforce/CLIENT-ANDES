@@ -31,13 +31,14 @@ export default function AssignApplicationModal({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [selectedJob, setSelectedJob] = useState<Offer | null>(null);
-  console.log("candidateId", selectedJob);
-  console.log("isSearching", isSearching);
   const { addNotification } = useNotificationStore();
   const observer = useRef<IntersectionObserver | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showIncompleteProfileModal, setShowIncompleteProfileModal] =
+    useState<boolean>(false);
+  const [candidateProfileStatus, setCandidateProfileStatus] =
+    useState<string>("");
+
   const lastOfferElementRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (loadingMore) return;
@@ -76,11 +77,6 @@ export default function AssignApplicationModal({
 
       if (reset) {
         setOffers(offerData);
-        if (offerData.length > 0) {
-          setSelectedJob(offerData[0]);
-        } else {
-          setSelectedJob(null);
-        }
       } else {
         setOffers((prevOffers) => [...prevOffers, ...offerData]);
       }
@@ -92,7 +88,6 @@ export default function AssignApplicationModal({
     } finally {
       if (reset) {
         setIsLoading(false);
-        setIsSearching(false);
       } else {
         setLoadingMore(false);
       }
@@ -108,7 +103,6 @@ export default function AssignApplicationModal({
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (searchTerm) {
-        setIsSearching(true);
         fetchPublishedOffers(true);
       }
     }, 500);
@@ -122,13 +116,43 @@ export default function AssignApplicationModal({
     }
   }, [currentPage]);
 
-  const handleAssign = async () => {
+  const checkProfileAndAssign = async () => {
     if (!selectedOfferId) {
       addNotification("Please select a job offer", "warning");
       return;
     }
 
     setIsSubmitting(true);
+    try {
+      // Primero verificar el estado del perfil del candidato
+      const profileResponse = await getProfile(candidateId);
+
+      if (profileResponse.success && profileResponse.data?.data) {
+        const perfilCompleto = profileResponse.data.data.estadoPerfil;
+        setCandidateProfileStatus(perfilCompleto);
+
+        // Si el perfil no está completo, mostrar modal de confirmación
+        if (
+          perfilCompleto === "INCOMPLETO" ||
+          perfilCompleto === "PENDIENTE_VALIDACION"
+        ) {
+          setIsSubmitting(false);
+          setShowIncompleteProfileModal(true);
+          return;
+        }
+      }
+
+      // Si el perfil está completo o no se pudo verificar, proceder con la asignación
+      await executeAssignment();
+    } catch (error) {
+      console.error("Error checking candidate profile:", error);
+      setIsSubmitting(false);
+      // Si hay error verificando el perfil, preguntar al usuario
+      setShowIncompleteProfileModal(true);
+    }
+  };
+
+  const executeAssignment = async () => {
     try {
       const response = await assignOffer(candidateId, selectedOfferId);
 
@@ -186,6 +210,17 @@ export default function AssignApplicationModal({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleConfirmIncompleteProfile = async () => {
+    setIsSubmitting(true);
+    await executeAssignment();
+    setShowIncompleteProfileModal(false);
+  };
+
+  const handleCancelIncompleteProfile = () => {
+    setShowIncompleteProfileModal(false);
+    setIsSubmitting(false);
   };
 
   const transformedTextState = (state: string) => {
@@ -295,14 +330,14 @@ export default function AssignApplicationModal({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             Cancel
           </button>
           <button
-            onClick={handleAssign}
+            onClick={checkProfileAndAssign}
             disabled={!selectedOfferId || isSubmitting}
-            className="px-4 py-2 bg-[#0097B2] text-white rounded-md hover:bg-[#007a8f] disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className="px-4 py-2 bg-[#0097B2] text-white rounded-md hover:bg-[#007a8f] disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer"
           >
             {isSubmitting ? (
               <>
@@ -315,6 +350,78 @@ export default function AssignApplicationModal({
           </button>
         </div>
       </div>
+
+      {/* Modal de confirmación para perfil incompleto */}
+      {showIncompleteProfileModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 w-10 h-10 mx-auto bg-[#0097B2]/10 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-[#0097B2]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Incomplete Profile
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">
+                  {isSubmitting ? (
+                    "Assigning candidate with incomplete profile. Please wait..."
+                  ) : (
+                    <>
+                      You are about to assign a person who has an{" "}
+                      <span className="font-medium text-[#0097B2]">
+                        {candidateProfileStatus === "INCOMPLETO"
+                          ? "incomplete profile"
+                          : "unvalidated profile"}
+                      </span>
+                      . Are you sure you want to continue with the assignment?
+                    </>
+                  )}
+                </p>
+
+                <div className="flex space-x-3 justify-center">
+                  <button
+                    onClick={handleCancelIncompleteProfile}
+                    disabled={isSubmitting}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmIncompleteProfile}
+                    disabled={isSubmitting}
+                    className="px-4 py-2 bg-[#0097B2] text-white rounded-md hover:bg-[#007a8f] disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-colors cursor-pointer"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        Assigning candidate...
+                      </>
+                    ) : (
+                      "Yes, assign"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
