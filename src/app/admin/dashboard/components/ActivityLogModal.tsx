@@ -50,7 +50,7 @@ export default function ActivityLogModal({
     setIsLoading(true);
     try {
       const response = await getCandidateActivityLogs(candidateId);
-
+      console.log("response", response);
       if (!response.success) {
         addNotification(
           "Error loading activity logs: " + response.message,
@@ -108,11 +108,13 @@ export default function ActivityLogModal({
   const getEventTypeName = (tipoEvento: string) => {
     switch (tipoEvento) {
       case "POSTULACION_CREADA":
-        return "Postulación creada";
+        return "Postulation created";
       case "POSTULACION_ACTUALIZADA":
-        return "Postulación actualizada";
+        return "Postulation updated";
       case "POSTULACION_RECHAZADA":
-        return "Postulación rechazada";
+        return "Postulation rejected";
+      case "NOTA_MANUAL":
+        return "Manual note";
       default:
         return tipoEvento.replace(/_/g, " ").toLowerCase();
     }

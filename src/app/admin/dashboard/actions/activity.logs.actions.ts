@@ -12,12 +12,13 @@ export async function getCandidateActivityLogs(candidateId: string) {
       `${API_URL}admin/postulantes/${candidateId}/bitacora`
     );
     const data = await response.data;
-
+    console.log("data", data);
     return {
       success: true,
       data: data,
     };
   } catch (error) {
+    console.log("error", error);
     if (error instanceof AxiosError) {
       return {
         success: false,
