@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuthStore } from "@/store/auth.store";
+import { FileText } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -458,6 +459,26 @@ export default function TabsNavigation() {
               </svg>
               Process
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin/dashboard/contracts"
+                className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
+                  pathname === "/admin/dashboard/contracts"
+                    ? "bg-[#B6B4B4] text-white"
+                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                <FileText
+                  size={14}
+                  color={
+                    pathname === "/admin/dashboard/contracts"
+                      ? "#FFFFFF"
+                      : "#6D6D6D"
+                  }
+                />
+                Contracts
+              </Link>
+            )}
           </div>
         </div>
 

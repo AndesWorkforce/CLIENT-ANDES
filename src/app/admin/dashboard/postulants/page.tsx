@@ -29,6 +29,7 @@ import {
 } from "../actions/update.clasification.actions";
 import CandidateActionModal from "../components/CandidateActionModal";
 import SendEmailModal from "../components/SendEmailModal";
+import SignContractModal from "./components/SignContractModal";
 // Importar acciones para manejar aplicaciones
 import { advancedStage, rejectStage } from "../actions/stage.actions";
 import {
@@ -85,6 +86,7 @@ export default function PostulantsPage() {
     "remove"
   );
   const [isSendEmailModalOpen, setIsSendEmailModalOpen] = useState(false);
+  const [isSignContractModalOpen, setIsSignContractModalOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
 
@@ -368,6 +370,12 @@ export default function PostulantsPage() {
     setIsSendEmailModalOpen(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleOpenSignContractModal = (applicant: any) => {
+    setSelectedApplicant(applicant);
+    setIsSignContractModalOpen(true);
+  };
+
   // Mapeo de tipos de estado de postulación
   const mapEstadoPostulacion = (
     estado: string
@@ -543,6 +551,8 @@ export default function PostulantsPage() {
       addNotification("Error rejecting candidate", "error");
     }
   };
+
+  console.log(applicants);
 
   return (
     <CandidateProfileProvider>
@@ -791,6 +801,22 @@ export default function PostulantsPage() {
                         >
                           <Mail size={22} />
                         </button>
+
+                        {/* Send contract button for hired candidates */}
+                        {applicant.lastRelevantPostulacion &&
+                          applicant.lastRelevantPostulacion.estado ===
+                            "ACEPTADA" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenSignContractModal(applicant);
+                              }}
+                              className="p-2 text-[#0097B2] hover:bg-[#0097B2]/10 rounded-full transition-colors"
+                              title="Send contract"
+                            >
+                              <FileText size={22} />
+                            </button>
+                          )}
 
                         <button
                           onClick={(e) => {
@@ -1163,7 +1189,7 @@ export default function PostulantsPage() {
                                       className="p-1 text-[#0097B2] rounded 
                                     hover:bg-[#0097B2]/10 
                                       cursor-pointer"
-                                      title="Send password reset"
+                                      title="Send email"
                                       onClick={() =>
                                         handleOpenSendEmailModal(applicant)
                                       }
@@ -1183,6 +1209,7 @@ export default function PostulantsPage() {
                                       <Bookmark size={20} />
                                     </button>
                                   </div>
+                                  {/* Delete candidate button And activate candidate button */}
                                   <div className="relative group">
                                     <button
                                       onClick={() =>
@@ -1206,6 +1233,29 @@ export default function PostulantsPage() {
                                       )}
                                     </button>
                                   </div>
+                                  {/* Send contract button */}
+                                  {applicant.lastRelevantPostulacion &&
+                                    applicant.lastRelevantPostulacion.estado ===
+                                      "ACEPTADA" && (
+                                      <div className="relative group">
+                                        <button
+                                          className="p-1 text-[#0097B2] rounded 
+                                    hover:bg-[#0097B2]/10 
+                                      cursor-pointer"
+                                          title="Send contract"
+                                          onClick={() =>
+                                            handleOpenSignContractModal(
+                                              applicant
+                                            )
+                                          }
+                                        >
+                                          <FileText
+                                            size={20}
+                                            className="mr-1"
+                                          />
+                                        </button>
+                                      </div>
+                                    )}
                                 </div>
                               </td>
                             </tr>
@@ -1355,6 +1405,13 @@ export default function PostulantsPage() {
         <SendEmailModal
           isOpen={isSendEmailModalOpen}
           onClose={() => setIsSendEmailModalOpen(false)}
+          applicant={selectedApplicant}
+        />
+      )}
+      {isSignContractModalOpen && (
+        <SignContractModal
+          isOpen={isSignContractModalOpen}
+          onClose={() => setIsSignContractModalOpen(false)}
           applicant={selectedApplicant}
         />
       )}

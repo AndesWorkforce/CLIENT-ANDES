@@ -58,6 +58,7 @@ export interface Application {
     titulo: string;
     descripcion: string;
   };
+  documentosPostulacion?: ApplicationDocument[];
 }
 
 interface PaginationInfo {
@@ -85,9 +86,25 @@ export async function getMyApplications(page: number = 1, limit: number = 10) {
 
     const apiData = response.data;
 
+    const applications: Application[] = apiData.items.map(
+      (apiApp: ApiApplication) => ({
+        id: apiApp.id,
+        applicationDate: apiApp.fechaPostulacion,
+        estadoPostulacion: apiApp.estadoPostulacion,
+        propuesta: {
+          titulo: apiApp.propuesta.titulo,
+          descripcion: apiApp.propuesta.descripcion,
+        },
+        documentosPostulacion: apiApp.documentosPostulacion,
+      })
+    );
+
     return {
       success: true,
-      data: apiData,
+      data: {
+        items: applications,
+        pagination: apiData.pagination,
+      },
     };
   } catch (error) {
     console.error("Error al obtener postulaciones:", error);

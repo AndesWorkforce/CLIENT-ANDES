@@ -16,6 +16,11 @@ export async function loginAction(values: LoginFormValues) {
     const { correo, contrasena } = values;
     const axios = await createServerAxios();
 
+    // Debug logs para producción
+    console.log("[DEBUG] API_URL:", process.env.NEXT_PUBLIC_API_URL);
+    console.log("[DEBUG] NODE_ENV:", process.env.NODE_ENV);
+    console.log("[DEBUG] Axios base URL:", axios.defaults.baseURL);
+
     // Intentar hacer el login - sin seguir redirecciones automáticamente
     // para evitar problemas con Next.js
     try {
@@ -112,6 +117,12 @@ export async function loginAction(values: LoginFormValues) {
         error.response.data?.message ||
         `Error ${error.response.status}: ${error.response.statusText}`;
     } else if (error.request) {
+      console.log("[DEBUG] Error request details:", {
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        method: error.config?.method,
+        timeout: error.config?.timeout,
+      });
       errorMessage =
         "No se pudo conectar con el servidor. Verifique su conexión.";
     } else if (error.message) {

@@ -36,22 +36,20 @@ export default function FormularioModal({
   const validateForm = () => {
     const requiredQuestions = [
       "What is your preferred first and last name?",
-      "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
       "What phone number do you use for WhatsApp?",
       "In what city and country do you reside?",
+      "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
+      "What 3 words best describe you and why?",
+      "What unique qualities make your services stand out?",
+      "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
+      "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
       "What type of computer do you use?",
-      "What Internet provider do you use?",
-      "What is the URL for their website?",
-      "Do you use a wired internet connection?",
-      // "Please run a speed test on your computer: what is the current upload speed?",
-      // "Please run a speed test on your computer: what is the current download speed?",
       "How much RAM is available on your computer?",
       "How many monitors do you currently have/use for work?",
       "What type of headset do you currently have? How does it connect with your computer?",
-      "What unique qualities make your services stand out?",
-      "What 3 words best describe you and why?",
-      "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
-      "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
+      "What Internet provider do you use?",
+      "What is the URL for their website?",
+      "Do you use a wired internet connection?",
     ];
 
     // Lista para guardar campos incompletos
@@ -79,10 +77,8 @@ export default function FormularioModal({
       return isValid;
     });
 
-    // Para ayudar en la depuración, mostrar campos faltantes en la consola
     if (missingFields.length > 0) {
       console.log("Missing fields:", missingFields);
-      // Actualizamos el contador de campos faltantes
       setMissingFieldsCount(missingFields.length);
     } else {
       setMissingFieldsCount(0);
@@ -240,6 +236,7 @@ export default function FormularioModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {/* Nombre */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               What is your preferred first and last name?
@@ -262,6 +259,51 @@ export default function FormularioModal({
             />
           </div>
 
+          {/* WhatsApp */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              What phone number do you use for WhatsApp?
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              required
+              disabled={readOnly}
+              value={
+                formData["What phone number do you use for WhatsApp?"] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "What phone number do you use for WhatsApp?",
+                  e.target.value
+                )
+              }
+            />
+          </div>
+
+          {/* Ciudad y País */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              In what city and country do you reside?
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              required
+              disabled={readOnly}
+              value={formData["In what city and country do you reside?"] || ""}
+              onChange={(e) =>
+                handleInputChange(
+                  "In what city and country do you reside?",
+                  e.target.value
+                )
+              }
+            />
+          </div>
+
+          {/* Gmail */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               If you have a Gmail email address, what is it? <br />
@@ -288,48 +330,112 @@ export default function FormularioModal({
             />
           </div>
 
+          {/* 3 palabras */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              What phone number do you use for WhatsApp?
+              What 3 words best describe you and why?
               <span className="text-red-500">*</span>
             </label>
-            <input
-              type="tel"
+            <textarea
               className="w-full p-2 border border-gray-300 rounded-md"
+              rows={3}
+              required
+              disabled={readOnly}
+              value={formData["What 3 words best describe you and why?"] || ""}
+              onChange={(e) =>
+                handleInputChange(
+                  "What 3 words best describe you and why?",
+                  e.target.value
+                )
+              }
+            ></textarea>
+          </div>
+
+          {/* Cualidades únicas */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              What unique qualities make your services stand out?
+              <span className="text-red-500">*</span>
+              <br />
+              <span className="text-gray-400">
+                Example: punctuality, quality control, proactivity, excellent
+                customer service.
+              </span>
+            </label>
+            <textarea
+              className="w-full p-2 border border-gray-300 rounded-md"
+              rows={2}
               required
               disabled={readOnly}
               value={
-                formData["What phone number do you use for WhatsApp?"] || ""
+                formData[
+                  "What unique qualities make your services stand out?"
+                ] || ""
               }
               onChange={(e) =>
                 handleInputChange(
-                  "What phone number do you use for WhatsApp?",
+                  "What unique qualities make your services stand out?",
                   e.target.value
                 )
               }
-            />
+            ></textarea>
           </div>
 
+          {/* Experiencia previa */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              In what city and country do you reside?
+              Please write a few sentences about any previous experiences you
+              have had doing services like Customer Service, Call Center, or
+              Administrative Assistance
               <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <textarea
               className="w-full p-2 border border-gray-300 rounded-md"
+              rows={3}
               required
               disabled={readOnly}
-              value={formData["In what city and country do you reside?"] || ""}
+              value={
+                formData[
+                  "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance"
+                ] || ""
+              }
               onChange={(e) =>
                 handleInputChange(
-                  "In what city and country do you reside?",
+                  "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
                   e.target.value
                 )
               }
-            />
+            ></textarea>
           </div>
 
+          {/* Nivel de inglés */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              On a scale of 1-10, how comfortable are you with making and/or
+              taking calls with native English speakers? Please explain your
+              answer.
+              <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              className="w-full p-2 border border-gray-300 rounded-md"
+              rows={3}
+              required
+              disabled={readOnly}
+              value={
+                formData[
+                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer."
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
+                  e.target.value
+                )
+              }
+            ></textarea>
+          </div>
+
+          {/* Tipo de computadora */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               What type of computer do you use?
@@ -412,6 +518,81 @@ export default function FormularioModal({
             </div>
           </div>
 
+          {/* RAM */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              How much RAM is available on your computer?
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              required
+              disabled={readOnly}
+              value={
+                formData["How much RAM is available on your computer?"] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "How much RAM is available on your computer?",
+                  e.target.value
+                )
+              }
+            />
+          </div>
+
+          {/* Monitores */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              How many monitors do you currently have/use for work?
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              required
+              disabled={readOnly}
+              value={
+                formData[
+                  "How many monitors do you currently have/use for work?"
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "How many monitors do you currently have/use for work?",
+                  e.target.value
+                )
+              }
+            />
+          </div>
+
+          {/* Headset */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              What type of headset do you currently have? How does it connect
+              with your computer?
+              <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              className="w-full p-2 border border-gray-300 rounded-md"
+              rows={2}
+              required
+              disabled={readOnly}
+              value={
+                formData[
+                  "What type of headset do you currently have? How does it connect with your computer?"
+                ] || ""
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  "What type of headset do you currently have? How does it connect with your computer?",
+                  e.target.value
+                )
+              }
+            ></textarea>
+          </div>
+
+          {/* Proveedor de Internet */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               What Internet provider do you use?
@@ -432,6 +613,7 @@ export default function FormularioModal({
             />
           </div>
 
+          {/* URL del proveedor */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               What is the URL for their website?
@@ -452,6 +634,7 @@ export default function FormularioModal({
             />
           </div>
 
+          {/* Conexión por cable */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               Do you use a wired internet connection?
@@ -499,270 +682,6 @@ export default function FormularioModal({
                 <label htmlFor="sometimes-wired">Sometimes</label>
               </div>
             </div>
-          </div>
-
-          {/* <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Please run a speed test on your computer: what is the current
-              upload speed?
-              <span className="text-red-500">*</span>
-              <a
-                href="https://www.speedtest.net/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                {" "}
-                Run a speed test
-              </a>
-            </label>
-            <input
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
-              disabled={readOnly}
-              value={
-                formData[
-                  "Please run a speed test on your computer: what is the current upload speed?"
-                ] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "Please run a speed test on your computer: what is the current upload speed?",
-                  e.target.value
-                )
-              }
-            />
-          </div> */}
-
-          {/* <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Please run a speed test on your computer: what is the current
-              download speed?
-              <span className="text-red-500">*</span>
-              <a
-                href="https://www.speedtest.net/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                {" "}
-                Run a speed test
-              </a>
-            </label>
-            <input
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
-              disabled={readOnly}
-              value={
-                formData[
-                  "Please run a speed test on your computer: what is the current download speed?"
-                ] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "Please run a speed test on your computer: what is the current download speed?",
-                  e.target.value
-                )
-              }
-            />
-          </div> */}
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              How much RAM is available on your computer?
-              <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
-              disabled={readOnly}
-              value={
-                formData["How much RAM is available on your computer?"] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "How much RAM is available on your computer?",
-                  e.target.value
-                )
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              How many monitors do you currently have/use for work?
-              <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
-              disabled={readOnly}
-              value={
-                formData[
-                  "How many monitors do you currently have/use for work?"
-                ] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "How many monitors do you currently have/use for work?",
-                  e.target.value
-                )
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              What type of headset do you currently have? How does it connect
-              with your computer?
-              <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              className="w-full p-2 border border-gray-300 rounded-md"
-              rows={2}
-              required
-              disabled={readOnly}
-              value={
-                formData[
-                  "What type of headset do you currently have? How does it connect with your computer?"
-                ] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "What type of headset do you currently have? How does it connect with your computer?",
-                  e.target.value
-                )
-              }
-            ></textarea>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              What unique qualities make your services stand out?
-              <span className="text-red-500">*</span>
-              <br />
-              <span className="text-gray-400">
-                Example: punctuality, quality control, proactivity, excellent
-                customer service.
-              </span>
-            </label>
-            <textarea
-              className="w-full p-2 border border-gray-300 rounded-md"
-              rows={2}
-              required
-              disabled={readOnly}
-              value={
-                formData[
-                  "What unique qualities make your services stand out?"
-                ] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "What unique qualities make your services stand out?",
-                  e.target.value
-                )
-              }
-            ></textarea>
-          </div>
-
-          {/* <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              What makes you the best candidate for this position?
-              <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              className="w-full p-2 border border-gray-300 rounded-md"
-              rows={3}
-              required
-              disabled={readOnly}
-              value={
-                formData[
-                  "What makes you the best candidate for this position?"
-                ] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "What makes you the best candidate for this position?",
-                  e.target.value
-                )
-              }
-            ></textarea>
-          </div> */}
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              What 3 words best describe you and why?
-              <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              className="w-full p-2 border border-gray-300 rounded-md"
-              rows={3}
-              required
-              disabled={readOnly}
-              value={formData["What 3 words best describe you and why?"] || ""}
-              onChange={(e) =>
-                handleInputChange(
-                  "What 3 words best describe you and why?",
-                  e.target.value
-                )
-              }
-            ></textarea>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Please write a few sentences about any previous experiences you
-              have had doing services like Customer Service, Call Center, or
-              Administrative Assistance
-              <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              className="w-full p-2 border border-gray-300 rounded-md"
-              rows={3}
-              required
-              disabled={readOnly}
-              value={
-                formData[
-                  "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance"
-                ] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
-                  e.target.value
-                )
-              }
-            ></textarea>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              On a scale of 1-10, how comfortable are you with making and/or
-              taking calls with native English speakers? Please explain your
-              answer.
-              <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              className="w-full p-2 border border-gray-300 rounded-md"
-              rows={3}
-              required
-              disabled={readOnly}
-              value={
-                formData[
-                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer."
-                ] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
-                  e.target.value
-                )
-              }
-            ></textarea>
           </div>
 
           {!readOnly && (
