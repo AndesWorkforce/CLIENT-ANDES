@@ -735,28 +735,36 @@ export default function CandidateProfileModal({
                       </h2>
                       <hr className="border-[#E2E2E2] my-2" />
                       <div className="space-y-3">
-                        <div className="flex items-start">
-                          <Phone
-                            size={18}
-                            className="text-[#0097B2] mr-2 mt-0.5"
-                          />
-                          <span className="text-gray-700">
-                            {profile.datosPersonales.telefono || (
-                              <span className="text-gray-400">No phone</span>
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-start">
-                          <Mail
-                            size={18}
-                            className="text-[#0097B2] mr-2 mt-0.5"
-                          />
-                          <span className="text-gray-700">
-                            {profile.datosPersonales.correo || (
-                              <span className="text-gray-400">No email</span>
-                            )}
-                          </span>
-                        </div>
+                        {!isCompanyUser && (
+                          <>
+                            <div className="flex items-start">
+                              <Phone
+                                size={18}
+                                className="text-[#0097B2] mr-2 mt-0.5"
+                              />
+                              <span className="text-gray-700">
+                                {profile.datosPersonales.telefono || (
+                                  <span className="text-gray-400">
+                                    No phone
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                            <div className="flex items-start">
+                              <Mail
+                                size={18}
+                                className="text-[#0097B2] mr-2 mt-0.5"
+                              />
+                              <span className="text-gray-700">
+                                {profile.datosPersonales.correo || (
+                                  <span className="text-gray-400">
+                                    No email
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          </>
+                        )}
                         {profile.datosPersonales.residencia && (
                           <div className="flex items-start">
                             <span className="text-gray-700">
