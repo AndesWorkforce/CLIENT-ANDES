@@ -11,6 +11,7 @@ import {
   X,
   Settings,
   LayoutDashboard,
+  Briefcase,
 } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
@@ -18,7 +19,10 @@ import Logo from "@/components/ui/Logo";
 import useRouteExclusion from "@/hooks/useRouteExclusion";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import useScrollShadow from "@/hooks/useScrollShadow";
-import { userIsAppliedToOffer } from "../pages/offers/actions/jobs.actions";
+import {
+  getCurrentContract,
+  userIsAppliedToOffer,
+} from "../pages/offers/actions/jobs.actions";
 
 const navigation = [
   { name: "Home", href: "/pages/home" },
@@ -37,6 +41,9 @@ export default function Navbar() {
   const { scrollRef, showLeftShadow, showRightShadow } = useScrollShadow();
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
+  const [currentContractStatus, setCurrentContractStatus] =
+    useState<boolean>(false);
+  const [stepContract, setStepContract] = useState<string>("");
   const [isValidProfileUserState, setIsValidProfileUserState] =
     useState<boolean>(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -63,6 +70,20 @@ export default function Navbar() {
     }
   };
 
+  const currentContract = async () => {
+    if (!user?.id) return;
+    try {
+      const response = await getCurrentContract(user.id);
+      console.log("\n\n [Navbar] response", response.data, "\n\n");
+      if (response.success) {
+        setCurrentContractStatus(response.data?.activo);
+        setStepContract(response.data?.estadoContratacion || "");
+      }
+    } catch (error) {
+      console.error("[Navbar] Error fetching current contract:", error);
+    }
+  };
+
   useEffect(() => {
     if (showMobileSidebar) {
       document.body.style.overflow = "hidden";
@@ -78,8 +99,20 @@ export default function Navbar() {
   useEffect(() => {
     if (user) {
       fetchAndUpdateProfileStatus();
+      currentContract();
     }
   }, [user, pathname]);
+
+  useEffect(() => {
+    if (stepContract.length > 0) {
+      if (stepContract === "FIRMADO_CANDIDATO") {
+        router.push("/currentApplication");
+      }
+      if (stepContract === "FIRMADO_PROVEEDOR") {
+        router.push("/admin/dashboard/postulants");
+      }
+    }
+  }, [stepContract, router]);
 
   const handleLogout = async () => {
     try {
@@ -134,6 +167,17 @@ export default function Navbar() {
         <FileText size={16} className="mr-2 text-[#0097B2]" />
         My Applications
       </Link>
+
+      {currentContractStatus && (
+        <Link
+          href="/currentApplication"
+          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+          onClick={() => setShowUserMenu(false)}
+        >
+          <Briefcase size={16} className="mr-2 text-[#0097B2]" />
+          Current Application
+        </Link>
+      )}
 
       <Link
         href="/account"
@@ -299,7 +343,7 @@ export default function Navbar() {
                                   size={16}
                                   className="mr-2 text-[#0097B2] cursor-pointer"
                                 />
-                                Panel de Super Admin
+                                Super Admin Panel
                               </Link>
                               <hr className="my-1 border-gray-200" />
                               <Link
@@ -311,7 +355,7 @@ export default function Navbar() {
                                   size={16}
                                   className="mr-2 text-[#0097B2] cursor-pointer"
                                 />
-                                Gestión de Ofertas
+                                Offers Management
                               </Link>
                               <hr className="my-1 border-gray-200" />
                               <button
@@ -476,7 +520,7 @@ export default function Navbar() {
                             size={20}
                             className="mr-2 text-[#0097B2]"
                           />
-                          Panel de Empresa
+                          Company Panel
                         </Link>
                       </>
                     ) : (
@@ -491,7 +535,7 @@ export default function Navbar() {
                               size={20}
                               className="mr-2 text-[#0097B2]"
                             />
-                            Panel de Super Admin
+                            Super Admin Panel
                           </Link>
                         )}
                         <hr className="my-1 border-gray-200" />
@@ -505,7 +549,7 @@ export default function Navbar() {
                             size={20}
                             className="mr-2 text-[#0097B2]"
                           />
-                          Gestión de Ofertas
+                          Offers Management
                         </Link>
                       </>
                     )}

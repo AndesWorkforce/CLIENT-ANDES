@@ -98,3 +98,37 @@ export async function userIsAppliedToOffer(userId: string) {
     };
   }
 }
+
+export async function getCurrentContract(userId: string) {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.get(`users/${userId}/current-contract`, {
+      headers: {
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: "Error fetching current contract",
+      };
+    }
+
+    const data = await response.data;
+
+    return {
+      success: true,
+      data: data,
+    };
+  } catch (error) {
+    console.error("Error fetching current contract:", error);
+    return {
+      success: false,
+      message: "Error fetching current contract",
+    };
+  }
+}

@@ -252,6 +252,57 @@ export default function TabsNavigationSuperAdmin() {
               </svg>
               Manage Clients
             </Link>
+            <Link
+              href="/admin/superAdmin/payments"
+              className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
+                pathname === "/admin/superAdmin/payments"
+                  ? "bg-[#B6B4B4] text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 15 15"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1.875 5.625C1.875 5.27982 2.01205 4.94874 2.25533 4.70546C2.49861 4.46218 2.82969 4.32513 3.175 4.32513H11.825C12.1703 4.32513 12.5014 4.46218 12.7447 4.70546C12.9879 4.94874 13.125 5.27982 13.125 5.625V10.625C13.125 10.9702 12.9879 11.3013 12.7447 11.5446C12.5014 11.7879 12.1703 11.925 11.825 11.925H3.175C2.82969 11.925 2.49861 11.7879 2.25533 11.5446C2.01205 11.3013 1.875 10.9702 1.875 10.625V5.625Z"
+                  stroke={
+                    pathname === "/admin/superAdmin/payments"
+                      ? "#FFFFFF"
+                      : "#6D6D6D"
+                  }
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M1.875 7.5H13.125"
+                  stroke={
+                    pathname === "/admin/superAdmin/payments"
+                      ? "#FFFFFF"
+                      : "#6D6D6D"
+                  }
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle
+                  cx="7.5"
+                  cy="9.375"
+                  r="0.9375"
+                  stroke={
+                    pathname === "/admin/superAdmin/payments"
+                      ? "#FFFFFF"
+                      : "#6D6D6D"
+                  }
+                  strokeWidth="1.5"
+                />
+              </svg>
+              Manage Payments
+            </Link>
           </div>
         </div>
 

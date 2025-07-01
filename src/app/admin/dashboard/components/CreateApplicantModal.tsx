@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNotificationStore } from "@/store/notifications.store";
 import { createApplicant } from "../actions/applicants.actions";
+import { sendWelcomeEmail } from "@/app/pages/contact/actions/microsoft-email-actions";
 
 // Esquema de validación para el formulario
 const applicantSchema = z
@@ -64,14 +65,31 @@ export default function CreateApplicantModal({
 
       // Extraer confirmContrasena ya que no se envía al API
       const { confirmContrasena, ...applicantData } = data;
-
-      console.log(confirmContrasena);
-
+      console.log(!!confirmContrasena);
       // Llamar a la API para crear el postulante
       const response = await createApplicant(applicantData);
 
       if (response.success) {
-        addNotification(response.message, "success");
+        // Enviar correo de bienvenida
+        const emailResult = await sendWelcomeEmail({
+          email: data.correo,
+          firstName: data.nombre,
+          lastName: data.apellido,
+          temporaryPassword: data.contrasena,
+        });
+
+        if (emailResult.success) {
+          addNotification(
+            "Applicant created and welcome email sent successfully",
+            "success"
+          );
+        } else {
+          addNotification(
+            "Applicant created but there was an error sending the welcome email",
+            "warning"
+          );
+        }
+
         reset();
         onApplicantCreated();
       } else {

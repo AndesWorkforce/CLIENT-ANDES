@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { ChevronLeft, Clock, Calendar, X } from "lucide-react";
-import Link from "next/link";
-import Logo from "@/app/components/Logo";
+import { Clock, Calendar, X, CheckCircle } from "lucide-react";
+
 import {
   Application,
   getMyApplications,
 } from "@/app/applications/actions/applications.actions";
+import SimpleHeader from "../components/SimpleHeader";
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -112,19 +112,7 @@ export default function ApplicationsPage() {
   return (
     <div className="container mx-auto min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Link href="/" className="text-gray-700">
-              <ChevronLeft size={20} color="#0097B2" />
-            </Link>
-            <h1 className="text-xl font-medium">My Applications</h1>
-          </div>
-          <div>
-            <Logo />
-          </div>
-        </div>
-      </header>
+      <SimpleHeader title="My Applications" />
 
       {/* Contenido */}
       <div className="container mx-auto px-4 py-6">
@@ -164,15 +152,15 @@ export default function ApplicationsPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 p-4 space-y-2 bg-gray-100 rounded-b-lg">
-                    {app.applicationDate && (
+                  <div className="border-t flex flex-col items-start justify-start border-gray-200 p-4 space-y-2 bg-gray-100 rounded-b-lg">
+                    {/* {app.applicationDate && (
                       <div className="flex items-center text-xs text-gray-600">
                         <div className="w-5 h-5 rounded-sm bg-[#0097B2] flex items-center justify-center mr-2">
                           <Calendar size={12} className="text-white" />
                         </div>
                         <span>Application date: {app?.applicationDate}</span>
                       </div>
-                    )}
+                    )} */}
 
                     <div className="flex items-center text-xs text-gray-600">
                       <div className="w-5 h-5 rounded-sm bg-[#0097B2] flex items-center justify-center mr-2">
@@ -183,6 +171,13 @@ export default function ApplicationsPage() {
                         {renderStatusIndicator(app?.estadoPostulacion)}
                       </span>
                     </div>
+
+                    {app.estadoPostulacion === "ACEPTADA" && (
+                      <div className="w-full mt-2 text-sm text-green-600 flex items-center justify-center gap-2">
+                        <CheckCircle size={14} />
+                        <span>Accepted - View in Current Application</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

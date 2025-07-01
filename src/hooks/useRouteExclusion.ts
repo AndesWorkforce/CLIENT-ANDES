@@ -22,6 +22,7 @@ export const excludedRoutes = {
     "/companies/dashboard/employees",
     "/companies/dashboard/employees/new",
     "/companies/account",
+    "/currentApplication",
   ],
   footer: [
     "/auth",
@@ -36,6 +37,7 @@ export const excludedRoutes = {
     "/companies/dashboard/employees",
     "/companies/dashboard/employees/new",
     "/companies/account",
+    "/currentApplication",
   ],
 };
 
