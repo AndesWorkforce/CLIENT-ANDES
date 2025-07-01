@@ -32,21 +32,6 @@ const styles = StyleSheet.create({
     width: 120,
     height: 60,
   },
-  logoText: {
-    fontSize: 18,
-    fontFamily: "Helvetica-Bold",
-    color: "#0097B2",
-    textAlign: "center",
-  },
-  dateContainer: {
-    position: "absolute",
-    right: 0,
-    top: 15,
-  },
-  date: {
-    fontSize: 11,
-    color: "#666666",
-  },
   title: {
     fontSize: 16,
     fontFamily: "Helvetica-Bold",
@@ -60,58 +45,29 @@ const styles = StyleSheet.create({
     textAlign: "justify",
     lineHeight: 1.5,
   },
-  sectionTitle: {
-    fontSize: 12,
+  clauseTitle: {
+    fontSize: 11,
     fontFamily: "Helvetica-Bold",
-    marginTop: 18,
+    marginTop: 15,
     marginBottom: 8,
     color: "#333333",
   },
-  indentedText: {
-    marginLeft: 20,
-    marginBottom: 8,
-    fontStyle: "italic",
-  },
-  contactSection: {
-    marginTop: 12,
-    marginBottom: 12,
-    backgroundColor: "#f8f9fa",
-    padding: 10,
-    borderRadius: 4,
-  },
-  contactTitle: {
-    fontFamily: "Helvetica-Bold",
-    marginBottom: 6,
-    fontSize: 10,
-  },
-  contactInfo: {
+  listItem: {
     marginLeft: 15,
+    marginBottom: 6,
     lineHeight: 1.4,
-    fontSize: 10,
   },
-  bankingSection: {
-    backgroundColor: "#f0f8ff",
-    padding: 15,
-    marginTop: 10,
-    marginBottom: 15,
-    borderRadius: 4,
-  },
-  bankingTitle: {
-    fontFamily: "Helvetica-Bold",
-    marginBottom: 8,
-    fontSize: 11,
-  },
-  bankingInfo: {
-    fontSize: 10,
-    lineHeight: 1.4,
+  underline: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+    paddingBottom: 2,
+    minWidth: 100,
   },
   signatureSection: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 50,
     paddingTop: 30,
-    borderTopWidth: 1,
-    borderTopColor: "#cccccc",
   },
   signatureBlock: {
     width: "40%",
@@ -125,15 +81,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   signatureLabel: {
-    fontSize: 9,
+    fontSize: 11,
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
   },
-  signatureDate: {
-    fontSize: 8,
-    textAlign: "center",
-    marginTop: 5,
-    color: "#666666",
+  bold: {
+    fontFamily: "Helvetica-Bold",
   },
 });
 
@@ -151,6 +104,7 @@ interface StatementOfWorkData {
   direccionCompleta: string;
   telefono: string;
   cedula: string;
+  nacionalidad?: string;
 }
 
 interface StatementOfWorkPDFProps {
@@ -158,619 +112,533 @@ interface StatementOfWorkPDFProps {
 }
 
 const StatementOfWorkPDF: React.FC<StatementOfWorkPDFProps> = ({ data }) => {
-  const formatDateWithOrdinal = (dateString: string) => {
+  const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
       const day = date.getDate();
-      const month = date.toLocaleDateString("en-US", { month: "long" });
+      const months = [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre",
+      ];
+      const month = months[date.getMonth()];
       const year = date.getFullYear();
-
-      const getOrdinalSuffix = (day: number) => {
-        if (day > 3 && day < 21) return "th";
-        switch (day % 10) {
-          case 1:
-            return "st";
-          case 2:
-            return "nd";
-          case 3:
-            return "rd";
-          default:
-            return "th";
-        }
-      };
-
-      return `${month} ${day}${getOrdinalSuffix(day)}, ${year}`;
+      return `${day} días del mes de ${month} año ${year}`;
     } catch {
       return dateString;
     }
   };
 
-  const startDate = formatDateWithOrdinal(data.fechaInicioLabores);
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header con logo y fecha */}
+        {/* Header con logo */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Image src="/images/logo-andes.png" style={styles.logo} />
           </View>
-          <View style={styles.dateContainer}>
-            <Text style={styles.date}>{data.fechaEjecucion}</Text>
-          </View>
         </View>
 
-        {/* STATEMENT OF WORK SECTION */}
-        <Text style={styles.title}>STATEMENT OF WORK</Text>
-
-        <Text style={styles.paragraph}>
-          This Statement of Work is being executed on {data.fechaEjecucion},
-          between Andes Workforce LLC (`&ldquo;Company&rdquo;`) and{" "}
-          {data.nombreCompleto} (`&ldquo;Contractor&rdquo;`). This Statement of
-          Work describes the Services to be performed and provided by Contractor
-          pursuant to the Professional Services Agreement.
-        </Text>
-
-        <Text style={styles.sectionTitle}>Term</Text>
-        <Text style={styles.paragraph}>
-          Contractor agrees to provide administrative services as further
-          detailed below (`&ldquo;Services&rdquo;`) to Company beginning on{" "}
-          {startDate} (`&ldquo;Start Date&rdquo;`) and continuing until it
-          expires or is terminated by Company or Contractor.
-        </Text>
-
-        <Text style={styles.sectionTitle}>Services</Text>
-        <Text style={styles.paragraph}>
-          The Contractor will provide the following Services:
-        </Text>
-        <Text style={styles.paragraph}>{data.descripcionServicios}</Text>
-
-        <Text style={styles.paragraph}>
-          Contractor shall devote the necessary time for the performance of
-          Services, in accordance with the Professional Services Agreement.
-          Contractor can determine their place of work and equipment to be used
-          subject to the terms agreed with Company.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          In connection with this Statement of Work, the parties may reach out
-          to each other as follows:
-        </Text>
-
-        {/* Información de contacto */}
-        <View style={styles.contactSection}>
-          <Text style={styles.contactTitle}>Contact person (Company):</Text>
-          <View style={styles.contactInfo}>
-            <Text>Miguel Rendon</Text>
-            <Text>info@andes-workforce.com</Text>
-            <Text>(`&ldquo; Key Company Contac&rdquo;`)</Text>
-          </View>
-        </View>
-
-        <View style={styles.contactSection}>
-          <Text style={styles.contactTitle}>Contact person (Contractor):</Text>
-          <View style={styles.contactInfo}>
-            <Text>{data.nombreCompleto}</Text>
-            <Text>{data.correoElectronico}</Text>
-            <Text>(`&ldquo; Key Contractor Contac&rdquo;`)</Text>
-          </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>Service Fee</Text>
-        <Text style={styles.paragraph}>
-          As of the Start Date, Contractor will be paid a fee of{" "}
-          {data.monedaSalario} {data.salarioProbatorio} fixed per month during a
-          3-month probationary period. Starting the first day of the month
-          following the probationary period, Contractor will be paid a fee of{" "}
-          {data.monedaSalario} {data.ofertaSalarial} fixed per month, inclusive
-          of all taxes (howsoever described) (`&ldquo;Service Fee&rdquo;`).
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Payment of the Service Fee to Contractor will be initiated on the last
-          day of the month. This Service Fee will be increased by 5% annually.
-          Contractor will receive double pay when required to work during a
-          local holiday in his or her country of residence.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Additionally, Contractor will receive a 2-week holiday bonus at the
-          end of each calendar year. The holiday bonus will be prorated for
-          Contractors who have completed less than 6 months of work at the end
-          of the calendar year.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Contractor will receive payment via direct deposit to the bank account
-          below:
-        </Text>
-
-        {/* Información bancaria */}
-        <View style={styles.bankingSection}>
-          <Text style={styles.bankingTitle}>Banking Information:</Text>
-          <View style={styles.bankingInfo}>
-            <Text>
-              Name of Bank: {data.nombreBanco || "____________________"}
-            </Text>
-            <Text>
-              Account Number: {data.numeroCuenta || "____________________"}
-            </Text>
-            <Text>Account holder name: {data.nombreCompleto}</Text>
-            <Text>
-              Account holder address:{" "}
-              {data.direccionCompleta || "____________________"}
-            </Text>
-            <Text>
-              Telephone number: {data.telefono || "____________________"}
-            </Text>
-            <Text>
-              Government ID Number: {data.cedula || "____________________"}
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>
-          Independent Contractor Relationship
-        </Text>
-        <Text style={styles.paragraph}>
-          Company and Contractor acknowledge and agree that Contractor is not an
-          employee and expressly state that the Services covered by this
-          Statement of Work shall be rendered independently by Contractor, and
-          that the contractual relationship does not and will not create an
-          employer-employee relationship.
-        </Text>
-
-        <Text style={styles.sectionTitle}>Termination</Text>
-        <Text style={styles.paragraph}>
-          This Statement of Work will end upon the completion of Services, as
-          reasonably determined by the Company, or on the last date practicable
-          after the Start Date in accordance with applicable law, unless
-          extended by the parties in writing.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          During the 3-month probationary period, either party may terminate
-          this Statement of Work without cause, upon at least 2 days written
-          notice to the other Party. After completion of the 3-month
-          probationary period, the Company requires a two-week notice to
-          terminate this Statement of Work.
-        </Text>
-
-        <Text style={styles.sectionTitle}>Paid Time Off (PTO)</Text>
-        <Text style={styles.paragraph}>
-          Contractor will accrue 15 PTO days per calendar year. Contractor will
-          request PTO via email from Company ahead of time and, once approved,
-          Company will notify contractor with an updated PTO balance. PTO is not
-          authorized during initial 3-month probationary period.
-        </Text>
-
-        {/* Título */}
-        <Text style={styles.title}>PROFESSIONAL SERVICES AGREEMENT</Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>EFFECTIVE DATE:</Text>{" "}
-          {data.fechaEjecucion}
-        </Text>
-
-        {/* Contenido principal */}
-        <Text style={styles.paragraph}>
-          This Professional Services Agreement (this `&ldquo; Agreemen&rdquo;` )
-          is made by an between: Andes Workforce LLC, registered in the United
-          States under Limited Liability Company Registration No. L24000192685
-          having its principal place of business in Florida, United States,
-          (`&ldquo;Company&rdquo;`).
-        </Text>
-
-        <Text style={styles.paragraph}>And</Text>
-
-        <Text style={styles.paragraph}>
-          {data.nombreCompleto}, having its principal place of business at
-          address,
-          {data.direccionCompleta}, (`&ldquo; Contractor&rdquo;`).
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Company and Contractor (each referred to as `&ldquo; Part&rdquo;` an d
-          referred t together as `&ldquo;Parties&rdquo;`) wish to enter into an
-          Agreement for the Contractor to provide services to Company, according
-          to the terms, conditions, and provisions set forth below, along with
-          any Statements of Work.
-        </Text>
-
-        <Text style={styles.sectionTitle}>SERVICE OBLIGATIONS</Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>
-            1. Statements of Work.
-          </Text>{" "}
-          During the term of this Agreement, Company and Contractor may execute
-          one or more statements of work detailing the specific services to be
-          performed by Contractor (as executed, a `&ldquo; Statement of
-          Work(s)&rdquo;`). Each Statement of Work will expressly refer to this
-          Agreement, will form a part of this Agreement, and will be subject to
-          the terms and conditions contained herein. A Statement of Work may be
-          amended only by a signed (by each party`&ldquo;s authorized signatory)
-          and written agreement of the parties.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>
-            2. Confidential Information and Intellectual Property Assignment
-            Agreement:
-          </Text>{" "}
-          Contractor shall sign, or has signed, a Confidential Information and
-          Intellectual Property Assignment Agreement in the form set forth as
-          Exhibit A hereto, on or before the date Contractor begins providing
-          the Services.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>
-            3. Personal Performance Required:
-          </Text>{" "}
-          Contractor shall promote the interests of the Company and, unless
-          prevented by ill health or accident, devote as much time as is
-          necessary for the performance of your obligations under this
-          Agreement. Where personal performance by Contractor is required, if
-          Contractor is unable to provide the Services due to illness or injury,
-          Contractor shall notify Company as soon as reasonably practicable. For
-          the avoidance of doubt, no fee shall be payable for Services which are
-          not provided.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>
-            4. Geographic Restrictions:
-          </Text>{" "}
-          Under no circumstances may you perform work for Andes Workforce LLC
-          and its Client(s) while in any U.S. territory whatsoever. In case of
-          travel by You to the United States or any of its territories, you must
-          take time off (paid or unpaid) and cease any work duties whatsoever.
-        </Text>
-
-        <Text style={styles.sectionTitle}>PAYMENT OBLIGATIONS</Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>5. Fees.</Text> As
-          compensation for the Services provided by Contractor, Company shall
-          pay Contractor the amounts specified in each Statement of Work in
-          accordance with the terms set forth therein. Contractor acknowledges
-          and agrees that Company`&ldquo;s payment obligation will be expressly
-          subject to Contractor`&ldquo;s completion of specified Services and/or
-          achievement of milestones to Company`&ldquo;s reasonable satisfaction.
-        </Text>
-
-        <Text style={styles.sectionTitle}>WARRANTIES AND DISCLAIMERS</Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>
-            6. No Employment Relationship.
-          </Text>{" "}
-          Under the terms of this Agreement, Contractor`&ldquo;s relationship
-          with Company will be that of an independent contractor providing
-          Services to Company, and not that of an employee, worker, agent, or
-          partner of Company. The Parties expressly state that Contractor is an
-          independent service provider who will provide services on a fee basis
-          without subordination and dependence on the Company, thus creating a
-          civil relationship between them and never an employment relationship.
-          Consequently, Contractor shall not be considered in any way as an
-          employee of the Company, which shall not be subject to any labor or
-          social security obligation whatsoever with respect to him/her.
-          Contractor will not be entitled to any Company entitlements or
-          statutory benefits payable to employees or workers by law. To the
-          extent requested by Company or required by applicable law, Contractor
-          will provide Company with all documents to authenticate or validate
-          this business-to-business relationship. Where required by applicable
-          law, Contractor will undertake all required registrations and/or
-          licenses with government or taxation agencies as an independent
-          contractor or separate entity from Company.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>7. No Authority.</Text>{" "}
-          Contractor is NOT an agent of Company and cannot bind Company in any
-          contracts or other obligations. Contractor will not hold itself out as
-          being an employee, agent, partner or assignee of Company, as having
-          any authority to bind Company or to incur any liability on behalf of
-          Company and will make such absence of authority clear in its dealings
-          with any third parties.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>8. Insurance.</Text>{" "}
-          Contractor certifies that it is currently insured and will maintain in
-          force suitable insurance policies. Contractor acknowledges that
-          Company will not carry any liability insurance on behalf of
-          Contractor. Contractor will provide promptly copies of such insurance
-          obtained on reasonable request.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>9. No Conflicts.</Text>{" "}
-          Contractor represents and warrants that Contractor is not under any
-          pre-existing obligation or commitments (and will not assume or
-          otherwise undertake any obligations or commitments) in conflict or in
-          any way inconsistent with the provisions of this Agreement. Contractor
-          represents and warrants that Contractor`&ldquo;s performance of all
-          the terms of this Agreement will not breach any agreement to keep in
-          confidence proprietary information acquired by Contractor in
-          confidence or in trust prior to commencement of this Agreement.
-          Contractor warrants that Contractor has the right to disclose and/or
-          or use all ideas, processes, techniques, and other information, if
-          any, which Contractor has gained from third parties, and which
-          Contractor discloses to the Company or uses during performance of this
-          Agreement, without liability to such third parties.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Notwithstanding the foregoing, Contractor agrees that Contractor shall
-          not bundle with or incorporate into any deliveries provided to the
-          Company herewith any third-party products, ideas, processes, or other
-          techniques, without the express, written prior approval of the
-          Company. Contractor represents and warrants that Contractor has not
-          granted and will not grant any rights or licenses to any intellectual
-          property or technology that would conflict with Contractor`&ldquo;s
-          obligations under this Agreement. Contractor will not knowingly
-          infringe upon any copyright, patent, trade secret or other property
-          right of any former client, employer or third party in the performance
-          of the Services.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>
-            10. Entire Agreement.
-          </Text>{" "}
-          This Agreement, together with any addenda, and all duly executed
-          Statements of Work, constitutes the entire Agreement between Company
-          and Contractor, and supersedes all prior understandings and
-          agreements. To the extent of any conflict between this Agreement and
-          any other agreement between the Parties, this Agreement shall
-          supersede such other agreement to the extent of such conflict except
-          if such other agreement explicitly states otherwise. Handwritten
-          changes to this Agreement are unenforceable. Any change or waiver of
-          any provision of this Agreement must be in writing and signed by the
-          parties hereto. Each party agrees that it will have no claim for
-          innocent or negligent misrepresentation based on any provision of this
-          Agreement.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>
-            11. Authority to Bind.
-          </Text>{" "}
-          Signatories below represent and warrant that they have full power and
-          authority to enter into the Agreement and to fulfill all its terms and
-          conditions. This Agreement may be executed electronically, by
-          facsimile, and in counterparts.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          By signing below Company and Contractor agree to the above terms, and
-          any other attached addendum and referenced Statements of Work.
-        </Text>
-
-        {/* CONFIDENTIALITY AND INTELLECTUAL PROPERTY AGREEMENT */}
+        {/* Título principal */}
         <Text style={styles.title}>
-          Confidentiality and Intellectual Property Agreement
+          CONTRATO DE PRESTACIÓN DE SERVICIOS PROFESIONALES
+        </Text>
+
+        {/* Introducción */}
+        <Text style={styles.paragraph}>
+          Entre los suscritos Andes Workforce LLC (`&ldquo;Compañía&rdquo;`)
+          bajo el Registro de Compañía de Responsabilidad Limitada No.
+          L24000192685 con su lugar principal de negocios en Florida, Estados
+          Unidos y quien para efectos del presente contrato se denominará{" "}
+          <Text style={styles.bold}>EL CONTRATANTE</Text> y, por otra parte,{" "}
+          <Text style={styles.underline}>
+            {data.nombreCompleto || "_________________"}
+          </Text>{" "}
+          identificado con cédula de ciudadanía No.
+          <Text style={styles.underline}>
+            {data.cedula || "_________________"}
+          </Text>
+          , de nacionalidad{" "}
+          <Text style={styles.underline}>
+            {data.nacionalidad || "_________________"}
+          </Text>
+          , quien para los efectos del presente contrato se denominará en
+          adelante <Text style={styles.bold}>EL CONTRATISTA</Text>, y quienes
+          conjuntamente han decidido denominarse{" "}
+          <Text style={styles.bold}>LAS PARTES</Text>, hemos convenido celebrar
+          el presente CONTRATO DE PRESTACIÓN DE SERVICIOS, el cual se regirá por
+          las cláusulas que a continuación se expresan y en general por las
+          disposiciones del Código Civil Colombiano y las Leyes Comerciales
+          aplicables a la materia de qué trata este contrato:
+        </Text>
+
+        {/* Cláusula Primera - CON DESCRIPCIÓN DINÁMICA */}
+        <Text style={styles.clauseTitle}>CLÁUSULA PRIMERA. – OBJETO:</Text>
+        <Text style={styles.paragraph}>
+          {data.descripcionServicios ||
+            "EL CONTRATISTA de manera independiente, haciendo uso de sus propios medios y herramientas, prestará los servicios de Mantener archivos de clientes, atender llamadas telefónicas, hablar con clientes potenciales y actuales, procesar documentos legales, iniciar reclamaciones y apelaciones, proporcionar información relacionada con los casos de los clientes, subir documentos PDF al portales electrónicos, recopilar información de clientes potenciales y proporcionarla para revisión, procesar documentos de admisión e ingresar información digitalmente, confirmar instalaciones médicas de los clientes, asistir a los clientes con los formularios requeridos y realizar tareas adicionales según se asignen."}
+        </Text>
+
+        {/* Cláusula Segunda */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA SEGUNDA. – VALOR DEL CONTRATO:
+        </Text>
+        <Text style={styles.paragraph}>
+          <Text style={styles.bold}>LAS PARTES</Text> acuerdan que el valor
+          acordado como honorarios por los servicios como contratista
+          independiente será de{" "}
+          <Text style={styles.underline}>
+            {data.monedaSalario} {data.ofertaSalarial || "___________"}
+          </Text>{" "}
+          (
+          <Text style={styles.underline}>
+            ${data.ofertaSalarial || "___________"}
+          </Text>
+          ), dólares americanos, los cuales se pagarán durante la vigencia del
+          presente contrato. Los dineros serán depositados a la cuenta
+          registrada en la cuenta de cobro.
+        </Text>
+
+        {/* Cláusula Tercera */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA TERCERA. – FORMA DE PAGO:
+        </Text>
+        <Text style={styles.paragraph}>
+          <Text style={styles.bold}>EL CONTRATANTE</Text> se compromete con{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text> a realizar el pago de
+          la totalidad del valor de los honorarios descritos en la cláusula
+          segunda, el pago se iniciara el último día hábil del mes según
+          calendario de Estados Unidos, previa presentación de la cuenta de
+          cobro remitida por parte de{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text> adjuntando la relación
+          detallada de los servicios prestados, previa presentación de la
+          planilla de aportes al Sistema Integral de Seguridad Social.
+        </Text>
+
+        {/* Cláusula Cuarta */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA CUARTA. - DURACIÓN DEL CONTRATO:
+        </Text>
+        <Text style={styles.paragraph}>
+          La vigencia del contrato será de cuatro (4) meses, contados a partir
+          de la fecha de suscripción de este documento. Si vencido el término de
+          vigencia del contrato, <Text style={styles.bold}>LAS PARTES</Text> no
+          han expresado por escrito el deseo de prorrogar o ninguna de{" "}
+          <Text style={styles.bold}>LAS PARTES</Text> manifestó por escrito su
+          deseo de terminarlo con al menos quince (15) días de antelación a su
+          finalización, el mismo se entenderá prorrogado por el mismo término
+          inicial.
+        </Text>
+
+        {/* Cláusula Quinta */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA QUINTA. - OBLIGACIONES ESPECIALES DEL CONTRATANTE:
+        </Text>
+        <Text style={styles.paragraph}>
+          <Text style={styles.bold}>EL CONTRATANTE</Text> se compromete con{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text> a:
+        </Text>
+        <Text style={styles.listItem}>
+          1) Pagar los honorarios acordados en la Cláusula Segunda y Cláusula
+          Tercera del presente contrato.
+        </Text>
+        <Text style={styles.listItem}>
+          2) Atender a las solicitudes de información de{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text>.
+        </Text>
+        <Text style={styles.listItem}>
+          3) Las demás obligaciones a su cargo de conformidad con este acuerdo,
+          sus anexos y las normas y jurisprudencia aplicables al mismo.
+        </Text>
+
+        {/* Cláusula Sexta */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA SEXTA. – OBLIGACIONES ESPECIALES DEL CONTRATISTA:
+        </Text>
+        <Text style={styles.paragraph}>
+          Constituyen las principales obligaciones para{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text>:
+        </Text>
+        <Text style={styles.listItem}>
+          a) Obrar con diligencia y buena fe los asuntos encomendados.
+        </Text>
+        <Text style={styles.listItem}>
+          b) Realizar los servicios contratados de acuerdo con las
+          estipulaciones del presente contrato y los lineamientos,
+          procedimientos, protocolos, políticas y códigos corporativos y de buen
+          gobierno.
+        </Text>
+        <Text style={styles.listItem}>
+          c) Resolver las consultas de{" "}
+          <Text style={styles.bold}>EL CONTRATANTE</Text> con la mayor celeridad
+          posible.
+        </Text>
+        <Text style={styles.listItem}>
+          d) Informar oportunamente a{" "}
+          <Text style={styles.bold}>EL CONTRATANTE</Text> cualquier situación
+          que pueda afectar el cumplimiento de sus obligaciones.
+        </Text>
+        <Text style={styles.listItem}>
+          e) Restituir a <Text style={styles.bold}>EL CONTRATANTE</Text> a la
+          finalización del presente contrato la totalidad de la información,
+          registros, soportes o documentos que de forma física y/o digital
+          obtenidas en desarrollo del presente contrato.
+        </Text>
+        <Text style={styles.listItem}>
+          f) En ninguna circunstancia podrá el Contratista realizar trabajos
+          para Andes Workforce LLC y sus Clientes mientras se encuentre en
+          cualquier territorio de los EE. UU. En caso de que el Contratista
+          viaje a los Estados Unidos o cualquiera de sus territorios, deberá
+          suspenderse el contrato.
+        </Text>
+        <Text style={styles.listItem}>
+          g) El resto de las obligaciones a su cargo de conformidad con este
+          acuerdo, sus anexos y las normas y jurisprudencia aplicables al mismo.
+        </Text>
+
+        {/* Cláusula Séptima */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA SÉPTIMA. – NATURALEZA DE LA PRESENTE RELACIÓN CONTRACTUAL:
+        </Text>
+        <Text style={styles.paragraph}>
+          La naturaleza del presente contrato es civil y comercial, es decir que
+          se regirá por las normas contempladas en el Código Civil Colombiano y
+          el Código de Comercio, sin que en momento alguno se genere vínculo
+          laboral entre <Text style={styles.bold}>EL CONTRATANTE</Text> y{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text>, por lo cual los
+          derechos de <Text style={styles.bold}>EL CONTRATANTE</Text> se
+          limitarán por la naturaleza del contrato a exigir el cumplimiento de
+          las obligaciones de <Text style={styles.bold}>EL CONTRATISTA</Text> al
+          tiempo que este podrá exigir el cumplimiento en el pago de sus
+          honorarios en las condiciones pactadas.
+        </Text>
+      </Page>
+
+      {/* Segunda página */}
+      <Page size="A4" style={styles.page}>
+        {/* Cláusula Octava */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA OCTAVA. – CAUSALES DE TERMINACIÓN:
+        </Text>
+        <Text style={styles.paragraph}>
+          El presente contrato podrá darse por finalizado en cualquier momento
+          de su vigencia en caso de que se presenten las siguientes causales:
+        </Text>
+        <Text style={styles.listItem}>
+          1) La finalización del término de duración pactado en el mismo,
+          cumpliendo las condiciones previstas para que no haya una prórroga
+          contractual.
+        </Text>
+        <Text style={styles.listItem}>
+          2) Mutuo acuerdo entre <Text style={styles.bold}>LAS PARTES</Text>.
+        </Text>
+        <Text style={styles.listItem}>
+          3) <Text style={styles.bold}>EL CONTRATANTE</Text> podrá dar por
+          terminado el presente contrato por el incumplimiento total o parcial
+          de las obligaciones contractuales contenidas en el presente acuerdo, a
+          cargo de <Text style={styles.bold}>EL CONTRATISTA</Text>, siempre y
+          cuando dicho incumplimiento perdure, sin haber sido remediado por{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text>, por un término mayor
+          a cinco (5) días hábiles, contados a partir de la notificación por
+          escrito realizada por <Text style={styles.bold}>EL CONTRATANTE</Text>{" "}
+          a <Text style={styles.bold}>EL CONTRATISTA</Text>, comunicándole de su
+          incumplimiento.
+        </Text>
+        <Text style={styles.listItem}>
+          4) <Text style={styles.bold}>EL CONTRATISTA</Text> podrá dar por
+          terminado el presente contrato por el incumplimiento total o parcial
+          de las obligaciones contractuales contenidas en el presente acuerdo, a
+          cargo de <Text style={styles.bold}>EL CONTRATANTE</Text>, siempre y
+          cuando dicho incumplimiento perdure, sin haber sido remediado por{" "}
+          <Text style={styles.bold}>EL CONTRATANTE</Text>, por un término mayor
+          a cinco (5) días hábiles, contados a partir de la notificación por
+          escrito realizada por <Text style={styles.bold}>EL CONTRATISTA</Text>{" "}
+          a <Text style={styles.bold}>EL CONTRATANTE</Text>, comunicándole de su
+          incumplimiento.
+        </Text>
+        <Text style={styles.listItem}>
+          5) Por muerte de alguna de <Text style={styles.bold}>LAS PARTES</Text>
+          .
+        </Text>
+        <Text style={styles.listItem}>
+          6) Por las demás causales establecidas en la ley colombiana que sean
+          aplicables a este mecanismo contractual y las demás contempladas en el
+          presente contrato.
+        </Text>
+
+        {/* Parágrafos */}
+        <Text style={styles.paragraph}>
+          <Text style={styles.bold}>PARÁGRAFO PRIMERO:</Text> El término de
+          cinco (5) días hábiles para declarar un incumplimiento, contemplado en
+          la presente cláusula, solo tendrá aplicación en caso de que dicho
+          incumplimiento sea subsanable por la parte incumplida.
         </Text>
 
         <Text style={styles.paragraph}>
-          This Confidentiality and Intellectual Property Agreement
-          (`&ldquo;CIPA&rdquo;` ) is intended to set clear expectations
-          regarding confidentiality and intellectual property between{" "}
-          {data.nombreCompleto} (`&ldquo;Contractor&rdquo;` ) and Andes
-          Workforce LLC, including its parent companies, subsidiaries, and
-          affiliates (`&ldquo;Customer&rdquo;`). Contractor and Customer may be
-          referred to collectively as the Parties or individually as a Party.
+          <Text style={styles.bold}>PARÁGRAFO SEGUNDO:</Text> No obstante, a lo
+          anterior, <Text style={styles.bold}>EL CONTRATANTE</Text> podrá dar
+          por terminado el presente contrato en cualquier momento, sin
+          justificar causa alguna, previo aviso por escrito remitido a{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text>, manifestando su
+          determinación de finalizarlo, al menos con treinta (30) días
+          calendario de antelación a dicha terminación anticipada, sin que por
+          este evento se genere ningún tipo de indemnización, sanción, pena o
+          multa a cargo o a favor de alguna de las partes.{" "}
+          <Text style={styles.bold}>EL CONTRATANTE</Text> pagará a{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text> lo correspondiente por
+          los servicios efectivamente prestados hasta la fecha de terminación.
         </Text>
 
-        <Text style={styles.sectionTitle}>Consideration</Text>
+        {/* Cláusula Novena */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA NOVENA. - RESOLUCIÓN DE CONFLICTOS:
+        </Text>
         <Text style={styles.paragraph}>
-          The Parties acknowledge and agree that this CIPA is not an employment
-          contract, and it does not purport to set forth all of the terms and
-          conditions of Contractor`&ldquo;s engagement with Customer, which is
-          governed by separate agreement(s) and the legislation of
-          Contractor`&ldquo;s home country. If, however, there are any
-          inconsistent terms between this CIPA and any other agreement(s)
-          between the Parties related to the subject matter herein, the terms of
-          this CIPA control. The terms of this CIPA can only be changed by a
-          subsequent, written agreement signed by the Parties. Contractor
-          understands and acknowledges that this CIPA is and has been a material
-          part of the consideration for Contractor`&ldquo;s engagement with
-          Customer.
+          Toda controversia, conflicto o diferencia relativa al presente
+          contrato, su celebración, cumplimiento, interpretación, ejecución,
+          liquidación e incluso en su fase precontractual, así como cualquier
+          perjuicio en general producido con ocasión del contrato que no
+          signifique propiamente su incumplimiento, se resolverá inicialmente a
+          través de un arreglo directo que podrá tomarse máximo 30 días
+          calendario, de lo contrario a través de la justicia ordinaria.
         </Text>
 
+        {/* Cláusula Décima */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA DÉCIMA. – CONFIDENCIALIDAD Y RESERVA:
+        </Text>
         <Text style={styles.paragraph}>
-          Contractor has not entered into, and agrees not to enter into, any
-          agreement (either written or oral) in conflict with this CIPA or
-          Contractor`&ldquo;s engagement with Customer. Contractor agrees not to
-          (a) violate any agreement with or rights of any third party, or (b)
-          use or disclose Contractor`&ldquo;s own or any third party`&ldquo;s
-          confidential information or intellectual property (as detailed in the
-          paragraph `&ldquo;Open-Source and Third-Party Components,&rdquo;`
-          below) (i) when acting within the scope of Contractor`&ldquo;s
-          engagement, or (ii) on behalf of Customer, except as expressly
-          authorized in writing herein. Further, Contractor represents that
-          Contractor has not retained anything containing any confidential
-          information of a prior employer or other third party, whether or not
-          created by Contractor.
+          Para efectos del presente contrato, toda la información de{" "}
+          <Text style={styles.bold}>EL CONTRATANTE</Text> al que{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text> tenga acceso o
+          conocimiento y viceversa, tendrá carácter de información confidencial
+          y, en consecuencia, deberá ser tratada como tal. Ninguna de{" "}
+          <Text style={styles.bold}>LAS PARTES</Text> revelará los términos y
+          condiciones del contrato o la información técnica, comercial, bases de
+          datos de los clientes incluidos teléfonos, dirección electrónica,
+          direcciones de domicilio, o financiera que reciba de la otra parte con
+          ocasión de su ejecución, sin el previo consentimiento escrito.
         </Text>
 
-        <Text style={styles.sectionTitle}>Confidentiality</Text>
+        {/* Más párrafos de confidencialidad */}
         <Text style={styles.paragraph}>
-          In discussions and activities surrounding Contractor`&ldquo;s work,
-          sales, products, technology, and models that Customer may use or
-          develop, Contractor may obtain, or may already have obtained,
-          Confidential Information about Customer`&ldquo;s business. This CIPA
-          prevents unauthorized use or disclosure of Confidential Information.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Confidential Information includes all non-public knowledge, documents,
-          information, and data of Customer, which includes but is not limited
-          to, customer lists, prices and how they are set, non-public
-          intellectual property (including but not limited to trade secrets),
-          employee information, business plans, coding, processes, inventions,
-          computer-related equipment or technology, applications, operating
-          systems, databases and other computer related software technical data,
-          new ideas, methods of doing business, any other information received
-          in any other form bearing a note on or pointing out the confidential
-          nature of such information, any personal information governed by
-          applicable data-protection regulations, and any Confidential
-          Information that Customer has received (or that may be received in the
-          future) from third parties that Customer has agreed to treat as
-          confidential.
+          <Text style={styles.bold}>PARÁGRAFO PRIMERO:</Text> Las obligaciones
+          de no revelar la información confidencial cesarán únicamente cuando:
+          i) exista obligación de conformidad con la Ley o por mandato judicial
+          o administrativo ii) la respectiva información sea de dominio público
+          iii) la parte receptora la genere o desarrolle en forma independiente,
+          sin violar el presente contrato.
         </Text>
 
         <Text style={styles.paragraph}>
-          For purposes of this CIPA, the term trade secrets has its ordinary
-          meaning under applicable law but includes, without limitation, any
-          information that is: (a) commercially valuable because it is secret,
-          (b) known only to a limited group of persons; and (c) subject to
-          reasonable steps taken by the owner of such information to keep it
-          secret. Confidential Information does not include information that is
-          (a) previously known on a nonconfidential basis by the Contractor, (b)
-          in the public domain through no fault of the Contractor, (c) received
-          from a person other than any of the other Parties or their respective
-          representatives or agents, so long as such other person was not, to
-          the best knowledge of the Contractor, subject to a duty of
-          confidentiality to Customer, (d) developed independently by the
-          Contractor without reference to Confidential Information, or (e)
-          specifically allowed for disclosure by Customer in a written release.
-          If the information becomes public because of Contractor`&ldquo;s
-          violation of this CIPA, it is still deemed Confidential Information
-          and protected by this CIPA.
+          <Text style={styles.bold}>PARÁGRAFO SEGUNDO:</Text> En el evento en
+          que alguna de <Text style={styles.bold}>LAS PARTES</Text> esté
+          obligada por orden de alguna autoridad pública o judicial a revelar la
+          información sujeta a confidencialidad bajo este acuerdo, deberán
+          informar de manera oportuna a la parte sobre la cual versa la
+          información confidencial con el fin de que pueda proteger la
+          confidencialidad de dicha información. Si en ausencia de una medida de
+          protección de la información,{" "}
+          <Text style={styles.bold}>LAS PARTES</Text> están obligados a revelar
+          la Información Confidencial a cualquier autoridad administrativa o
+          jurisdiccional, podrán enviar a dicha autoridad sólo aquella porción
+          de la Información Confidencial cuya revelación sea obligatoria, sin
+          perjuicio de que la parte sobre la cual versa la información utilice
+          sus mejores esfuerzos para preservar la confidencialidad de la
+          Información Confidencial, y para que pueda obtener una orden de
+          protección u otra seguridad razonable de que se le dará tratamiento
+          confidencial a la Información Confidencial por parte de mencionada
+          autoridad.
+        </Text>
+      </Page>
+
+      {/* Tercera página */}
+      <Page size="A4" style={styles.page}>
+        {/* Continuación de cláusulas */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA DÉCIMA PRIMERA. - AUTORIZACIÓN PARA EL TRATAMIENTO DE DATOS
+          PERSONALES:
+        </Text>
+        <Text style={styles.paragraph}>
+          Conforme a la Ley 1581 del 2012 y Decreto 1377 del 2013, las partes
+          autorizan de manera previa, expresa e informada para que, directamente
+          o a través de sus consultores, asesores, matrices, subsidiarias,
+          afiliadas y/o cualquier tercero encargado del Tratamiento de Datos
+          Personales, bien sea en Colombia o en el exterior, lleven a cabo
+          cualquier operación o conjunto de operaciones tales como la
+          recolección, almacenamiento, uso, circulación, supresión y transmisión
+          sobre sus datos Personales, o en caso de tratarse de personas
+          jurídicas, los datos personales de sus accionistas, socios, empleados
+          y/o colaboradores. Entendiéndose que las partes siempre deberán
+          cumplir con las obligaciones indicadas en las anteriores disposiciones
+          normativas, así como las normas que eventualmente pudiesen
+          modificarlas, derogarlas y/o complementarlas. En este orden de ideas
+          las partes podrán almacenar, consultar, procesar, actualizar y grabar
+          dichos datos personales, así como cualquier otra acción necesaria en
+          aras de llevar a cabo el objeto contractual del presente acuerdo,
+          siempre y cuando se ciñan integralmente a las finalidades establecidas
+          de la otra parte en su tratamiento de datos personales y no vayan en
+          contra de la Ley 1581 del 2012, el Decreto 1377 del 2013 y las normas
+          que eventualmente pudiesen modificar, derogar y/o complementar dichas
+          disposiciones normativas.
         </Text>
 
         <Text style={styles.paragraph}>
-          Contractor agrees to keep the Confidential Information confidential
-          and to exercise reasonable care to protect the confidentiality of
-          Confidential Information. Reasonable care means at least the same
-          level of care that Contractor would reasonably use to protect
-          Contractor`&ldquo;s own confidential information. As part of such
-          reasonable care, Contractor may not allow anyone else to access
-          Customer`&ldquo;s tools or computer access passwords without
-          Customer`&ldquo;s written approval. Contractor agrees not to disclose
-          Customer`&ldquo;s Confidential Information to any third party and to
-          only use the Confidential Information for the purposes of
-          Contractor`&ldquo;s relationship with Customer.
-        </Text>
-
-        <Text style={styles.sectionTitle}>Intellectual Property</Text>
-        <Text style={styles.paragraph}>
-          For purposes of this CIPA, the term `&ldquo;IP Rights&rdquo;` includes
-          but is not necessarily limited to patents, rights to inventions,
-          utility model rights, trade marks, business names and domain names,
-          rights in get-up and trade dress, design rights, semiconductor
-          topography rights, integrated circuit topography rights, plant variety
-          rights, database rights, copyright and related rights (including all
-          rights of paternity, integrity, disclosure, and withdrawal, and any
-          other rights that may be known as or referred to as `&ldquo;moral
-          rights,&rdquo;` `&ldquo;artist`&ldquo;s rights,&rdquo;` `&ldquo;droit
-          moral,&rdquo;` or the like (collectively `&ldquo;Moral
-          Rights&rdquo;`)), mask work rights, rights in goodwill and the right
-          to sue for passing off or unfair competition, rights to use, and
-          protect the confidentiality of, Confidential Information (including
-          knowhow and trade secrets) and all other intellectual property rights
-          of any kind, whether registered or unregistered, including all
-          applications and rights to apply for and be granted, renewals or
-          extensions of, and rights to claim priority from, registrations, and
-          all similar or equivalent rights that exist or will exist in any part
-          of the world.
-        </Text>
-
-        <Text style={styles.sectionTitle}>
-          Transfer and Assignment of Ownership Rights
-        </Text>
-        <Text style={styles.paragraph}>
-          For purposes of any assignment, transfer, or licensing of any IP
-          Rights contemplated herein, to the extent required by applicable law,
-          the term `&ldquo;Customer&rdquo;` refers to the Customer indicated in
-          the preamble of this CIPA, exclusive of any parent companies,
-          subsidiaries, or affiliates.
+          Las Partes se reservan el derecho de conocer, actualizar, rectificar y
+          demás establecidos en las normas de Protección de Datos.{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text> autoriza en especial,
+          pero sin limitación alguna, que{" "}
+          <Text style={styles.bold}>EL CONTRATANTE</Text> pueda: 1) Registrar la
+          información de <Text style={styles.bold}>EL CONTRATISTA</Text> para
+          organizar, administrar y gestionar su información y sus datos
+          personales; 2) Mantener actualizada la información de{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text>; 3) Realizar
+          invitaciones a eventos y/o actividades de{" "}
+          <Text style={styles.bold}>EL CONTRATANTE</Text>; 4) Las demás, acordes
+          con el presente contrato.
         </Text>
 
         <Text style={styles.paragraph}>
-          To the fullest extent allowed by applicable law and by operation
-          thereof, Customer owns all Works and IP Rights in and relating to any
-          and all Works (which the Parties agree are works made for hire or the
-          equivalent under applicable law) made or conceived or reduced to
-          practice, in whole or in part, by Contractor (a) at Customer`&ldquo;s
-          request or (b) within the scope of and during the term of
-          Contractor`&ldquo;s engagement with Customer (collectively,
-          `&ldquo;Resulting IP,&rdquo;` the IP Rights to which are collectively
-          referred to as the `&ldquo;Resulting IP Rights&rdquo;`). To the extent
-          there are any Resulting IP Rights that Customer does not or cannot
-          obtain by operation of and under applicable law, Contractor hereby
-          permanently and irrevocably assigns to Customer all Resulting IP
-          Rights. Such Resulting IP Rights are transferred and/or assigned to
-          Customer in full, from the moment of creation.
+          De igual manera cada parte se obliga para con la otra, a obtener,
+          verificar y confirmar la existencia de la autorización otorgada por
+          los titulares de los datos personales que puedan ser objeto de
+          transmisión o transferencia a la otra parte en la ejecución del
+          presente contrato, de acuerdo con las normas aplicables y en
+          particular por las contenidas en la Ley 1581 de 2012. En virtud de lo
+          anterior, la parte que como responsable o encargada recibe los datos
+          personales transmitidos o transferidos deberá acogerse a las políticas
+          y normativas establecidas y adoptadas por la ley respecto de
+          tratamiento de datos personales, de tal manera que se permita a los
+          Titulares ejercer oportunamente sus derechos. Siempre que una de las
+          partes actúe como Responsable o Encargada de los datos personales que
+          le puedan ser transmitidos o transferidos por la otra parte deberá dar
+          aplicación a las obligaciones que le impone la Ley 1581 de 2012 y
+          demás normas que las complementen, modifiquen y/o deroguen, y realizar
+          el Tratamiento de datos de acuerdo con la finalidad que los Titulares
+          hayan autorizado en el tratamiento de datos en cuestión; debiendo así
+          mismo, velar porque el tratamiento de los datos personales se efectúe
+          conforme a los principios que los tutelan; velar porque se salvaguarde
+          la seguridad de las bases de datos en los que se contengan datos
+          personales y que se guarde absoluta confidencialidad respecto del
+          Tratamiento de los datos personales transferidos o transmitidos en
+          razón el presente contrato. El incumplimiento de esta obligación hará
+          responsable a la parte que vulneró dichos derechos y disposiciones
+          legales por los perjuicios que se causen, directa o indirectamente al
+          titular de los datos personales o a la otra parte, dando lugar a la
+          iniciación de las acciones penales y civiles correspondientes. Las
+          obligaciones referidas al tratamiento de los datos personales,
+          adquiridas por las partes en desarrollo del presente contrato,
+          sobrevivirán aún a la terminación del mismo de manera indefinida.
         </Text>
 
-        <Text style={styles.sectionTitle}>General Terms</Text>
-        <Text style={styles.paragraph}>
-          Contractor`&ldquo;s confidentiality and cooperation obligations under
-          this CIPA remain in effect after termination of Contractor`&ldquo;s
-          engagement with Customer, regardless of the reason or reasons for
-          termination of such engagement. Customer is entitled to disclose
-          Contractor`&ldquo;s obligations under this CIPA to any future employer
-          or potential employer of Contractor. To the extent applicable, the
-          obligations set forth herein are also binding on Contractor`&ldquo;s
-          heirs, executors, assigns, and administrators for the benefit of
-          Customer and its subsidiaries, successors, and assigns.
+        {/* Cláusula Décima Segunda */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA DÉCIMA SEGUNDA. - MÉRITO EJECUTIVO:
         </Text>
-
         <Text style={styles.paragraph}>
-          At the end of Contractor`&ldquo;s engagement with Customer, and no
-          later than within thirty days of Customer`&ldquo;s request, Contractor
-          must return all materials, documents and any copies or reproductions
-          (hard copy or electronic), extracts, summaries or analyses of
-          Confidential Information in any medium or format in
-          Contractor`&ldquo;s possession, custody, or control containing,
-          reflecting, incorporating (in whole or in part) Confidential
-          Information and provide certification that all electronic Confidential
-          Information in Contractor`&ldquo;s possession has been destroyed.
-        </Text>
-
-        <Text style={styles.sectionTitle}>Additional Legal Provisions</Text>
-        <Text style={styles.paragraph}>
-          If Contractor is in a jurisdiction where any of the above clauses are
-          not lawful, require additional consideration, or have been held to be
-          unenforceable, such clause is severable, and all other provisions of
-          this CIPA will continue in full force and effect.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          This CIPA is fully assignable and transferable by Customer, but any
-          purported assignment or transfer by Contractor is void.
+          El presente documento presta mérito ejecutivo para exigirle a la parte
+          incumplida, el cumplimiento de todas las obligaciones en él
+          consagradas y de la cláusula penal, ya que se trata de una obligación
+          clara, expresa y exigible al tenor de los arts. 422 y 424 del C. G. P,
+          la cual no requiere de prueba diferente a la mera presentación en
+          copia simple de este contrato debidamente suscrito por ambas partes.
+          Ambas partes le otorgan la fuerza necesaria para presumir su
+          autenticidad y presumir el incumplimiento con su presentación ante un
+          juez colombiano para su respectivo cobro ejecutivo.
         </Text>
 
         <Text style={styles.paragraph}>
-          Any delay by a Party to enforce any right under this CIPA will not act
-          as a waiver of that right or as a waiver of the ability to later
-          assert that right. Waiver of any breach will not be a waiver of the
-          underlying obligation.
+          <Text style={styles.bold}>PARÁGRAFO PRIMERO:</Text> La parte
+          incumplida renuncia expresamente a los requerimientos privados y
+          judiciales de ley y, en caso de incumplimiento de sus obligaciones
+          será deudor de la cláusula penal establecida, la cual en caso de no
+          pagarse al momento de su exigibilidad generará intereses moratorios
+          conforme al Artículo 884 del Código de Comercio.
         </Text>
 
+        {/* Cláusula Décima Cuarta */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA DÉCIMA CUARTA. - CESIÓN:
+        </Text>
         <Text style={styles.paragraph}>
-          The CIPA can only be changed by a written amendment explicitly
-          referencing this CIPA that is executed by both Parties.
+          <Text style={styles.bold}>LAS PARTES</Text> no podrán ceder total o
+          parcialmente su posición contractual en el presente acuerdo sin la
+          autorización previa y por escrito de la otra parte.
         </Text>
 
+        {/* Cláusula Décima Quinta */}
+        <Text style={styles.clauseTitle}>
+          CLÁUSULA DÉCIMA QUINTA. - DESCUBRIMIENTOS E INVENCIONES:
+        </Text>
         <Text style={styles.paragraph}>
-          The undersigned represent that they are authorized to enter into the
-          CIPA, which may be executed in counterparts. Electronic signatures are
-          acceptable.
+          Los descubrimientos o invenciones y las mejoras en los procedimientos,
+          lo mismo que todos los servicios y consiguientes resultados en las
+          actividades de <Text style={styles.bold}>EL CONTRATISTA</Text>, cuando
+          este haya sido contratado para investigar o cuando por naturaleza de
+          sus obligaciones haya tenido acceso a secretos o investigaciones
+          confidenciales, quedarán de propiedad exclusiva de{" "}
+          <Text style={styles.bold}>EL CONTRATANTE</Text> y además tendrá este
+          último derecho de hacer patentar a su nombre o a nombre de terceros
+          esos inventos o mejoras, para lo cual{" "}
+          <Text style={styles.bold}>EL CONTRATISTA</Text> accederá a facilitar
+          el conocimiento y consentimiento oportuno de las correspondientes
+          formalidades y dar su firma y extender los poderes y documentos
+          necesarios para tal fin, según y cuando lo solicite{" "}
+          <Text style={styles.bold}>EL CONTRATANTE</Text>, sin que éste quede
+          obligado al pago de compensación alguna.
         </Text>
 
+        {/* Cláusula Décima Sexta */}
+        <Text style={styles.clauseTitle}>CLÁUSULA DÉCIMA SEXTA. Efectos.</Text>
         <Text style={styles.paragraph}>
-          Having read this CIPA carefully and after being provided with a
-          reasonable opportunity to obtain independent legal advice regarding
-          this CIPA, Contractor understands and accepts the obligations that
-          this CIPA imposes on Contractor without reservation. No promises or
-          representations have been made to induce Contractor to sign this CIPA.
-          Contractor signs this CIPA voluntarily and freely.
+          El presente contrato reemplaza y deja sin efecto cualquier otro
+          contrato verbal o escrito, que se hubiera celebrado entre las partes
+          con anterioridad.
         </Text>
+
+        {/* Cláusula Décima Séptima */}
+        <Text style={styles.clauseTitle}>
+          CLAUSULA DECIMA SEPTIMA- MODIFICACIONES:
+        </Text>
+        <Text style={styles.paragraph}>
+          El presente contrato sólo podrá ser modificado mediante acuerdo
+          escrito y firmado por <Text style={styles.bold}>LAS PARTES</Text>.
+        </Text>
+
+        {/* Fecha de firma */}
+        <Text style={styles.paragraph}>
+          El presente contrato se suscribe a los{" "}
+          <Text style={styles.underline}>
+            {formatDate(data.fechaEjecucion)}
+          </Text>
+          .
+        </Text>
+
+        {/* Sección de firmas */}
+        <View style={styles.signatureSection}>
+          <View style={styles.signatureBlock}>
+            <Text style={styles.signatureLabel}>EL CONTRATANTE,</Text>
+            <View style={styles.signatureLine}></View>
+            <Text style={styles.signatureLabel}>Andes Workforce LLC</Text>
+          </View>
+
+          <View style={styles.signatureBlock}>
+            <Text style={styles.signatureLabel}>EL CONTRATISTA,</Text>
+            <View style={styles.signatureLine}></View>
+            <Text style={styles.signatureLabel}>
+              {data.nombreCompleto || "____________________________"}
+            </Text>
+          </View>
+        </View>
       </Page>
     </Document>
   );

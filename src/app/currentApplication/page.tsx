@@ -1243,7 +1243,7 @@ export default function CurrentApplication() {
         {/* Current Employment Information */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-[#0097B2] text-white p-6">
-            <h1 className="text-2xl font-bold">My Current Employment</h1>
+            <h1 className="text-2xl font-bold">Current Contract</h1>
             <p className="text-blue-100 mt-1">
               Job position information and documentation
             </p>
@@ -1363,7 +1363,7 @@ export default function CurrentApplication() {
                           <FileText className="text-[#0097B2]" size={20} />
                           <div>
                             <p className="font-medium text-gray-900">
-                              Employment Contract
+                              Active Contract
                             </p>
                             <p className="text-sm text-gray-500">
                               Signed document
