@@ -33,6 +33,31 @@ export default function VideoModal({
 
   const MAX_FILE_SIZE = 200 * 1024 * 1024; // Maximum file size is 200MB
 
+  // Función para formatear el nombre del archivo
+  const formatFileName = (fileName: string): string => {
+    // Obtener la extensión del archivo
+    const extension = fileName.substring(fileName.lastIndexOf("."));
+    // Obtener el nombre sin extensión
+    const nameWithoutExtension = fileName.substring(
+      0,
+      fileName.lastIndexOf(".")
+    );
+
+    // Formatear el nombre: eliminar espacios, caracteres especiales y normalizar
+    const formattedName = nameWithoutExtension
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "_") // Reemplazar espacios con guiones bajos
+      .replace(/[^a-z0-9_.-]/g, "") // Eliminar caracteres especiales excepto guiones bajos, puntos y guiones
+      .replace(/_{2,}/g, "_") // Reemplazar múltiples guiones bajos con uno solo
+      .replace(/^_+|_+$/g, ""); // Eliminar guiones bajos al inicio y final
+
+    // Añadir timestamp para evitar conflictos
+    const timestamp = Date.now();
+
+    return `${formattedName}_${timestamp}${extension}`;
+  };
+
   const handleClickOutside = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
       // Prevenir cierre durante carga
@@ -70,9 +95,14 @@ export default function VideoModal({
       const apiBase = process.env.NEXT_PUBLIC_API_URL!;
       console.log("[VideoUpload] API Base:", apiBase);
 
+      // Formatear el nombre del archivo antes de enviarlo
+      const formattedFileName = formatFileName(file.name);
+      console.log("[VideoUpload] Nombre original:", file.name);
+      console.log("[VideoUpload] Nombre formateado:", formattedFileName);
+
       // 1. Primero obtenemos la URL prefirmada y demás información
       const url = `${apiBase}files/video-upload-url?fileName=${encodeURIComponent(
-        file.name
+        formattedFileName
       )}`;
       console.log("[VideoUpload] Request URL:", url);
 
