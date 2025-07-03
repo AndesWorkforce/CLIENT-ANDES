@@ -36,7 +36,7 @@ export const sendInterviewInvitation = async (
 ) => {
   try {
     const bookingLink =
-      "https://outlook.office365.com/book/Interviews@teamandes.com/";
+      "https://outlook.office.com/book/AndesWorkforceInterview@teamandes.com/?ismsaljsauthenabled";
 
     const emailHtml = await render(
       InterviewInvitationEmail({
@@ -129,12 +129,14 @@ export const sendRejectionEmail = async (
 
 export const sendContractJobEmail = async (
   candidateName: string,
-  candidateEmail: string
+  candidateEmail: string,
+  jobTitle: string
 ) => {
   try {
     const emailHtml = await render(
       ContractJob({
         candidateName,
+        jobTitle,
       })
     );
 

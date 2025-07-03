@@ -152,9 +152,8 @@ export default function CompanyDashboard() {
       } else {
         addNotification(`Error: ${response.message}`, "error");
       }
-    } catch (error) {
-      console.error("Error al cambiar estado de la oferta:", error);
-      addNotification("Error al cambiar estado de la oferta", "error");
+    } catch {
+      addNotification("Error changing offer status", "error");
     } finally {
       setIsPauseModalOpen(false);
       setOfferToToggle(null);
@@ -486,7 +485,6 @@ export default function CompanyDashboard() {
           isOpen={isApplicantsModalOpen}
           onClose={closeApplicantsModal}
           serviceTitle={selectedOffer?.titulo || ""}
-          offerId={selectedOffer.id || ""}
           onUpdate={() => fetchAssignedOffers()}
           applicants={
             selectedOffer?.postulaciones?.map((postulacion) => ({
@@ -500,6 +498,7 @@ export default function CompanyDashboard() {
               postulationId: postulacion.id,
               estadoPostulacion:
                 postulacion.estadoPostulacion as EstadoPostulacion,
+              serviceTitle: selectedOffer.titulo || "",
             })) || []
           }
         />

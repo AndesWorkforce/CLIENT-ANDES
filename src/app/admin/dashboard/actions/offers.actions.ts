@@ -87,11 +87,10 @@ export async function toggleOfferStatus(
           : "Offer published successfully",
       data: responseData,
     };
-  } catch (error) {
-    console.error(`[Offers] Error al cambiar estado a ${newStatus}:`, error);
+  } catch {
     return {
       success: false,
-      message: `Error al cambiar estado de la oferta: ${error}`,
+      message: `Error changing offer status`,
     };
   }
 }

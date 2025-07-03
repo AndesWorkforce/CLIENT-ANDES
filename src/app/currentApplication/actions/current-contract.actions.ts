@@ -336,12 +336,20 @@ export async function actualizarDocumentoEspecifico(
   error?: string;
 }> {
   try {
-    const axios = await createServerAxios();
+    console.log("📤 Enviando actualización de documento", {
+      procesoContratacionId,
+      seccion,
+      datos,
+    });
 
-    const response = await axios.patch(
-      `/admin/contratacion/${procesoContratacionId}/documento/${seccion}`,
-      datos // Enviar los datos directamente sin transformación
-    );
+    const axios = await createServerAxios();
+    const url = `/admin/contratacion/${procesoContratacionId}/documento/${seccion}`;
+
+    console.log("🔗 URL de actualización:", url);
+
+    const response = await axios.patch(url, datos);
+
+    console.log("📥 Respuesta del servidor:", response.data);
 
     return {
       success: true,
@@ -349,10 +357,10 @@ export async function actualizarDocumentoEspecifico(
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error("Error actualizando documento:", error);
+    console.error("❌ Error al actualizar documento:", error);
     return {
       success: false,
-      error: error.response?.data?.message || "Error actualizando documento",
+      error: error.message || "Error al actualizar el documento",
     };
   }
 }

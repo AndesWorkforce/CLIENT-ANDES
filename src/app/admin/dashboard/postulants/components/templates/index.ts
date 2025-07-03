@@ -46,7 +46,7 @@ export const SERVICIOS_DISPONIBLES = {
   LLAMADAS_BIENVENIDA: {
     nombre: "Representación de Llamadas de Bienvenida",
     descripcion:
-      "llamadas de bienvenida. El alcance de este servicio es realizar llamadas introductorias amistosas y profesionales con nuevos clientes para confirmar los datos de contacto, explicar los próximos pasos en el proceso legal y establecer expectativas claras. El objeto principal es asegurar que los clientes se sientan informados y apoyados desde el comienzo de su caso.",
+      "Llamadas de bienvenida. El alcance de este servicio es realizar llamadas introductorias amistosas y profesionales con nuevos clientes para confirmar los datos de contacto, explicar los próximos pasos en el proceso legal y establecer expectativas claras. El objeto principal es asegurar que los clientes se sientan informados y apoyados desde el comienzo de su caso.",
   },
   ADMINISTRACION_CASOS: {
     nombre: "Administración de casos",
@@ -56,62 +56,62 @@ export const SERVICIOS_DISPONIBLES = {
   LLAMADAS_INICIALES_CLIENTE: {
     nombre: "Asistencia de llamadas iniciales al cliente",
     descripcion:
-      "llamada inicial al cliente. El alcance de este servicio es el apoyo logístico de los casos entre departamentos internos. El objeto principal es hacer seguimiento a las asignaciones de tareas según el flujo del proceso, realiza un seguimiento de las actualizaciones del estado de los casos y ayuda a garantizar que la información crítica fluya de manera precisa y eficiente entre los equipos.",
+      "Llamada inicial al cliente. El alcance de este servicio es el apoyo logístico de los casos entre departamentos internos. El objeto principal es hacer seguimiento a las asignaciones de tareas según el flujo del proceso, realiza un seguimiento de las actualizaciones del estado de los casos y ayuda a garantizar que la información crítica fluya de manera precisa y eficiente entre los equipos.",
   },
   GESTION_NIVEL_AUDITIVO: {
     nombre: "Gestión en Nivel Auditivo",
     descripcion:
-      "gestión en nivel auditivo. El alcance de este servicio es preparar los casos para las audiencias organizando la documentación, confirmando la logística y el aseguramiento de que el equipo legal y los clientes estén listos. El objeto principal es coordinar con los abogados haciendo uso de las herramientas definidas para ello y así mismo con los clientes para garantizar que todos los elementos necesarios estén en su lugar antes de las audiencias programadas.",
+      "Gestión en nivel auditivo. El alcance de este servicio es preparar los casos para las audiencias organizando la documentación, confirmando la logística y el aseguramiento de que el equipo legal y los clientes estén listos. El objeto principal es coordinar con los abogados haciendo uso de las herramientas definidas para ello y así mismo con los clientes para garantizar que todos los elementos necesarios estén en su lugar antes de las audiencias programadas.",
   },
   ASISTENCIA_LEGAL: {
     nombre: "Asistencia Legal",
     descripcion:
-      "asistencia legal. Este servicio consiste en dar soporte de manera integral a los abogados. El objeto principal es la asistencia legal definida según la necesidad y enmarcada en la preparación de documentos legales, gestionar la correspondencia, gestión de archivos de casos y asistencia con las presentaciones judiciales o la preparación de pruebas, con el fin de garantizar la precisión y la eficiencia en el proceso legal.",
+      "Asistencia legal. Este servicio consiste en dar soporte de manera integral a los abogados. El objeto principal es la asistencia legal definida según la necesidad y enmarcada en la preparación de documentos legales, gestionar la correspondencia, gestión de archivos de casos y asistencia con las presentaciones judiciales o la preparación de pruebas, con el fin de garantizar la precisión y la eficiencia en el proceso legal.",
   },
   ENTRADA_DATOS: {
     nombre: "Entrada de Datos",
     descripcion:
-      "entrada de datos. El alcance de este servicio es ingresar información relacionada con el cliente y el caso de manera precisa en bases de datos definidas para tal fin. El objeto principal de este servicio es mantener la integridad de los datos, señalar las discrepancias y admitir actualizaciones oportunas en todos los sistemas legales.",
+      "Entrada de datos. El alcance de este servicio es ingresar información relacionada con el cliente y el caso de manera precisa en bases de datos definidas para tal fin. El objeto principal de este servicio es mantener la integridad de los datos, señalar las discrepancias y admitir actualizaciones oportunas en todos los sistemas legales.",
   },
   CLASIFICACION_CORREO: {
     nombre: "Clasificación de correo digital",
     descripcion:
-      "clasificación de correo digital. El alcance del servicio es ordenar y categorizar la correspondencia y los documentos digitales entrantes. El objeto principal es garantizar el correcto enrutamiento de los archivos a los equipos legales y mantener las carpetas de casos actualizadas y organizadas.",
+      "Clasificación de correo digital. El alcance del servicio es ordenar y categorizar la correspondencia y los documentos digitales entrantes. El objeto principal es garantizar el correcto enrutamiento de los archivos a los equipos legales y mantener las carpetas de casos actualizadas y organizadas.",
   },
   REVISION_ARCHIVOS: {
     nombre: "Revisión de Archivos",
     descripcion:
-      "revisión de archivos. El alcance del servicio está en revisar cuidadosamente los archivos de casos legales para verificar que estén completos y cumplan. El objeto principal es identificar la información faltante o las inconsistencias, así como, señalar los problemas para el personal legal y garantizar la precisión de la documentación antes de las audiencias o presentaciones.",
+      "Revisión de archivos. El alcance del servicio está en revisar cuidadosamente los archivos de casos legales para verificar que estén completos y cumplan. El objeto principal es identificar la información faltante o las inconsistencias, así como, señalar los problemas para el personal legal y garantizar la precisión de la documentación antes de las audiencias o presentaciones.",
   },
   FACENOTES: {
     nombre: "Facenotes",
     descripcion:
-      "transcribir y resumir las conversaciones entre abogado y cliente y las interacciones legales. El objeto principal es actualizar los sistemas de gestión de casos con registros precisos, manteniendo la documentación adecuada de todas las comunicaciones legales.",
+      "Transcribir y resumir las conversaciones entre abogado y cliente y las interacciones legales. El objeto principal es actualizar los sistemas de gestión de casos con registros precisos, manteniendo la documentación adecuada de todas las comunicaciones legales.",
   },
   OPERADOR_LLAMADAS: {
     nombre: "Operador de llamadas",
     descripcion:
-      "administración de las líneas telefónicas. Responde y dirige las llamadas a los equipos adecuados, registra las consultas y garantiza que todas las personas que llaman reciban respuestas profesionales y oportunas. Actúa como el primer punto de contacto para muchos clientes y socios externos.",
+      "Administración de las líneas telefónicas. Responde y dirige las llamadas a los equipos adecuados, registra las consultas y garantiza que todas las personas que llaman reciban respuestas profesionales y oportunas. Actúa como el primer punto de contacto para muchos clientes y socios externos.",
   },
   ADMINISTRACION_SALESFORCE: {
     nombre: "Administración de Salesforce",
     descripcion:
-      "administración de Salesforce. El alcance del servicio es gestionar y mantener la plataforma Salesforce acorde a las necesidades de la empresa. El objeto principal es garantizar la precisión de los datos, gestionar y aprobar el acceso de los usuarios y propender por automatizar los flujos de trabajo para mejorar el seguimiento de casos y los informes.",
+      "Administración de Salesforce. El alcance del servicio es gestionar y mantener la plataforma Salesforce acorde a las necesidades de la empresa. El objeto principal es garantizar la precisión de los datos, gestionar y aprobar el acceso de los usuarios y propender por automatizar los flujos de trabajo para mejorar el seguimiento de casos y los informes.",
   },
   DESARROLLO_SALESFORCE: {
     nombre: "Desarrollo de Salesforce (plataforma)",
     descripcion:
-      "desarrollo de Salesforce. El alcance del servicio es crear y configurar soluciones de Salesforce adaptadas a las operaciones legales. El objeto principal es gestionar el desarrollo de la herramienta recibiendo realimentación de los equipos de operaciones para crear automatizaciones, formularios y paneles que mejoren la productividad y la generación de informes.",
+      "Desarrollo de Salesforce. El alcance del servicio es crear y configurar soluciones de Salesforce adaptadas a las operaciones legales. El objeto principal es gestionar el desarrollo de la herramienta recibiendo realimentación de los equipos de operaciones para crear automatizaciones, formularios y paneles que mejoren la productividad y la generación de informes.",
   },
   ADMINISTRACION_BASES_DATOS: {
     nombre: "Administración de bases de datos",
     descripcion:
-      "administración de base de datos. El alcance del servicio es el seguimiento y supervisión a los sistemas de gestión de archivos digitales y las bases de datos. El objeto principal es mantener el acceso seguro a los registros de clientes y casos, organizar las estructuras de datos y garantizar que los registros se puedan recuperar y cumplan con los protocolos de privacidad.",
+      "Administración de base de datos. El alcance del servicio es el seguimiento y supervisión a los sistemas de gestión de archivos digitales y las bases de datos. El objeto principal es mantener el acceso seguro a los registros de clientes y casos, organizar las estructuras de datos y garantizar que los registros se puedan recuperar y cumplan con los protocolos de privacidad.",
   },
   COORDINACION_EQUIPOS: {
     nombre: "Coordinación de equipos",
     descripcion:
-      "coordinación de equipos. El alcance del servicio es la coordinación de los flujos de actividades periódicas de los contratistas y su seguimiento, también debe definir los planes de formación requeridos para quienes ingresen a prestar servicios y garantizar el cumplimiento de los procesos según aplique. El objetivo principal es validar el complimiento de los servicios contratos por el contratante, asi como servir de enlace entre el contratante y el contratista, por otra parte, se podrá comunicar directamente con los clientes cuando es necesario.",
+      "Coordinación de equipos. El alcance del servicio es la coordinación de los flujos de actividades periódicas de los contratistas y su seguimiento, también debe definir los planes de formación requeridos para quienes ingresen a prestar servicios y garantizar el cumplimiento de los procesos según aplique. El objetivo principal es validar el complimiento de los servicios contratos por el contratante, asi como servir de enlace entre el contratante y el contratista, por otra parte, se podrá comunicar directamente con los clientes cuando es necesario.",
   },
   CUSTOM: {
     nombre: "Personalizado",

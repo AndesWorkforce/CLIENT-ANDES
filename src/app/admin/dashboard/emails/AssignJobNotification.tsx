@@ -19,9 +19,7 @@ export const AssignJobNotification = ({
   return (
     <Html>
       <Head />
-      <Preview>
-        You have been assigned to a new job opportunity at Andes Workforce
-      </Preview>
+      <Preview>You’ve Been Assigned to a Job Opportunity</Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>
           <Text
@@ -38,9 +36,11 @@ export const AssignJobNotification = ({
               lineHeight: "1.5",
             }}
           >
-            We are pleased to inform you that you have been assigned to the job
-            opportunity <strong>{jobTitle}</strong>. Our team will be in touch
-            with you soon to discuss the next steps in the selection process.
+            We are pleased to inform you that you have been assigned to the
+            following offer: <strong>{jobTitle}</strong>.
+            <br />
+            Our team will be in touch with you soon to discuss the next steps in
+            the selection process.
           </Text>
 
           <Text
@@ -51,11 +51,11 @@ export const AssignJobNotification = ({
               lineHeight: "1.5",
             }}
           >
-            Thank you for being part of Andes Workforce.
+            Warm regards,
           </Text>
 
           <img
-            src="https://appwiseinnovations.dev/Andes/firma_nicole.png"
+            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/firma_laura.jpeg"
             alt="Signature"
             style={{ marginTop: "32px", width: "400px", height: "200px" }}
           />

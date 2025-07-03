@@ -87,6 +87,7 @@ export interface PerfilCompleto {
   estadoPerfil: "COMPLETO" | "INCOMPLETO";
   validacionExterna: boolean;
   videoPresentacion: string;
+  assessmentUrl?: string | null;
 }
 
 export interface ProfileResponse {

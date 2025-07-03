@@ -51,12 +51,7 @@ export default function StatusChangeModal({
       color: "bg-green-100 text-green-800 border-green-300",
       description: "Candidate is active and can be assigned to jobs",
     },
-    {
-      value: "FAVORITE",
-      label: "Favorite",
-      color: "bg-yellow-100 text-yellow-800 border-yellow-300",
-      description: "Candidate marked as favorite for quick access",
-    },
+
     {
       value: "DISMISS",
       label: "Dismiss",

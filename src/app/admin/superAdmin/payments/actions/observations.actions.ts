@@ -21,34 +21,30 @@ interface EnableBulkPaymentsResponse {
   }>;
 }
 
-export async function updateObservations(
+export const updateObservations = async (
   evaluacionId: string,
   observaciones: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<ApiResponse<any>> {
+) => {
   try {
     const axios = await createServerAxios();
-    const response = await axios.put(
-      `/admin/evaluaciones/${evaluacionId}/observaciones`,
+    const response = await axios.patch(
+      `/admin/evaluaciones-mensuales/${evaluacionId}/observaciones`,
       { observaciones }
     );
 
-    revalidatePath("/admin/superAdmin/payments");
     return {
       success: true,
-      message: "Observaciones actualizadas exitosamente",
       data: response.data,
+      message: "Observations updated successfully",
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating observations:", error);
     return {
       success: false,
-      error:
-        error.response?.data?.message || "Error al actualizar observaciones",
+      error: "Failed to update observations",
     };
   }
-}
+};
 
 export async function enableBulkPayments(
   evaluacionIds: string[]

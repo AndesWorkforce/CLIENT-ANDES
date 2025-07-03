@@ -42,6 +42,7 @@ export async function advancedStage(
   currentStage:
     | "PENDIENTE"
     | "EN_EVALUACION"
+    | "EN_EVALUACION_CLIENTE"
     | "FINALISTA"
     | "ACEPTADA"
     | "RECHAZADA",
@@ -52,6 +53,7 @@ export async function advancedStage(
     let nextStage:
       | "PENDIENTE"
       | "EN_EVALUACION"
+      | "EN_EVALUACION_CLIENTE"
       | "FINALISTA"
       | "ACEPTADA"
       | "RECHAZADA";
@@ -69,13 +71,21 @@ export async function advancedStage(
           additionalData = {
             fechaEntrevista: new Date().toISOString(),
             linkEntrevista: "https://meet.google.com/abc123",
-            notasInternas: "Candidate selected for initial interview",
+            notasInternas: "Candidate invited to first interview",
           };
           break;
         case "EN_EVALUACION":
+          nextStage = "EN_EVALUACION_CLIENTE";
+          additionalData = {
+            notasInternas:
+              "Candidate scheduled for second interview with client",
+          };
+          break;
+        case "EN_EVALUACION_CLIENTE":
           nextStage = "FINALISTA";
           additionalData = {
-            notasInternas: "Candidate selected as finalist",
+            notasInternas:
+              "Candidate selected as finalist after client interview",
           };
           break;
         case "FINALISTA":

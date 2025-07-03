@@ -27,6 +27,8 @@ import { candidateValidationProfile } from "../actions/applicants.actions";
 import IdentificationModal from "@/app/profile/components/IdentificationModal";
 import { useAuthStore } from "@/store/auth.store";
 import PDFDownloadButton from "./PDFDownloadButton";
+import AssessmentModal from "./AssessmentModal";
+import { saveAssessment } from "@/app/profile/actions/identification-actions";
 
 interface CandidateProfileModalProps {
   isOpen: boolean;
@@ -207,6 +209,80 @@ export default function CandidateProfileModal({
   };
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const uploadImage = async (
+    file: File | null,
+    type: string
+  ): Promise<string> => {
+    if (!file) {
+      throw new Error("No se puede subir una imagen nula");
+    }
+    try {
+      const formData = new FormData();
+      formData.append("pdf", file);
+      formData.append("folder", "pdf");
+
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+      const uploadEndpoint = `${apiBase}files/upload/pdf`;
+
+      const response = await fetch(uploadEndpoint, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      const publicUrl = await response.text();
+      return publicUrl;
+    } catch (error) {
+      console.error(
+        `[IdentificationModal] Error uploading image of ${type}:`,
+        error
+      );
+      throw error;
+    }
+  };
+
+  const isAdminRole = [
+    "ADMIN",
+    "EMPLEADO_ADMIN",
+    "ADMIN_RECLUTAMIENTO",
+  ].includes(user?.rol || "");
+  const isCompanyRole = ["EMPRESA", "EMPLEADO_EMPRESA"].includes(
+    user?.rol || ""
+  );
+  const canSeeAssessment = isAdminRole || isCompanyRole;
+  const canUploadAssessment = isAdminRole;
+  const assessmentUrl = profile?.assessmentUrl ?? null;
+  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+
+  const userId =
+    profile && "id" in profile && profile.id ? profile.id : candidateId;
+
+  const handleAssessmentUpload = async (file: File) => {
+    if (!userId || !file) return;
+
+    try {
+      // 1. Primero subir el archivo con uploadImage para obtener la URL
+      const pdfUrl = await uploadImage(file, "pdf");
+
+      // 2. Usar saveAssessment para guardar la URL en la base de datos
+      const response = await saveAssessment(userId as string, pdfUrl as string);
+
+      if (!response.success) {
+        throw new Error(
+          response.error || "Error al guardar la URL del assessment"
+        );
+      }
+
+      addNotification("Assessment guardado correctamente", "success");
+      setManualReload((prev) => prev + 1);
+    } catch {
+      addNotification("Error al guardar el assessment", "error");
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -993,6 +1069,43 @@ export default function CandidateProfileModal({
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Assessment */}
+              {canSeeAssessment && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden p-4 mb-4">
+                  <h2 className="font-medium text-gray-900 mb-2">Assessment</h2>
+                  {assessmentUrl ? (
+                    <a
+                      href={
+                        typeof assessmentUrl === "string" && assessmentUrl
+                          ? assessmentUrl
+                          : ""
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#0097B2] underline"
+                    >
+                      View Assessment PDF
+                    </a>
+                  ) : canUploadAssessment ? (
+                    <button
+                      onClick={() => setIsAssessmentModalOpen(true)}
+                      className="ml-2 px-3 py-1 bg-[#0097B2] text-white rounded"
+                    >
+                      Upload PDF
+                    </button>
+                  ) : (
+                    <span className="text-gray-400">
+                      No assessment uploaded
+                    </span>
+                  )}
+                  <AssessmentModal
+                    isOpen={isAssessmentModalOpen}
+                    onClose={() => setIsAssessmentModalOpen(false)}
+                    onUpload={handleAssessmentUpload}
+                  />
                 </div>
               )}
 

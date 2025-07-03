@@ -37,6 +37,9 @@ type UserContract = {
   evaluacionMensualId?: string | null;
   observacionesRevision?: string | null;
   documentoRevisado?: boolean;
+  // Agregar campos para el mes anterior
+  mesAnteriorAprobado?: boolean;
+  evaluacionMesAnteriorId?: string | null;
 };
 
 interface ActionLog {
@@ -112,6 +115,9 @@ export default function PaymentsPage() {
               evaluacionMensualId: contrato.evaluacionMensualId || null,
               observacionesRevision: contrato.observacionesRevision || null,
               documentoRevisado: contrato.documentoRevisado || false,
+              // Agregar campos para el mes anterior
+              mesAnteriorAprobado: contrato.mesAnteriorAprobado || false,
+              evaluacionMesAnteriorId: contrato.evaluacionMesAnteriorId || null,
             }));
 
           setUsers(transformedUsers);
@@ -351,6 +357,17 @@ export default function PaymentsPage() {
 
     setResettingUser(user.id);
     try {
+      // Primero aprobar el mes anterior si existe evaluación
+      if (user.evaluacionMesAnteriorId) {
+        const approveLastMonth = await enableBulkPayments([
+          user.evaluacionMesAnteriorId,
+        ]);
+        if (!approveLastMonth.success) {
+          throw new Error("Error aprobando el mes anterior");
+        }
+      }
+
+      // Luego resetear el mes actual a pending
       const result = await resetToPending(user.id);
 
       if (!result.success) {
@@ -369,13 +386,14 @@ export default function PaymentsPage() {
                 lastDocumentDate: null,
                 documentImageUrl: null,
                 paymentEnabled: false,
+                mesAnteriorAprobado: true, // Marcar que el mes anterior fue aprobado
               }
             : u
         )
       );
 
       setLastActionMessage(
-        `Evaluación reseteada exitosamente para ${user.firstName} ${user.lastName}`
+        `Se aprobó el mes anterior y se reseteó el mes actual para ${user.firstName} ${user.lastName}`
       );
       setShowSuccessMessage(true);
 
@@ -383,7 +401,7 @@ export default function PaymentsPage() {
       setActionLogs((prev) => [
         {
           id: Date.now().toString(),
-          action: `Reset manual para ${user.firstName} ${user.lastName}`,
+          action: `Reset manual y aprobación del mes anterior para ${user.firstName} ${user.lastName}`,
           timestamp: new Date().toLocaleString(),
           usersAffected: 1,
         },
@@ -391,10 +409,33 @@ export default function PaymentsPage() {
       ]);
     } catch (error) {
       console.error("Error resetting evaluation:", error);
-      addNotification("Error resetting evaluation. Please try again.", "error");
+      addNotification(
+        "Error en el proceso. Por favor intente nuevamente.",
+        "error"
+      );
     } finally {
       setResettingUser(null);
     }
+  };
+
+  // Función para determinar si mostrar el botón de reset
+  const shouldShowResetButton = (user: UserContract) => {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDocDate = user.lastDocumentDate
+      ? new Date(user.lastDocumentDate)
+      : null;
+
+    // Mostrar el botón solo si:
+    // 1. El usuario tiene una evaluación pendiente del mes anterior
+    // 2. No tiene el mes anterior aprobado
+    // 3. Estamos en un nuevo mes
+    return (
+      !user.mesAnteriorAprobado &&
+      user.evaluacionMesAnteriorId &&
+      lastDocDate &&
+      lastDocDate < firstDayOfMonth
+    );
   };
 
   const getPaymentStatus = (user: UserContract) => {
@@ -655,17 +696,17 @@ export default function PaymentsPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {user.paymentEnabled || user.observacionesRevision ? (
+                    {shouldShowResetButton(user) ? (
                       <button
                         onClick={() => handleResetToPending(user)}
                         disabled={resettingUser === user.id}
                         className="flex items-center gap-2 px-3 py-1.5 text-sm bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        title="Reset to PENDING status"
+                        title="Aprobar mes anterior y resetear mes actual"
                       >
                         {resettingUser === user.id ? (
                           <>
                             <div className="animate-spin h-4 w-4 border-2 border-yellow-600 border-t-transparent rounded-full"></div>
-                            <span>Resetting...</span>
+                            <span>Procesando...</span>
                           </>
                         ) : (
                           <>
@@ -682,7 +723,7 @@ export default function PaymentsPage() {
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                               />
                             </svg>
-                            <span>Reset to Pending</span>
+                            <span>Aprobar y Resetear</span>
                           </>
                         )}
                       </button>

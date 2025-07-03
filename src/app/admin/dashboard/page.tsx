@@ -58,6 +58,7 @@ export default function AdminDashboardPage() {
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
+
   const loadMoreRef = useCallback(
     (node: HTMLDivElement) => {
       if (isLoading || loadingMore) return;
@@ -259,22 +260,19 @@ export default function AdminDashboardPage() {
       } else {
         addNotification(`Error: ${response.message}`, "error");
       }
-    } catch (error) {
-      console.error("Error al cambiar estado de la oferta:", error);
-      addNotification("Error al cambiar estado de la oferta", "error");
+    } catch {
+      addNotification("Error changing offer status", "error");
     } finally {
       setIsPauseModalOpen(false);
       setOfferToToggle(null);
     }
   };
 
-  // Función para manejar la eliminación de una oferta
   const handleDeleteOffer = (offer: Offer) => {
     setOfferToDelete(offer);
     setIsDeleteModalOpen(true);
   };
 
-  // Función para confirmar la eliminación
   const confirmDeleteOffer = async () => {
     if (!offerToDelete || !offerToDelete.id) return;
 
@@ -820,7 +818,6 @@ export default function AdminDashboardPage() {
           isOpen={isApplicantsModalOpen}
           onClose={closeApplicantsModal}
           serviceTitle={selectedOffer?.titulo || ""}
-          offerId={selectedOffer.id || ""}
           applicants={
             selectedOffer?.postulaciones?.map((postulacion) => ({
               id: postulacion.candidato.id,
@@ -833,6 +830,7 @@ export default function AdminDashboardPage() {
               postulationId: postulacion.id,
               estadoPostulacion:
                 postulacion.estadoPostulacion as EstadoPostulacion,
+              serviceTitle: selectedOffer.titulo,
             })) || []
           }
         />

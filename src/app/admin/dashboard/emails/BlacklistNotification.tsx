@@ -46,7 +46,7 @@ export const BlacklistNotificationEmail = ({
           <Text style={paragraph}>Andes Workforce Team</Text>
 
           <img
-            src="https://appwiseinnovations.dev/Andes/firma_nicole.png"
+            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/firma_laura.jpeg"
             alt="Signature"
             style={{ marginTop: "32px", width: "400px", height: "200px" }}
           />
