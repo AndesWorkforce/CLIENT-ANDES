@@ -90,18 +90,22 @@ export interface ProcesoContratacion {
   // Campos adicionales para el frontend
   ultimaEvaluacion?: Date | null;
   estadoEvaluacion?: "pending" | "approved" | "rejected";
-  salarioPagado?: boolean;
+  salarioPagado: boolean;
   paymentHistory: PaymentRecord[];
   documentosLeidos: DocumentoLeido[];
   evaluacionesPago: EvaluacionPagoMensual[];
 
   // Campos calculados para gestión de pagos mensuales
-  documentoSubidoEsteMes?: boolean;
-  fechaUltimoDocumento?: string | null;
-  urlDocumentoMesActual?: string | null;
-  evaluacionMensualId?: string | null;
-  observacionesRevision?: string | null;
-  documentoRevisado?: boolean;
+  documentoSubidoEsteMes: boolean;
+  fechaUltimoDocumento: string | null;
+  urlDocumentoMesActual: string | null;
+  evaluacionMensualId: string | null;
+  observacionesRevision: string | null;
+  documentoRevisado: boolean;
+
+  // Campos para el mes anterior
+  mesAnteriorAprobado: boolean;
+  evaluacionMesAnteriorId: string | null;
 }
 
 export interface GetContractsResponse {

@@ -47,9 +47,8 @@ export default function CompaniesTable({
       } else {
         addNotification(response.message, "error");
       }
-    } catch (error) {
-      console.error("Error al cambiar el estado:", error);
-      addNotification("Error al cambiar el estado de la empresa", "error");
+    } catch {
+      addNotification("Error changing company status", "error");
     } finally {
       setIsUpdatingStatus(false);
       setShowStatusModal(false);

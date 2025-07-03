@@ -127,12 +127,23 @@ export default function CurrentApplication() {
 
   // Mapeo de nombres de documentos a secciones de la API
   const documentToSection: { [key: string]: string } = {
-    "Harassment Prevention Policy": "introduccion",
-    "Service Agreement Contract": "politicas",
-    "Confidentiality Agreement": "beneficios",
-    "Harassment Policy Annexes": "contrato",
-    "Good Governance Manual": "reglamento",
+    politica_acoso: "introduccion",
+    contrato_servicio: "politicas",
+    acuerdo_confidencialidad: "beneficios",
+    anexos_politica_acoso: "contrato",
+    manual_buen_gobierno: "reglamento",
   };
+
+  // Get current date information
+  const currentDate = new Date();
+  const currentMonth = months[currentDate.getMonth()]; // Get current month name
+  const currentYear = currentDate.getFullYear();
+
+  // Set current month and year when component mounts or when they change
+  useEffect(() => {
+    setSelectedMonth(currentMonth);
+    setSelectedYear(currentYear);
+  }, [currentMonth, currentYear]);
 
   const currentContract = async () => {
     if (!user?.id) return;
@@ -459,9 +470,9 @@ export default function CurrentApplication() {
       const currentDoc = contractDocuments[currentDocumentIndex];
       if (currentDoc) {
         try {
-          const section = documentToSection[currentDoc.name];
+          const section = documentToSection[currentDoc.id];
           if (!section) {
-            console.error("Sección no válida:", currentDoc.name);
+            console.error("Sección no válida:", currentDoc.id);
             return;
           }
 
@@ -492,14 +503,28 @@ export default function CurrentApplication() {
   };
 
   const handleNextDocument = async () => {
+    console.log("🔄 handleNextDocument iniciado", {
+      currentDocumentIndex,
+      totalDocuments: contractDocuments.length,
+      currentDoc: contractDocuments[currentDocumentIndex],
+      currentJobId: currentJob?.id,
+      userId: user?.id,
+    });
+
     if (currentDocumentIndex < contractDocuments.length - 1) {
       // Actualizar el documento actual en la base de datos
       const currentDoc = contractDocuments[currentDocumentIndex];
       if (currentDoc && currentJob?.id && user?.id) {
         try {
-          const section = documentToSection[currentDoc.name];
+          const section = documentToSection[currentDoc.id];
+          console.log("📝 Intentando actualizar documento", {
+            documentId: currentDoc.id,
+            section,
+            procesoId: currentJob.id,
+          });
+
           if (!section) {
-            console.error("Sección no válida:", currentDoc.name);
+            console.error("❌ Sección no válida:", currentDoc.id);
             return;
           }
 
@@ -512,6 +537,8 @@ export default function CurrentApplication() {
             }
           );
 
+          console.log("✅ Resultado de actualización:", result);
+
           if (result.success) {
             setCurrentDocumentIndex((prev) => prev + 1);
             setHasReachedEnd(false);
@@ -521,12 +548,18 @@ export default function CurrentApplication() {
             const updatedContract = await getCurrentContract(user.id);
             if (updatedContract.success && updatedContract.data) {
               setCurrentJob(updatedContract.data);
+              console.log("✅ Contract actualizado:", updatedContract.data);
             }
           } else {
             console.error("❌ Error actualizando documento:", result.error);
+            addNotification(
+              "Error updating document: " + result.error,
+              "error"
+            );
           }
         } catch (error) {
-          console.error("Error al actualizar el documento:", error);
+          console.error("❌ Error en handleNextDocument:", error);
+          addNotification("Error updating document", "error");
         }
       }
     } else {
@@ -535,9 +568,9 @@ export default function CurrentApplication() {
         const currentDoc = contractDocuments[currentDocumentIndex];
         if (currentDoc) {
           try {
-            const section = documentToSection[currentDoc.name];
+            const section = documentToSection[currentDoc.id];
             if (!section) {
-              console.error("Sección no válida:", currentDoc.name);
+              console.error("Sección no válida:", currentDoc.id);
               return;
             }
 
@@ -717,35 +750,35 @@ export default function CurrentApplication() {
     switch (status) {
       case "SIGNED":
         return (
-          <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full flex items-center gap-1">
+          <span className="px-3 py-1 text-green-800 text-sm rounded-full flex items-center gap-1">
             <CheckCircle size={14} />
             Signed
           </span>
         );
       case "PENDING":
         return (
-          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full flex items-center gap-1">
+          <span className="px-3 py-1 text-yellow-800 text-sm rounded-full flex items-center gap-1">
             <Clock size={14} />
             Pending Signature
           </span>
         );
       case "REJECTED":
         return (
-          <span className="px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full flex items-center gap-1">
+          <span className="px-3 py-1 text-red-800 text-sm rounded-full flex items-center gap-1">
             <X size={14} />
             Rejected
           </span>
         );
       case "EXPIRED":
         return (
-          <span className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full flex items-center gap-1">
+          <span className="px-3 py-1 text-gray-800 text-sm rounded-full flex items-center gap-1">
             <AlertCircle size={14} />
             Expired
           </span>
         );
       default:
         return (
-          <span className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full flex items-center gap-1">
+          <span className="px-3 py-1 text-gray-800 text-sm rounded-full flex items-center gap-1">
             <AlertCircle size={14} />
             Unknown
           </span>
@@ -1290,10 +1323,10 @@ export default function CurrentApplication() {
                       Salary
                     </label>
                     <p className="text-gray-900 font-medium">
-                      {currentJob.finalSalary
-                        ? `$${currentJob.finalSalary.toLocaleString()}`
+                      {currentJob.ofertaSalarial
+                        ? `$${currentJob.ofertaSalarial.toLocaleString()}`
                         : "N/A"}{" "}
-                      {currentJob.salaryCurrency}
+                      {currentJob.monedaSalario}
                     </p>
                   </div>
 
@@ -1378,6 +1411,32 @@ export default function CurrentApplication() {
                         >
                           <Download size={16} />
                           Download
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Active Breaks Guide */}
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <FileText className="text-[#0097B2]" size={20} />
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              Active Breaks Guide
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Learn about active breaks and their importance
+                            </p>
+                          </div>
+                        </div>
+                        <a
+                          href="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/PAUSAS_ACTIVAS_VF_.pdf"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors"
+                        >
+                          <Eye size={16} />
+                          View Guide
                         </a>
                       </div>
                     </div>
@@ -1508,35 +1567,24 @@ export default function CurrentApplication() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Month
                   </label>
-                  <select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
-                  >
-                    <option value="">Select month</option>
-                    {months.map((month) => (
-                      <option key={month} value={month}>
-                        {month}
-                      </option>
-                    ))}
-                  </select>
+                  <input
+                    type="text"
+                    value={currentMonth}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Year
                   </label>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
-                  >
-                    {[2024, 2025, 2026].map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
+                  <input
+                    type="text"
+                    value={currentYear}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                  />
                 </div>
 
                 <div>

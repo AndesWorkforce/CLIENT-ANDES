@@ -9,13 +9,16 @@ import {
 
 interface ContractJobProps {
   candidateName: string;
+  jobTitle: string;
 }
 
-export const ContractJob = ({ candidateName }: ContractJobProps) => {
+export const ContractJob = ({ candidateName, jobTitle }: ContractJobProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Congratulations! You&apos;ve reached the final stage</Preview>
+      <Preview>
+        Congratulations! You have been selected for the offer: {jobTitle}.
+      </Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>
           <Text
@@ -32,9 +35,11 @@ export const ContractJob = ({ candidateName }: ContractJobProps) => {
               lineHeight: "1.5",
             }}
           >
-            Congratulations! You have successfully completed all stages of the
-            process. We are very pleased with your performance and would like to
-            discuss the next steps with you.
+            We will be sending you a contract shortly outlining the details of
+            our offer, along with further information about the onboarding
+            process with Andes Workforce and our client.
+            <br />
+            We&#39;re excited to have you on board!
           </Text>
 
           <Text
@@ -45,12 +50,11 @@ export const ContractJob = ({ candidateName }: ContractJobProps) => {
               lineHeight: "1.5",
             }}
           >
-            Please stay tuned as we will be contacting you in the coming days to
-            discuss how to proceed.
+            Warm regards,
           </Text>
 
           <img
-            src="https://appwiseinnovations.dev/Andes/firma_nicole.png"
+            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/firma_laura.jpeg"
             alt="Signature"
             style={{ marginTop: "32px", width: "400px", height: "200px" }}
           />

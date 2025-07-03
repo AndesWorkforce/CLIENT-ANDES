@@ -617,7 +617,7 @@ export default function ContractsPage() {
                           </td>
                           <td className="py-4 px-4">
                             {contract.estadoContratacion ===
-                              "DOCUMENTOS_COMPLETADOS" &&
+                              "CONTRATO_FINALIZADO" &&
                             contract.signWellDownloadUrl ? (
                               <div className="flex items-center space-x-2">
                                 <a
@@ -647,7 +647,7 @@ export default function ContractsPage() {
                           </td>
                           <td className="py-4 px-4">
                             {contract.estadoContratacion ===
-                            "DOCUMENTOS_COMPLETADOS" ? (
+                            "CONTRATO_FINALIZADO" ? (
                               <button
                                 onClick={() =>
                                   handleUploadContract(contract.id)

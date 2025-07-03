@@ -2,6 +2,7 @@
 
 import { createServerAxios } from "@/services/axios.server";
 import { AxiosError } from "axios";
+import { revalidatePath } from "next/cache";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -198,6 +199,47 @@ export async function activateCandidate(
     return {
       success: false,
       message: "Error al activar el candidato",
+      error: error,
+    };
+  }
+}
+
+export async function toggleFavorite(
+  candidateId: string
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    // Asegurar que API_URL termine con /
+    const baseUrl = API_URL?.endsWith("/") ? API_URL : `${API_URL}/`;
+    const endpoint = `${baseUrl}usuarios/${candidateId}/toggle-favorite`;
+
+    const response = await axios.patch(endpoint);
+
+    // Revalidar la ruta para actualizar los datos
+    revalidatePath("/admin/dashboard/postulants");
+
+    return {
+      success: true,
+      message: response.data.message || "Favorite status updated successfully",
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error toggleando favorito:", error);
+
+    if (error instanceof AxiosError) {
+      const errorMessage =
+        error.response?.data?.message || "Error updating favorite status";
+
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data,
+      };
+    }
+
+    return {
+      success: false,
+      message: "Error updating favorite status",
       error: error,
     };
   }

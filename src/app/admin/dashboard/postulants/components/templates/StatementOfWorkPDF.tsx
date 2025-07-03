@@ -99,9 +99,6 @@ interface StatementOfWorkData {
   salarioProbatorio: string;
   ofertaSalarial: string;
   monedaSalario: string;
-  nombreBanco: string;
-  numeroCuenta: string;
-  direccionCompleta: string;
   telefono: string;
   cedula: string;
   nacionalidad?: string;
@@ -625,19 +622,19 @@ const StatementOfWorkPDF: React.FC<StatementOfWorkPDFProps> = ({ data }) => {
 
         {/* Sección de firmas */}
         <View style={styles.signatureSection}>
-          <View style={styles.signatureBlock}>
+          {/* <View style={styles.signatureBlock}>
             <Text style={styles.signatureLabel}>EL CONTRATANTE,</Text>
             <View style={styles.signatureLine}></View>
             <Text style={styles.signatureLabel}>Andes Workforce LLC</Text>
-          </View>
+          </View> */}
 
-          <View style={styles.signatureBlock}>
+          {/* <View style={styles.signatureBlock}>
             <Text style={styles.signatureLabel}>EL CONTRATISTA,</Text>
             <View style={styles.signatureLine}></View>
             <Text style={styles.signatureLabel}>
               {data.nombreCompleto || "____________________________"}
             </Text>
-          </View>
+          </View> */}
         </View>
       </Page>
     </Document>

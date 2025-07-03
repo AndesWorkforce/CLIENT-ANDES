@@ -81,7 +81,7 @@ const SendEmailModal: React.FC<SendEmailModalProps> = ({
       body += `
         <br/>
         <img 
-          src="https://appwiseinnovations.dev/Andes/firma_nicole.png" 
+          src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/firma_laura.jpeg" 
           alt="Andes Workforce Signature" 
           style="margin-top: 32px; width: 400px; height: 200px;"
         />
