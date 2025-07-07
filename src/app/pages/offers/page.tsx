@@ -117,6 +117,10 @@ export default function JobOffersPage() {
           "You already have an active application. Please wait until it's rejected or accepted before applying to another offer.",
           "info"
         );
+      } else if (
+        message.includes("This job is only available for people from")
+      ) {
+        addNotification(message, "info");
       } else {
         addNotification("Error applying to this job", "error");
       }

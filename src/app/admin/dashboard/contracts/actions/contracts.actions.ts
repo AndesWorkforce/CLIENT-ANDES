@@ -130,3 +130,26 @@ export async function updateRevisionEvaluacion(
     };
   }
 }
+
+interface FinalizarContratoData {
+  motivo?: string;
+  observaciones?: string;
+}
+
+export const finalizarContrato = async (
+  procesoId: string,
+  data: FinalizarContratoData
+) => {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.patch(
+      `/admin/contratacion/${procesoId}/finalizar`,
+      data
+    );
+    return response.data;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error("Error finalizing contract:", error);
+    throw error;
+  }
+};

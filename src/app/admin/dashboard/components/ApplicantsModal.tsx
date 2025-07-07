@@ -285,24 +285,6 @@ export default function ApplicantsModal({
 
   if (!isOpen) return null;
 
-  // const confirmTogglePause = async () => {
-  //   const newStatus = "pausado";
-
-  //   try {
-  //     const response = await toggleOfferStatus(offerId, newStatus);
-  //     if (response && response.success) {
-  //       addNotification(response.message, "success");
-  //       onClose();
-  //     } else {
-  //       const errorMessage = response?.message || "Error changing offer status";
-  //       addNotification(`Error: ${errorMessage}`, "error");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error changing offer status:", error);
-  //     addNotification("Error changing offer status", "error");
-  //   }
-  // };
-
   // Pagination functions
   const goToNextPage = () => {
     if (currentPage < totalPages) {

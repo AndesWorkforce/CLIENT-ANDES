@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   getContracts,
   getEvaluacionesMensuales,
+  finalizarContrato,
 } from "./actions/contracts.actions";
 import {
   ProcesoContratacion,
@@ -15,13 +16,15 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  PenTool,
   Upload,
   Eye,
   DollarSign,
+  XSquare,
+  PenTool,
 } from "lucide-react";
 import TableSkeleton from "../components/TableSkeleton";
 import { sendProviderContractEmail } from "@/app/pages/contact/actions/microsoft-email-actions";
+import { useNotificationStore } from "@/store/notifications.store";
 
 // Using imported interfaces from ./interfaces/contracts.interface.ts
 
@@ -44,7 +47,116 @@ const DocumentReadStatus = ({ contract }: DocumentReadStatusProps) => {
   );
 };
 
+const TerminateContractModal = ({
+  contract,
+  onClose,
+  onConfirm,
+}: {
+  contract: ProcesoContratacion;
+  onClose: () => void;
+  onConfirm: (data: {
+    motivo?: string;
+    observaciones?: string;
+  }) => Promise<void>;
+}) => {
+  const [motivo, setMotivo] = useState("");
+  const [observaciones, setObservaciones] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!motivo.trim()) {
+      alert("Please provide a reason for contract termination");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onConfirm({
+        motivo: motivo.trim(),
+        observaciones: observaciones.trim() || undefined,
+      });
+      onClose();
+    } catch (error) {
+      console.error("Error submitting termination:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">
+            Terminate Contract - {contract.nombreCompleto}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Reason for termination *
+          </label>
+          <input
+            type="text"
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+            placeholder="Enter the reason for contract termination"
+          />
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Additional observations
+          </label>
+          <textarea
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+            rows={3}
+            placeholder="Add any additional observations (optional)"
+          />
+        </div>
+
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting || !motivo.trim()}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                Processing...
+              </>
+            ) : (
+              <>
+                <XSquare size={16} className="mr-2" />
+                Terminate Contract
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function ContractsPage() {
+  const { addNotification } = useNotificationStore();
   const CONTRACTS_PER_PAGE = 7;
   const [contracts, setContracts] = useState<ProcesoContratacion[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -60,6 +172,7 @@ export default function ContractsPage() {
     EvaluacionPagoMensual[]
   >([]);
   const [loadingEvaluaciones, setLoadingEvaluaciones] = useState(false);
+  const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false);
   const [contractDocumentReadStatus] = useState<Record<string, boolean>>({});
 
   console.log(
@@ -184,17 +297,24 @@ export default function ContractsPage() {
       });
 
       if (emailResult.success) {
-        alert(
-          "Contract documents have been sent to the provider successfully."
+        addNotification(
+          "Contract documents have been sent to the provider successfully.",
+          "success"
         );
         // Reload contracts to update status
         await loadContracts();
       } else {
-        alert(`Failed to send documents: ${emailResult.message}`);
+        addNotification(
+          `Failed to send documents: ${emailResult.message}`,
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error in handleSignContract:", error);
-      alert("There was an error sending the documents to the provider.");
+      addNotification(
+        "There was an error sending the documents to the provider.",
+        "error"
+      );
     }
   };
 
@@ -275,6 +395,30 @@ export default function ContractsPage() {
   //       );
   //   }
   // };
+
+  const handleFinalizarContrato = async (procesoId: string) => {
+    const contract = contracts.find((c) => c.id === procesoId);
+    if (!contract) return;
+
+    setSelectedContract(contract);
+    setIsTerminateModalOpen(true);
+  };
+
+  const handleConfirmTermination = async (data: {
+    motivo?: string;
+    observaciones?: string;
+  }) => {
+    if (!selectedContract) return;
+
+    try {
+      await finalizarContrato(selectedContract.id, data);
+      addNotification("Contract terminated successfully", "success");
+      await loadContracts();
+    } catch (error) {
+      console.error("Error terminating contract:", error);
+      addNotification("Error terminating contract. Please try again.", "error");
+    }
+  };
 
   const PaymentModal = ({
     contract,
@@ -592,6 +736,9 @@ export default function ContractsPage() {
                         <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Upload Contract
                         </th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -663,6 +810,36 @@ export default function ContractsPage() {
                                 Pending signature
                               </span>
                             )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex items-center space-x-2">
+                              {contractDocumentReadStatus[contract.id] && (
+                                <button
+                                  onClick={() =>
+                                    handleSignContract(contract.id)
+                                  }
+                                  className="text-[#0097B2] hover:text-[#007A8C] flex items-center"
+                                >
+                                  <PenTool size={16} className="mr-1" />
+                                  Sign
+                                </button>
+                              )}
+
+                              {contract.estadoContratacion ===
+                                "CONTRATO_FINALIZADO" &&
+                                contract.activo && (
+                                  <button
+                                    onClick={() =>
+                                      handleFinalizarContrato(contract.id)
+                                    }
+                                    className="text-red-600 hover:text-red-800 flex items-center"
+                                    title="Terminate Contract"
+                                  >
+                                    <XSquare size={16} className="mr-1" />
+                                    Terminate
+                                  </button>
+                                )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -864,20 +1041,33 @@ export default function ContractsPage() {
                         <DollarSign size={14} className="mr-1" />
                         {contract.evaluacionesPago?.length || 0} Evaluations
                       </button>
-                    </div>
 
-                    {/* Botones adicionales si son necesarios para acciones específicas */}
-                    {contractDocumentReadStatus[contract.id] && (
-                      <div className="pt-3 border-t border-gray-200">
-                        <button
-                          onClick={() => handleSignContract(contract.id)}
-                          className="w-full px-3 py-2 bg-[#0097B2] text-white text-sm rounded-md hover:bg-[#007B8F] transition-colors flex items-center justify-center"
-                        >
-                          <PenTool size={16} className="mr-2" />
-                          Sign
-                        </button>
+                      <span className="text-gray-600 font-bold">Actions:</span>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {contractDocumentReadStatus[contract.id] && (
+                          <button
+                            onClick={() => handleSignContract(contract.id)}
+                            className="flex items-center justify-center px-3 py-1 border border-[#0097B2] text-[#0097B2] rounded-md hover:bg-[#0097B2]/10"
+                          >
+                            <PenTool size={16} className="mr-1" />
+                            Sign
+                          </button>
+                        )}
+
+                        {contract.estadoContratacion === "FIRMADO" &&
+                          contract.activo && (
+                            <button
+                              onClick={() =>
+                                handleFinalizarContrato(contract.id)
+                              }
+                              className="flex items-center justify-center px-3 py-1 border border-red-600 text-red-600 rounded-md hover:bg-red-50"
+                            >
+                              <XSquare size={16} className="mr-1" />
+                              Terminate
+                            </button>
+                          )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -975,6 +1165,18 @@ export default function ContractsPage() {
             setIsUploadModalOpen(false);
             setSelectedContract(null);
           }}
+        />
+      )}
+
+      {/* Terminate Contract Modal */}
+      {isTerminateModalOpen && selectedContract && (
+        <TerminateContractModal
+          contract={selectedContract}
+          onClose={() => {
+            setIsTerminateModalOpen(false);
+            setSelectedContract(null);
+          }}
+          onConfirm={handleConfirmTermination}
         />
       )}
     </div>
