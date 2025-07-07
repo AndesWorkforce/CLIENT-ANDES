@@ -10,6 +10,7 @@ export async function createOffer(formData: FormData) {
       titulo: formData.get("title") as string,
       descripcion: formData.get("description") as string,
       estado: formData.get("estado") as string,
+      pais: (formData.get("pais") as string) || undefined,
     };
 
     const response = await axios.post(`offers`, dataToSend);
