@@ -20,6 +20,7 @@ import { CandidateProfileProvider } from "../context/CandidateProfileContext";
 import ApplicantsTableSkeleton from "./ApplicantsTableSkeleton";
 import { ApplicantsMobileCardSkeleton } from "./ApplicantsTableSkeleton";
 import { useRouter } from "next/navigation";
+import { removeMultipleApplications } from "../actions/applicants.actions";
 
 export type EstadoPostulacion =
   | "PENDIENTE"
@@ -72,6 +73,15 @@ export default function ApplicantsModal({
       isExpanded: false,
     }))
   );
+
+  // Estado para manejar las selecciones de candidatos
+  const [selectedCandidates, setSelectedCandidates] = useState<Set<string>>(
+    new Set()
+  );
+
+  // Estado para el modal de confirmación de eliminación
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
   const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
   const [selectedVideo, setSelectedVideo] = useState<string>("");
   const [selectedApplicant, setSelectedApplicant] =
@@ -283,6 +293,81 @@ export default function ApplicantsModal({
     setIsVideoModalOpen(true);
   };
 
+  // Funciones para manejar la selección de candidatos
+  const handleCandidateSelection = (
+    candidateId: string,
+    isSelected: boolean
+  ) => {
+    const newSelected = new Set(selectedCandidates);
+    if (isSelected) {
+      newSelected.add(candidateId);
+    } else {
+      newSelected.delete(candidateId);
+    }
+    setSelectedCandidates(newSelected);
+  };
+
+  const handleSelectAll = (isSelected: boolean) => {
+    if (isSelected) {
+      const allIds = new Set(applicants.map((app) => app.id));
+      setSelectedCandidates(allIds);
+    } else {
+      setSelectedCandidates(new Set());
+    }
+  };
+
+  const handleRemoveSelectedCandidates = async () => {
+    if (selectedCandidates.size === 0) return;
+
+    setIsLoading(true);
+    try {
+      // Obtener los IDs de postulación de los candidatos seleccionados
+      const postulationIds = applicants
+        .filter((app) => selectedCandidates.has(app.id))
+        .map((app) => app.postulationId);
+
+      const response = await removeMultipleApplications(postulationIds);
+
+      if (response && response.success) {
+        // Remover los candidatos eliminados de la lista
+        setApplicants((prevApplicants) =>
+          prevApplicants.filter((app) => !selectedCandidates.has(app.id))
+        );
+        setSelectedCandidates(new Set());
+
+        // Mostrar mensaje detallado si está disponible
+        if (response.data && response.data.removed > 0) {
+          addNotification(
+            `Successfully removed ${response.data.removed} of ${response.data.total} applications`,
+            "success"
+          );
+
+          // Mostrar errores si los hay
+          if (response.data.errors && response.data.errors.length > 0) {
+            response.data.errors.forEach((error: string) => {
+              addNotification(error, "warning");
+            });
+          }
+        } else {
+          addNotification("Applications removed successfully", "success");
+        }
+
+        router.refresh();
+        onUpdate?.();
+      } else {
+        addNotification(
+          response.error || "Error removing applications",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error removing applications:", error);
+      addNotification("Error removing applications", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   // Pagination functions
@@ -322,10 +407,44 @@ export default function ApplicantsModal({
 
           {/* Header with title */}
           <div className="p-4 border-b border-[#E2E2E2] text-start rounded-t-lg">
-            <h3 className="text-base font-medium text-gray-900 mb-1">
-              Applicants for service:
-            </h3>
-            <p className="text-[#0097B2] font-medium">{serviceTitle}</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-base font-medium text-gray-900 mb-1">
+                  Applicants for service:
+                </h3>
+                <p className="text-[#0097B2] font-medium">{serviceTitle}</p>
+                {selectedCandidates.size > 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedCandidates.size} candidate(s) selected
+                  </p>
+                )}
+                {/* Botón Select All para vista móvil - solo para admins */}
+                {!isCompanyUser && applicants.length > 0 && (
+                  <button
+                    onClick={() =>
+                      handleSelectAll(
+                        selectedCandidates.size !== applicants.length
+                      )
+                    }
+                    className="text-xs text-[#0097B2] hover:underline mt-1"
+                  >
+                    {selectedCandidates.size === applicants.length
+                      ? "Deselect All"
+                      : "Select All"}
+                  </button>
+                )}
+              </div>
+              {/* Botón de eliminación para vista móvil - solo para admins */}
+              {!isCompanyUser && selectedCandidates.size > 0 && (
+                <button
+                  onClick={() => setShowConfirmModal(true)}
+                  className="px-3 py-2 mt-5 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-colors flex items-center gap-1"
+                >
+                  <X size={14} />
+                  Remove ({selectedCandidates.size})
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Applicants list with scroll */}
@@ -342,9 +461,30 @@ export default function ApplicantsModal({
               applicants.map((applicant) => (
                 <div key={applicant.id} className="border-b border-[#E2E2E2]">
                   <div className="px-4 py-3">
-                    <div className="grid grid-cols-2 w-full mb-4">
-                      <p className="text-gray-700 text-sm">Name</p>
-                      <p className="text-gray-900 text-sm font-medium">{`${applicant.nombre} ${applicant.apellido}`}</p>
+                    {/* Checkbox y nombre */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        {/* Checkbox para seleccionar - solo para admins */}
+                        {!isCompanyUser && (
+                          <input
+                            type="checkbox"
+                            checked={selectedCandidates.has(applicant.id)}
+                            onChange={(e) =>
+                              handleCandidateSelection(
+                                applicant.id,
+                                e.target.checked
+                              )
+                            }
+                            className="rounded border-gray-300 text-[#0097B2] focus:ring-[#0097B2]"
+                          />
+                        )}
+                        <div>
+                          <p className="text-gray-900 text-sm font-medium">{`${applicant.nombre} ${applicant.apellido}`}</p>
+                          <p className="text-xs text-gray-500">
+                            {STATUS_TRANSLATIONS[applicant.estadoPostulacion]}
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
                     {!isCompanyUser && (
@@ -439,9 +579,9 @@ export default function ApplicantsModal({
                         {isCompanyUser ? (
                           <>
                             {applicant.estadoPostulacion === "FINALISTA" && (
-                              <>
+                              <div className="grid grid-cols-2 gap-2">
                                 <button
-                                  className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
                                   onClick={() =>
                                     handleSelectCandidate(
                                       applicant.postulationId,
@@ -456,7 +596,7 @@ export default function ApplicantsModal({
                                   Contract
                                 </button>
                                 <button
-                                  className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                  className="px-2 py-1 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-colors cursor-pointer"
                                   onClick={() =>
                                     handleRejectCandidate(
                                       applicant.postulationId,
@@ -468,7 +608,7 @@ export default function ApplicantsModal({
                                 >
                                   Reject
                                 </button>
-                              </>
+                              </div>
                             )}
                             {applicant.estadoPostulacion !== "FINALISTA" && (
                               <div className="text-gray-400 text-xs">
@@ -477,32 +617,148 @@ export default function ApplicantsModal({
                             )}
                           </>
                         ) : (
-                          /* For admin users: original logic */
-                          <>
+                          /* For admin users: all interview stages and actions */
+                          <div className="space-y-2">
+                            {/* Primera Entrevista */}
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-600">
+                                First Interview:
+                              </span>
+                              {applicant.estadoPostulacion === "PENDIENTE" ? (
+                                <button
+                                  className="px-2 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handleSelectCandidate(
+                                      applicant.postulationId,
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo,
+                                      "PENDIENTE",
+                                      "NEXT"
+                                    )
+                                  }
+                                >
+                                  Send
+                                </button>
+                              ) : applicant.estadoPostulacion ===
+                                  "EN_EVALUACION" ||
+                                applicant.estadoPostulacion ===
+                                  "EN_EVALUACION_CLIENTE" ||
+                                applicant.estadoPostulacion === "FINALISTA" ||
+                                applicant.estadoPostulacion === "ACEPTADA" ? (
+                                <div className="text-green-600 text-xs font-medium">
+                                  ✓ Done
+                                </div>
+                              ) : (
+                                <div className="text-gray-400 text-xs">N/A</div>
+                              )}
+                            </div>
+
+                            {/* Segunda Entrevista */}
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-600">
+                                Second Interview:
+                              </span>
+                              {applicant.estadoPostulacion ===
+                              "EN_EVALUACION" ? (
+                                <button
+                                  className="px-2 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handleSelectCandidate(
+                                      applicant.postulationId,
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo,
+                                      "EN_EVALUACION",
+                                      "NEXT"
+                                    )
+                                  }
+                                >
+                                  Schedule
+                                </button>
+                              ) : applicant.estadoPostulacion ===
+                                "EN_EVALUACION_CLIENTE" ? (
+                                <button
+                                  className="px-2 py-1 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handleSelectCandidate(
+                                      applicant.postulationId,
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo,
+                                      "EN_EVALUACION_CLIENTE",
+                                      "NEXT"
+                                    )
+                                  }
+                                >
+                                  Advance
+                                </button>
+                              ) : applicant.estadoPostulacion === "FINALISTA" ||
+                                applicant.estadoPostulacion === "ACEPTADA" ? (
+                                <div className="text-green-600 text-xs font-medium">
+                                  ✓ Done
+                                </div>
+                              ) : (
+                                <div className="text-gray-400 text-xs">N/A</div>
+                              )}
+                            </div>
+
+                            {/* Contratación */}
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-600">
+                                Hiring:
+                              </span>
+                              {applicant.estadoPostulacion === "FINALISTA" ? (
+                                <button
+                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handleSelectCandidate(
+                                      applicant.postulationId,
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo,
+                                      "FINALISTA",
+                                      "CONTRACT"
+                                    )
+                                  }
+                                >
+                                  Hire
+                                </button>
+                              ) : applicant.estadoPostulacion !== "ACEPTADA" &&
+                                applicant.estadoPostulacion !== "RECHAZADA" ? (
+                                <button
+                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handleSelectCandidate(
+                                      applicant.postulationId,
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo,
+                                      "FINALISTA",
+                                      "CONTRACT"
+                                    )
+                                  }
+                                >
+                                  Hire
+                                </button>
+                              ) : applicant.estadoPostulacion === "ACEPTADA" ? (
+                                <div className="text-green-600 text-xs font-medium">
+                                  ✓ Hired
+                                </div>
+                              ) : (
+                                <div className="text-gray-400 text-xs">N/A</div>
+                              )}
+                            </div>
+
+                            {/* Rechazo - siempre disponible si no está rechazado o aceptado */}
                             {applicant.estadoPostulacion !== "ACEPTADA" &&
                               applicant.estadoPostulacion !== "RECHAZADA" && (
-                                <>
-                                  {applicant.estadoPostulacion !==
-                                    "FINALISTA" && (
-                                    <button
-                                      className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
-                                      onClick={() =>
-                                        handleSelectCandidate(
-                                          applicant.postulationId,
-                                          applicant.id,
-                                          `${applicant.nombre} ${applicant.apellido}`,
-                                          applicant.correo,
-                                          applicant.estadoPostulacion ||
-                                            "PENDIENTE",
-                                          "NEXT"
-                                        )
-                                      }
-                                    >
-                                      Next Stage
-                                    </button>
-                                  )}
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-600">
+                                    Rejection:
+                                  </span>
                                   <button
-                                    className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
+                                    className="px-2 py-1 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-colors cursor-pointer"
                                     onClick={() =>
                                       handleRejectCandidate(
                                         applicant.postulationId,
@@ -514,35 +770,21 @@ export default function ApplicantsModal({
                                   >
                                     Reject
                                   </button>
-                                  {(applicant.estadoPostulacion ===
-                                    "FINALISTA" ||
-                                    applicant.estadoPostulacion ===
-                                      "EN_EVALUACION") && (
-                                    <button
-                                      className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#0097B2]/80 transition-colors cursor-pointer"
-                                      onClick={() =>
-                                        handleSelectCandidate(
-                                          applicant.postulationId,
-                                          applicant.id,
-                                          `${applicant.nombre} ${applicant.apellido}`,
-                                          applicant.correo,
-                                          applicant.estadoPostulacion,
-                                          "CONTRACT"
-                                        )
-                                      }
-                                    >
-                                      Contract
-                                    </button>
-                                  )}
-                                </>
+                                </div>
                               )}
-                            {(applicant.estadoPostulacion === "ACEPTADA" ||
-                              applicant.estadoPostulacion === "RECHAZADA") && (
-                              <div className="text-gray-400 text-xs">
-                                No actions available
+
+                            {/* Estado final para rechazados */}
+                            {applicant.estadoPostulacion === "RECHAZADA" && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-600">
+                                  Status:
+                                </span>
+                                <div className="text-red-600 text-xs font-medium">
+                                  ✗ Rejected
+                                </div>
                               </div>
                             )}
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -570,13 +812,30 @@ export default function ApplicantsModal({
                   Applicants for the service of:{" "}
                   <span className="text-[#0097B2]">{serviceTitle}</span>
                 </h3>
+                {selectedCandidates.size > 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedCandidates.size} candidate(s) selected
+                  </p>
+                )}
               </div>
-              <button
-                onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 cursor-pointer"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-3">
+                {/* Botón de eliminación - solo visible para admins */}
+                {!isCompanyUser && selectedCandidates.size > 0 && (
+                  <button
+                    onClick={() => setShowConfirmModal(true)}
+                    className="px-4 py-2 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors flex items-center gap-2"
+                  >
+                    <X size={16} />
+                    Remove ({selectedCandidates.size})
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-gray-700 cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Tabla de postulantes */}
@@ -598,6 +857,22 @@ export default function ApplicantsModal({
                   <table className="w-full border-collapse">
                     <thead className="sticky top-0 bg-white z-10">
                       <tr className="border-b border-gray-200">
+                        {/* Checkbox para seleccionar todos - solo para admins */}
+                        {!isCompanyUser && (
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">
+                            <input
+                              type="checkbox"
+                              checked={
+                                selectedCandidates.size === applicants.length &&
+                                applicants.length > 0
+                              }
+                              onChange={(e) =>
+                                handleSelectAll(e.target.checked)
+                              }
+                              className="rounded border-gray-300 text-[#0097B2] focus:ring-[#0097B2]"
+                            />
+                          </th>
+                        )}
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
                           Name
                         </th>
@@ -631,9 +906,11 @@ export default function ApplicantsModal({
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
                           Second Interview
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">
-                          Hired
-                        </th>
+                        {!isCompanyUser && (
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">
+                            Hired
+                          </th>
+                        )}
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
                           Rejected
                         </th>
@@ -645,6 +922,22 @@ export default function ApplicantsModal({
                           key={applicant.id}
                           className="border-b border-gray-200 hover:bg-gray-50"
                         >
+                          {/* Checkbox para seleccionar candidato - solo para admins */}
+                          {!isCompanyUser && (
+                            <td className="py-4 px-4">
+                              <input
+                                type="checkbox"
+                                checked={selectedCandidates.has(applicant.id)}
+                                onChange={(e) =>
+                                  handleCandidateSelection(
+                                    applicant.id,
+                                    e.target.checked
+                                  )
+                                }
+                                className="rounded border-gray-300 text-[#0097B2] focus:ring-[#0097B2]"
+                              />
+                            </td>
+                          )}
                           <td className="py-4 px-4 text-gray-700">
                             {`${applicant.nombre} ${applicant.apellido}`}
                           </td>
@@ -827,48 +1120,50 @@ export default function ApplicantsModal({
                           </td>
 
                           {/* Contratación */}
-                          <td className="py-4 px-4">
-                            {applicant.estadoPostulacion === "FINALISTA" ? (
-                              <button
-                                className="px-3 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
-                                onClick={() =>
-                                  handleSelectCandidate(
-                                    applicant.postulationId,
-                                    applicant.id,
-                                    `${applicant.nombre} ${applicant.apellido}`,
-                                    applicant.correo,
-                                    "FINALISTA",
-                                    "CONTRACT"
-                                  )
-                                }
-                              >
-                                Hire
-                              </button>
-                            ) : applicant.estadoPostulacion !== "ACEPTADA" &&
-                              applicant.estadoPostulacion !== "RECHAZADA" ? (
-                              <button
-                                className="px-3 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
-                                onClick={() =>
-                                  handleSelectCandidate(
-                                    applicant.postulationId,
-                                    applicant.id,
-                                    `${applicant.nombre} ${applicant.apellido}`,
-                                    applicant.correo,
-                                    "FINALISTA",
-                                    "CONTRACT"
-                                  )
-                                }
-                              >
-                                Hire
-                              </button>
-                            ) : applicant.estadoPostulacion === "ACEPTADA" ? (
-                              <div className="text-green-600 text-xs font-medium">
-                                ✓ Hired
-                              </div>
-                            ) : (
-                              <div className="text-gray-400 text-xs">N/A</div>
-                            )}
-                          </td>
+                          {!isCompanyUser && (
+                            <td className="py-4 px-4">
+                              {applicant.estadoPostulacion === "FINALISTA" ? (
+                                <button
+                                  className="px-3 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handleSelectCandidate(
+                                      applicant.postulationId,
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo,
+                                      "FINALISTA",
+                                      "CONTRACT"
+                                    )
+                                  }
+                                >
+                                  Hire
+                                </button>
+                              ) : applicant.estadoPostulacion !== "ACEPTADA" &&
+                                applicant.estadoPostulacion !== "RECHAZADA" ? (
+                                <button
+                                  className="px-3 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handleSelectCandidate(
+                                      applicant.postulationId,
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo,
+                                      "FINALISTA",
+                                      "CONTRACT"
+                                    )
+                                  }
+                                >
+                                  Hire
+                                </button>
+                              ) : applicant.estadoPostulacion === "ACEPTADA" ? (
+                                <div className="text-green-600 text-xs font-medium">
+                                  ✓ Hired
+                                </div>
+                              ) : (
+                                <div className="text-gray-400 text-xs">N/A</div>
+                              )}
+                            </td>
+                          )}
 
                           {/* Rechazo */}
                           <td className="py-4 px-4">
@@ -1019,6 +1314,54 @@ export default function ApplicantsModal({
           candidateId={selectedCandidateId}
         />
       </CandidateProfileProvider>
+
+      {/* Modal de confirmación para eliminación */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[rgba(0,0,0,0.6)]">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Confirm Removal
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to remove {selectedCandidates.size}{" "}
+                selected candidate(s) from this position? This action cannot be
+                undone, but the candidates will be able to apply to other
+                positions.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                  disabled={isLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowConfirmModal(false);
+                    handleRemoveSelectedCandidates();
+                  }}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Removing...
+                    </>
+                  ) : (
+                    <>
+                      <X size={16} />
+                      Remove {selectedCandidates.size} Candidate(s)
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

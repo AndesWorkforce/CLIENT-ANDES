@@ -319,6 +319,8 @@ export default function AdminDashboardPage() {
     </div>
   );
 
+  console.log("\n\n\n [Dashboard] offers: ", offers, "\n\n\n");
+
   return (
     <div className="bg-white">
       {/* Main content */}
@@ -833,6 +835,7 @@ export default function AdminDashboardPage() {
               serviceTitle: selectedOffer.titulo,
             })) || []
           }
+          onUpdate={fetchPublishedOffers}
         />
       )}
 

@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X, Phone, Mail, FileText, Edit, CheckCircle } from "lucide-react";
+import {
+  X,
+  Phone,
+  Mail,
+  FileText,
+  Edit,
+  CheckCircle,
+  Trash2,
+} from "lucide-react";
 import { useCandidateProfile } from "../context/CandidateProfileContext";
 import ProfileModalSkeleton from "./ProfileModalSkeleton";
 import ViewFormularioModal from "./ViewFormularioModal";
@@ -28,7 +36,10 @@ import IdentificationModal from "@/app/profile/components/IdentificationModal";
 import { useAuthStore } from "@/store/auth.store";
 import PDFDownloadButton from "./PDFDownloadButton";
 import AssessmentModal from "./AssessmentModal";
-import { saveAssessment } from "@/app/profile/actions/identification-actions";
+import {
+  saveAssessment,
+  removeAssessment,
+} from "@/app/profile/actions/identification-actions";
 
 interface CandidateProfileModalProps {
   isOpen: boolean;
@@ -81,6 +92,7 @@ export default function CandidateProfileModal({
   const [manualReload, setManualReload] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
   console.log(" ", !!errorCount);
+
   const validateCandidateProfile = useCallback(async () => {
     const response = await candidateValidationProfile(candidateId);
     if (response.success) {
@@ -107,7 +119,10 @@ export default function CandidateProfileModal({
       };
 
       loadData();
-      validateCandidateProfile();
+
+      if (!isCompanyUser) {
+        validateCandidateProfile();
+      }
     }
 
     // Reset cuando se cierra el modal
@@ -257,6 +272,7 @@ export default function CandidateProfileModal({
   const canUploadAssessment = isAdminRole;
   const assessmentUrl = profile?.assessmentUrl ?? null;
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
 
   const userId =
     profile && "id" in profile && profile.id ? profile.id : candidateId;
@@ -281,6 +297,23 @@ export default function CandidateProfileModal({
       setManualReload((prev) => prev + 1);
     } catch {
       addNotification("Error al guardar el assessment", "error");
+    }
+  };
+
+  const handleAssessmentRemove = async () => {
+    if (!userId) return;
+
+    try {
+      const response = await removeAssessment(userId as string);
+
+      if (!response.success) {
+        throw new Error(response.error || "Error al eliminar el assessment");
+      }
+
+      addNotification("Assessment eliminado correctamente", "success");
+      setManualReload((prev) => prev + 1);
+    } catch {
+      addNotification("Error al eliminar el assessment", "error");
     }
   };
 
@@ -861,7 +894,7 @@ export default function CandidateProfileModal({
               </div>
 
               {/* Form - Solo mostrar si no es usuario empresa */}
-              {profile.datosFormulario && !isCompanyUser && (
+              {profile.datosFormulario && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-4 flex justify-between items-center">
                     <span className="font-medium text-gray-900">Form</span>
@@ -1075,37 +1108,90 @@ export default function CandidateProfileModal({
               {/* Assessment */}
               {canSeeAssessment && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden p-4 mb-4">
-                  <h2 className="font-medium text-gray-900 mb-2">Assessment</h2>
-                  {assessmentUrl ? (
-                    <a
-                      href={
-                        typeof assessmentUrl === "string" && assessmentUrl
-                          ? assessmentUrl
-                          : ""
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#0097B2] underline"
-                    >
-                      View Assessment PDF
-                    </a>
-                  ) : canUploadAssessment ? (
-                    <button
-                      onClick={() => setIsAssessmentModalOpen(true)}
-                      className="ml-2 px-3 py-1 bg-[#0097B2] text-white rounded"
-                    >
-                      Upload PDF
-                    </button>
-                  ) : (
-                    <span className="text-gray-400">
-                      No assessment uploaded
-                    </span>
-                  )}
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-medium text-gray-900">Assessment</h2>
+                    {canUploadAssessment && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setIsAssessmentModalOpen(true)}
+                          className="p-2 text-[#0097B2] hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                          title={
+                            assessmentUrl
+                              ? "Replace Assessment"
+                              : "Upload Assessment"
+                          }
+                        >
+                          <Edit size={16} />
+                        </button>
+                        {assessmentUrl && (
+                          <button
+                            onClick={() => setShowDeleteConfirmModal(true)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                            title="Remove Assessment"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2">
+                    {assessmentUrl ? (
+                      <a
+                        href={
+                          typeof assessmentUrl === "string" && assessmentUrl
+                            ? assessmentUrl
+                            : ""
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#0097B2] underline hover:text-[#007A8C]"
+                      >
+                        View Assessment PDF
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">
+                        No assessment uploaded
+                      </span>
+                    )}
+                  </div>
                   <AssessmentModal
                     isOpen={isAssessmentModalOpen}
                     onClose={() => setIsAssessmentModalOpen(false)}
                     onUpload={handleAssessmentUpload}
                   />
+
+                  {/* Modal de confirmación para eliminar assessment */}
+                  {showDeleteConfirmModal && (
+                    <div className="fixed inset-0 bg-black/40  z-[70] flex items-center justify-center p-4">
+                      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                          Confirm remove assessment
+                        </h3>
+                        <p className="text-gray-600 mb-6">
+                          Are you sure you want to remove the assessment? This
+                          action cannot be undone.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() => setShowDeleteConfirmModal(false)}
+                            className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleAssessmentRemove();
+                              setShowDeleteConfirmModal(false);
+                            }}
+                            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1232,14 +1318,12 @@ export default function CandidateProfileModal({
       </div>
 
       {/* Modal del Formulario */}
-      {!isCompanyUser && (
-        <ViewFormularioModal
-          isOpen={isFormularioModalOpen}
-          onClose={() => setIsFormularioModalOpen(false)}
-          datosFormulario={profile.datosFormulario}
-          name={`${profile.datosPersonales.nombre} ${profile.datosPersonales.apellido}`}
-        />
-      )}
+      <ViewFormularioModal
+        isOpen={isFormularioModalOpen}
+        onClose={() => setIsFormularioModalOpen(false)}
+        datosFormulario={profile.datosFormulario}
+        name={`${profile.datosPersonales.nombre} ${profile.datosPersonales.apellido}`}
+      />
 
       {/* Modal de Experiencia */}
       {isExperienceModalOpen && (
