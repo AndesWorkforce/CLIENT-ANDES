@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Clock, Calendar, X, CheckCircle } from "lucide-react";
+import { Clock, Calendar, X, CheckCircle, Trash2 } from "lucide-react";
 
 import {
   Application,
   getMyApplications,
+  removeMyApplication,
 } from "@/app/applications/actions/applications.actions";
 import SimpleHeader from "../components/SimpleHeader";
+import { useNotificationStore } from "@/store/notifications.store";
 
 export default function ApplicationsPage() {
+  const { addNotification } = useNotificationStore();
   const [applications, setApplications] = useState<Application[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -17,6 +20,9 @@ export default function ApplicationsPage() {
   const [selectedApplication, setSelectedApplication] =
     useState<Application | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [applicationToDelete, setApplicationToDelete] =
+    useState<Application | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const observer = useRef<IntersectionObserver | null>(null);
 
   const fetchApplications = async () => {
@@ -70,6 +76,42 @@ export default function ApplicationsPage() {
     document.body.style.overflow = "auto";
   };
 
+  const handleDeleteApplication = (app: Application) => {
+    setApplicationToDelete(app);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteApplication = async () => {
+    if (!applicationToDelete) return;
+
+    try {
+      const response = await removeMyApplication(applicationToDelete.id);
+
+      if (response.success) {
+        addNotification("Application removed successfully", "success");
+        // Remove the application from the local state
+        setApplications((prev) =>
+          prev.filter((app) => app.id !== applicationToDelete.id)
+        );
+        setShowDeleteModal(false);
+        setApplicationToDelete(null);
+      } else {
+        addNotification(
+          response.error || "Error removing application",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error removing application:", error);
+      addNotification("Error removing application", "error");
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setApplicationToDelete(null);
+  };
+
   const renderStatusIndicator = (status: string) => {
     if (status === "PENDIENTE") {
       return (
@@ -109,6 +151,8 @@ export default function ApplicationsPage() {
     }
   };
 
+  console.log("\n\n\n [Applications] applications: ", applications, "\n\n\n");
+
   return (
     <div className="container mx-auto min-h-screen bg-white">
       {/* Header */}
@@ -132,9 +176,21 @@ export default function ApplicationsPage() {
                   }
                 >
                   <div className="p-4">
-                    <h2 className="text-lg font-medium text-[#0097B2] mb-2 line-clamp-2">
-                      {app?.propuesta.titulo}
-                    </h2>
+                    <div className="flex justify-between items-start mb-2">
+                      <h2 className="text-lg font-medium text-[#0097B2] line-clamp-2 flex-1">
+                        {app?.propuesta.titulo}
+                      </h2>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteApplication(app);
+                        }}
+                        className="ml-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                        title="Remove application"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
 
                     <div className="flex flex-col">
                       <div
@@ -252,6 +308,38 @@ export default function ApplicationsPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para eliminar aplicación */}
+      {showDeleteModal && applicationToDelete && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Remove Application
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                {`Are you sure you want to remove your application for "
+                ${applicationToDelete.propuesta.titulo}"? This action cannot be
+                undone.`}
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={closeDeleteModal}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteApplication}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Remove
+                </button>
               </div>
             </div>
           </div>

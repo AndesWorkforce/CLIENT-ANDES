@@ -96,6 +96,8 @@ export async function getMyApplications(page: number = 1, limit: number = 10) {
           descripcion: apiApp.propuesta.descripcion,
         },
         documentosPostulacion: apiApp.documentosPostulacion,
+        procesosContratacion: apiApp.estadoPostulacion,
+        activo: apiApp.activo,
       })
     );
 
@@ -109,5 +111,28 @@ export async function getMyApplications(page: number = 1, limit: number = 10) {
   } catch (error) {
     console.error("Error al obtener postulaciones:", error);
     throw error;
+  }
+}
+
+export async function removeMyApplication(applicationId: string) {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.delete(`admin/postulaciones/${applicationId}`);
+
+    if (response.status !== 200) {
+      throw new Error("Error al eliminar la postulación");
+    }
+
+    return {
+      success: true,
+      message: response.data.message || "Application removed successfully",
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error("Error al eliminar postulación:", error);
+    return {
+      success: false,
+      error: error.response?.data?.message || "Error removing application",
+    };
   }
 }

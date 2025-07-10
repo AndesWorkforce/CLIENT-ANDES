@@ -173,7 +173,7 @@ export default function ContractsPage() {
   >([]);
   const [loadingEvaluaciones, setLoadingEvaluaciones] = useState(false);
   const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false);
-  const [contractDocumentReadStatus] = useState<Record<string, boolean>>({});
+  // const [contractDocumentReadStatus] = useState<Record<string, boolean>>({});
 
   console.log(
     isEvaluacionesModalOpen,
@@ -253,8 +253,8 @@ export default function ContractsPage() {
         text = "Signed";
         break;
       case EstadoContratacion.CONTRATO_FINALIZADO:
-        colorClass = "bg-gray-100 text-gray-800";
-        text = "Completed";
+        colorClass = "bg-green-100 text-green-800";
+        text = "Contract Finalized";
         break;
       default:
         colorClass = "bg-gray-100 text-gray-800";
@@ -763,8 +763,10 @@ export default function ContractsPage() {
                             <DocumentReadStatus contract={contract} />
                           </td>
                           <td className="py-4 px-4">
-                            {contract.estadoContratacion ===
-                              "CONTRATO_FINALIZADO" &&
+                            {(contract.estadoContratacion ===
+                              EstadoContratacion.CONTRATO_FINALIZADO ||
+                              contract.estadoContratacion ===
+                                EstadoContratacion.FIRMADO) &&
                             contract.signWellDownloadUrl ? (
                               <div className="flex items-center space-x-2">
                                 <a
@@ -813,20 +815,22 @@ export default function ContractsPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex items-center space-x-2">
-                              {contractDocumentReadStatus[contract.id] && (
+                              {contract.estadoContratacion ===
+                                EstadoContratacion.DOCUMENTOS_COMPLETADOS && (
                                 <button
                                   onClick={() =>
                                     handleSignContract(contract.id)
                                   }
-                                  className="text-[#0097B2] hover:text-[#007A8C] flex items-center"
+                                  className="text-[#0097B2] hover:text-[#007A8C] flex items-center cursor-pointer"
+                                  title="Send contract to provider for signature"
                                 >
                                   <PenTool size={16} className="mr-1" />
-                                  Sign
+                                  Send to Provider
                                 </button>
                               )}
 
                               {contract.estadoContratacion ===
-                                "CONTRATO_FINALIZADO" &&
+                                EstadoContratacion.CONTRATO_FINALIZADO &&
                                 contract.activo && (
                                   <button
                                     onClick={() =>
@@ -982,7 +986,7 @@ export default function ContractsPage() {
                       <span className="text-gray-600 font-bold">Sign:</span>
                       <div>
                         {contract.estadoContratacion ===
-                          "DOCUMENTOS_COMPLETADOS" &&
+                          EstadoContratacion.CONTRATO_FINALIZADO &&
                         contract.signWellDownloadUrl ? (
                           <div className="flex items-center space-x-2">
                             <a
@@ -1044,17 +1048,20 @@ export default function ContractsPage() {
 
                       <span className="text-gray-600 font-bold">Actions:</span>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        {contractDocumentReadStatus[contract.id] && (
+                        {contract.estadoContratacion ===
+                          EstadoContratacion.DOCUMENTOS_COMPLETADOS && (
                           <button
                             onClick={() => handleSignContract(contract.id)}
                             className="flex items-center justify-center px-3 py-1 border border-[#0097B2] text-[#0097B2] rounded-md hover:bg-[#0097B2]/10"
+                            title="Send contract to provider for signature"
                           >
                             <PenTool size={16} className="mr-1" />
-                            Sign
+                            Send to Provider
                           </button>
                         )}
 
-                        {contract.estadoContratacion === "FIRMADO" &&
+                        {contract.estadoContratacion ===
+                          EstadoContratacion.CONTRATO_FINALIZADO &&
                           contract.activo && (
                             <button
                               onClick={() =>

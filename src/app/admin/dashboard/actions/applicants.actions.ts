@@ -64,6 +64,14 @@ export async function createApplicant(
 
 export async function candidateValidationProfile(candidateId: string) {
   const axios = await createServerAxios();
+
+  if (!candidateId) {
+    return {
+      success: false,
+      message: "Candidate ID is required",
+    };
+  }
+
   try {
     const response = await axios.get(
       `applications/validate-candidate/${candidateId}`
@@ -87,6 +95,61 @@ export async function candidateValidationProfile(candidateId: string) {
     return {
       success: false,
       message: "Error fetching profile status",
+    };
+  }
+}
+
+/**
+ * Elimina múltiples postulaciones desde el panel de administración
+ * @param postulationIds Array de IDs de las postulaciones a eliminar
+ * @returns Respuesta de la API
+ */
+export async function removeMultipleApplications(
+  postulationIds: string[]
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+
+  try {
+    if (!postulationIds || postulationIds.length === 0) {
+      return {
+        success: false,
+        message: "No applications selected for removal",
+        error: "postulationIds array is empty",
+      };
+    }
+
+    const response = await axios.delete("admin/postulaciones", {
+      data: { postulacionIds: postulationIds },
+    });
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: response.data.message || "Applications removed successfully",
+        data: response.data.details,
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data.message || "Error removing applications",
+        error: response.data.error,
+      };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error("Error removing applications:", error.response || error);
+
+    // Capturar mensaje de error específico si está disponible
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Unknown error removing applications";
+
+    return {
+      success: false,
+      message: "Error removing applications",
+      error: errorMessage,
     };
   }
 }

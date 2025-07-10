@@ -2,16 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getApplicants } from "../offers/actions/offers.actions";
-import {
-  ChevronDown,
-  ChevronUp,
-  Mail,
-  Edit,
-  AlertCircle,
-  Bookmark,
-  FileText,
-  Star,
-} from "lucide-react";
+import { Mail, Edit, Bookmark, FileText, Star } from "lucide-react";
 import type { Candidato } from "@/app/types/offers";
 import { Applicant } from "@/app/types/applicant";
 import CandidateProfileModal from "../components/CandidateProfileModal";
@@ -207,14 +198,14 @@ export default function PostulantsPage() {
     }
   };
 
-  const toggleExpandApplicant = (id: string) => {
-    setApplicants((prev) =>
-      prev.map((app) => ({
-        ...app,
-        isExpanded: app.id === id ? !app.isExpanded : false,
-      }))
-    );
-  };
+  // const toggleExpandApplicant = (id: string) => {
+  //   setApplicants((prev) =>
+  //     prev.map((app) => ({
+  //       ...app,
+  //       isExpanded: app.id === id ? !app.isExpanded : false,
+  //     }))
+  //   );
+  // };
 
   const renderCompanyStatus = (status: CandidateStatus) => {
     switch (status) {
@@ -650,603 +641,414 @@ export default function PostulantsPage() {
         </div>
 
         {/* View Mobile */}
-        <div
-          className="relative bg-white rounded-lg shadow-lg w-full mx-auto max-h-[90vh] flex flex-col md:hidden"
-          style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
-        >
-          {/* Title */}
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-700">
-                {isLoading ? "Loading applicants..." : "Applicants"}
-              </h3>
-              <div className="text-sm text-gray-500">
-                {applicants.length > 0 && `Total: ${applicants.length}`}
-              </div>
-            </div>
-            {totalPages > 1 && (
-              <div className="mt-3 flex items-center text-sm text-gray-500">
-                <span>
-                  Page {currentPage} of {totalPages}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Applicants list with scroll */}
+        <div className="md:hidden">
           <div
-            className="flex-1 overflow-y-auto rounded-b-lg"
-            style={{
-              scrollbarWidth: "thin",
-              scrollbarColor: "#0097B2 #f3f4f6",
-            }}
+            className="bg-white rounded-lg shadow-lg w-full mx-auto max-h-[90vh] flex flex-col"
+            style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
           >
-            {isLoading ? (
-              <div className="space-y-4 p-4">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="border-b border-gray-200 pb-4 animate-pulse"
-                  >
-                    <div className="flex items-center">
-                      <div className="w-6 h-6 bg-gray-200 rounded-full mr-2" />
-                      <div className="grid grid-cols-2 w-full">
-                        <div className="h-5 bg-gray-200 rounded w-3/4" />
-                        <div className="h-5 bg-gray-200 rounded w-4/5" />
-                      </div>
-                    </div>
-                    <div className="mt-3 pl-10 space-y-3">
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 bg-gray-200 rounded-full mr-2" />
-                        <div className="h-4 bg-gray-200 rounded w-1/2" />
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 bg-gray-200 rounded-full mr-2" />
-                        <div className="h-4 bg-gray-200 rounded w-3/4" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {/* Title */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-700">
+                  {isLoading ? "Loading applicants..." : "Applicants"}
+                </h3>
+                <div className="text-sm text-gray-500">
+                  {applicants.length > 0 && `Total: ${applicants.length}`}
+                </div>
               </div>
-            ) : applicants.length > 0 ? (
-              applicants.map((applicant) => (
-                <div
-                  key={applicant.id}
-                  className={`border-b border-[#E2E2E2] ${
-                    recentlyUpdated === applicant.id
-                      ? "bg-green-50 transition-colors"
-                      : ""
-                  }`}
-                >
-                  <div
-                    className="px-4 py-3 flex items-center justify-between cursor-pointer"
-                    onClick={() => toggleExpandApplicant(applicant.id)}
-                  >
-                    <div className="flex items-center">
-                      {/* Chevron indicator */}
-                      {applicant.isExpanded ? (
-                        <ChevronUp size={20} className="text-[#0097B2] mr-2" />
-                      ) : (
-                        <ChevronDown
-                          size={20}
-                          className="text-[#0097B2] mr-2"
-                        />
-                      )}
+              {totalPages > 1 && (
+                <div className="mt-3 flex items-center text-sm text-gray-500">
+                  <span>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                </div>
+              )}
+            </div>
 
-                      {/* Applicant name */}
-                      <span className="text-lg font-medium">
-                        {`${applicant.nombre} ${applicant.apellido}`}
-                      </span>
-                    </div>
-
-                    {/* Status badge */}
-                    {/* <div>
-                      {renderCompanyStatus(applicant.clasificacionGlobal)}
-                    </div> */}
-                  </div>
-
-                  {/* Expanded content */}
-                  {applicant.isExpanded && (
-                    <div className="px-4 pb-4 space-y-3 bg-gray-50">
-                      {/* Profile action */}
-                      <div className="flex items-center py-2  border-gray-200">
-                        <div className="text-[#0097B2] mr-2">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="22"
-                            height="22"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                          </svg>
-                        </div>
-                        <div className="flex justify-between items-center w-full">
-                          <span className="text-gray-700 cursor-default">
-                            Profile
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenProfile(applicant.id);
-                            }}
-                            className="text-[#0097B2] font-medium hover:underline cursor-pointer"
-                          >
-                            View
-                          </button>
+            {/* Applicants list with scroll */}
+            <div
+              className="flex-1 overflow-y-auto rounded-b-lg"
+              style={{
+                scrollbarWidth: "thin",
+                scrollbarColor: "#0097B2 #f3f4f6",
+              }}
+            >
+              {isLoading ? (
+                <div className="space-y-4 p-4">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="border-b border-gray-200 pb-4 animate-pulse"
+                    >
+                      <div className="flex items-center">
+                        <div className="w-6 h-6 bg-gray-200 rounded-full mr-2" />
+                        <div className="grid grid-cols-2 w-full">
+                          <div className="h-5 bg-gray-200 rounded w-3/4" />
+                          <div className="h-5 bg-gray-200 rounded w-4/5" />
                         </div>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              ) : applicants.length > 0 ? (
+                applicants.map((applicant) => (
+                  <div
+                    key={applicant.id}
+                    className={`border-b border-[#E2E2E2] ${
+                      recentlyUpdated === applicant.id
+                        ? "bg-green-50 transition-colors"
+                        : ""
+                    }`}
+                  >
+                    {/* Header con nombre y estado */}
+                    <div className="px-4 py-3 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg font-medium">
+                          {`${applicant.nombre} ${applicant.apellido}`}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleToggleFavorite(applicant.id)}
+                        className={`cursor-pointer transition-transform ${
+                          favoriteLoading === applicant.id
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:scale-110"
+                        }`}
+                        disabled={favoriteLoading === applicant.id}
+                      >
+                        <Star
+                          size={20}
+                          className={`${
+                            applicant.favorite
+                              ? "text-yellow-500 fill-yellow-500"
+                              : "text-gray-400"
+                          }`}
+                        />
+                      </button>
+                    </div>
 
-                      {/* Candidate Status */}
-                      <div className="flex items-center py-2  border-gray-200">
-                        <div className="text-[#0097B2] mr-2">
-                          <AlertCircle size={22} />
+                    {/* Información principal */}
+                    <div className="px-4 py-2 bg-gray-50">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="text-sm">
+                          <span className="text-gray-500">Email:</span>
+                          <div className="text-gray-700 truncate">
+                            {applicant.correo}
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center w-full">
-                          <span className="text-gray-700 cursor-default">
-                            Candidate Status
-                          </span>
-                          <div className="flex items-center gap-2">
+                        <div className="text-sm">
+                          <span className="text-gray-500">Status:</span>
+                          <div>
+                            {renderCompanyStatus(applicant.clasificacionGlobal)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Estado de la aplicación */}
+                    <div className="px-4 py-2">
+                      <div className="text-sm mb-2">
+                        <span className="text-gray-500">
+                          Application Status:
+                        </span>
+                        <div className="mt-1">
+                          {applicant.lastRelevantPostulacion?.estado ? (
+                            renderApplicationStatus(
+                              applicant.lastRelevantPostulacion.estado
+                            )
+                          ) : (
+                            <span className="text-gray-400">N/A</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Lista de acciones del proceso */}
+                    <div className="px-4 py-2 space-y-3">
+                      {/* Primera Entrevista */}
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-700">
+                          First Interview:
+                        </div>
+                        <div>
+                          {applicant.lastRelevantPostulacion?.estado ===
+                          "PENDIENTE" ? (
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleFavorite(applicant.id);
-                              }}
-                              className={`cursor-pointer transition-transform ${
-                                favoriteLoading === applicant.id
-                                  ? "opacity-50 cursor-not-allowed"
-                                  : "hover:scale-110"
-                              }`}
-                              disabled={favoriteLoading === applicant.id}
-                              title={
-                                favoriteLoading === applicant.id
-                                  ? "Updating..."
-                                  : applicant.favorite
-                                  ? "Remove from favorites"
-                                  : "Add to favorites"
+                              className="px-3 py-1 bg-[#0097B2] text-white text-sm rounded-md hover:bg-[#007a8f] transition-colors"
+                              onClick={() =>
+                                handleSelectCandidate(
+                                  applicant.lastRelevantPostulacion?.id || "",
+                                  applicant.id,
+                                  `${applicant.nombre} ${applicant.apellido}`,
+                                  applicant.correo,
+                                  "PENDIENTE"
+                                )
                               }
                             >
-                              {favoriteLoading === applicant.id ? (
-                                <div className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-[#0097B2] rounded-full"></div>
-                              ) : (
-                                <Star
-                                  size={20}
-                                  className={`${
-                                    applicant.favorite
-                                      ? "text-yellow-500 fill-yellow-500"
-                                      : "text-gray-400"
-                                  }`}
-                                />
-                              )}
+                              Send
                             </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenStatusModal(applicant.id);
-                              }}
-                              className="cursor-pointer"
-                            >
-                              {renderCompanyStatus(
-                                applicant.clasificacionGlobal
-                              )}
-                            </button>
-                          </div>
+                          ) : applicant.lastRelevantPostulacion?.estado ===
+                              "EN_EVALUACION" ||
+                            applicant.lastRelevantPostulacion?.estado ===
+                              "EN_EVALUACION_CLIENTE" ||
+                            applicant.lastRelevantPostulacion?.estado ===
+                              "FINALISTA" ||
+                            applicant.lastRelevantPostulacion?.estado ===
+                              "ACEPTADA" ? (
+                            <div className="text-green-600 text-sm">✓ Done</div>
+                          ) : (
+                            <div className="text-gray-400 text-sm">N/A</div>
+                          )}
                         </div>
                       </div>
-
-                      <div className="flex items-center py-2 border-gray-200">
-                        <div className="text-[#0097B2] mr-2">
-                          <FileText size={22} />
-                        </div>
-                        <div className="flex justify-between items-center w-full">
-                          <span className="text-gray-700 cursor-default">
-                            Logs
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewLogs(applicant.id);
-                            }}
-                            className="text-[#0097B2] font-medium hover:underline cursor-pointer"
-                          >
-                            View
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Application status */}
-                      <div className="flex items-center py-2 border-gray-200">
-                        <div className="text-[#0097B2] mr-2">
-                          <FileText size={22} />
-                        </div>
-                        <div className="flex justify-between items-center w-full">
-                          <span className="text-gray-700">
-                            Application Status
-                          </span>
-                          <div>
-                            {applicant.lastRelevantPostulacion &&
-                            applicant.lastRelevantPostulacion.estado ? (
-                              renderApplicationStatus(
-                                applicant.lastRelevantPostulacion.estado
-                              )
-                            ) : (
-                              <span className="text-gray-400 text-sm">N/A</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Primera Entrevista */}
-                      <td className="py-4 px-4">
-                        {applicant.lastRelevantPostulacion?.estado ===
-                        "PENDIENTE" ? (
-                          <button
-                            className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
-                            onClick={() =>
-                              handleSelectCandidate(
-                                applicant.lastRelevantPostulacion?.id || "",
-                                applicant.id,
-                                `${applicant.nombre} ${applicant.apellido}`,
-                                applicant.correo,
-                                "PENDIENTE",
-                                "NEXT"
-                              )
-                            }
-                          >
-                            Send
-                          </button>
-                        ) : applicant.lastRelevantPostulacion?.estado ===
-                            "EN_EVALUACION" ||
-                          applicant.lastRelevantPostulacion?.estado ===
-                            "EN_EVALUACION_CLIENTE" ||
-                          applicant.lastRelevantPostulacion?.estado ===
-                            "FINALISTA" ||
-                          applicant.lastRelevantPostulacion?.estado ===
-                            "ACEPTADA" ? (
-                          <div className="text-green-600 text-xs font-medium">
-                            ✓ Done
-                          </div>
-                        ) : (
-                          <div className="text-gray-400 text-xs">N/A</div>
-                        )}
-                      </td>
 
                       {/* Segunda Entrevista */}
-                      <td className="py-4 px-4">
-                        {applicant.lastRelevantPostulacion?.estado ===
-                        "EN_EVALUACION" ? (
-                          <button
-                            className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
-                            onClick={() =>
-                              handleSelectCandidate(
-                                applicant.lastRelevantPostulacion?.id || "",
-                                applicant.id,
-                                `${applicant.nombre} ${applicant.apellido}`,
-                                applicant.correo,
-                                "EN_EVALUACION",
-                                "NEXT"
-                              )
-                            }
-                          >
-                            Schedule
-                          </button>
-                        ) : applicant.lastRelevantPostulacion?.estado ===
-                          "EN_EVALUACION_CLIENTE" ? (
-                          <button
-                            className="px-3 py-1 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 transition-colors cursor-pointer"
-                            onClick={() =>
-                              handleSelectCandidate(
-                                applicant.lastRelevantPostulacion?.id || "",
-                                applicant.id,
-                                `${applicant.nombre} ${applicant.apellido}`,
-                                applicant.correo,
-                                "EN_EVALUACION_CLIENTE",
-                                "NEXT"
-                              )
-                            }
-                          >
-                            Advance
-                          </button>
-                        ) : applicant.lastRelevantPostulacion?.estado ===
-                            "FINALISTA" ||
-                          applicant.lastRelevantPostulacion?.estado ===
-                            "ACEPTADA" ? (
-                          <div className="text-green-600 text-xs font-medium">
-                            ✓ Done
-                          </div>
-                        ) : (
-                          <div className="text-gray-400 text-xs">N/A</div>
-                        )}
-                      </td>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-700">
+                          Second Interview:
+                        </div>
+                        <div>
+                          {applicant.lastRelevantPostulacion?.estado ===
+                          "EN_EVALUACION" ? (
+                            <button
+                              className="px-3 py-1 bg-[#0097B2] text-white text-sm rounded-md hover:bg-[#007a8f] transition-colors"
+                              onClick={() =>
+                                handleSelectCandidate(
+                                  applicant.lastRelevantPostulacion?.id || "",
+                                  applicant.id,
+                                  `${applicant.nombre} ${applicant.apellido}`,
+                                  applicant.correo,
+                                  "EN_EVALUACION"
+                                )
+                              }
+                            >
+                              Schedule
+                            </button>
+                          ) : applicant.lastRelevantPostulacion?.estado ===
+                            "EN_EVALUACION_CLIENTE" ? (
+                            <button
+                              className="px-3 py-1 bg-purple-500 text-white text-sm rounded-md hover:bg-purple-600 transition-colors"
+                              onClick={() =>
+                                handleSelectCandidate(
+                                  applicant.lastRelevantPostulacion?.id || "",
+                                  applicant.id,
+                                  `${applicant.nombre} ${applicant.apellido}`,
+                                  applicant.correo,
+                                  "EN_EVALUACION_CLIENTE"
+                                )
+                              }
+                            >
+                              Advance
+                            </button>
+                          ) : applicant.lastRelevantPostulacion?.estado ===
+                              "FINALISTA" ||
+                            applicant.lastRelevantPostulacion?.estado ===
+                              "ACEPTADA" ? (
+                            <div className="text-green-600 text-sm">✓ Done</div>
+                          ) : (
+                            <div className="text-gray-400 text-sm">N/A</div>
+                          )}
+                        </div>
+                      </div>
 
                       {/* Contratación */}
-                      <td className="py-4 px-4">
-                        {applicant.lastRelevantPostulacion?.estado ===
-                        "FINALISTA" ? (
-                          <button
-                            className="px-3 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
-                            onClick={() =>
-                              handleSelectCandidate(
-                                applicant.lastRelevantPostulacion?.id || "",
-                                applicant.id,
-                                `${applicant.nombre} ${applicant.apellido}`,
-                                applicant.correo,
-                                "FINALISTA",
-                                "CONTRACT"
-                              )
-                            }
-                          >
-                            Hire
-                          </button>
-                        ) : applicant.lastRelevantPostulacion?.estado !==
-                            "ACEPTADA" &&
-                          applicant.lastRelevantPostulacion?.estado !==
-                            "RECHAZADA" ? (
-                          <button
-                            className="px-3 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
-                            onClick={() =>
-                              handleSelectCandidate(
-                                applicant.lastRelevantPostulacion?.id || "",
-                                applicant.id,
-                                `${applicant.nombre} ${applicant.apellido}`,
-                                applicant.correo,
-                                "FINALISTA",
-                                "CONTRACT"
-                              )
-                            }
-                          >
-                            Hire
-                          </button>
-                        ) : applicant.lastRelevantPostulacion?.estado ===
-                          "ACEPTADA" ? (
-                          <div className="text-green-600 text-xs font-medium">
-                            ✓ Hired
-                          </div>
-                        ) : (
-                          <div className="text-gray-400 text-xs">N/A</div>
-                        )}
-                      </td>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-700">Hiring:</div>
+                        <div>
+                          {applicant.lastRelevantPostulacion?.estado ===
+                          "FINALISTA" ? (
+                            <button
+                              className="px-3 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
+                              onClick={() =>
+                                handleSelectCandidate(
+                                  applicant.lastRelevantPostulacion?.id || "",
+                                  applicant.id,
+                                  `${applicant.nombre} ${applicant.apellido}`,
+                                  applicant.correo,
+                                  "FINALISTA",
+                                  "CONTRACT"
+                                )
+                              }
+                            >
+                              Hire
+                            </button>
+                          ) : applicant.lastRelevantPostulacion?.estado ===
+                            "ACEPTADA" ? (
+                            <div className="text-green-600 text-sm">
+                              ✓ Hired
+                            </div>
+                          ) : (
+                            <div className="text-gray-400 text-sm">N/A</div>
+                          )}
+                        </div>
+                      </div>
 
-                      {/* Rechazo */}
-                      <td className="py-4 px-4">
-                        {applicant.lastRelevantPostulacion?.estado !==
-                          "ACEPTADA" &&
+                      {/* Rechazo - solo mostrar si no está contratado o rechazado */}
+                      {applicant.lastRelevantPostulacion?.estado !==
+                        "ACEPTADA" &&
                         applicant.lastRelevantPostulacion?.estado !==
-                          "RECHAZADA" ? (
-                          <button
-                            className="px-3 py-1 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-colors cursor-pointer"
-                            onClick={() =>
-                              handleRejectCandidate(
-                                applicant.lastRelevantPostulacion?.id || "",
-                                applicant.id,
-                                `${applicant.nombre} ${applicant.apellido}`,
-                                applicant.correo
-                              )
-                            }
-                          >
-                            Reject
-                          </button>
-                        ) : applicant.lastRelevantPostulacion?.estado ===
-                          "RECHAZADA" ? (
-                          <div className="text-red-600 text-xs font-medium">
-                            ✗ Rejected
+                          "RECHAZADA" && (
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-700">
+                              Rejection:
+                            </div>
+                            <button
+                              className="px-3 py-1 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors"
+                              onClick={() =>
+                                handleRejectCandidate(
+                                  applicant.lastRelevantPostulacion?.id || "",
+                                  applicant.id,
+                                  `${applicant.nombre} ${applicant.apellido}`,
+                                  applicant.correo
+                                )
+                              }
+                            >
+                              Reject
+                            </button>
                           </div>
-                        ) : (
-                          <div className="text-gray-400 text-xs">N/A</div>
                         )}
-                      </td>
-
-                      {/* Candidate Status */}
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleToggleFavorite(applicant.id)}
-                            className={`cursor-pointer transition-transform ${
-                              favoriteLoading === applicant.id
-                                ? "opacity-50 cursor-not-allowed"
-                                : "hover:scale-110"
-                            }`}
-                            disabled={favoriteLoading === applicant.id}
-                            title={
-                              favoriteLoading === applicant.id
-                                ? "Updating..."
-                                : applicant.favorite
-                                ? "Remove from favorites"
-                                : "Add to favorites"
-                            }
-                          >
-                            {favoriteLoading === applicant.id ? (
-                              <div className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-[#0097B2] rounded-full"></div>
-                            ) : (
-                              <Star
-                                size={20}
-                                className={`${
-                                  applicant.favorite
-                                    ? "text-yellow-500 fill-yellow-500"
-                                    : "text-gray-400"
-                                }`}
-                              />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleOpenStatusModal(applicant.id)}
-                            className="cursor-pointer hover:opacity-80"
-                          >
-                            {renderCompanyStatus(applicant.clasificacionGlobal)}
-                          </button>
-                        </div>
-                      </td>
-
-                      {/* Logs */}
-                      <td className="py-4 px-4">
-                        <button
-                          onClick={() => handleViewLogs(applicant.id)}
-                          className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
-                        >
-                          <FileText size={20} className="mr-1" />
-                          View
-                        </button>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-4 px-4">
-                        <div className="flex space-x-2">
-                          <div className="relative group">
-                            <button
-                              className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
-                              title="View profile"
-                              onClick={() => handleOpenProfile(applicant.id)}
-                            >
-                              <Edit size={20} />
-                            </button>
-                          </div>
-
-                          <div className="relative group">
-                            <button
-                              className="p-1 text-[#0097B2] rounded 
-                            hover:bg-[#0097B2]/10 
-                              cursor-pointer"
-                              title="Send email"
-                              onClick={() =>
-                                handleOpenSendEmailModal(applicant)
-                              }
-                            >
-                              <Mail size={20} />
-                            </button>
-                          </div>
-
-                          <div className="relative group">
-                            <button
-                              className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
-                              title="Assign to job"
-                              onClick={() =>
-                                handleAssignApplicant(applicant.id)
-                              }
-                            >
-                              <Bookmark size={20} />
-                            </button>
-                          </div>
-
-                          {/* Send contract button */}
-                          {applicant.lastRelevantPostulacion &&
-                            applicant.lastRelevantPostulacion.estado ===
-                              "ACEPTADA" && (
-                              <div className="relative group">
-                                <button
-                                  className="p-1 text-[#0097B2] rounded 
-                                hover:bg-[#0097B2]/10 
-                                  cursor-pointer"
-                                  title="Send contract"
-                                  onClick={() =>
-                                    handleOpenSignContractModal(applicant)
-                                  }
-                                >
-                                  <FileText size={20} className="mr-1" />
-                                </button>
-                              </div>
-                            )}
-                        </div>
-                      </td>
                     </div>
-                  )}
+
+                    {/* Acciones principales en grid */}
+                    <div className="px-4 py-3 grid grid-cols-3 gap-2 border-t border-gray-200">
+                      {/* Profile */}
+                      <button
+                        onClick={() => handleOpenProfile(applicant.id)}
+                        className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
+                      >
+                        <Edit size={20} className="text-[#0097B2] mb-1" />
+                        <span className="text-xs text-gray-600">Profile</span>
+                      </button>
+
+                      {/* Email */}
+                      <button
+                        onClick={() => handleOpenSendEmailModal(applicant)}
+                        className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
+                      >
+                        <Mail size={20} className="text-[#0097B2] mb-1" />
+                        <span className="text-xs text-gray-600">Email</span>
+                      </button>
+
+                      {/* Assign */}
+                      <button
+                        onClick={() => handleAssignApplicant(applicant.id)}
+                        className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
+                      >
+                        <Bookmark size={20} className="text-[#0097B2] mb-1" />
+                        <span className="text-xs text-gray-600">Assign</span>
+                      </button>
+                    </div>
+
+                    {/* Logs y acciones adicionales */}
+                    <div className="px-4 py-4 flex justify-between items-center border-t border-gray-200">
+                      <button
+                        onClick={() => handleViewLogs(applicant.id)}
+                        className="flex items-center text-[#0097B2] hover:underline"
+                      >
+                        <FileText size={16} className="mr-1" />
+                        <span className="text-sm">View Logs</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenStatusModal(applicant.id)}
+                        className="text-sm text-[#0097B2] hover:underline"
+                      >
+                        Change Status
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-6 text-center text-gray-500">
+                  No applicants found.
                 </div>
-              ))
-            ) : (
-              <div className="p-6 text-center text-gray-500">
-                No applicants for this offer.
+              )}
+            </div>
+
+            {/* Pagination for mobile */}
+            {totalPages > 1 && (
+              <div className="border-t border-gray-200 p-3 flex justify-center">
+                <div className="inline-flex border border-gray-300 rounded-md">
+                  <button
+                    className={`px-3 py-1 text-[#0097B2] border-r border-gray-300 ${
+                      currentPage === 1
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-gray-50 cursor-pointer"
+                    }`}
+                    onClick={goToPreviousPage}
+                    disabled={currentPage === 1}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M15 18L9 12L15 6"
+                        stroke="#0097B2"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNumber;
+                    if (totalPages <= 5) {
+                      pageNumber = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNumber = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNumber = totalPages - 4 + i;
+                    } else {
+                      pageNumber = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={i}
+                        className={`px-3 py-1 ${
+                          currentPage === pageNumber
+                            ? "text-white bg-[#0097B2]"
+                            : "text-[#0097B2] hover:bg-gray-50"
+                        }`}
+                        onClick={() => goToPage(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+                  <button
+                    className={`px-3 py-1 text-[#0097B2] border-l border-gray-300 ${
+                      currentPage === totalPages
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-gray-50 cursor-pointer"
+                    }`}
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9 18L15 12L9 6"
+                        stroke="#0097B2"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
             )}
           </div>
-
-          {/* Pagination for mobile */}
-          {totalPages > 1 && (
-            <div className="border-t border-gray-200 p-3 flex justify-center">
-              <div className="inline-flex border border-gray-300 rounded-md">
-                <button
-                  className={`px-3 py-1 text-[#0097B2] border-r border-gray-300 ${
-                    currentPage === 1
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-gray-50 cursor-pointer"
-                  }`}
-                  onClick={goToPreviousPage}
-                  disabled={currentPage === 1}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M15 18L9 12L15 6"
-                      stroke="#0097B2"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  // Si hay más de 5 páginas, mostrar inteligentemente cuáles números mostrar
-                  let pageNumber;
-                  if (totalPages <= 5) {
-                    pageNumber = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNumber = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNumber = totalPages - 4 + i;
-                  } else {
-                    pageNumber = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <button
-                      key={i}
-                      className={`px-3 py-1 ${
-                        currentPage === pageNumber
-                          ? "text-white bg-[#0097B2]"
-                          : "text-[#0097B2] hover:bg-gray-50"
-                      }`}
-                      onClick={() => goToPage(pageNumber)}
-                    >
-                      {pageNumber}
-                    </button>
-                  );
-                })}
-                <button
-                  className={`px-3 py-1 text-[#0097B2] border-l border-gray-300 ${
-                    currentPage === totalPages
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-gray-50 cursor-pointer"
-                  }`}
-                  onClick={goToNextPage}
-                  disabled={currentPage === totalPages}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M9 18L15 12L9 6"
-                      stroke="#0097B2"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* View Desktop */}
@@ -1389,8 +1191,7 @@ export default function PostulantsPage() {
                                         applicant.id,
                                         `${applicant.nombre} ${applicant.apellido}`,
                                         applicant.correo,
-                                        "PENDIENTE",
-                                        "NEXT"
+                                        "PENDIENTE"
                                       )
                                     }
                                   >
@@ -1426,8 +1227,7 @@ export default function PostulantsPage() {
                                         applicant.id,
                                         `${applicant.nombre} ${applicant.apellido}`,
                                         applicant.correo,
-                                        "EN_EVALUACION",
-                                        "NEXT"
+                                        "EN_EVALUACION"
                                       )
                                     }
                                   >
@@ -1444,8 +1244,7 @@ export default function PostulantsPage() {
                                         applicant.id,
                                         `${applicant.nombre} ${applicant.apellido}`,
                                         applicant.correo,
-                                        "EN_EVALUACION_CLIENTE",
-                                        "NEXT"
+                                        "EN_EVALUACION_CLIENTE"
                                       )
                                     }
                                   >
