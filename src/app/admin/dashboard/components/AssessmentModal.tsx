@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { X } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 
@@ -16,6 +16,7 @@ export default function AssessmentModal({
   const { addNotification } = useNotificationStore();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -23,12 +24,15 @@ export default function AssessmentModal({
     }
   };
 
+  const handleSelectFile = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
     setIsUploading(true);
     try {
-      // Pasar el archivo directamente al callback
       await onUpload(file);
       addNotification("Assessment uploaded successfully", "success");
       onClose();
@@ -52,17 +56,30 @@ export default function AssessmentModal({
             <X size={20} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-4">
+        <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-4">
           <input
             type="file"
             accept="application/pdf"
             onChange={handleFileChange}
-            required
+            ref={fileInputRef}
+            className="hidden"
           />
           <button
+            type="button"
+            onClick={handleSelectFile}
+            className="px-4 py-2 bg-[#0097B2] text-white rounded hover:bg-[#007a8f] transition-colors"
+          >
+            {file ? "Change PDF file" : "Select PDF file"}
+          </button>
+          {file && (
+            <div className="text-sm text-gray-700 truncate">
+              Selected file: <span className="font-medium">{file.name}</span>
+            </div>
+          )}
+          <button
             type="submit"
-            className="ml-2 px-3 py-1 bg-[#0097B2] text-white rounded"
-            disabled={isUploading}
+            className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:opacity-50"
+            disabled={isUploading || !file}
           >
             {isUploading ? "Uploading..." : "Upload PDF"}
           </button>

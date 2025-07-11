@@ -13,6 +13,7 @@ import {
   sendContractJobEmail,
   sendInterviewInvitation,
   sendRejectionEmail,
+  sendAdvanceNextStep,
 } from "../actions/sendEmail.actions";
 // import { toggleOfferStatus } from "../actions/offers.actions";
 import CandidateProfileModal from "./CandidateProfileModal";
@@ -160,8 +161,19 @@ export default function ApplicantsModal({
     currentStage: EstadoPostulacion,
     action: "NEXT" | "CONTRACT" = "NEXT"
   ) => {
+    console.log("🚀 [handleSelectCandidate] Iniciando proceso:", {
+      postulationId,
+      candidateId,
+      candidateName,
+      candidateEmail,
+      currentStage,
+      action,
+      serviceTitle,
+    });
+
     setIsLoading(true);
     try {
+      console.log("📞 [handleSelectCandidate] Llamando a advancedStage...");
       const response = await advancedStage(
         postulationId,
         candidateId,
@@ -169,7 +181,15 @@ export default function ApplicantsModal({
         action
       );
 
+      console.log(
+        "📋 [handleSelectCandidate] Respuesta de advancedStage:",
+        response
+      );
+
       if (response && response.success && response.nextStage) {
+        console.log(
+          "✅ [handleSelectCandidate] advancedStage exitoso, actualizando estado local..."
+        );
         setApplicants((prevApplicants) =>
           prevApplicants.map((app) =>
             app.id === candidateId
@@ -182,6 +202,9 @@ export default function ApplicantsModal({
         );
 
         if (currentStage === "PENDIENTE") {
+          console.log(
+            "📧 [handleSelectCandidate] Enviando email de entrevista..."
+          );
           const emailResponse = await sendInterviewInvitation(
             candidateName,
             candidateEmail
@@ -199,10 +222,18 @@ export default function ApplicantsModal({
             );
           }
         } else if (action === "CONTRACT") {
+          console.log(
+            "📧 [handleSelectCandidate] Enviando email de contratación..."
+          );
           const emailResponse = await sendContractJobEmail(
             candidateName,
             candidateEmail,
             serviceTitle
+          );
+
+          console.log(
+            "📧 [handleSelectCandidate] Respuesta del email de contratación:",
+            emailResponse
           );
 
           if (emailResponse && emailResponse.success) {
@@ -217,15 +248,58 @@ export default function ApplicantsModal({
             );
           }
         } else {
-          addNotification("Candidate advanced to next stage", "success");
+          console.log(
+            "📧 [handleSelectCandidate] Enviando email de avance a siguiente etapa..."
+          );
+          const emailResponse = await sendAdvanceNextStep(
+            candidateName,
+            candidateEmail
+          );
+
+          console.log(
+            "📧 [handleSelectCandidate] Respuesta del email de avance:",
+            emailResponse
+          );
+
+          if (emailResponse && emailResponse.success) {
+            addNotification(
+              "Candidate advanced and email sent successfully",
+              "success"
+            );
+          } else {
+            addNotification(
+              "Candidate advanced but there was an error sending the email",
+              "warning"
+            );
+          }
         }
 
         // Revalida el path principal para actualizar la lista
+        console.log("🔄 [handleSelectCandidate] Revalidando paths...");
         router.refresh();
         onUpdate?.();
+      } else {
+        console.error(
+          "❌ [handleSelectCandidate] advancedStage falló:",
+          response
+        );
+
+        // Manejar errores específicos
+        let errorMessage = response?.message || "Error selecting candidate";
+
+        if (response?.message?.includes("posiciones disponibles")) {
+          errorMessage =
+            "No hay posiciones disponibles para contratar más candidatos en esta oferta";
+        } else if (response?.message?.includes("ya está contratado")) {
+          errorMessage = "Este candidato ya está contratado para esta posición";
+        } else if (response?.message?.includes("ya está en estado")) {
+          errorMessage = "El candidato ya está en el estado solicitado";
+        }
+
+        addNotification(errorMessage, "error");
       }
     } catch (error) {
-      console.error("Error selecting candidate:", error);
+      console.error("💥 [handleSelectCandidate] Error en el proceso:", error);
       addNotification("Error selecting candidate", "error");
     } finally {
       setIsLoading(false);

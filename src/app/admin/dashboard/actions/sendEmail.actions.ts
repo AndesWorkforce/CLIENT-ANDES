@@ -11,9 +11,19 @@ import { BlacklistNotificationEmail } from "../emails/BlacklistNotification";
 
 // Crear transportador de nodemailer con autenticación básica
 const createTransporter = async () => {
+  console.log("🔧 [createTransporter] Verificando variables de entorno...");
+
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    console.error("❌ [createTransporter] Variables de entorno faltantes:", {
+      EMAIL_USER: !!process.env.EMAIL_USER,
+      EMAIL_PASSWORD: !!process.env.EMAIL_PASSWORD,
+    });
     throw new Error("Faltan variables de entorno necesarias para el email");
   }
+
+  console.log(
+    "✅ [createTransporter] Variables de entorno encontradas, creando transportador..."
+  );
 
   const transporter = nodemailer.createTransport({
     host: "teamandes-com.mail.protection.outlook.com",
@@ -24,9 +34,11 @@ const createTransporter = async () => {
     },
   } as nodemailer.TransportOptions);
 
+  console.log("🔧 [createTransporter] Verificando conexión...");
   // Verificar la conexión antes de enviar
   await transporter.verify();
 
+  console.log("✅ [createTransporter] Conexión verificada exitosamente");
   return transporter;
 };
 
@@ -132,7 +144,14 @@ export const sendContractJobEmail = async (
   candidateEmail: string,
   jobTitle: string
 ) => {
+  console.log("🚀 [sendContractJobEmail] Iniciando envío de email:", {
+    candidateName,
+    candidateEmail,
+    jobTitle,
+  });
+
   try {
+    console.log("📧 [sendContractJobEmail] Renderizando template de email...");
     const emailHtml = await render(
       ContractJob({
         candidateName,
@@ -140,8 +159,10 @@ export const sendContractJobEmail = async (
       })
     );
 
+    console.log("📧 [sendContractJobEmail] Creando transportador...");
     const transporter = await createTransporter();
 
+    console.log("📧 [sendContractJobEmail] Enviando email...");
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
@@ -149,13 +170,15 @@ export const sendContractJobEmail = async (
       html: emailHtml,
     });
 
+    console.log("✅ [sendContractJobEmail] Email enviado exitosamente:", info);
+
     return {
       success: true,
       message: "Contract job email sent successfully",
       data: info,
     };
   } catch (error) {
-    console.error("Error sending contract job email:", error);
+    console.error("💥 [sendContractJobEmail] Error enviando email:", error);
     return { success: false, error };
   }
 };

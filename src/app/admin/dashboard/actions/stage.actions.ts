@@ -48,6 +48,13 @@ export async function advancedStage(
     | "RECHAZADA",
   action: "NEXT" | "CONTRACT" = "NEXT"
 ) {
+  console.log("🚀 [advancedStage] Iniciando con parámetros:", {
+    postulationId,
+    candidateId,
+    currentStage,
+    action,
+  });
+
   const axios = await createServerAxios();
   try {
     let nextStage:
@@ -60,11 +67,18 @@ export async function advancedStage(
     let additionalData = {};
 
     if (action === "CONTRACT") {
+      console.log(
+        "📋 [advancedStage] Acción CONTRACT detectada, estableciendo nextStage = ACEPTADA"
+      );
       nextStage = "ACEPTADA";
       additionalData = {
         notasInternas: "Candidate hired",
       };
     } else {
+      console.log(
+        "📋 [advancedStage] Acción NEXT detectada, procesando currentStage:",
+        currentStage
+      );
       switch (currentStage) {
         case "PENDIENTE":
           nextStage = "EN_EVALUACION";
@@ -112,6 +126,14 @@ export async function advancedStage(
       }
     }
 
+    console.log("📤 [advancedStage] Enviando petición al backend:", {
+      url: `admin/postulaciones/${postulationId}/candidate/${candidateId}/status`,
+      data: {
+        estadoPostulacion: nextStage,
+        ...additionalData,
+      },
+    });
+
     const response = await axios.patch(
       `admin/postulaciones/${postulationId}/candidate/${candidateId}/status`,
       {
@@ -120,13 +142,23 @@ export async function advancedStage(
       }
     );
 
+    console.log("📥 [advancedStage] Respuesta del backend:", {
+      status: response.status,
+      data: response.data,
+    });
+
     if (response.status !== 200) {
+      console.error(
+        "❌ [advancedStage] Error en respuesta del backend:",
+        response.status
+      );
       return {
         success: false,
         message: "Error updating stage",
       };
     }
 
+    console.log("✅ [advancedStage] Proceso exitoso, revalidando paths...");
     revalidatePath(`/admin/dashboard`);
     revalidatePath(`/admin/dashboard/postulants`);
     return {
@@ -135,6 +167,7 @@ export async function advancedStage(
       nextStage,
     };
   } catch (error) {
+    console.error("💥 [advancedStage] Error en el proceso:", error);
     revalidatePath(`/admin/dashboard`);
     revalidatePath(`/admin/dashboard/postulants`);
     console.log("[error] ", error);

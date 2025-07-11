@@ -2,6 +2,7 @@
 
 import { createServerAxios } from "@/services/axios.server";
 import { AxiosError } from "axios";
+import { sendInterviewInvitation } from "@/app/admin/dashboard/actions/sendEmail.actions";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -42,6 +43,30 @@ export async function applyToOffer(offerId: string) {
       propuestaId: offerId,
     });
     const data = await response.data;
+
+    // Si la aplicación fue exitosa, enviar email de entrevista
+    if (response.status === 201 || response.status === 200) {
+      try {
+        // Obtener información del usuario actual usando el nuevo endpoint
+        const userResponse = await axios.get(`${API_URL}users/me`);
+        const offersResponse = await axios.get(`${API_URL}offers/${offerId}`);
+
+        if (userResponse.data && offersResponse.data) {
+          const user = userResponse.data.data;
+
+          if (user) {
+            // Enviar email de entrevista
+            await sendInterviewInvitation(
+              `${user.nombre} ${user.apellido}`,
+              user.correo
+            );
+          }
+        }
+      } catch (emailError) {
+        console.error("Error sending interview email:", emailError);
+        // No fallar la aplicación si el email falla
+      }
+    }
 
     return {
       success: true,
