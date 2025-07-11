@@ -231,7 +231,12 @@ export default function ApplicationsPage() {
                     {app.estadoPostulacion === "ACEPTADA" && (
                       <div className="w-full mt-2 text-sm text-green-600 flex items-center justify-center gap-2">
                         <CheckCircle size={14} />
-                        <span>Accepted - View in Current Application</span>
+                        <a
+                          href="/currentApplication"
+                          className="underline hover:text-green-700 transition-colors"
+                        >
+                          Accepted - View in Current Application
+                        </a>
                       </div>
                     )}
                   </div>

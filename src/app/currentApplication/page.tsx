@@ -836,7 +836,8 @@ export default function CurrentApplication() {
   }
 
   // Show pending contract notification if contract is not fully signed by both parties
-  const isContractFullySigned = currentJob.signWellDownloadUrl !== null;
+  const isContractFullySigned =
+    currentJob.estadoContratacion === "CONTRATO_FINALIZADO";
 
   const needsDocumentReading =
     (currentJob.estadoContratacion === "FIRMADO_CANDIDATO" ||
@@ -845,11 +846,7 @@ export default function CurrentApplication() {
 
   const isWaitingForProviderSignature =
     currentJob.estadoContratacion === "DOCUMENTOS_COMPLETADOS" ||
-    currentJob.estadoContratacion === "LECTURA_DOCS_COMPLETA" ||
-    currentJob.estadoContratacion === "PENDIENTE_FIRMA_PROVEEDOR" ||
-    ((currentJob.estadoContratacion === "FIRMADO_CANDIDATO" ||
-      currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA") &&
-      allDocumentsRead());
+    currentJob.estadoContratacion === "PENDIENTE_FIRMA_PROVEEDOR";
 
   console.log("🔍 Calculated states:", {
     showDocumentsModal,
