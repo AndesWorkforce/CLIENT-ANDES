@@ -32,10 +32,11 @@ export default function StatusChangeModal({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
-    if (currentStatus) {
+    if (isOpen && currentStatus) {
       setSelectedStatus(currentStatus);
+      setStatusNotes(""); // Limpiar notas cuando se abre el modal
     }
-  }, [currentStatus]);
+  }, [currentStatus, isOpen]);
 
   if (!isOpen) return null;
 
@@ -51,12 +52,11 @@ export default function StatusChangeModal({
       color: "bg-green-100 text-green-800 border-green-300",
       description: "Candidate is active and can be assigned to jobs",
     },
-
     {
-      value: "DISMISS",
-      label: "Dismiss",
+      value: "INACTIVE",
+      label: "Inactive",
       color: "bg-gray-100 text-gray-800 border-gray-300",
-      description: "Candidate is dismissed but not blocked",
+      description: "Candidate is inactive and not available for jobs",
     },
     {
       value: "BLACKLIST",
@@ -68,7 +68,7 @@ export default function StatusChangeModal({
 
   const handleSubmit = async () => {
     if (selectedStatus === currentStatus) {
-      onClose();
+      handleClose();
       return;
     }
 
@@ -89,6 +89,12 @@ export default function StatusChangeModal({
         }
       }
 
+      // Esperar un momento para que se complete la actualización
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Limpiar el estado del modal antes de cerrar
+      setStatusNotes("");
+      setSelectedStatus(currentStatus);
       onClose();
     } catch (error) {
       console.error("Error updating status:", error);
@@ -97,10 +103,17 @@ export default function StatusChangeModal({
     }
   };
 
+  const handleClose = () => {
+    // Limpiar el estado del modal al cerrar
+    setStatusNotes("");
+    setSelectedStatus(currentStatus);
+    onClose();
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.5)]"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-auto"
@@ -108,7 +121,7 @@ export default function StatusChangeModal({
       >
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 cursor-pointer z-10"
         >
           <X size={20} />
@@ -178,7 +191,7 @@ export default function StatusChangeModal({
         {/* Actions */}
         <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isSubmitting}
             className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >

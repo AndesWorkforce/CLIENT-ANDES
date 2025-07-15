@@ -22,6 +22,7 @@ import ApplicantsTableSkeleton from "./ApplicantsTableSkeleton";
 import { ApplicantsMobileCardSkeleton } from "./ApplicantsTableSkeleton";
 import { useRouter } from "next/navigation";
 import { removeMultipleApplications } from "../actions/applicants.actions";
+import { updateInterviewPreference } from "../actions/applicants.actions";
 
 export type EstadoPostulacion =
   | "PENDIENTE"
@@ -68,17 +69,18 @@ export default function ApplicantsModal({
     user?.rol === "EMPRESA" || user?.rol === "EMPLEADO_EMPRESA";
   const [applicants, setApplicants] = useState<
     (CandidatoWithPostulationId & { isExpanded: boolean })[]
-  >(
-    initialApplicants.map((applicant) => ({
-      ...applicant,
-      isExpanded: false,
-    }))
-  );
+  >([]);
+  const [isLoadingApplicants, setIsLoadingApplicants] = useState(false);
 
   // Estado para manejar las selecciones de candidatos
   const [selectedCandidates, setSelectedCandidates] = useState<Set<string>>(
     new Set()
   );
+
+  // Estado para manejar las preferencias de entrevista
+  const [interviewPreferences, setInterviewPreferences] = useState<
+    Record<string, boolean>
+  >({});
 
   // Estado para el modal de confirmación de eliminación
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -121,8 +123,10 @@ export default function ApplicantsModal({
   useEffect(() => {
     // Load application status for each candidate
     const loadStages = async () => {
+      setIsLoadingApplicants(true);
+
       const updatedApplicants = await Promise.all(
-        applicants.map(async (applicant) => {
+        initialApplicants.map(async (applicant) => {
           try {
             const response = await currentStageStatus(
               applicant.postulationId,
@@ -131,24 +135,53 @@ export default function ApplicantsModal({
             if (response.success && response.data?.estadoPostulacion) {
               return {
                 ...applicant,
+                isExpanded: false,
                 estadoPostulacion: response.data
                   .estadoPostulacion as EstadoPostulacion,
               };
             }
-            return applicant;
+            return {
+              ...applicant,
+              isExpanded: false,
+            };
           } catch (error) {
             console.error("Error loading stage for applicant:", error);
-            return applicant;
+            return {
+              ...applicant,
+              isExpanded: false,
+            };
           }
         })
       );
-      setApplicants(updatedApplicants);
+
+      // Para usuarios de empresa, filtrar candidatos rechazados SOLAMENTE
+      // Los contratados (ACEPTADA) SÍ deben aparecer para que la empresa los vea
+      const filteredApplicants = isCompanyUser
+        ? updatedApplicants.filter(
+            (applicant) => applicant.estadoPostulacion !== "RECHAZADA"
+          )
+        : updatedApplicants;
+
+      console.log("🔍 [ApplicantsModal] Applicants filtering:", {
+        isCompanyUser,
+        originalCount: updatedApplicants.length,
+        filteredCount: filteredApplicants.length,
+        rejected: updatedApplicants.filter(
+          (a) => a.estadoPostulacion === "RECHAZADA"
+        ).length,
+        hired: updatedApplicants.filter(
+          (a) => a.estadoPostulacion === "ACEPTADA"
+        ).length,
+      });
+
+      setApplicants(filteredApplicants);
+      setIsLoadingApplicants(false);
     };
 
-    if (isOpen) {
+    if (isOpen && initialApplicants.length > 0) {
       loadStages();
     }
-  }, [isOpen]);
+  }, [isOpen, isCompanyUser, serviceTitle]); // Cambié la dependencia para usar serviceTitle como identificador único
 
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -303,6 +336,45 @@ export default function ApplicantsModal({
       addNotification("Error selecting candidate", "error");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Función para manejar cambios en la preferencia de entrevista
+  const handleInterviewPreferenceChange = async (
+    applicantId: string,
+    wantsInterview: boolean
+  ) => {
+    setInterviewPreferences((prev) => ({
+      ...prev,
+      [applicantId]: wantsInterview,
+    }));
+
+    // Para usuarios de empresa, guardar la preferencia en la base de datos
+    if (isCompanyUser) {
+      try {
+        const applicant = applicants.find((app) => app.id === applicantId);
+        if (applicant) {
+          const response = await updateInterviewPreference(
+            applicant.postulationId,
+            wantsInterview
+          );
+
+          if (response.success) {
+            console.log(
+              `✅ Preferencia de entrevista guardada para ${applicant.nombre}: ${wantsInterview}`
+            );
+          } else {
+            console.error("❌ Error al guardar preferencia:", response.error);
+            addNotification(
+              "Error al guardar preferencia de entrevista",
+              "error"
+            );
+          }
+        }
+      } catch (error) {
+        console.error("❌ Error saving interview preference:", error);
+        addNotification("Error al guardar preferencia de entrevista", "error");
+      }
     }
   };
 
@@ -529,7 +601,7 @@ export default function ApplicantsModal({
               scrollbarColor: "#0097B2 #f3f4f6",
             }}
           >
-            {isLoading ? (
+            {isLoadingApplicants ? (
               <ApplicantsMobileCardSkeleton />
             ) : applicants.length > 0 ? (
               applicants.map((applicant) => (
@@ -631,19 +703,63 @@ export default function ApplicantsModal({
                     )}
 
                     {isCompanyUser && (
-                      <div className="grid grid-cols-2 w-full mb-4">
-                        <p className="text-gray-700 text-sm">Profile</p>
-                        <button
-                          onClick={() => {
-                            setSelectedCandidateId(applicant.id);
-                            setIsCandidateProfileModalOpen(true);
-                          }}
-                          className="text-[#0097B2] text-start font-medium text-sm cursor-pointer flex items-center"
-                        >
-                          View profile
-                          <User size={16} className="ml-1" />
-                        </button>
-                      </div>
+                      <>
+                        <div className="grid grid-cols-2 w-full mb-4">
+                          <p className="text-gray-700 text-sm">Profile</p>
+                          <button
+                            onClick={() => {
+                              setSelectedCandidateId(applicant.id);
+                              setIsCandidateProfileModalOpen(true);
+                            }}
+                            className="text-[#0097B2] text-start font-medium text-sm cursor-pointer flex items-center"
+                          >
+                            View profile
+                            <User size={16} className="ml-1" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 w-full mb-4">
+                          <p className="text-gray-700 text-sm">
+                            Schedule Interview?
+                          </p>
+                          <div className="flex items-center gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`interview-mobile-${applicant.id}`}
+                                checked={
+                                  interviewPreferences[applicant.id] === true
+                                }
+                                onChange={() =>
+                                  handleInterviewPreferenceChange(
+                                    applicant.id,
+                                    true
+                                  )
+                                }
+                                className="w-4 h-4 text-blue-600"
+                              />
+                              <span className="text-sm">Yes</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`interview-mobile-${applicant.id}`}
+                                checked={
+                                  interviewPreferences[applicant.id] === false
+                                }
+                                onChange={() =>
+                                  handleInterviewPreferenceChange(
+                                    applicant.id,
+                                    false
+                                  )
+                                }
+                                className="w-4 h-4 text-blue-600"
+                              />
+                              <span className="text-sm">No</span>
+                            </label>
+                          </div>
+                        </div>
+                      </>
                     )}
 
                     <div className="grid grid-cols-2 w-full">
@@ -920,7 +1036,7 @@ export default function ApplicantsModal({
                 scrollbarColor: "#0097B2 #f3f4f6",
               }}
             >
-              {isLoading ? (
+              {isLoadingApplicants ? (
                 <ApplicantsTableSkeleton />
               ) : applicants.length > 0 ? (
                 <>
@@ -974,6 +1090,18 @@ export default function ApplicantsModal({
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
                           Status
                         </th>
+                        {/* Campos solo para usuarios EMPRESA */}
+                        {isCompanyUser && (
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">
+                            Schedule Interview?
+                          </th>
+                        )}
+                        {/* Campos solo para usuarios ADMIN */}
+                        {!isCompanyUser && (
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">
+                            Interview Preference
+                          </th>
+                        )}
                         <th className="text-left py-3 px-4 font-medium text-gray-700">
                           First Interview
                         </th>
@@ -1110,6 +1238,70 @@ export default function ApplicantsModal({
                               </span>
                             </div>
                           </td>
+
+                          {/* Schedule Interview? - Solo para usuarios EMPRESA */}
+                          {isCompanyUser && (
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="radio"
+                                    name={`interview-${applicant.id}`}
+                                    checked={
+                                      interviewPreferences[applicant.id] ===
+                                      true
+                                    }
+                                    onChange={() =>
+                                      handleInterviewPreferenceChange(
+                                        applicant.id,
+                                        true
+                                      )
+                                    }
+                                    className="w-4 h-4 text-blue-600"
+                                  />
+                                  <span className="text-sm">Yes</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="radio"
+                                    name={`interview-${applicant.id}`}
+                                    checked={
+                                      interviewPreferences[applicant.id] ===
+                                      false
+                                    }
+                                    onChange={() =>
+                                      handleInterviewPreferenceChange(
+                                        applicant.id,
+                                        false
+                                      )
+                                    }
+                                    className="w-4 h-4 text-blue-600"
+                                  />
+                                  <span className="text-sm">No</span>
+                                </label>
+                              </div>
+                            </td>
+                          )}
+
+                          {/* Interview Preference - Solo para usuarios ADMIN */}
+                          {!isCompanyUser && (
+                            <td className="py-4 px-4">
+                              {interviewPreferences[applicant.id] === true ? (
+                                <span className="text-green-600 text-sm font-medium">
+                                  ✓ Yes
+                                </span>
+                              ) : interviewPreferences[applicant.id] ===
+                                false ? (
+                                <span className="text-red-600 text-sm font-medium">
+                                  ✗ No
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 text-sm">
+                                  Not set
+                                </span>
+                              )}
+                            </td>
+                          )}
 
                           {/* Primera Entrevista */}
                           <td className="py-4 px-4">

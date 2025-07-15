@@ -12,6 +12,7 @@ interface ContractJobProps {
   jobTitle: string;
 }
 
+// Stage 4: Contract Job Notification
 export const ContractJob = ({ candidateName, jobTitle }: ContractJobProps) => {
   return (
     <Html>

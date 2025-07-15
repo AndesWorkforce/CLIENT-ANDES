@@ -8,6 +8,7 @@ import {
   sendContractToSignWell,
   SendContractPayload,
 } from "../../actions/contracts.actions";
+import { sendContractSentNotification } from "../../actions/sendEmail.actions";
 import StatementOfWorkPDF from "./templates/StatementOfWorkPDF";
 import { Applicant } from "../../../../types/applicant";
 import { useNotificationStore } from "@/store/notifications.store";
@@ -395,6 +396,35 @@ export default function SignContractModal({
           "Contract sent successfully! The signing window has been opened for the candidate.",
           "success"
         );
+
+        // Send contract notification email
+        try {
+          const emailResponse = await sendContractSentNotification(
+            contractData.nombreCompleto,
+            contractData.correoElectronico
+          );
+
+          if (emailResponse.success) {
+            console.log("✅ Contract notification email sent successfully");
+            addNotification(
+              "Contract notification email sent to candidate.",
+              "success"
+            );
+          } else {
+            console.error(
+              "❌ Error sending contract notification email:",
+              emailResponse.error
+            );
+            // Don't show error to user since the main action succeeded
+          }
+        } catch (emailError) {
+          console.error(
+            "❌ Error sending contract notification email:",
+            emailError
+          );
+          // Don't show error to user since the main action succeeded
+        }
+
         onClose();
       } else {
         console.error("Error sending contract:", result.message);

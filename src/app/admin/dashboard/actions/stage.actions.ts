@@ -178,6 +178,110 @@ export async function advancedStage(
   }
 }
 
+// Nueva función para saltar directamente a cualquier etapa
+export async function directStageJump(
+  postulationId: string,
+  candidateId: string,
+  targetStage:
+    | "EN_EVALUACION"
+    | "EN_EVALUACION_CLIENTE"
+    | "FINALISTA"
+    | "ACEPTADA"
+) {
+  console.log("🚀 [directStageJump] Iniciando salto directo a etapa:", {
+    postulationId,
+    candidateId,
+    targetStage,
+  });
+
+  const axios = await createServerAxios();
+  try {
+    let additionalData = {};
+
+    // Configurar datos adicionales según la etapa objetivo
+    switch (targetStage) {
+      case "EN_EVALUACION":
+        additionalData = {
+          fechaEntrevista: new Date().toISOString(),
+          linkEntrevista: "https://meet.google.com/abc123",
+          notasInternas: "Candidate invited to first interview (direct jump)",
+        };
+        break;
+      case "EN_EVALUACION_CLIENTE":
+        additionalData = {
+          notasInternas:
+            "Candidate scheduled for second interview with client (direct jump)",
+        };
+        break;
+      case "FINALISTA":
+        additionalData = {
+          notasInternas: "Candidate selected as finalist (direct jump)",
+        };
+        break;
+      case "ACEPTADA":
+        additionalData = {
+          notasInternas: "Candidate hired (direct jump)",
+        };
+        break;
+      default:
+        return {
+          success: false,
+          message: `Invalid target stage: ${targetStage}`,
+        };
+    }
+
+    console.log("📤 [directStageJump] Enviando petición al backend:", {
+      url: `admin/postulaciones/${postulationId}/candidate/${candidateId}/status`,
+      data: {
+        estadoPostulacion: targetStage,
+        ...additionalData,
+      },
+    });
+
+    const response = await axios.patch(
+      `admin/postulaciones/${postulationId}/candidate/${candidateId}/status`,
+      {
+        estadoPostulacion: targetStage,
+        ...additionalData,
+      }
+    );
+
+    console.log("📥 [directStageJump] Respuesta del backend:", {
+      status: response.status,
+      data: response.data,
+    });
+
+    if (response.status !== 200) {
+      console.error(
+        "❌ [directStageJump] Error en respuesta del backend:",
+        response.status
+      );
+      return {
+        success: false,
+        message: "Error updating stage",
+      };
+    }
+
+    console.log("✅ [directStageJump] Proceso exitoso, revalidando paths...");
+    revalidatePath(`/admin/dashboard`);
+    revalidatePath(`/admin/dashboard/postulants`);
+    return {
+      success: true,
+      message: "Stage updated successfully",
+      nextStage: targetStage,
+    };
+  } catch (error) {
+    console.error("💥 [directStageJump] Error en el proceso:", error);
+    revalidatePath(`/admin/dashboard`);
+    revalidatePath(`/admin/dashboard/postulants`);
+    console.log("[error] ", error);
+    return {
+      success: false,
+      message: "Error updating stage",
+    };
+  }
+}
+
 export async function rejectStage(postulationId: string, candidateId: string) {
   const axios = await createServerAxios();
   try {
