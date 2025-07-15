@@ -18,24 +18,30 @@ import {
   removeCandidate,
   activateCandidate,
   toggleFavorite,
+  sendPreliminaryInterviewInvitation,
 } from "../actions/update.clasification.actions";
 import CandidateActionModal from "../components/CandidateActionModal";
 import SendEmailModal from "../components/SendEmailModal";
 import SignContractModal from "./components/SignContractModal";
-// Importar acciones para manejar aplicaciones
-import { advancedStage, rejectStage } from "../actions/stage.actions";
-import {
-  sendAdvanceNextStep,
-  sendContractJobEmail,
-  sendInterviewInvitation,
-  sendRejectionEmail,
-} from "../actions/sendEmail.actions";
+import { sendInterviewInvitation } from "../actions/sendEmail.actions";
 
 interface CandidatoWithPostulationId extends Candidato {
   postulationId: string;
 }
 
-export type CandidateStatus = "ACTIVE" | "BLACKLIST" | "DISMISS";
+export type CandidateStatus = "ACTIVE" | "BLACKLIST" | "DISMISS" | "INACTIVE";
+
+export type StageStatus =
+  | "PROFILE_INCOMPLETE"
+  | "FIRST_INTERVIEW_PENDING"
+  | "SECOND_INTERVIEW_PENDING"
+  | "FINALIST"
+  | "HIRED"
+  | "AVAILABLE"
+  | "TERMINATED"
+  | "BLACKLIST";
+
+export type ApplicantStatus = "ACTIVE" | "INACTIVE";
 
 interface ExtendedApplication {
   id: string;
@@ -51,6 +57,9 @@ interface ExtendedCandidate extends CandidatoWithPostulationId {
   clasificacionGlobal: CandidateStatus;
   favorite?: boolean;
   activo?: boolean;
+  perfilCompleto?: string; // ✅ AGREGADO: Campo del estado del perfil desde backend
+  entrevistaPreliminar?: boolean; // ✅ AGREGADO: Campo de entrevista preliminar
+  fechaEntrevistaPreliminar?: string; // ✅ AGREGADO: Fecha de entrevista preliminar
   logs: {
     date: string;
     action: string;
@@ -71,7 +80,9 @@ export default function PostulantsPage() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState<boolean>(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState<boolean>(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState<boolean>(false);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [stageFilter, setStageFilter] = useState<string>("all");
+  const [applicantStatusFilter, setApplicantStatusFilter] =
+    useState<string>("all");
   const [recentlyUpdated, setRecentlyUpdated] = useState<string>("");
   const { addNotification } = useNotificationStore();
   const [isActionModalOpen, setIsActionModalOpen] = useState<boolean>(false);
@@ -97,6 +108,7 @@ export default function PostulantsPage() {
         setApplicants(response.data?.resultados);
         setTotalPages(response.totalPages || 1);
       } else {
+        console.error("Error in getApplicants:", response.message);
         setApplicants([]);
         setTotalPages(1);
       }
@@ -122,9 +134,11 @@ export default function PostulantsPage() {
   const goToPreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
+
   const goToNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
+
   const goToPage = (page: number) => {
     if (page !== currentPage) setCurrentPage(page);
   };
@@ -150,6 +164,20 @@ export default function PostulantsPage() {
   };
 
   const handleOpenStatusModal = (candidateId: string) => {
+    const candidate = applicants.find((a) => a.id === candidateId);
+    console.log("🔄 Opening status modal for candidate:", {
+      candidateId,
+      currentStatus: candidate?.clasificacionGlobal,
+      candidateName: candidate?.nombre,
+      fullCandidate: candidate,
+    });
+
+    // Verificar el estado actual de TODOS los candidatos
+    console.log("📊 Estado actual de todos los candidatos:");
+    applicants.forEach((app) => {
+      console.log(`👤 ${app.nombre}: ${app.clasificacionGlobal}`);
+    });
+
     setSelectedCandidateId(candidateId);
     setIsStatusModalOpen(true);
   };
@@ -168,51 +196,156 @@ export default function PostulantsPage() {
 
     const candidateName = candidate.nombre || "Candidate";
 
+    console.log("🔄 Iniciando cambio de estado:", {
+      candidateId,
+      currentStatus: candidate.clasificacionGlobal,
+      newStatus: status,
+      notes,
+    });
+
     try {
+      // Actualización optimista del estado local
+      setApplicants((prev) =>
+        prev.map((applicant) =>
+          applicant.id === candidateId
+            ? { ...applicant, clasificacionGlobal: status }
+            : applicant
+        )
+      );
+
+      setRecentlyUpdated(candidateId);
+      setTimeout(() => {
+        setRecentlyUpdated("");
+      }, 2000);
+
       const response = await updateCandidateStatus(candidateId, status, notes);
 
+      console.log("� Respuesta del servidor:", response);
+
       if (response.success) {
-        setApplicants((prev) =>
-          prev.map((candidate) =>
-            candidate.id === candidateId
-              ? { ...candidate, clasificacionGlobal: status }
-              : candidate
-          )
-        );
-
-        setRecentlyUpdated(candidateId);
-        setTimeout(() => {
-          setRecentlyUpdated("");
-        }, 2000);
-
+        console.log("✅ Estado actualizado exitosamente");
         addNotification(
           `Status of ${candidateName} updated to ${status}`,
           "success"
         );
       } else {
+        console.error(
+          "❌ Error en la respuesta del servidor:",
+          response.message
+        );
+        // Revertir cambio optimista si hay error
+        setApplicants((prev) =>
+          prev.map((applicant) =>
+            applicant.id === candidateId
+              ? {
+                  ...applicant,
+                  clasificacionGlobal: candidate.clasificacionGlobal,
+                }
+              : applicant
+          )
+        );
         addNotification(response.message || "Error updating status", "error");
       }
     } catch (error) {
-      console.error("Error al actualizar estado del candidato:", error);
+      console.error("❌ Error al actualizar estado del candidato:", error);
+      // Revertir cambio optimista si hay error
+      setApplicants((prev) =>
+        prev.map((applicant) =>
+          applicant.id === candidateId
+            ? {
+                ...applicant,
+                clasificacionGlobal: candidate.clasificacionGlobal,
+              }
+            : applicant
+        )
+      );
       addNotification("Error updating candidate status", "error");
     }
   };
 
-  // const toggleExpandApplicant = (id: string) => {
-  //   setApplicants((prev) =>
-  //     prev.map((app) => ({
-  //       ...app,
-  //       isExpanded: app.id === id ? !app.isExpanded : false,
-  //     }))
-  //   );
-  // };
+  // Nueva función para renderizar Stage Status
+  const renderStageStatus = (applicant: ExtendedCandidate): StageStatus => {
+    // 1. Primero verificar si el usuario está en blacklist (prioridad máxima)
+    if (applicant.clasificacionGlobal === "BLACKLIST") {
+      return "BLACKLIST";
+    }
 
-  const renderCompanyStatus = (status: CandidateStatus) => {
-    switch (status) {
-      case "ACTIVE":
+    // 2. Verificar el estado del perfil
+    const perfilCompleto = applicant.perfilCompleto;
+    if (
+      perfilCompleto === "INCOMPLETO" ||
+      perfilCompleto === "PENDIENTE_VALIDACION"
+    ) {
+      return "PROFILE_INCOMPLETE";
+    }
+
+    // 3. Si el perfil está completo pero no tiene aplicación activa = AVAILABLE
+    if (!hasActiveApplication(applicant)) {
+      return "AVAILABLE";
+    }
+
+    // 4. Si tiene aplicación activa, basarse en el estado de la aplicación
+    const estado = applicant.lastRelevantPostulacion?.estado;
+    switch (estado) {
+      case "PENDIENTE":
+        return "FIRST_INTERVIEW_PENDING";
+      case "EN_EVALUACION":
+        return "FIRST_INTERVIEW_PENDING";
+      case "EN_EVALUACION_CLIENTE":
+        return "SECOND_INTERVIEW_PENDING";
+      case "FINALISTA":
+        return "FINALIST";
+      case "ACEPTADA":
+        return "HIRED";
+      case "RECHAZADA":
+        return "TERMINATED";
+      default:
+        return "AVAILABLE";
+    }
+  };
+
+  const renderStageStatusBadge = (stage: StageStatus) => {
+    switch (stage) {
+      case "PROFILE_INCOMPLETE":
+        return (
+          <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
+            Profile Incomplete
+          </span>
+        );
+      case "FIRST_INTERVIEW_PENDING":
+        return (
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+            First Interview Pending
+          </span>
+        );
+      case "SECOND_INTERVIEW_PENDING":
+        return (
+          <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+            Second Interview Pending
+          </span>
+        );
+      case "FINALIST":
+        return (
+          <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+            Finalist
+          </span>
+        );
+      case "HIRED":
         return (
           <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-            Active
+            Hired
+          </span>
+        );
+      case "AVAILABLE":
+        return (
+          <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full">
+            Available
+          </span>
+        );
+      case "TERMINATED":
+        return (
+          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+            Terminated
           </span>
         );
       case "BLACKLIST":
@@ -221,54 +354,34 @@ export default function PostulantsPage() {
             Blacklist
           </span>
         );
-      case "DISMISS":
+      default:
+        return <span></span>;
+    }
+  };
+
+  // Nueva función para renderizar Applicant Status
+  const renderApplicantStatus = (
+    applicant: ExtendedCandidate
+  ): ApplicantStatus => {
+    // Usar clasificacionGlobal - tanto INACTIVE como BLACKLIST se consideran INACTIVE
+    return applicant.clasificacionGlobal === "INACTIVE" ||
+      applicant.clasificacionGlobal === "BLACKLIST"
+      ? "INACTIVE"
+      : "ACTIVE";
+  };
+
+  const renderApplicantStatusBadge = (status: ApplicantStatus) => {
+    switch (status) {
+      case "ACTIVE":
+        return (
+          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+            Active
+          </span>
+        );
+      case "INACTIVE":
         return (
           <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
-            Dismiss
-          </span>
-        );
-
-      default:
-        return <span></span>;
-    }
-  };
-
-  const renderApplicationStatus = (status: string) => {
-    switch (status) {
-      case "PENDIENTE":
-        return (
-          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-            Pending Review
-          </span>
-        );
-      case "EN_EVALUACION":
-        return (
-          <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full ">
-            First Interview Pending
-          </span>
-        );
-      case "EN_EVALUACION_CLIENTE":
-        return (
-          <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full ">
-            Second Interview Pending
-          </span>
-        );
-      case "FINALISTA":
-        return (
-          <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full ">
-            Finalist
-          </span>
-        );
-      case "ACEPTADA":
-        return (
-          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full ">
-            Hired
-          </span>
-        );
-      case "RECHAZADA":
-        return (
-          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full ">
-            Rejected
+            Inactive
           </span>
         );
       default:
@@ -276,17 +389,40 @@ export default function PostulantsPage() {
     }
   };
 
-  // const handleRemoveCandidate = (candidateId: string) => {
-  //   setSelectedCandidateId(candidateId);
-  //   setCurrentAction("remove");
-  //   setIsActionModalOpen(true);
-  // };
-
-  // const handleActivateCandidate = (candidateId: string) => {
-  //   setSelectedCandidateId(candidateId);
-  //   setCurrentAction("activate");
-  //   setIsActionModalOpen(true);
-  // };
+  // Nueva función para renderizar el estado de Entrevista Preliminar
+  const renderPreliminaryInterviewStatus = (applicant: ExtendedCandidate) => {
+    if (applicant.entrevistaPreliminar) {
+      return (
+        <div className="flex flex-col items-center">
+          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full mb-1">
+            ✓ Sent
+          </span>
+          {applicant.fechaEntrevistaPreliminar && (
+            <span className="text-xs text-gray-500">
+              {new Date(
+                applicant.fechaEntrevistaPreliminar
+              ).toLocaleDateString()}
+            </span>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <button
+          className="px-3 py-1 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
+          onClick={() =>
+            handlePreliminaryInterview(
+              applicant.id,
+              `${applicant.nombre} ${applicant.apellido}`,
+              applicant.correo
+            )
+          }
+        >
+          Send Invitation
+        </button>
+      );
+    }
+  };
 
   const handleCandidateAction = async () => {
     if (!selectedCandidateId) return;
@@ -344,22 +480,6 @@ export default function PostulantsPage() {
     }
   };
 
-  // const handleDeleteCandidate = (candidateId: string) => {
-  //   const candidate = applicants.find((c) => c.id === candidateId);
-  //   if (!candidate) return;
-
-  //   // Verificar si el candidato está activo o no basado en el campo activo
-  //   const isActive = candidate.activo === true;
-
-  //   if (!isActive) {
-  //     // Si no está activo, ofrecemos activarlo
-  //     handleActivateCandidate(candidateId);
-  //   } else {
-  //     // Si está activo, ofrecemos eliminarlo
-  //     handleRemoveCandidate(candidateId);
-  //   }
-  // };
-
   const handleToggleFavorite = async (candidateId: string) => {
     const candidate = applicants.find((c) => c.id === candidateId);
     if (!candidate) return;
@@ -370,10 +490,20 @@ export default function PostulantsPage() {
     setFavoriteLoading(candidateId);
 
     try {
+      // Actualización optimista del estado local
+      const newFavoriteStatus = !candidate.favorite;
+      setApplicants((prev) =>
+        prev.map((applicant) =>
+          applicant.id === candidateId
+            ? { ...applicant, favorite: newFavoriteStatus }
+            : applicant
+        )
+      );
+
       const response = await toggleFavorite(candidateId);
 
       if (response.success) {
-        // Actualizar el estado local del candidato
+        // Actualizar con el estado real del servidor
         setApplicants((prev) =>
           prev.map((applicant) =>
             applicant.id === candidateId
@@ -382,14 +512,19 @@ export default function PostulantsPage() {
           )
         );
 
-        // Refrescar los datos desde el servidor para asegurar sincronización
-        await fetchApplicants(currentPage, search);
-
         addNotification(
           response.message ?? "Estado favorito actualizado exitosamente",
           "success"
         );
       } else {
+        // Revertir cambio optimista si hay error
+        setApplicants((prev) =>
+          prev.map((applicant) =>
+            applicant.id === candidateId
+              ? { ...applicant, favorite: candidate.favorite }
+              : applicant
+          )
+        );
         addNotification(
           response.message || "Error al actualizar estado favorito",
           "error"
@@ -397,6 +532,14 @@ export default function PostulantsPage() {
       }
     } catch (error) {
       console.error("Error al alternar favorito:", error);
+      // Revertir cambio optimista si hay error
+      setApplicants((prev) =>
+        prev.map((applicant) =>
+          applicant.id === candidateId
+            ? { ...applicant, favorite: candidate.favorite }
+            : applicant
+        )
+      );
       addNotification("Error al actualizar estado favorito", "error");
     } finally {
       setFavoriteLoading(null);
@@ -419,193 +562,92 @@ export default function PostulantsPage() {
     setIsSignContractModalOpen(true);
   };
 
-  // Mapeo de tipos de estado de postulación
-  const mapEstadoPostulacion = (
-    estado: string
-  ):
-    | "PENDIENTE"
-    | "EN_EVALUACION"
-    | "EN_EVALUACION_CLIENTE"
-    | "FINALISTA"
-    | "ACEPTADA"
-    | "RECHAZADA" => {
-    switch (estado) {
-      case "PENDIENTE":
-        return "PENDIENTE";
-      case "EN_EVALUACION":
-        return "EN_EVALUACION";
-      case "EN_EVALUACION_CLIENTE":
-        return "EN_EVALUACION_CLIENTE";
-      case "FINALISTA":
-        return "FINALISTA";
-      case "ACEPTADA":
-        return "ACEPTADA";
-      case "RECHAZADA":
-        return "RECHAZADA";
-      case "ACEPTADO":
-        return "ACEPTADA";
-      case "RECHAZADO":
-        return "RECHAZADA";
-      case "EN_PROCESO":
-        return "FINALISTA";
-      default:
-        return "PENDIENTE";
-    }
+  const hasActiveApplication = (applicant: ExtendedCandidate) => {
+    return (
+      applicant.lastRelevantPostulacion &&
+      applicant.lastRelevantPostulacion.titulo !== "No applications"
+    );
   };
 
-  // Funciones para manejar acciones de aplicación
-  const handleSelectCandidate = async (
-    postulationId: string,
-    candidateId: string,
-    candidateName: string,
-    candidateEmail: string,
-    currentStage: string,
-    action: "NEXT" | "CONTRACT" = "NEXT",
-    serviceTitle?: string
-  ) => {
-    try {
-      const response = await advancedStage(
-        postulationId,
-        candidateId,
-        mapEstadoPostulacion(currentStage),
-        action
-      );
-
-      if (response && response.success && response.nextStage) {
-        // Actualizar el estado de la aplicación en la lista
-        setApplicants((prevApplicants) =>
-          prevApplicants.map((applicant) =>
-            applicant.id === candidateId
-              ? {
-                  ...applicant,
-                  lastRelevantPostulacion: applicant.lastRelevantPostulacion
-                    ? {
-                        ...applicant.lastRelevantPostulacion,
-                        estado: response.nextStage,
-                      }
-                    : undefined,
-                }
-              : applicant
-          )
-        );
-
-        if (currentStage === "PENDIENTE") {
-          const emailResponse = await sendInterviewInvitation(
-            candidateName,
-            candidateEmail
-          );
-
-          if (emailResponse && emailResponse.success) {
-            addNotification(
-              "Candidate selected and email sent successfully",
-              "success"
-            );
-          } else {
-            addNotification(
-              "Candidate selected but there was an error sending the email",
-              "warning"
-            );
-          }
-        } else if (action === "CONTRACT") {
-          const emailResponse = await sendContractJobEmail(
-            candidateName,
-            candidateEmail,
-            serviceTitle || ""
-          );
-
-          if (emailResponse && emailResponse.success) {
-            addNotification(
-              "Candidate contracted and email sent successfully",
-              "success"
-            );
-          } else {
-            addNotification(
-              "Candidate contracted but there was an error sending the email",
-              "warning"
-            );
-          }
-        } else {
-          const emailResponse = await sendAdvanceNextStep(
-            candidateName,
-            candidateEmail
-          );
-
-          if (emailResponse && emailResponse.success) {
-            addNotification(
-              "Candidate advanced and email sent successfully",
-              "success"
-            );
-          } else {
-            addNotification(
-              "Candidate advanced but there was an error sending the email",
-              "warning"
-            );
-          }
-        }
-      } else {
-        const errorMessage = response?.message || "Error selecting candidate";
-        addNotification(errorMessage, "error");
-      }
-    } catch (error) {
-      console.error("Error selecting candidate", error);
-      addNotification("Error selecting candidate", "error");
-    }
-  };
-
-  const handleRejectCandidate = async (
-    postulationId: string,
+  // Nueva función para manejar entrevista preliminar
+  const handlePreliminaryInterview = async (
     candidateId: string,
     candidateName: string,
     candidateEmail: string
   ) => {
     try {
-      const response = await rejectStage(postulationId, candidateId);
+      // Actualización optimista del estado local
+      setApplicants((prev) =>
+        prev.map((applicant) =>
+          applicant.id === candidateId
+            ? {
+                ...applicant,
+                entrevistaPreliminar: true,
+                fechaEntrevistaPreliminar: new Date().toISOString(),
+              }
+            : applicant
+        )
+      );
 
-      if (response && response.success) {
-        // Actualizar el estado en la lista
-        setApplicants((prevApplicants) =>
-          prevApplicants.map((applicant) =>
-            applicant.id === candidateId
-              ? {
-                  ...applicant,
-                  lastRelevantPostulacion: applicant.lastRelevantPostulacion
-                    ? {
-                        ...applicant.lastRelevantPostulacion,
-                        estado: "RECHAZADA",
-                      }
-                    : undefined,
-                }
-              : applicant
-          )
-        );
+      // Primero marcar en base de datos que se envió la invitación
+      const dbResponse = await sendPreliminaryInterviewInvitation(candidateId);
 
-        const emailResponse = await sendRejectionEmail(
+      if (dbResponse.success) {
+        // Si se marcó exitosamente en DB, enviar el email
+        const emailResponse = await sendInterviewInvitation(
           candidateName,
           candidateEmail
         );
 
         if (emailResponse && emailResponse.success) {
           addNotification(
-            "Candidate rejected and email sent successfully",
+            "Preliminary interview invitation sent successfully",
             "success"
           );
         } else {
           addNotification(
-            "Candidate rejected but there was an error sending the email",
+            "Database updated but error sending email invitation",
             "warning"
           );
         }
       } else {
-        const errorMessage = response?.message || "Error rejecting candidate";
-        addNotification(errorMessage, "error");
+        // Revertir cambio optimista si hay error
+        setApplicants((prev) =>
+          prev.map((applicant) =>
+            applicant.id === candidateId
+              ? {
+                  ...applicant,
+                  entrevistaPreliminar: false,
+                  fechaEntrevistaPreliminar: undefined,
+                }
+              : applicant
+          )
+        );
+        addNotification(
+          dbResponse.message || "Error updating preliminary interview status",
+          "error"
+        );
       }
     } catch (error) {
-      console.error("Error rejecting candidate", error);
-      addNotification("Error rejecting candidate", "error");
+      console.error("Error sending preliminary interview:", error);
+      // Revertir cambio optimista si hay error
+      setApplicants((prev) =>
+        prev.map((applicant) =>
+          applicant.id === candidateId
+            ? {
+                ...applicant,
+                entrevistaPreliminar: false,
+                fechaEntrevistaPreliminar: undefined,
+              }
+            : applicant
+        )
+      );
+      addNotification(
+        "Error sending preliminary interview invitation",
+        "error"
+      );
     }
   };
-
-  console.log(applicants);
 
   return (
     <CandidateProfileProvider>
@@ -620,16 +662,38 @@ export default function PostulantsPage() {
               onChange={handleSearchChange}
               className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
             />
+
+            {/* Stage Filter */}
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              value={stageFilter}
+              onChange={(e) => setStageFilter(e.target.value)}
               className="border border-gray-300 rounded-md px-3 py-2 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
             >
-              <option value="all">All statuses</option>
-              <option value="ACTIVE">Active</option>
+              <option value="all">All Stages</option>
+              <option value="favorites">Favorites</option>
+              <option value="PROFILE_INCOMPLETE">Profile Incomplete</option>
+              <option value="FIRST_INTERVIEW_PENDING">
+                First Interview Pending
+              </option>
+              <option value="SECOND_INTERVIEW_PENDING">
+                Second Interview Pending
+              </option>
+              <option value="FINALIST">Finalist</option>
+              <option value="HIRED">Hired</option>
+              <option value="AVAILABLE">Available</option>
+              <option value="TERMINATED">Terminated</option>
               <option value="BLACKLIST">Blacklist</option>
-              <option value="DISMISS">Dismiss</option>
-              <option value="FAVORITE">Favorite</option>
+            </select>
+
+            {/* Applicant Status Filter */}
+            <select
+              value={applicantStatusFilter}
+              onChange={(e) => setApplicantStatusFilter(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+            >
+              <option value="all">All Applicant Status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
             </select>
           </div>
           <button
@@ -691,273 +755,184 @@ export default function PostulantsPage() {
                   ))}
                 </div>
               ) : applicants.length > 0 ? (
-                applicants.map((applicant) => (
-                  <div
-                    key={applicant.id}
-                    className={`border-b border-[#E2E2E2] ${
-                      recentlyUpdated === applicant.id
-                        ? "bg-green-50 transition-colors"
-                        : ""
-                    }`}
-                  >
-                    {/* Header con nombre y estado */}
-                    <div className="px-4 py-3 flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg font-medium">
-                          {`${applicant.nombre} ${applicant.apellido}`}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => handleToggleFavorite(applicant.id)}
-                        className={`cursor-pointer transition-transform ${
-                          favoriteLoading === applicant.id
-                            ? "opacity-50 cursor-not-allowed"
-                            : "hover:scale-110"
-                        }`}
-                        disabled={favoriteLoading === applicant.id}
-                      >
-                        <Star
-                          size={20}
-                          className={`${
-                            applicant.favorite
-                              ? "text-yellow-500 fill-yellow-500"
-                              : "text-gray-400"
-                          }`}
-                        />
-                      </button>
-                    </div>
+                applicants
+                  .filter((applicant) => {
+                    // Filtro por Stage
+                    if (stageFilter !== "all") {
+                      if (stageFilter === "favorites") {
+                        if (applicant.favorite !== true) return false;
+                      } else {
+                        const currentStage = renderStageStatus(applicant);
+                        if (currentStage !== stageFilter) return false;
+                      }
+                    }
 
-                    {/* Información principal */}
-                    <div className="px-4 py-2 bg-gray-50">
-                      <div className="grid grid-cols-2 gap-2">
+                    // Filtro por Applicant Status (activo/inactivo)
+                    if (applicantStatusFilter !== "all") {
+                      // Usar renderApplicantStatus que ahora usa clasificacionGlobal
+                      const currentApplicantStatus =
+                        renderApplicantStatus(applicant);
+                      if (currentApplicantStatus !== applicantStatusFilter)
+                        return false;
+                    }
+
+                    return true;
+                  })
+                  .map((applicant) => (
+                    <div
+                      key={applicant.id}
+                      className={`border-b border-[#E2E2E2] ${
+                        recentlyUpdated === applicant.id
+                          ? "bg-green-50 transition-colors"
+                          : ""
+                      }`}
+                    >
+                      {/* Header con nombre y favorito */}
+                      <div className="px-4 py-3 flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg font-medium">
+                            {`${applicant.nombre} ${applicant.apellido}`}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleToggleFavorite(applicant.id)}
+                          className={`cursor-pointer transition-transform ${
+                            favoriteLoading === applicant.id
+                              ? "opacity-50 cursor-not-allowed"
+                              : "hover:scale-110"
+                          }`}
+                          disabled={favoriteLoading === applicant.id}
+                        >
+                          <Star
+                            size={20}
+                            className={`${
+                              applicant.favorite
+                                ? "text-yellow-500 fill-yellow-500"
+                                : "text-gray-400"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Información principal - Email */}
+                      <div className="px-4 py-2 bg-gray-50">
                         <div className="text-sm">
                           <span className="text-gray-500">Email:</span>
                           <div className="text-gray-700 truncate">
                             {applicant.correo}
                           </div>
                         </div>
-                        <div className="text-sm">
-                          <span className="text-gray-500">Status:</span>
-                          <div>
-                            {renderCompanyStatus(applicant.clasificacionGlobal)}
+                      </div>
+
+                      {/* Current Application */}
+                      <div className="px-4 py-2">
+                        <div className="text-sm mb-2">
+                          <span className="text-gray-500">
+                            Current Application:
+                          </span>
+                          <div className="mt-1">
+                            {applicant.lastRelevantPostulacion?.titulo &&
+                            applicant.lastRelevantPostulacion?.titulo !==
+                              "No applications" ? (
+                              <span className="text-gray-700 text-sm truncate">
+                                {applicant.lastRelevantPostulacion.titulo}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">
+                                No active application
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Estado de la aplicación */}
-                    <div className="px-4 py-2">
-                      <div className="text-sm mb-2">
-                        <span className="text-gray-500">
-                          Application Status:
-                        </span>
-                        <div className="mt-1">
-                          {applicant.lastRelevantPostulacion?.estado ? (
-                            renderApplicationStatus(
-                              applicant.lastRelevantPostulacion.estado
-                            )
-                          ) : (
-                            <span className="text-gray-400">N/A</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Lista de acciones del proceso */}
-                    <div className="px-4 py-2 space-y-3">
-                      {/* Primera Entrevista */}
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
-                          First Interview:
-                        </div>
-                        <div>
-                          {applicant.lastRelevantPostulacion?.estado ===
-                          "PENDIENTE" ? (
-                            <button
-                              className="px-3 py-1 bg-[#0097B2] text-white text-sm rounded-md hover:bg-[#007a8f] transition-colors"
-                              onClick={() =>
-                                handleSelectCandidate(
-                                  applicant.lastRelevantPostulacion?.id || "",
-                                  applicant.id,
-                                  `${applicant.nombre} ${applicant.apellido}`,
-                                  applicant.correo,
-                                  "PENDIENTE"
-                                )
-                              }
-                            >
-                              Send
-                            </button>
-                          ) : applicant.lastRelevantPostulacion?.estado ===
-                              "EN_EVALUACION" ||
-                            applicant.lastRelevantPostulacion?.estado ===
-                              "EN_EVALUACION_CLIENTE" ||
-                            applicant.lastRelevantPostulacion?.estado ===
-                              "FINALISTA" ||
-                            applicant.lastRelevantPostulacion?.estado ===
-                              "ACEPTADA" ? (
-                            <div className="text-green-600 text-sm">✓ Done</div>
-                          ) : (
-                            <div className="text-gray-400 text-sm">N/A</div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Segunda Entrevista */}
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
-                          Second Interview:
-                        </div>
-                        <div>
-                          {applicant.lastRelevantPostulacion?.estado ===
-                          "EN_EVALUACION" ? (
-                            <button
-                              className="px-3 py-1 bg-[#0097B2] text-white text-sm rounded-md hover:bg-[#007a8f] transition-colors"
-                              onClick={() =>
-                                handleSelectCandidate(
-                                  applicant.lastRelevantPostulacion?.id || "",
-                                  applicant.id,
-                                  `${applicant.nombre} ${applicant.apellido}`,
-                                  applicant.correo,
-                                  "EN_EVALUACION"
-                                )
-                              }
-                            >
-                              Schedule
-                            </button>
-                          ) : applicant.lastRelevantPostulacion?.estado ===
-                            "EN_EVALUACION_CLIENTE" ? (
-                            <button
-                              className="px-3 py-1 bg-purple-500 text-white text-sm rounded-md hover:bg-purple-600 transition-colors"
-                              onClick={() =>
-                                handleSelectCandidate(
-                                  applicant.lastRelevantPostulacion?.id || "",
-                                  applicant.id,
-                                  `${applicant.nombre} ${applicant.apellido}`,
-                                  applicant.correo,
-                                  "EN_EVALUACION_CLIENTE"
-                                )
-                              }
-                            >
-                              Advance
-                            </button>
-                          ) : applicant.lastRelevantPostulacion?.estado ===
-                              "FINALISTA" ||
-                            applicant.lastRelevantPostulacion?.estado ===
-                              "ACEPTADA" ? (
-                            <div className="text-green-600 text-sm">✓ Done</div>
-                          ) : (
-                            <div className="text-gray-400 text-sm">N/A</div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Contratación */}
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-700">Hiring:</div>
-                        <div>
-                          {applicant.lastRelevantPostulacion?.estado ===
-                          "FINALISTA" ? (
-                            <button
-                              className="px-3 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
-                              onClick={() =>
-                                handleSelectCandidate(
-                                  applicant.lastRelevantPostulacion?.id || "",
-                                  applicant.id,
-                                  `${applicant.nombre} ${applicant.apellido}`,
-                                  applicant.correo,
-                                  "FINALISTA",
-                                  "CONTRACT"
-                                )
-                              }
-                            >
-                              Hire
-                            </button>
-                          ) : applicant.lastRelevantPostulacion?.estado ===
-                            "ACEPTADA" ? (
-                            <div className="text-green-600 text-sm">
-                              ✓ Hired
-                            </div>
-                          ) : (
-                            <div className="text-gray-400 text-sm">N/A</div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Rechazo - solo mostrar si no está contratado o rechazado */}
-                      {applicant.lastRelevantPostulacion?.estado !==
-                        "ACEPTADA" &&
-                        applicant.lastRelevantPostulacion?.estado !==
-                          "RECHAZADA" && (
-                          <div className="flex items-center justify-between">
-                            <div className="text-sm text-gray-700">
-                              Rejection:
-                            </div>
-                            <button
-                              className="px-3 py-1 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors"
-                              onClick={() =>
-                                handleRejectCandidate(
-                                  applicant.lastRelevantPostulacion?.id || "",
-                                  applicant.id,
-                                  `${applicant.nombre} ${applicant.apellido}`,
-                                  applicant.correo
-                                )
-                              }
-                            >
-                              Reject
-                            </button>
+                      {/* Preliminary Interview */}
+                      <div className="px-4 py-2">
+                        <div className="text-sm mb-2">
+                          <span className="text-gray-500">
+                            Preliminary Interview:
+                          </span>
+                          <div className="mt-1">
+                            {renderPreliminaryInterviewStatus(applicant)}
                           </div>
-                        )}
+                        </div>
+                      </div>
+
+                      {/* Stage Status */}
+                      <div className="px-4 py-2">
+                        <div className="text-sm mb-2">
+                          <span className="text-gray-500">Stage:</span>
+                          <div className="mt-1">
+                            {renderStageStatusBadge(
+                              renderStageStatus(applicant)
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Applicant Status */}
+                      <div className="px-4 py-2">
+                        <div className="text-sm mb-2">
+                          <span className="text-gray-500">
+                            Applicant Status:
+                          </span>
+                          <div className="mt-1">
+                            {renderApplicantStatusBadge(
+                              renderApplicantStatus(applicant)
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Acciones principales en grid */}
+                      <div className="px-4 py-3 grid grid-cols-3 gap-2 border-t border-gray-200">
+                        {/* Profile */}
+                        <button
+                          onClick={() => handleOpenProfile(applicant.id)}
+                          className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
+                        >
+                          <Edit size={20} className="text-[#0097B2] mb-1" />
+                          <span className="text-xs text-gray-600">Profile</span>
+                        </button>
+
+                        {/* Email */}
+                        <button
+                          onClick={() => handleOpenSendEmailModal(applicant)}
+                          className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
+                        >
+                          <Mail size={20} className="text-[#0097B2] mb-1" />
+                          <span className="text-xs text-gray-600">Email</span>
+                        </button>
+
+                        {/* Assign */}
+                        <button
+                          onClick={() => handleAssignApplicant(applicant.id)}
+                          className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
+                        >
+                          <Bookmark size={20} className="text-[#0097B2] mb-1" />
+                          <span className="text-xs text-gray-600">Assign</span>
+                        </button>
+                      </div>
+
+                      {/* Logs y cambio de status */}
+                      <div className="px-4 py-4 flex justify-between items-center border-t border-gray-200">
+                        <button
+                          onClick={() => handleViewLogs(applicant.id)}
+                          className="flex items-center text-[#0097B2] hover:underline"
+                        >
+                          <FileText size={16} className="mr-1" />
+                          <span className="text-sm">View Logs</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenStatusModal(applicant.id)}
+                          className="text-sm text-[#0097B2] hover:underline"
+                        >
+                          Change Status
+                        </button>
+                      </div>
                     </div>
-
-                    {/* Acciones principales en grid */}
-                    <div className="px-4 py-3 grid grid-cols-3 gap-2 border-t border-gray-200">
-                      {/* Profile */}
-                      <button
-                        onClick={() => handleOpenProfile(applicant.id)}
-                        className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
-                      >
-                        <Edit size={20} className="text-[#0097B2] mb-1" />
-                        <span className="text-xs text-gray-600">Profile</span>
-                      </button>
-
-                      {/* Email */}
-                      <button
-                        onClick={() => handleOpenSendEmailModal(applicant)}
-                        className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
-                      >
-                        <Mail size={20} className="text-[#0097B2] mb-1" />
-                        <span className="text-xs text-gray-600">Email</span>
-                      </button>
-
-                      {/* Assign */}
-                      <button
-                        onClick={() => handleAssignApplicant(applicant.id)}
-                        className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
-                      >
-                        <Bookmark size={20} className="text-[#0097B2] mb-1" />
-                        <span className="text-xs text-gray-600">Assign</span>
-                      </button>
-                    </div>
-
-                    {/* Logs y acciones adicionales */}
-                    <div className="px-4 py-4 flex justify-between items-center border-t border-gray-200">
-                      <button
-                        onClick={() => handleViewLogs(applicant.id)}
-                        className="flex items-center text-[#0097B2] hover:underline"
-                      >
-                        <FileText size={16} className="mr-1" />
-                        <span className="text-sm">View Logs</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleOpenStatusModal(applicant.id)}
-                        className="text-sm text-[#0097B2] hover:underline"
-                      >
-                        Change Status
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  ))
               ) : (
                 <div className="p-6 text-center text-gray-500">
                   No applicants found.
@@ -1061,7 +1036,7 @@ export default function PostulantsPage() {
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-medium text-gray-700">
-                  Applicants for the service
+                  Applicants Dashboard
                 </h3>
               </div>
             </div>
@@ -1090,37 +1065,28 @@ export default function PostulantsPage() {
                     <table className="w-full border-collapse">
                       <thead className="sticky top-0 bg-white z-20 shadow-sm">
                         <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[140px]">
                             Name
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[200px]">
                             Email
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[180px]">
                             Current Application
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                            Status
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[150px]">
+                            Preliminary Interview
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                            First Interview
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[180px]">
+                            Stage
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                            Second Interview
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[120px]">
+                            Applicant Status
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                            Hired
-                          </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                            Rejected
-                          </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                            Candidate Status
-                          </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[80px]">
                             Logs
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[120px]">
                             Actions
                           </th>
                         </tr>
@@ -1128,13 +1094,29 @@ export default function PostulantsPage() {
                       <tbody>
                         {applicants
                           .filter((applicant) => {
-                            if (statusFilter === "all") return true;
-                            if (statusFilter === "FAVORITE")
-                              return applicant.favorite === true;
-                            return (
-                              applicant.clasificacionGlobal.toUpperCase() ===
-                              statusFilter.toUpperCase()
-                            );
+                            // Filtro por Stage
+                            if (stageFilter !== "all") {
+                              if (stageFilter === "favorites") {
+                                if (applicant.favorite !== true) return false;
+                              } else {
+                                const currentStage =
+                                  renderStageStatus(applicant);
+                                if (currentStage !== stageFilter) return false;
+                              }
+                            }
+
+                            // Filtro por Applicant Status (activo/inactivo)
+                            if (applicantStatusFilter !== "all") {
+                              // Usar renderApplicantStatus que ahora usa clasificacionGlobal
+                              const currentApplicantStatus =
+                                renderApplicantStatus(applicant);
+                              if (
+                                currentApplicantStatus !== applicantStatusFilter
+                              )
+                                return false;
+                            }
+
+                            return true;
                           })
                           .map((applicant) => (
                             <tr
@@ -1145,209 +1127,12 @@ export default function PostulantsPage() {
                                   : ""
                               }`}
                             >
+                              {/* Name */}
                               <td className="py-4 px-4 text-gray-700">
-                                {`${applicant.nombre} ${applicant.apellido}`}
-                              </td>
-                              <td className="py-4 px-4">{applicant.correo}</td>
-                              <td className="py-4 px-4">
-                                {applicant.lastRelevantPostulacion ? (
-                                  <div className="flex flex-col">
-                                    <span className="text-gray-700 text-sm font-medium">
-                                      {applicant.lastRelevantPostulacion
-                                        .titulo === "No applications"
-                                        ? "No applications"
-                                        : applicant.lastRelevantPostulacion
-                                            .titulo}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span className="text-gray-400 text-sm">
-                                    No applications
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-4 px-4">
-                                {applicant.lastRelevantPostulacion &&
-                                applicant.lastRelevantPostulacion.estado ? (
-                                  renderApplicationStatus(
-                                    applicant.lastRelevantPostulacion.estado
-                                  )
-                                ) : (
-                                  <span className="text-gray-400 text-sm">
-                                    N/A
-                                  </span>
-                                )}
-                              </td>
-                              {/* Primera Entrevista */}
-                              <td className="py-4 px-4">
-                                {applicant.lastRelevantPostulacion?.estado ===
-                                "PENDIENTE" ? (
-                                  <button
-                                    className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
-                                    onClick={() =>
-                                      handleSelectCandidate(
-                                        applicant.lastRelevantPostulacion?.id ||
-                                          "",
-                                        applicant.id,
-                                        `${applicant.nombre} ${applicant.apellido}`,
-                                        applicant.correo,
-                                        "PENDIENTE"
-                                      )
-                                    }
-                                  >
-                                    Send
-                                  </button>
-                                ) : applicant.lastRelevantPostulacion
-                                    ?.estado === "EN_EVALUACION" ||
-                                  applicant.lastRelevantPostulacion?.estado ===
-                                    "EN_EVALUACION_CLIENTE" ||
-                                  applicant.lastRelevantPostulacion?.estado ===
-                                    "FINALISTA" ||
-                                  applicant.lastRelevantPostulacion?.estado ===
-                                    "ACEPTADA" ? (
-                                  <div className="text-green-600 text-xs font-medium">
-                                    ✓ Done
-                                  </div>
-                                ) : (
-                                  <div className="text-gray-400 text-xs">
-                                    N/A
-                                  </div>
-                                )}
-                              </td>
-                              {/* Segunda Entrevista */}
-                              <td className="py-4 px-4">
-                                {applicant.lastRelevantPostulacion?.estado ===
-                                "EN_EVALUACION" ? (
-                                  <button
-                                    className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer"
-                                    onClick={() =>
-                                      handleSelectCandidate(
-                                        applicant.lastRelevantPostulacion?.id ||
-                                          "",
-                                        applicant.id,
-                                        `${applicant.nombre} ${applicant.apellido}`,
-                                        applicant.correo,
-                                        "EN_EVALUACION"
-                                      )
-                                    }
-                                  >
-                                    Schedule
-                                  </button>
-                                ) : applicant.lastRelevantPostulacion
-                                    ?.estado === "EN_EVALUACION_CLIENTE" ? (
-                                  <button
-                                    className="px-3 py-1 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 transition-colors cursor-pointer"
-                                    onClick={() =>
-                                      handleSelectCandidate(
-                                        applicant.lastRelevantPostulacion?.id ||
-                                          "",
-                                        applicant.id,
-                                        `${applicant.nombre} ${applicant.apellido}`,
-                                        applicant.correo,
-                                        "EN_EVALUACION_CLIENTE"
-                                      )
-                                    }
-                                  >
-                                    Advance
-                                  </button>
-                                ) : applicant.lastRelevantPostulacion
-                                    ?.estado === "FINALISTA" ||
-                                  applicant.lastRelevantPostulacion?.estado ===
-                                    "ACEPTADA" ? (
-                                  <div className="text-green-600 text-xs font-medium">
-                                    ✓ Done
-                                  </div>
-                                ) : (
-                                  <div className="text-gray-400 text-xs">
-                                    N/A
-                                  </div>
-                                )}
-                              </td>
-                              {/* Contratación */}
-                              <td className="py-4 px-4">
-                                {applicant.lastRelevantPostulacion?.estado ===
-                                "FINALISTA" ? (
-                                  <button
-                                    className="px-3 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
-                                    onClick={() =>
-                                      handleSelectCandidate(
-                                        applicant.lastRelevantPostulacion?.id ||
-                                          "",
-                                        applicant.id,
-                                        `${applicant.nombre} ${applicant.apellido}`,
-                                        applicant.correo,
-                                        "FINALISTA",
-                                        "CONTRACT"
-                                      )
-                                    }
-                                  >
-                                    Hire
-                                  </button>
-                                ) : applicant.lastRelevantPostulacion
-                                    ?.estado !== "ACEPTADA" &&
-                                  applicant.lastRelevantPostulacion?.estado !==
-                                    "RECHAZADA" ? (
-                                  <button
-                                    className="px-3 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors cursor-pointer"
-                                    onClick={() =>
-                                      handleSelectCandidate(
-                                        applicant.lastRelevantPostulacion?.id ||
-                                          "",
-                                        applicant.id,
-                                        `${applicant.nombre} ${applicant.apellido}`,
-                                        applicant.correo,
-                                        "FINALISTA",
-                                        "CONTRACT"
-                                      )
-                                    }
-                                  >
-                                    Hire
-                                  </button>
-                                ) : applicant.lastRelevantPostulacion
-                                    ?.estado === "ACEPTADA" ? (
-                                  <div className="text-green-600 text-xs font-medium">
-                                    ✓ Hired
-                                  </div>
-                                ) : (
-                                  <div className="text-gray-400 text-xs">
-                                    N/A
-                                  </div>
-                                )}
-                              </td>
-                              {/* Rechazo */}
-                              <td className="py-4 px-4">
-                                {applicant.lastRelevantPostulacion?.estado !==
-                                  "ACEPTADA" &&
-                                applicant.lastRelevantPostulacion?.estado !==
-                                  "RECHAZADA" ? (
-                                  <button
-                                    className="px-3 py-1 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-colors cursor-pointer"
-                                    onClick={() =>
-                                      handleRejectCandidate(
-                                        applicant.lastRelevantPostulacion?.id ||
-                                          "",
-                                        applicant.id,
-                                        `${applicant.nombre} ${applicant.apellido}`,
-                                        applicant.correo
-                                      )
-                                    }
-                                  >
-                                    Reject
-                                  </button>
-                                ) : applicant.lastRelevantPostulacion
-                                    ?.estado === "RECHAZADA" ? (
-                                  <div className="text-red-600 text-xs font-medium">
-                                    ✗ Rejected
-                                  </div>
-                                ) : (
-                                  <div className="text-gray-400 text-xs">
-                                    N/A
-                                  </div>
-                                )}
-                              </td>
-                              {/* Candidate Status */}
-                              <td className="py-4 px-4">
                                 <div className="flex items-center gap-2">
+                                  <span className="font-medium">
+                                    {`${applicant.nombre} ${applicant.apellido}`}
+                                  </span>
                                   <button
                                     onClick={() =>
                                       handleToggleFavorite(applicant.id)
@@ -1358,49 +1143,79 @@ export default function PostulantsPage() {
                                         : "hover:scale-110"
                                     }`}
                                     disabled={favoriteLoading === applicant.id}
-                                    title={
-                                      favoriteLoading === applicant.id
-                                        ? "Updating..."
-                                        : applicant.favorite
-                                        ? "Remove from favorites"
-                                        : "Add to favorites"
-                                    }
                                   >
-                                    {favoriteLoading === applicant.id ? (
-                                      <div className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-[#0097B2] rounded-full"></div>
-                                    ) : (
-                                      <Star
-                                        size={20}
-                                        className={`${
-                                          applicant.favorite
-                                            ? "text-yellow-500 fill-yellow-500"
-                                            : "text-gray-400"
-                                        }`}
-                                      />
-                                    )}
+                                    <Star
+                                      size={16}
+                                      className={`${
+                                        applicant.favorite
+                                          ? "text-yellow-500 fill-yellow-500"
+                                          : "text-gray-400"
+                                      }`}
+                                    />
                                   </button>
+                                </div>
+                              </td>
+
+                              {/* Email */}
+                              <td className="py-4 px-4 text-gray-700">
+                                {applicant.correo}
+                              </td>
+
+                              {/* Current Application */}
+                              <td className="py-4 px-4">
+                                {applicant.lastRelevantPostulacion?.titulo &&
+                                applicant.lastRelevantPostulacion?.titulo !==
+                                  "No applications" ? (
+                                  <span className="text-gray-700 text-sm">
+                                    {applicant.lastRelevantPostulacion.titulo}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400 text-sm">
+                                    No active application
+                                  </span>
+                                )}
+                              </td>
+
+                              {/* Preliminary Interview */}
+                              <td className="py-4 px-4">
+                                {renderPreliminaryInterviewStatus(applicant)}
+                              </td>
+
+                              {/* Stage */}
+                              <td className="py-4 px-4">
+                                {renderStageStatusBadge(
+                                  renderStageStatus(applicant)
+                                )}
+                              </td>
+
+                              {/* Applicant Status */}
+                              <td className="py-4 px-4">
+                                <div className="flex items-center gap-2">
+                                  {renderApplicantStatusBadge(
+                                    renderApplicantStatus(applicant)
+                                  )}
                                   <button
                                     onClick={() =>
                                       handleOpenStatusModal(applicant.id)
                                     }
-                                    className="cursor-pointer hover:opacity-80"
+                                    className="text-[#0097B2] hover:underline text-xs"
                                   >
-                                    {renderCompanyStatus(
-                                      applicant.clasificacionGlobal
-                                    )}
+                                    Edit
                                   </button>
                                 </div>
                               </td>
+
                               {/* Logs */}
                               <td className="py-4 px-4">
                                 <button
                                   onClick={() => handleViewLogs(applicant.id)}
                                   className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
                                 >
-                                  <FileText size={20} className="mr-1" />
+                                  <FileText size={16} className="mr-1" />
                                   View
                                 </button>
                               </td>
+
                               {/* Actions */}
                               <td className="py-4 px-4">
                                 <div className="flex space-x-2">
@@ -1412,21 +1227,19 @@ export default function PostulantsPage() {
                                         handleOpenProfile(applicant.id)
                                       }
                                     >
-                                      <Edit size={20} />
+                                      <Edit size={18} />
                                     </button>
                                   </div>
 
                                   <div className="relative group">
                                     <button
-                                      className="p-1 text-[#0097B2] rounded 
-                                    hover:bg-[#0097B2]/10 
-                                      cursor-pointer"
+                                      className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
                                       title="Send email"
                                       onClick={() =>
                                         handleOpenSendEmailModal(applicant)
                                       }
                                     >
-                                      <Mail size={20} />
+                                      <Mail size={18} />
                                     </button>
                                   </div>
 
@@ -1438,19 +1251,17 @@ export default function PostulantsPage() {
                                         handleAssignApplicant(applicant.id)
                                       }
                                     >
-                                      <Bookmark size={20} />
+                                      <Bookmark size={18} />
                                     </button>
                                   </div>
 
-                                  {/* Send contract button */}
+                                  {/* Send contract button - only if hired */}
                                   {applicant.lastRelevantPostulacion &&
                                     applicant.lastRelevantPostulacion.estado ===
                                       "ACEPTADA" && (
                                       <div className="relative group">
                                         <button
-                                          className="p-1 text-[#0097B2] rounded 
-                                    hover:bg-[#0097B2]/10 
-                                      cursor-pointer"
+                                          className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
                                           title="Send contract"
                                           onClick={() =>
                                             handleOpenSignContractModal(
@@ -1458,10 +1269,7 @@ export default function PostulantsPage() {
                                             )
                                           }
                                         >
-                                          <FileText
-                                            size={20}
-                                            className="mr-1"
-                                          />
+                                          <FileText size={18} />
                                         </button>
                                       </div>
                                     )}

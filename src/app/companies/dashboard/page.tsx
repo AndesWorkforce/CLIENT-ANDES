@@ -33,6 +33,71 @@ export default function CompanyDashboard() {
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
+  const handleSelectJob = (job: Offer) => {
+    setSelectedJob(job);
+  };
+
+  const fetchAssignedOffers = useCallback(
+    async (reset = true) => {
+      if (reset) {
+        setIsLoading(true);
+        setCurrentPage(1);
+      } else {
+        setLoadingMore(true);
+      }
+
+      try {
+        const response = await getAssignedOffers(
+          reset ? 1 : currentPage,
+          10,
+          searchTerm
+        );
+
+        if (!response.success) {
+          addNotification(response.message || "Error loading offers", "error");
+          return;
+        }
+
+        const offerData = response.data?.data || [];
+        console.log("🔍 [fetchAssignedOffers] Received offers:", offerData);
+        console.log(
+          "🔍 [fetchAssignedOffers] First offer detailed:",
+          offerData[0]
+        );
+
+        if (reset) {
+          setOffers(offerData);
+          if (offerData.length > 0) {
+            setSelectedJob(offerData[0]);
+          }
+        } else {
+          setOffers((prevOffers) => [...prevOffers, ...offerData]);
+        }
+
+        setHasMore(response.hasMore || false);
+      } catch (error) {
+        console.error("[Companies] Error getting assigned offers:", error);
+        addNotification("Error loading assigned offers", "error");
+      } finally {
+        if (reset) {
+          setIsLoading(false);
+          setIsSearching(false);
+        } else {
+          setLoadingMore(false);
+        }
+      }
+    },
+    [currentPage, searchTerm, addNotification]
+  );
+
+  const loadMoreOffers = useCallback(async () => {
+    if (!hasMore || loadingMore || isLoading) return;
+
+    const nextPage = currentPage + 1;
+    setCurrentPage(nextPage);
+    await fetchAssignedOffers(false);
+  }, [hasMore, loadingMore, isLoading, currentPage, fetchAssignedOffers]);
+
   const loadMoreRef = useCallback(
     (node: HTMLDivElement) => {
       if (isLoading || loadingMore) return;
@@ -46,66 +111,8 @@ export default function CompanyDashboard() {
 
       if (node) observerRef.current.observe(node);
     },
-    [isLoading, loadingMore, hasMore]
+    [isLoading, loadingMore, hasMore, loadMoreOffers]
   );
-
-  const handleSelectJob = (job: Offer) => {
-    setSelectedJob(job);
-  };
-
-  const fetchAssignedOffers = async (reset = true) => {
-    if (reset) {
-      setIsLoading(true);
-      setCurrentPage(1);
-    } else {
-      setLoadingMore(true);
-    }
-
-    try {
-      const response = await getAssignedOffers(
-        reset ? 1 : currentPage,
-        10,
-        searchTerm
-      );
-
-      if (!response.success) {
-        addNotification(response.message || "Error loading offers", "error");
-        return;
-      }
-
-      const offerData = response.data?.data || [];
-      console.log("Received offers:", offerData);
-
-      if (reset) {
-        setOffers(offerData);
-        if (offerData.length > 0) {
-          setSelectedJob(offerData[0]);
-        }
-      } else {
-        setOffers((prevOffers) => [...prevOffers, ...offerData]);
-      }
-
-      setHasMore(response.hasMore || false);
-    } catch (error) {
-      console.error("[Companies] Error getting assigned offers:", error);
-      addNotification("Error loading assigned offers", "error");
-    } finally {
-      if (reset) {
-        setIsLoading(false);
-        setIsSearching(false);
-      } else {
-        setLoadingMore(false);
-      }
-    }
-  };
-
-  const loadMoreOffers = async () => {
-    if (!hasMore || loadingMore || isLoading) return;
-
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    await fetchAssignedOffers(false);
-  };
 
   const handleSearch = () => {
     setIsSearching(true);
@@ -119,12 +126,33 @@ export default function CompanyDashboard() {
     }
   };
 
+  const handleUpdateApplicants = useCallback(() => {
+    fetchAssignedOffers(true);
+  }, [fetchAssignedOffers]);
+
   const openApplicantsModal = (offer: Offer) => {
+    console.log("🔍 [openApplicantsModal] Debugging offer data:", {
+      offerId: offer.id,
+      titulo: offer.titulo,
+      postulaciones: offer.postulaciones,
+      postulacionesLength: offer.postulaciones?.length,
+      _count: offer._count,
+      postulacionesCount: offer.postulacionesCount,
+      allOfferData: offer,
+    });
+
     if (offer.postulaciones && offer.postulaciones.length > 0) {
+      console.log(
+        "✅ [openApplicantsModal] Opening modal with applicants:",
+        offer.postulaciones.length
+      );
       setSelectedOffer(offer);
       setIsApplicantsModalOpen(true);
     } else {
-      addNotification("Esta oferta aún no tiene postulantes", "info");
+      console.log(
+        "❌ [openApplicantsModal] No applicants found, showing notification"
+      );
+      addNotification("No applicants for this offer yet", "info");
     }
   };
 
@@ -485,7 +513,7 @@ export default function CompanyDashboard() {
           isOpen={isApplicantsModalOpen}
           onClose={closeApplicantsModal}
           serviceTitle={selectedOffer?.titulo || ""}
-          onUpdate={() => fetchAssignedOffers()}
+          onUpdate={handleUpdateApplicants}
           applicants={
             selectedOffer?.postulaciones?.map((postulacion) => ({
               id: postulacion.candidato.id,

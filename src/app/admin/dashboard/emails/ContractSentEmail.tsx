@@ -7,24 +7,24 @@ import {
   Text,
 } from "@react-email/components";
 
-interface RejectPositionEmailProps {
+interface ContractSentEmailProps {
   candidateName: string;
 }
 
-// Stage 5: Reject Position Notification
-export const RejectPositionEmail = ({
+// Stage 7: Contract Sent Notification
+export const ContractSentEmail = ({
   candidateName,
-}: RejectPositionEmailProps) => {
+}: ContractSentEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Update on your application</Preview>
+      <Preview>You&#39;re Hired – Next Steps Inside!</Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>
           <Text
             style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
-            Dear {candidateName},
+            Hi {candidateName},
           </Text>
 
           <Text
@@ -35,9 +35,19 @@ export const RejectPositionEmail = ({
               lineHeight: "1.5",
             }}
           >
-            Thank you for taking the time to participate in our selection
-            process. We truly appreciate your interest in the position and the
-            effort you put into your application.
+            Congratulations! You&#39;ve officially reached the &quot;Hired&quot;
+            stage — we&#39;re excited to move forward with you!
+          </Text>
+
+          <Text
+            style={{
+              color: "#333",
+              fontSize: "16px",
+              margin: "0 0 10px 0",
+              fontWeight: "600",
+            }}
+          >
+            Next Step:
           </Text>
 
           <Text
@@ -48,9 +58,9 @@ export const RejectPositionEmail = ({
               lineHeight: "1.5",
             }}
           >
-            After careful consideration, we regret to inform you that you were
-            not selected for the role. This decision was not easy, as we had
-            many strong candidates, including yourself.
+            Please check your profile under your current applications. Your
+            employment contract has been sent and is ready for your review and
+            signature.
           </Text>
 
           <Text
@@ -58,24 +68,21 @@ export const RejectPositionEmail = ({
               color: "#333",
               fontSize: "16px",
               margin: "0 0 20px 0",
-              lineHeight: "1.5",
+              fontWeight: "600",
             }}
           >
-            We wish you all the best in your job search and future professional
-            endeavors. Please don&#39;t hesitate to apply for future
-            opportunities with us—we&#39;d be happy to consider your profile
-            again.
+            Welcome aboard!
           </Text>
 
           <Text
             style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
-            Warm regards,
+            Best regards,
           </Text>
 
           <img
             src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/firma_laura.jpeg"
-            alt="Signature"
+            alt="Laura&#39;s Signature"
             style={{ marginTop: "32px", width: "200px", height: "auto" }}
           />
         </Container>
@@ -84,4 +91,4 @@ export const RejectPositionEmail = ({
   );
 };
 
-export default RejectPositionEmail;
+export default ContractSentEmail;

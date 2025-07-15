@@ -8,6 +8,9 @@ import { ContractJob } from "../emails/ContratJob";
 import { AdvanceNextStep } from "../emails/AdvanceNextStep";
 import { AssignJobNotification } from "../emails/AssignJobNotification";
 import { BlacklistNotificationEmail } from "../emails/BlacklistNotification";
+import { RemovalNotificationEmail } from "../emails/RemovalNotification";
+import { CompanyWelcomeEmail } from "../emails/CompanyWelcomeEmail";
+import { ContractSentEmail } from "../emails/ContractSentEmail";
 
 // Crear transportador de nodemailer con autenticación básica
 const createTransporter = async () => {
@@ -50,6 +53,7 @@ export const sendInterviewInvitation = async (
     const bookingLink =
       "https://outlook.office.com/book/AndesWorkforceInterview@teamandes.com/?ismsaljsauthenabled";
 
+    // Stage 2: Invite to Interview
     const emailHtml = await render(
       InterviewInvitationEmail({
         candidateName,
@@ -82,6 +86,7 @@ export const sendAdvanceNextStep = async (
   candidateEmail: string
 ) => {
   try {
+    // Stage 3: Schedule Second Interview
     const emailHtml = await render(
       AdvanceNextStep({
         candidateName,
@@ -113,6 +118,7 @@ export const sendRejectionEmail = async (
   candidateEmail: string
 ) => {
   try {
+    // Stage 5: Reject Position Notification
     const emailHtml = await render(
       RejectPositionEmail({
         candidateName,
@@ -152,6 +158,7 @@ export const sendContractJobEmail = async (
 
   try {
     console.log("📧 [sendContractJobEmail] Renderizando template de email...");
+    // Stage 5: Contract Job Notification
     const emailHtml = await render(
       ContractJob({
         candidateName,
@@ -243,6 +250,137 @@ export const sendBlacklistNotification = async (
     };
   } catch (error) {
     console.error("Error sending blacklist notification email:", error);
+    return { success: false, error };
+  }
+};
+
+export const sendRemovalNotification = async (
+  candidateName: string,
+  candidateEmail: string,
+  offerName: string,
+  reason?: string
+) => {
+  try {
+    console.log("🚀 [sendRemovalNotification] Sending removal notification:", {
+      candidateName,
+      candidateEmail,
+      offerName,
+      reason,
+    });
+
+    // Stage 6: Removal Notification
+    const emailHtml = await render(
+      RemovalNotificationEmail({
+        candidateName,
+        offerName,
+        reason,
+      })
+    );
+
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
+      from: "Andes Workforce <no-reply@teamandes.com>",
+      to: [candidateEmail],
+      subject: "Update on Your Application Status",
+      html: emailHtml,
+    });
+
+    console.log("✅ [sendRemovalNotification] Email sent successfully:", info);
+
+    return {
+      success: true,
+      message: "Removal notification email sent successfully",
+      data: info,
+    };
+  } catch (error) {
+    console.error("❌ [sendRemovalNotification] Error sending email:", error);
+    return { success: false, error };
+  }
+};
+
+export const sendCompanyWelcomeEmail = async (
+  companyName: string,
+  representativeName: string,
+  email: string,
+  temporaryPassword: string
+) => {
+  try {
+    console.log("🚀 [sendCompanyWelcomeEmail] Sending welcome email:", {
+      companyName,
+      representativeName,
+      email,
+    });
+
+    const emailHtml = await render(
+      CompanyWelcomeEmail({
+        companyName,
+        representativeName,
+        email,
+        temporaryPassword,
+      })
+    );
+
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
+      from: "Andes Workforce <no-reply@teamandes.com>",
+      to: [email],
+      subject: "Welcome to Andes Workforce - Company Account Created",
+      html: emailHtml,
+    });
+
+    console.log("✅ [sendCompanyWelcomeEmail] Email sent successfully:", info);
+
+    return {
+      success: true,
+      message: "Company welcome email sent successfully",
+      data: info,
+    };
+  } catch (error) {
+    console.error("❌ [sendCompanyWelcomeEmail] Error sending email:", error);
+    return { success: false, error };
+  }
+};
+
+export const sendContractSentNotification = async (
+  candidateName: string,
+  candidateEmail: string
+) => {
+  try {
+    console.log("📧 [sendContractSentNotification] Preparing email...");
+
+    const emailHtml = await render(
+      ContractSentEmail({
+        candidateName,
+      })
+    );
+
+    const transporter = await createTransporter();
+
+    console.log("📧 [sendContractSentNotification] Sending email...");
+    const info = await transporter.sendMail({
+      from: "Andes Workforce <no-reply@teamandes.com>",
+      to: [candidateEmail],
+      subject: "You're Hired – Next Steps Inside!",
+      html: emailHtml,
+    });
+
+    console.log(
+      "✅ [sendContractSentNotification] Email sent successfully:",
+      info
+    );
+
+    return {
+      success: true,
+      message: "Contract sent notification email sent successfully",
+      data: info,
+    };
+  } catch (error) {
+    console.error(
+      "❌ [sendContractSentNotification] Error sending email:",
+      error
+    );
     return { success: false, error };
   }
 };

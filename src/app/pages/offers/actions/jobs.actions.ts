@@ -157,3 +157,38 @@ export async function getCurrentContract(userId: string) {
     };
   }
 }
+
+export async function checkApplicationHistory(offerId: string) {
+  const axios = await createServerAxios();
+  try {
+    if (!API_URL) {
+      return {
+        success: false,
+        message: "Configuration error: API URL not available",
+      };
+    }
+
+    console.log("🔍 Checking application history for offer:", offerId);
+    const response = await axios.get(
+      `${API_URL}applications/check-status/${offerId}`,
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
+    );
+    const data = await response.data;
+    console.log("📋 Application history response:", data);
+
+    return {
+      success: true,
+      data: data,
+    };
+  } catch (error) {
+    console.error("❌ Error checking application history:", error);
+    return {
+      success: false,
+      message: "Error checking application history",
+    };
+  }
+}

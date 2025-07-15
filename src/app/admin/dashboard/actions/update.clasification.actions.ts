@@ -34,7 +34,7 @@ export async function updateCandidateStatus(
   try {
     // Verificar que tenemos un ID de candidato válido
     if (!candidateId) {
-      console.error("Error: No se proporcionó ID de candidato");
+      console.error("❌ Error: No se proporcionó ID de candidato");
       return {
         success: false,
         message: "Error: ID de candidato no válido",
@@ -45,18 +45,21 @@ export async function updateCandidateStatus(
     const baseUrl = API_URL?.endsWith("/") ? API_URL : `${API_URL}/`;
     const endpoint = `${baseUrl}usuarios/${candidateId}/clasificacion`;
 
-    console.log("Enviando petición a:", endpoint);
-    console.log("Datos:", {
+    const requestData = {
       clasificacionGlobal: status.toUpperCase(),
       ...(notes && { notasClasificacionGlobal: notes }),
-    });
+    };
 
-    const response = await axios.patch(endpoint, {
-      clasificacionGlobal: status.toUpperCase(),
-      ...(notes && { notasClasificacionGlobal: notes }),
-    });
+    console.log("🚀 Enviando petición a:", endpoint);
+    console.log("📦 Datos enviados:", requestData);
 
-    console.log("Respuesta:", response.status, response.data);
+    const response = await axios.patch(endpoint, requestData);
+
+    console.log("✅ Respuesta del servidor:", {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data
+    });
 
     return {
       success: true,
@@ -64,11 +67,11 @@ export async function updateCandidateStatus(
       data: response.data,
     };
   } catch (error) {
-    console.error("Error updating candidate status:", error);
+    console.error("❌ Error updating candidate status:", error);
 
     if (error instanceof AxiosError) {
       // Mostrar detalles más específicos sobre el error
-      console.error("Detalles del error:", {
+      console.error("🔍 Detalles del error:", {
         url: error.config?.url,
         method: error.config?.method,
         status: error.response?.status,
@@ -90,6 +93,66 @@ export async function updateCandidateStatus(
     return {
       success: false,
       message: `Error al actualizar el status del candidato: ${error}`,
+      error: error,
+    };
+  }
+}
+
+export async function sendPreliminaryInterviewInvitation(
+  candidateId: string
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    if (!candidateId) {
+      console.error("Error: No se proporcionó ID de candidato");
+      return {
+        success: false,
+        message: "Error: ID de candidato no válido",
+      };
+    }
+
+    const baseUrl = API_URL?.endsWith("/") ? API_URL : `${API_URL}/`;
+    const endpoint = `${baseUrl}users/${candidateId}/preliminary-interview`;
+
+    console.log("Enviando invitación de entrevista preliminar a:", endpoint);
+
+    const response = await axios.patch(endpoint);
+
+    console.log("Respuesta:", response.status, response.data);
+
+    revalidatePath("/admin/dashboard");
+
+    return {
+      success: true,
+      message: "Invitación de entrevista preliminar enviada exitosamente",
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error enviando invitación de entrevista preliminar:", error);
+
+    if (error instanceof AxiosError) {
+      console.error("Detalles del error:", {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        responseData: error.response?.data,
+      });
+
+      const errorMessage =
+        error.response?.data?.message ||
+        `Error al enviar invitación: ${error.response?.status} ${error.response?.statusText}`;
+
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data,
+      };
+    }
+
+    return {
+      success: false,
+      message: `Error al enviar invitación: ${error}`,
       error: error,
     };
   }

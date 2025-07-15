@@ -153,3 +153,51 @@ export async function removeMultipleApplications(
     };
   }
 }
+
+/**
+ * Actualiza la preferencia de entrevista para una postulación
+ * @param postulationId ID de la postulación
+ * @param preferenciaEntrevista Si la empresa quiere entrevista o no
+ * @returns Respuesta de la API
+ */
+export async function updateInterviewPreference(
+  postulationId: string,
+  preferenciaEntrevista: boolean
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.patch(
+      `applications/${postulationId}/interview-preference`,
+      { preferenciaEntrevista }
+    );
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Preferencia de entrevista actualizada exitosamente",
+        data: response.data,
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data.message || "Error al actualizar preferencia",
+        error: response.data.error,
+      };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error(
+      "Error updating interview preference:",
+      error.response || error
+    );
+
+    const errorMessage =
+      error.response?.data?.message ||
+      "Error al actualizar preferencia de entrevista";
+    return {
+      success: false,
+      message: "Error updating interview preference",
+      error: errorMessage,
+    };
+  }
+}

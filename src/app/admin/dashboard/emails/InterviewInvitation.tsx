@@ -13,6 +13,7 @@ interface InterviewInvitationEmailProps {
   bookingLink: string;
 }
 
+// Stage 2: Invite to Interview
 export const InterviewInvitationEmail = ({
   candidateName,
   bookingLink,

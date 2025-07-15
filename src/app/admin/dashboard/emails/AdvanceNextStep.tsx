@@ -11,6 +11,7 @@ interface AdvanceNextStepProps {
   candidateName: string;
 }
 
+// Stage 3: Schedule Second Interview
 export const AdvanceNextStep = ({ candidateName }: AdvanceNextStepProps) => {
   return (
     <Html>
@@ -39,6 +40,17 @@ export const AdvanceNextStep = ({ candidateName }: AdvanceNextStepProps) => {
             to schedule a meeting with our client to discuss the next steps.
             You&#39;ll receive a follow-up email shortly with possible times and
             dates.
+          </Text>
+
+          <Text
+            style={{
+              color: "#333",
+              fontSize: "16px",
+              margin: "0 0 20px 0",
+              lineHeight: "1.5",
+            }}
+          >
+            Warm regards,
           </Text>
 
           <img

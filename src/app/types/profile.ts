@@ -33,6 +33,8 @@ export interface DatosFormulario {
   "What is the URL for their website?": string;
   "Do you use a wired internet connection?": string;
   "In what city and country do you reside?": string;
+  "Have you been referred by someone?": string;
+  "Referrer Name"?: string;
   "What 3 words best describe you and why?": string;
   "What phone number do you use for WhatsApp?": string;
   "How much RAM is available on your computer?": string;

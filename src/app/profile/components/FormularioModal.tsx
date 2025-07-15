@@ -27,6 +27,8 @@ export default function FormularioModal({
   const [otherComputerText, setOtherComputerText] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [wiredConnection, setWiredConnection] = useState<string>("");
+  const [hasReferrer, setHasReferrer] = useState<string>("");
+  const [referrerName, setReferrerName] = useState<string>("");
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   const [missingFieldsCount, setMissingFieldsCount] = useState<number>(0);
 
@@ -38,6 +40,7 @@ export default function FormularioModal({
       "What is your preferred first and last name?",
       "What phone number do you use for WhatsApp?",
       "In what city and country do you reside?",
+      "Have you been referred by someone?",
       "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
       "What 3 words best describe you and why?",
       "What unique qualities make your services stand out?",
@@ -67,6 +70,11 @@ export default function FormularioModal({
       }
       if (question === "Do you use a wired internet connection?") {
         const isValid = wiredConnection !== "";
+        if (!isValid) missingFields.push(question);
+        return isValid;
+      }
+      if (question === "Have you been referred by someone?") {
+        const isValid = hasReferrer !== "";
         if (!isValid) missingFields.push(question);
         return isValid;
       }
@@ -127,6 +135,14 @@ export default function FormularioModal({
           datosFormulario["Do you use a wired internet connection?"]
         );
       }
+
+      if (datosFormulario["Have you been referred by someone?"]) {
+        setHasReferrer(datosFormulario["Have you been referred by someone?"]);
+      }
+
+      if (datosFormulario["Referrer Name"]) {
+        setReferrerName(datosFormulario["Referrer Name"]);
+      }
     }
 
     // Validar el formulario después de cargar datos
@@ -144,7 +160,13 @@ export default function FormularioModal({
 
   useEffect(() => {
     validateForm();
-  }, [computerType, otherComputerText, wiredConnection]);
+  }, [
+    computerType,
+    otherComputerText,
+    wiredConnection,
+    hasReferrer,
+    referrerName,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,6 +211,14 @@ export default function FormularioModal({
       if (wiredConnection) {
         completeFormData["Do you use a wired internet connection?"] =
           wiredConnection;
+      }
+
+      // Capturar la información de referidos
+      if (hasReferrer) {
+        completeFormData["Have you been referred by someone?"] = hasReferrer;
+        if (hasReferrer === "Yes" && referrerName) {
+          completeFormData["Referrer Name"] = referrerName;
+        }
       }
 
       // Llamar a la acción del servidor
@@ -301,6 +331,60 @@ export default function FormularioModal({
                 )
               }
             />
+          </div>
+
+          {/* Pregunta de referidos */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Have you been referred by someone?
+              <span className="text-red-500">*</span>
+            </label>
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="yes-referrer"
+                  name="has-referrer"
+                  className="mr-2"
+                  required
+                  value="Yes"
+                  checked={hasReferrer === "Yes"}
+                  onChange={() => setHasReferrer("Yes")}
+                  disabled={readOnly}
+                />
+                <label htmlFor="yes-referrer">Yes</label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="no-referrer"
+                  name="has-referrer"
+                  className="mr-2"
+                  value="No"
+                  checked={hasReferrer === "No"}
+                  onChange={() => setHasReferrer("No")}
+                  disabled={readOnly}
+                />
+                <label htmlFor="no-referrer">No</label>
+              </div>
+            </div>
+
+            {/* Campo de nombre del referido (solo si es Yes) */}
+            {hasReferrer === "Yes" && (
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-gray-600">
+                  Name of the person who referred you:
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded-md mt-1"
+                  placeholder="Enter the referrer's name"
+                  disabled={readOnly}
+                  value={referrerName}
+                  onChange={(e) => setReferrerName(e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Gmail */}

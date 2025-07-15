@@ -206,7 +206,7 @@ export default function ContactoModal({
                   className={`w-full p-2 border rounded-md ${
                     errors.residencia ? "border-red-500" : "border-gray-300"
                   }`}
-                  placeholder="Ciudad, País"
+                  placeholder="Please type your home address"
                 />
                 {errors.residencia && (
                   <span className="text-red-500 text-xs mt-1">

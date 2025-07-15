@@ -8,6 +8,7 @@ import {
   applyToOffer,
   getOffers,
   userIsAppliedToOffer,
+  checkApplicationHistory,
 } from "./actions/jobs.actions";
 import { Offer } from "@/app/types/offers";
 import ViewOfferModal from "@/app/components/ViewOfferModal";
@@ -15,6 +16,8 @@ import { X } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useRouter } from "next/navigation";
+import { ApplicationWarningModal } from "@/components/ui/application-warning-modal";
+import { ApplicationHistoryStatus } from "@/interfaces/jobs.types";
 
 export default function JobOffersPage() {
   const { user } = useAuthStore();
@@ -37,6 +40,11 @@ export default function JobOffersPage() {
   const [showCentralNotification, setShowCentralNotification] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [offerToApply, setOfferToApply] = useState<string | null>(null);
+  const [applicationHistoryMap, setApplicationHistoryMap] = useState<
+    Map<string, ApplicationHistoryStatus>
+  >(new Map());
+  const [currentApplicationHistory, setCurrentApplicationHistory] =
+    useState<ApplicationHistoryStatus | null>(null);
 
   const isValidProfileUser = async () => {
     try {
@@ -77,7 +85,11 @@ export default function JobOffersPage() {
 
   const handleApplyToOffer = async (offerId: string) => {
     if (!offerId) return;
+
+    // This function should only be called when we're sure we want to apply
+    // (after user has confirmed through the warning modal if needed)
     const { success, message } = await applyToOffer(offerId);
+
     if (success) {
       const newAppliedOffers = [...appliedOfferIds, offerId];
       setAppliedOfferIds(newAppliedOffers);
@@ -87,34 +99,59 @@ export default function JobOffersPage() {
         JSON.stringify(newAppliedOffers)
       );
 
+      // Update application history map to reflect new application
+      setApplicationHistoryMap((prev) =>
+        new Map(prev).set(offerId, {
+          hasApplied: true,
+          isActive: true,
+          wasRejected: false,
+          applicationDate: new Date().toISOString(),
+        })
+      );
+
       setShowCentralNotification(true);
       setShowWarningModal(false);
+      setCurrentApplicationHistory(null);
 
       setTimeout(() => setShowCentralNotification(false), 3000);
     } else {
-      if (message === "Ya te has postulado a esta propuesta") {
+      // Backend returned an error - this should be rare now since we check history first
+      console.error("Backend error when applying:", message);
+
+      // Handle specific error cases
+      if (message.includes("Ya tienes un contrato activo")) {
+        addNotification(
+          "You have an active contract for this offer. Please wait until it's finalized before applying to another offer.",
+          "info"
+        );
+      } else if (message.includes("Ya te has postulado a esta propuesta")) {
         addNotification("You have already applied to this job", "info");
       } else if (
-        message === "No puedes postularte hasta que tu perfil esté completo"
+        message.includes(
+          "No puedes postularte hasta que tu perfil esté completo"
+        )
       ) {
         addNotification(
           "You cannot apply until your profile is complete.",
           "info"
         );
-      } else if (
-        message ===
-        "Tu usuario se encuentra bloqueado, para realizar una postulación, debes solicitar el levantamiento de tu bloqueo en el apartado de reclamos"
-      ) {
+      } else if (message.includes("Tu usuario se encuentra bloqueado")) {
         addNotification(
           "Your account is blocked. Please request an unblock in the claims section before applying.",
           "error"
         );
-      } else if (
-        message ===
-        "Ya tienes una postulación activa. Debes esperar a que sea rechazada o aceptada antes de postular a otra oferta."
-      ) {
+      } else if (message.includes("Ya tienes una postulación activa")) {
         addNotification(
           "You already have an active application. Please wait until it's rejected or accepted before applying to another offer.",
+          "info"
+        );
+      } else if (
+        message.includes(
+          "No puedes volver a postularte a una oferta donde fuiste rechazado"
+        )
+      ) {
+        addNotification(
+          "You cannot reapply to a job offer where you were previously rejected.",
           "info"
         );
       } else if (
@@ -122,21 +159,129 @@ export default function JobOffersPage() {
       ) {
         addNotification(message, "info");
       } else {
-        addNotification("Error applying to this job", "error");
+        addNotification(
+          "Error applying to this job. Please try again.",
+          "error"
+        );
       }
+
       setShowWarningModal(false);
+      setCurrentApplicationHistory(null);
     }
   };
 
-  const handleInitiateApplication = (offerId: string) => {
+  // // Function to check application history for a specific offer
+  // const checkOfferApplicationHistory = async (offerId: string) => {
+  //   if (!user?.id || checkingHistory.has(offerId)) return;
+
+  //   setCheckingHistory((prev) => new Set(prev).add(offerId));
+
+  //   try {
+  //     const result = await checkApplicationHistory(offerId);
+
+  //     if (result.success && result.data) {
+  //       const historyStatus: ApplicationHistoryStatus = {
+  //         hasApplied: result.data.hasApplied,
+  //         wasRejected: result.data.wasRejected,
+  //         isActive: result.data.isActive,
+  //         applicationDate: result.data.applicationDate,
+  //       };
+
+  //       setApplicationHistoryMap((prev) =>
+  //         new Map(prev).set(offerId, historyStatus)
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking application history:", error);
+  //   } finally {
+  //     setCheckingHistory((prev) => {
+  //       const newSet = new Set(prev);
+  //       newSet.delete(offerId);
+  //       return newSet;
+  //     });
+  //   }
+  // };
+
+  const handleInitiateApplication = async (offerId: string) => {
     if (!user) {
       addNotification("You must be logged in to apply", "info");
       router.push("/auth/login");
       return;
     }
-    if (!appliedOfferIds.includes(offerId)) {
-      setOfferToApply(offerId);
+
+    // Check if already applied based on localStorage (for immediate feedback)
+    if (appliedOfferIds.includes(offerId)) {
+      addNotification("You have already applied to this job", "info");
+      return;
+    }
+
+    // Set offer to apply for loading states
+    setOfferToApply(offerId);
+
+    try {
+      // Check application history from backend
+      const result = await checkApplicationHistory(offerId);
+      console.log("Application history result:", result);
+
+      if (result.success && result.data) {
+        const historyData = result.data;
+        console.log("History data:", historyData);
+
+        // Handle different scenarios based on history
+        if (historyData.hasApplied && historyData.isActive) {
+          // User has an active application
+          console.log("User has active application");
+          const historyStatus: ApplicationHistoryStatus = {
+            hasApplied: true,
+            wasRejected: false,
+            isActive: true,
+            applicationDate: historyData.applicationDate,
+          };
+          setCurrentApplicationHistory(historyStatus);
+          setShowWarningModal(true);
+          return;
+        }
+
+        if (historyData.hasApplied && historyData.wasRejected) {
+          // User was rejected before, do not allow reapplication
+          console.log("User was rejected before");
+          addNotification(
+            "You cannot reapply to a job offer where you were previously rejected.",
+            "info"
+          );
+          setOfferToApply(null);
+          return;
+        }
+
+        if (
+          historyData.hasApplied &&
+          !historyData.isActive &&
+          !historyData.wasRejected
+        ) {
+          // User applied before but status is unclear, show warning
+          console.log("User applied before, unclear status");
+          const historyStatus: ApplicationHistoryStatus = {
+            hasApplied: true,
+            wasRejected: false,
+            isActive: false,
+            applicationDate: historyData.applicationDate,
+          };
+          setCurrentApplicationHistory(historyStatus);
+          setShowWarningModal(true);
+          return;
+        }
+      }
+
+      // No previous application or no issues found, show standard confirmation modal
+      console.log("No previous application, showing standard modal");
+      setCurrentApplicationHistory(null);
       setShowWarningModal(true);
+    } catch (error) {
+      console.error("Error checking application history:", error);
+      addNotification(
+        "Error checking application status. Please try again.",
+        "error"
+      );
     }
   };
 
@@ -177,6 +322,46 @@ export default function JobOffersPage() {
       }
     }
   }, [user]);
+
+  // Load application history for all offers when user is authenticated and offers are loaded
+  useEffect(() => {
+    const loadApplicationHistory = async () => {
+      if (!user?.id || filteredJobs.length === 0) return;
+
+      const historyPromises = filteredJobs.map(async (job) => {
+        if (!job.id) return null;
+
+        try {
+          const result = await checkApplicationHistory(job.id);
+          if (result.success && result.data) {
+            const historyStatus: ApplicationHistoryStatus = {
+              hasApplied: result.data.hasApplied,
+              wasRejected: result.data.wasRejected,
+              isActive: result.data.isActive,
+              applicationDate: result.data.applicationDate,
+            };
+            return { offerId: job.id, status: historyStatus };
+          }
+        } catch (error) {
+          console.error(`Error loading history for offer ${job.id}:`, error);
+        }
+        return null;
+      });
+
+      const results = await Promise.all(historyPromises);
+      const newHistoryMap = new Map();
+
+      results.forEach((result) => {
+        if (result) {
+          newHistoryMap.set(result.offerId, result.status);
+        }
+      });
+
+      setApplicationHistoryMap(newHistoryMap);
+    };
+
+    loadApplicationHistory();
+  }, [user?.id, filteredJobs]);
 
   // Skeleton para la vista móvil
   const MobileSkeletonItem = () => (
@@ -245,6 +430,42 @@ export default function JobOffersPage() {
       </div>
     </div>
   );
+
+  // Helper function to get button state for a specific offer
+  const getButtonState = (offerId: string) => {
+    const history = applicationHistoryMap.get(offerId);
+
+    if (appliedOfferIds.includes(offerId)) {
+      return {
+        text: "Applied",
+        disabled: true,
+        className: "bg-gray-400 cursor-not-allowed",
+      };
+    }
+
+    if (history?.isActive) {
+      return {
+        text: "Application Pending",
+        disabled: true,
+        className: "bg-yellow-500 cursor-not-allowed",
+      };
+    }
+
+    if (history?.wasRejected) {
+      return {
+        text: "Previously Rejected",
+        disabled: true,
+        className: "bg-red-400 cursor-not-allowed",
+      };
+    }
+
+    return {
+      text: "Apply",
+      disabled: false,
+      className:
+        "bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] hover:shadow-lg cursor-pointer",
+    };
+  };
 
   return (
     <div className="container mx-auto bg-white min-h-screen">
@@ -618,25 +839,24 @@ export default function JobOffersPage() {
 
               <div className="mt-6">
                 {!user?.rol.includes("ADMIN") &&
-                  !user?.rol.includes("EMPLEADO_ADMIN") && (
-                    <button
-                      className={`${
-                        appliedOfferIds.includes(selectedJob?.id || "")
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] hover:shadow-lg cursor-pointer"
-                      } text-white px-6 py-3 rounded-md text-[16px] font-[600] transition-all w-full`}
-                      onClick={() => {
-                        if (selectedJob?.id) {
-                          handleInitiateApplication(selectedJob.id);
-                        }
-                      }}
-                      disabled={appliedOfferIds.includes(selectedJob?.id || "")}
-                    >
-                      {appliedOfferIds.includes(selectedJob?.id || "")
-                        ? "Applied"
-                        : "Apply"}
-                    </button>
-                  )}
+                  !user?.rol.includes("EMPLEADO_ADMIN") &&
+                  selectedJob?.id &&
+                  (() => {
+                    const buttonState = getButtonState(selectedJob.id);
+                    return (
+                      <button
+                        className={`${buttonState.className} text-white px-6 py-3 rounded-md text-[16px] font-[600] transition-all w-full`}
+                        onClick={() => {
+                          if (!buttonState.disabled && selectedJob?.id) {
+                            handleInitiateApplication(selectedJob.id);
+                          }
+                        }}
+                        disabled={buttonState.disabled}
+                      >
+                        {buttonState.text}
+                      </button>
+                    );
+                  })()}
               </div>
             </div>
           ) : (
@@ -655,7 +875,24 @@ export default function JobOffersPage() {
         />
       )}
 
-      {showWarningModal && (
+      {showWarningModal && currentApplicationHistory && (
+        <ApplicationWarningModal
+          isOpen={showWarningModal}
+          onClose={() => {
+            setShowWarningModal(false);
+            setCurrentApplicationHistory(null);
+          }}
+          onConfirm={() => {
+            if (offerToApply) {
+              handleApplyToOffer(offerToApply);
+            }
+          }}
+          historyStatus={currentApplicationHistory}
+          isLoading={false}
+        />
+      )}
+
+      {showWarningModal && !currentApplicationHistory && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
@@ -690,7 +927,7 @@ export default function JobOffersPage() {
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-[#0097B2] text-white rounded-md font-medium hover:bg-[#007A8F] transition-colors"
+                className="px-4 py-2 bg-[#0097B2] text-white rounded-md font-medium hover:bg-[#007A8F] transition-colors cursor-pointer"
                 onClick={() => {
                   if (offerToApply) {
                     handleApplyToOffer(offerToApply);

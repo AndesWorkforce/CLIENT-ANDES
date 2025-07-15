@@ -2,6 +2,7 @@
 
 import { ApiResponse } from "@/interfaces/api.interface";
 import { createServerAxios } from "@/services/axios.server";
+import { sendCompanyWelcomeEmail } from "@/app/admin/dashboard/actions/sendEmail.actions";
 
 interface GetCompaniesResponse extends ApiResponse {
   data?: {
@@ -124,6 +125,8 @@ interface CompanyData {
   descripcion: string;
   correo: string;
   contrasena?: string;
+  nombreRepresentante?: string;
+  apellidoRepresentante?: string;
 }
 
 export const createCompany = async (
@@ -137,9 +140,38 @@ export const createCompany = async (
       throw new Error(response.data.message || "Error creating company");
     }
 
+    // Enviar email de bienvenida con las credenciales
+    if (data.contrasena && data.nombreRepresentante) {
+      console.log("📧 [createCompany] Sending welcome email...");
+
+      try {
+        const emailResponse = await sendCompanyWelcomeEmail(
+          data.nombre,
+          data.nombreRepresentante,
+          data.correo,
+          data.contrasena
+        );
+
+        if (emailResponse.success) {
+          console.log("✅ [createCompany] Welcome email sent successfully");
+        } else {
+          console.warn(
+            "⚠️ [createCompany] Failed to send welcome email:",
+            emailResponse.error
+          );
+        }
+      } catch (emailError) {
+        console.error(
+          "❌ [createCompany] Error sending welcome email:",
+          emailError
+        );
+        // No fallar la creación de empresa si el email falla
+      }
+    }
+
     return {
       success: true,
-      message: "Company created successfully",
+      message: "Company created successfully and welcome email sent",
     };
   } catch (error) {
     console.error("Error in createCompany:", error);
@@ -156,7 +188,14 @@ export const updateCompany = async (
 ): Promise<ApiResponse> => {
   const axios = await createServerAxios();
   try {
-    const response = await axios.patch(`/companies/${companyId}`, data);
+    // Para actualización, no enviamos contrasena ni datos del representante
+    const updateData = {
+      nombre: data.nombre,
+      descripcion: data.descripcion,
+      correo: data.correo,
+    };
+
+    const response = await axios.patch(`/companies/${companyId}`, updateData);
 
     if (response.status !== 200) {
       throw new Error(response.data.message || "Error updating company");
