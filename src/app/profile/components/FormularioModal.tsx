@@ -39,7 +39,7 @@ export default function FormularioModal({
     const requiredQuestions = [
       "What is your preferred first and last name?",
       "What phone number do you use for WhatsApp?",
-      "In what city and country do you reside?",
+      "In which city and country do you live?",
       "Have you been referred by someone?",
       "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
       "What 3 words best describe you and why?",
@@ -315,7 +315,7 @@ export default function FormularioModal({
           {/* Ciudad y País */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              In what city and country do you reside?
+              In which city and country do you live?
               <span className="text-red-500">*</span>
             </label>
             <input
@@ -323,10 +323,10 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               required
               disabled={readOnly}
-              value={formData["In what city and country do you reside?"] || ""}
+              value={formData["In which city and country do you live?"] || ""}
               onChange={(e) =>
                 handleInputChange(
-                  "In what city and country do you reside?",
+                  "In which city and country do you live?",
                   e.target.value
                 )
               }

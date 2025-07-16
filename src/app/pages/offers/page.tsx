@@ -45,6 +45,9 @@ export default function JobOffersPage() {
   >(new Map());
   const [currentApplicationHistory, setCurrentApplicationHistory] =
     useState<ApplicationHistoryStatus | null>(null);
+  const [loadingApplications, setLoadingApplications] = useState<Set<string>>(
+    new Set()
+  );
 
   const isValidProfileUser = async () => {
     try {
@@ -168,39 +171,15 @@ export default function JobOffersPage() {
       setShowWarningModal(false);
       setCurrentApplicationHistory(null);
     }
+
+    // Always remove loading state after processing
+    setLoadingApplications((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(offerId);
+      return newSet;
+    });
+    setOfferToApply(null);
   };
-
-  // // Function to check application history for a specific offer
-  // const checkOfferApplicationHistory = async (offerId: string) => {
-  //   if (!user?.id || checkingHistory.has(offerId)) return;
-
-  //   setCheckingHistory((prev) => new Set(prev).add(offerId));
-
-  //   try {
-  //     const result = await checkApplicationHistory(offerId);
-
-  //     if (result.success && result.data) {
-  //       const historyStatus: ApplicationHistoryStatus = {
-  //         hasApplied: result.data.hasApplied,
-  //         wasRejected: result.data.wasRejected,
-  //         isActive: result.data.isActive,
-  //         applicationDate: result.data.applicationDate,
-  //       };
-
-  //       setApplicationHistoryMap((prev) =>
-  //         new Map(prev).set(offerId, historyStatus)
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Error checking application history:", error);
-  //   } finally {
-  //     setCheckingHistory((prev) => {
-  //       const newSet = new Set(prev);
-  //       newSet.delete(offerId);
-  //       return newSet;
-  //     });
-  //   }
-  // };
 
   const handleInitiateApplication = async (offerId: string) => {
     if (!user) {
@@ -215,7 +194,13 @@ export default function JobOffersPage() {
       return;
     }
 
-    // Set offer to apply for loading states
+    // Check if already loading this application
+    if (loadingApplications.has(offerId)) {
+      return;
+    }
+
+    // Set loading state immediately
+    setLoadingApplications((prev) => new Set(prev).add(offerId));
     setOfferToApply(offerId);
 
     try {
@@ -282,6 +267,13 @@ export default function JobOffersPage() {
         "Error checking application status. Please try again.",
         "error"
       );
+      // Remove loading state on error
+      setLoadingApplications((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(offerId);
+        return newSet;
+      });
+      setOfferToApply(null);
     }
   };
 
@@ -323,7 +315,6 @@ export default function JobOffersPage() {
     }
   }, [user]);
 
-  // Load application history for all offers when user is authenticated and offers are loaded
   useEffect(() => {
     const loadApplicationHistory = async () => {
       if (!user?.id || filteredJobs.length === 0) return;
@@ -434,20 +425,32 @@ export default function JobOffersPage() {
   // Helper function to get button state for a specific offer
   const getButtonState = (offerId: string) => {
     const history = applicationHistoryMap.get(offerId);
+    const isLoading = loadingApplications.has(offerId);
+
+    if (isLoading) {
+      return {
+        text: "Applying...",
+        disabled: true,
+        className: "bg-gray-400 cursor-not-allowed",
+        showSpinner: true,
+      };
+    }
 
     if (appliedOfferIds.includes(offerId)) {
       return {
         text: "Applied",
         disabled: true,
         className: "bg-gray-400 cursor-not-allowed",
+        showSpinner: false,
       };
     }
 
     if (history?.isActive) {
       return {
-        text: "Application Pending",
+        text: "Apply",
         disabled: true,
-        className: "bg-yellow-500 cursor-not-allowed",
+        className: "bg-[#0097B2] cursor-not-allowed",
+        showSpinner: false,
       };
     }
 
@@ -455,7 +458,8 @@ export default function JobOffersPage() {
       return {
         text: "Previously Rejected",
         disabled: true,
-        className: "bg-red-400 cursor-not-allowed",
+        className: "bg-[#0097B2] cursor-not-allowed",
+        showSpinner: false,
       };
     }
 
@@ -464,6 +468,7 @@ export default function JobOffersPage() {
       disabled: false,
       className:
         "bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] hover:shadow-lg cursor-pointer",
+      showSpinner: false,
     };
   };
 
@@ -845,7 +850,7 @@ export default function JobOffersPage() {
                     const buttonState = getButtonState(selectedJob.id);
                     return (
                       <button
-                        className={`${buttonState.className} text-white px-6 py-3 rounded-md text-[16px] font-[600] transition-all w-full`}
+                        className={`${buttonState.className} text-white px-6 py-3 rounded-md text-[16px] font-[600] transition-all w-full flex items-center justify-center`}
                         onClick={() => {
                           if (!buttonState.disabled && selectedJob?.id) {
                             handleInitiateApplication(selectedJob.id);
@@ -853,6 +858,28 @@ export default function JobOffersPage() {
                         }}
                         disabled={buttonState.disabled}
                       >
+                        {buttonState.showSpinner && (
+                          <svg
+                            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                        )}
                         {buttonState.text}
                       </button>
                     );
@@ -881,6 +908,15 @@ export default function JobOffersPage() {
           onClose={() => {
             setShowWarningModal(false);
             setCurrentApplicationHistory(null);
+            // Clear loading state when modal is closed
+            if (offerToApply) {
+              setLoadingApplications((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(offerToApply);
+                return newSet;
+              });
+              setOfferToApply(null);
+            }
           }}
           onConfirm={() => {
             if (offerToApply) {
@@ -922,7 +958,18 @@ export default function JobOffersPage() {
             <div className="flex justify-center gap-4">
               <button
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300 transition-colors"
-                onClick={() => setShowWarningModal(false)}
+                onClick={() => {
+                  setShowWarningModal(false);
+                  // Clear loading state when modal is closed
+                  if (offerToApply) {
+                    setLoadingApplications((prev) => {
+                      const newSet = new Set(prev);
+                      newSet.delete(offerToApply);
+                      return newSet;
+                    });
+                    setOfferToApply(null);
+                  }
+                }}
               >
                 Cancel
               </button>
@@ -963,7 +1010,6 @@ export default function JobOffersPage() {
             <h3 className="text-xl font-bold text-gray-900 mb-2">
               Your application has been submitted
             </h3>
-            {/* <p className="text-gray-600">{centralNotificationMessage}</p> */}
             <button
               className="mt-6 bg-[#0097B2] text-white px-5 py-2 rounded-md font-medium cursor-pointer"
               onClick={() => setShowCentralNotification(false)}

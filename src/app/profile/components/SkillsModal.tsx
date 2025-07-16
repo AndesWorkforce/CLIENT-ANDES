@@ -73,6 +73,12 @@ export default function SkillsModal({
           <div>
             <label className="block text-gray-700 mb-3">
               Describe your skills<span className="text-red-500">*</span>
+              <br />
+              <span className="text-gray-400">
+                Please list your hard and soft skills here (Microsoft Office,
+                Google Suite, Slack, Customer Service, Language Skills,
+                Programming, etc)
+              </span>
             </label>
 
             <div className="border border-gray-300 rounded-md min-h-[200px] focus-within:ring-1 focus-within:ring-[#0097B2] focus-within:border-[#0097B2]">

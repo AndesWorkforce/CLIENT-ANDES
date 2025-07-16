@@ -510,6 +510,27 @@ export default function AdminDashboardPage() {
                         </svg>
                       </div>
                     </div>
+                    <div className="mt-2 text-xs text-gray-600 flex flex-wrap gap-1">
+                      {offer.empresasAsociadas &&
+                        offer.empresasAsociadas.length > 0 && (
+                          <>
+                            <span className="text-gray-500">Clients:</span>
+                            {offer.empresasAsociadas.map(
+                              (asociacion, index) => (
+                                <span
+                                  key={asociacion.empresa.id}
+                                  className="text-[#0097B2] font-medium"
+                                >
+                                  {asociacion.empresa.nombre}
+                                  {index <
+                                    (offer.empresasAsociadas?.length || 0) -
+                                      1 && ", "}
+                                </span>
+                              )
+                            )}
+                          </>
+                        )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -710,6 +731,27 @@ export default function AdminDashboardPage() {
                             </defs>
                           </svg>
                         </div>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-600 flex flex-wrap gap-1">
+                        {job.empresasAsociadas &&
+                          job.empresasAsociadas.length > 0 && (
+                            <>
+                              <span className="text-gray-500">Clients:</span>
+                              {job.empresasAsociadas.map(
+                                (asociacion, index) => (
+                                  <span
+                                    key={asociacion.empresa.id}
+                                    className="text-[#0097B2] font-medium"
+                                  >
+                                    {asociacion.empresa.nombre}
+                                    {index <
+                                      (job.empresasAsociadas?.length || 0) -
+                                        1 && ", "}
+                                  </span>
+                                )
+                              )}
+                            </>
+                          )}
                       </div>
                     </div>
                   </div>

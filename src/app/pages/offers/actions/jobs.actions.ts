@@ -2,7 +2,7 @@
 
 import { createServerAxios } from "@/services/axios.server";
 import { AxiosError } from "axios";
-import { sendInterviewInvitation } from "@/app/admin/dashboard/actions/sendEmail.actions";
+import { sendAssignJobNotification } from "@/app/admin/dashboard/actions/sendEmail.actions";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -55,10 +55,11 @@ export async function applyToOffer(offerId: string) {
           const user = userResponse.data.data;
 
           if (user) {
-            // Enviar email de entrevista
-            await sendInterviewInvitation(
+            // Enviar email de asignación de trabajo
+            await sendAssignJobNotification(
               `${user.nombre} ${user.apellido}`,
-              user.correo
+              user.correo,
+              offersResponse.data.titulo
             );
           }
         }

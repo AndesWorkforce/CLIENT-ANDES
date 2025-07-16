@@ -20,7 +20,7 @@ export default function ViewFormularioModal({
   const ordenPreguntas = [
     "What is your preferred first and last name?",
     "What phone number do you use for WhatsApp?",
-    "In what city and country do you reside?",
+    "In which city and country do you live?",
     "Have you been referred by someone?",
     "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
     "What 3 words best describe you and why?",

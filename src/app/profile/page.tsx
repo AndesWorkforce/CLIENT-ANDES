@@ -1532,64 +1532,6 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
-            {/* Documento de Identidad - Versión simplificada */}
-            <div
-              className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
-              style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
-            >
-              <span className="text-gray-800 font-medium">
-                Identity Document
-              </span>
-              <div className="flex items-center justify-center gap-4">
-                {profile.archivos?.fotoCedulaFrente ||
-                profile.archivos?.fotoCedulaDorso ? (
-                  <div className="flex items-center gap-2">
-                    <Edit
-                      className="cursor-pointer"
-                      onClick={() => setShowIdentificationModal(true)}
-                    />
-                  </div>
-                ) : (
-                  <svg
-                    width="35"
-                    height="35"
-                    viewBox="0 0 25 25"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="cursor-pointer"
-                    onClick={() => setShowIdentificationModal(true)}
-                  >
-                    <circle cx="12.5" cy="12.5" r="12.5" fill="#0097B2" />
-                    <g clipPath="url(#clip0_161_384)">
-                      <path
-                        d="M11.875 7.5H7.5C7.16848 7.5 6.85054 7.6317 6.61612 7.86612C6.3817 8.10054 6.25 8.41848 6.25 8.75V17.5C6.25 17.8315 6.3817 18.1495 6.61612 18.3839C6.85054 18.6183 7.16848 18.75 7.5 18.75H16.25C16.5815 18.75 16.8995 18.6183 17.1339 18.3839C17.3683 18.1495 17.5 17.8315 17.5 17.5V13.125"
-                        stroke="#FCFEFF"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M16.5625 6.5625C16.8111 6.31386 17.1484 6.17417 17.5 6.17417C17.8516 6.17417 18.1889 6.31386 18.4375 6.5625C18.6861 6.81114 18.8258 7.14837 18.8258 7.5C18.8258 7.85163 18.6861 8.18886 18.4375 8.4375L12.5 14.375L10 15L10.625 12.5L16.5625 6.5625Z"
-                        stroke="#FCFEFF"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_161_384">
-                        <rect
-                          width="15"
-                          height="15"
-                          fill="white"
-                          transform="translate(5 5)"
-                        />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                )}
-              </div>
-            </div>
 
             {profile.experiencia.length > 0 && (
               <div
