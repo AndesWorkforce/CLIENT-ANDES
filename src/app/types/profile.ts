@@ -32,7 +32,7 @@ export interface DatosFormulario {
   "What Internet provider do you use?": string;
   "What is the URL for their website?": string;
   "Do you use a wired internet connection?": string;
-  "In what city and country do you reside?": string;
+  "In which city and country do you live?": string;
   "Have you been referred by someone?": string;
   "Referrer Name"?: string;
   "What 3 words best describe you and why?": string;

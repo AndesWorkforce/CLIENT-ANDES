@@ -80,6 +80,15 @@ export interface Offer {
     postulaciones: number;
   };
   postulacionesCount?: number;
+  empresasAsociadas?:
+    | {
+        empresa: {
+          id: string;
+          nombre: string;
+        };
+      }[]
+    | null
+    | undefined; // Lista de empresas asociadas a la oferta
 }
 
 // Estados posibles de una oferta

@@ -21,6 +21,7 @@ export default function VideoModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const [showInstructions, setShowInstructions] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [instructionsCompleted, setInstructionsCompleted] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadState, setUploadState] = useState<
     "idle" | "generating" | "uploading" | "success" | "error"
@@ -231,6 +232,8 @@ export default function VideoModal({
     setUploadProgress(0);
     setUploadUrl(null);
     setError(null);
+    setAgreeToTerms(false);
+    setInstructionsCompleted(false);
   };
 
   const closeModal = () => {
@@ -304,10 +307,18 @@ export default function VideoModal({
           <button
             type="button"
             onClick={() => setShowInstructions(true)}
-            className="flex items-center justify-center w-full bg-[#0097B2] text-white py-2.5 px-4 rounded-md cursor-pointer"
+            className={`flex items-center justify-center w-full py-2.5 px-4 rounded-md cursor-pointer ${
+              instructionsCompleted
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-[#0097B2] text-white"
+            }`}
           >
             <Eye className="h-5 w-5 mr-2" />
-            <span className="font-medium">View instructions</span>
+            <span className="font-medium">
+              {instructionsCompleted
+                ? "Instructions completed ✓"
+                : "View instructions"}
+            </span>
           </button>
 
           <div className="flex items-start space-x-2 pt-1 border p-3 rounded-lg border-gray-200 bg-gray-50">
@@ -317,13 +328,28 @@ export default function VideoModal({
               checked={agreeToTerms}
               onChange={() => setAgreeToTerms(!agreeToTerms)}
               className="mt-1 cursor-pointer"
+              disabled={!instructionsCompleted}
             />
-            <label htmlFor="terms" className="text-xs text-gray-600">
+            <label
+              htmlFor="terms"
+              className={`text-xs ${
+                !instructionsCompleted ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
               Disclosure: by sharing your personal video with Andes Workforce
               you agree to share your personal information and resume with your
               potential clients in efforts to award you a contract.
             </label>
           </div>
+
+          {!instructionsCompleted && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-red-700 text-sm">
+                Please read the instructions completely before proceeding with
+                the video upload.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-3">
             <input
@@ -334,6 +360,7 @@ export default function VideoModal({
               onChange={handleFileChange}
               disabled={
                 !agreeToTerms ||
+                !instructionsCompleted ||
                 uploadState === "uploading" ||
                 uploadState === "generating"
               }
@@ -343,17 +370,19 @@ export default function VideoModal({
               <label
                 htmlFor="video-upload"
                 className={`flex items-center justify-center w-full py-2.5 px-4 rounded-md ${
-                  agreeToTerms
+                  agreeToTerms && instructionsCompleted
                     ? "bg-[#E5F6F8] text-[#0097B2] cursor-pointer"
                     : "bg-gray-200 text-gray-500 cursor-not-allowed"
                 }`}
               >
                 <Upload className="h-5 w-5 mr-2" />
                 <span className="font-medium">
-                  {agreeToTerms
+                  {agreeToTerms && instructionsCompleted
                     ? uploadUrl
                       ? "Change video"
                       : "Upload video"
+                    : !instructionsCompleted
+                    ? "Complete instructions first"
                     : "Accept the terms to upload"}
                 </span>
               </label>
@@ -368,7 +397,7 @@ export default function VideoModal({
                   type="button"
                   onClick={handleUpload}
                   className="w-full bg-[#0097B2] text-white py-2 px-4 rounded-md cursor-pointer"
-                  disabled={!agreeToTerms}
+                  disabled={!agreeToTerms || !instructionsCompleted}
                 >
                   Start upload
                 </button>
@@ -424,9 +453,15 @@ export default function VideoModal({
           <div className="pt-3">
             <button
               type="submit"
-              disabled={!agreeToTerms || uploadState !== "success"}
+              disabled={
+                !agreeToTerms ||
+                !instructionsCompleted ||
+                uploadState !== "success"
+              }
               className={`w-full py-2.5 px-6 rounded-md font-medium cursor-pointer ${
-                !agreeToTerms || uploadState !== "success"
+                !agreeToTerms ||
+                !instructionsCompleted ||
+                uploadState !== "success"
                   ? "bg-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   : "bg-[#0097B2] text-white"
               }`}
@@ -666,7 +701,10 @@ export default function VideoModal({
                 <div className="pt-4">
                   <button
                     type="button"
-                    onClick={() => setShowInstructions(false)}
+                    onClick={() => {
+                      setInstructionsCompleted(true);
+                      setShowInstructions(false);
+                    }}
                     className="w-full bg-[#0097B2] text-white py-3 px-6 rounded-md hover:bg-[#007d93] transition-colors font-medium cursor-pointer"
                   >
                     I understand
