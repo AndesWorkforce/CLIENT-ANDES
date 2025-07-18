@@ -63,7 +63,7 @@ export async function submitContactFormMicrosoft(data: ContactFormValues) {
 
     // Enviar correo
     await transporter.sendMail({
-      from: "Andes Team Contact Form <info@teamandes.com>",
+      from: "Andes Workforce <no-reply@teamandes.com>",
       to: "info@andes-workforce.com",
       replyTo: validatedData.email,
       subject: `New contact message - ${
@@ -164,7 +164,7 @@ export async function sendContractSignatureEmail(
 
     // Enviar correo
     await transporter.sendMail({
-      from: "Andes Team Contracts <info@teamandes.com>",
+      from: "Andes Workforce <no-reply@teamandes.com>",
       to: "mrendon@teamandes.com",
       subject: "Contract Signature - Andes Workforce",
       html: emailHtml,
@@ -265,7 +265,7 @@ export async function sendProviderContractEmail(contract: {
 
     // Enviar correo
     await transporter.sendMail({
-      from: "Andes Team Contracts <info@teamandes.com>",
+      from: "Andes Workforce <no-reply@teamandes.com>",
       to: "mrendon@teamandes.com", // TODO: Reemplazar con el email real del proveedor
       subject: "Contract Signature - Andes Workforce",
       html: emailHtml,
