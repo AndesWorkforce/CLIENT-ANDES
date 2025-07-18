@@ -342,11 +342,10 @@ const AdminApplicantsTable = ({
               )}
             </td>
             <td className="py-4 px-4">
-              {/* Second Interview: habilitado si está en EN_EVALUACION o PRIMERA_ENTREVISTA_REALIZADA y la preferencia es Yes */}
-              {(applicant.estadoPostulacion === "EN_EVALUACION" ||
-                applicant.estadoPostulacion ===
-                  "PRIMERA_ENTREVISTA_REALIZADA") &&
-              interviewPreferences[applicant.id] === true ? (
+              {/* Second Interview: Para admin, permitir salto de etapas desde estados tempranos */}
+              {applicant.estadoPostulacion === "PENDIENTE" ||
+              applicant.estadoPostulacion === "EN_EVALUACION" ||
+              applicant.estadoPostulacion === "PRIMERA_ENTREVISTA_REALIZADA" ? (
                 <button
                   className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
                     isActionLoading(applicant.id, "advancing")
@@ -597,7 +596,7 @@ const CompanyApplicantsTable = ({
               </div>
             </td>
             <td className="py-4 px-4">
-              {preferencesEstablished[applicant.id] ? (
+              {preferencesEstablished[applicant.id] === true ? (
                 // Si ya está establecida, solo mostrar el texto
                 <div className="flex items-center gap-2">
                   {interviewPreferences[applicant.id] === true ? (
@@ -1000,21 +999,38 @@ export default function ApplicantsModal({
         } (tipo: ${typeof applicant.preferenciaEntrevista})`
       );
 
-      if (
-        applicant.preferenciaEntrevista !== null &&
-        applicant.preferenciaEntrevista !== undefined
-      ) {
-        console.log(
-          `📝 [ApplicantsModal] Cargando preferencia inicial para ${applicant.nombre}: ${applicant.preferenciaEntrevista}`
-        );
-        newInterviewPreferences[applicant.id] = applicant.preferenciaEntrevista;
-        newPreferencesEstablished[applicant.id] = true;
+      // Para usuarios de empresa: siempre permitir cambiar la preferencia
+      // No marcar como establecida inicialmente para que puedan seleccionar
+      if (isCompanyUser) {
+        // Para empresa, siempre mostrar como no establecida para permitir selección
+        newPreferencesEstablished[applicant.id] = false;
+        // Si hay un valor, usarlo como inicial, si no, dejar undefined
+        if (
+          applicant.preferenciaEntrevista !== null &&
+          applicant.preferenciaEntrevista !== undefined
+        ) {
+          newInterviewPreferences[applicant.id] =
+            applicant.preferenciaEntrevista;
+        }
       } else {
-        console.log(
-          `📝 [ApplicantsModal] No hay preferencia inicial para ${applicant.nombre} (valor: ${applicant.preferenciaEntrevista})`
-        );
-        // No establecemos nada en newInterviewPreferences, dejamos que sea undefined
-        // para que se muestre "Not set"
+        // Para admin, usar la lógica original
+        if (
+          applicant.preferenciaEntrevista !== null &&
+          applicant.preferenciaEntrevista !== undefined
+        ) {
+          console.log(
+            `📝 [ApplicantsModal] Cargando preferencia inicial para ${applicant.nombre}: ${applicant.preferenciaEntrevista}`
+          );
+          newInterviewPreferences[applicant.id] =
+            applicant.preferenciaEntrevista;
+          newPreferencesEstablished[applicant.id] = true;
+        } else {
+          console.log(
+            `📝 [ApplicantsModal] No hay preferencia inicial para ${applicant.nombre} (valor: ${applicant.preferenciaEntrevista})`
+          );
+          // Explícitamente marcar como NO establecida
+          newPreferencesEstablished[applicant.id] = false;
+        }
       }
     });
 
@@ -1114,7 +1130,9 @@ export default function ApplicantsModal({
           applicant.preferenciaEntrevista
         } -> interviewPreferences[${applicant.id}]: ${
           newInterviewPreferences[applicant.id]
-        } (${typeof newInterviewPreferences[applicant.id]})`
+        } (${typeof newInterviewPreferences[applicant.id]}), established: ${
+          newPreferencesEstablished[applicant.id]
+        }`
       );
     });
   };
@@ -1579,11 +1597,12 @@ export default function ApplicantsModal({
           );
 
           if (response.success) {
-            // Marcar como establecido
-            setPreferencesEstablished((prev) => ({
-              ...prev,
-              [applicantId]: true,
-            }));
+            // Para usuarios de empresa, NO marcar como establecido
+            // para permitir cambios futuros
+            // setPreferencesEstablished((prev) => ({
+            //   ...prev,
+            //   [applicantId]: true,
+            // }));
 
             const preferenceText = wantsInterview ? "YES" : "NO";
             const candidateName = `${applicant.nombre} ${applicant.apellido}`;
@@ -1985,7 +2004,7 @@ export default function ApplicantsModal({
                             Schedule Interview?
                           </p>
                           <div className="flex flex-col gap-2">
-                            {preferencesEstablished[applicant.id] ? (
+                            {preferencesEstablished[applicant.id] === true ? (
                               // Si ya está establecida, solo mostrar el texto
                               <div className="flex items-center gap-2">
                                 {interviewPreferences[applicant.id] === true ? (
@@ -2187,8 +2206,11 @@ export default function ApplicantsModal({
                               <span className="text-xs text-gray-600">
                                 Second Interview:
                               </span>
-                              {applicant.estadoPostulacion ===
-                              "EN_EVALUACION" ? (
+                              {/* Para admin en móvil: permitir salto de etapas desde estados tempranos */}
+                              {applicant.estadoPostulacion === "PENDIENTE" ||
+                              applicant.estadoPostulacion === "EN_EVALUACION" ||
+                              applicant.estadoPostulacion ===
+                                "PRIMERA_ENTREVISTA_REALIZADA" ? (
                                 <button
                                   className={`px-2 py-1 text-white text-xs rounded-md transition-colors ${
                                     isActionLoading(applicant.id, "advancing")
@@ -2196,13 +2218,12 @@ export default function ApplicantsModal({
                                       : "bg-[#0097B2] hover:bg-[#007a8f] cursor-pointer"
                                   }`}
                                   onClick={() =>
-                                    handleSelectCandidate(
+                                    handleSecondInterview(
                                       applicant.postulationId,
                                       applicant.id,
                                       `${applicant.nombre} ${applicant.apellido}`,
                                       applicant.correo,
-                                      "EN_EVALUACION",
-                                      "NEXT"
+                                      applicant.estadoPostulacion
                                     )
                                   }
                                   disabled={isActionLoading(
@@ -2211,8 +2232,8 @@ export default function ApplicantsModal({
                                   )}
                                 >
                                   {isActionLoading(applicant.id, "advancing")
-                                    ? "Scheduling..."
-                                    : "Schedule"}
+                                    ? "Sending..."
+                                    : "Send"}
                                 </button>
                               ) : applicant.estadoPostulacion ===
                                 "EN_EVALUACION_CLIENTE" ? (
@@ -2241,8 +2262,11 @@ export default function ApplicantsModal({
                                     ? "Advancing..."
                                     : "Advance"}
                                 </button>
-                              ) : applicant.estadoPostulacion === "FINALISTA" ||
-                                applicant.estadoPostulacion === "ACEPTADA" ? (
+                              ) : [
+                                  "SEGUNDA_ENTREVISTA_REALIZADA",
+                                  "FINALISTA",
+                                  "ACEPTADA",
+                                ].includes(applicant.estadoPostulacion) ? (
                                 <div className="text-green-600 text-xs font-medium">
                                   ✓ Done
                                 </div>
