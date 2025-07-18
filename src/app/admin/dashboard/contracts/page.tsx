@@ -23,8 +23,9 @@ import {
   PenTool,
 } from "lucide-react";
 import TableSkeleton from "../components/TableSkeleton";
-import { sendProviderContractEmail } from "@/app/pages/contact/actions/microsoft-email-actions";
+
 import { useNotificationStore } from "@/store/notifications.store";
+import { sendProviderContractEmail } from "../actions/sendEmail.actions";
 
 // Using imported interfaces from ./interfaces/contracts.interface.ts
 
