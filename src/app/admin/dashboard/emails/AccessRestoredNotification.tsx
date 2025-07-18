@@ -17,13 +17,13 @@ export const AccessRestoredNotificationEmail = ({
 }: AccessRestoredNotificationEmailProps) => {
   return (
     <Html>
-      <Preview>Access Restored – You`&apos;`re Welcome Back!</Preview>
+      <Preview>Access Restored – You&apos;re Welcome Back!</Preview>
       <Body style={main}>
         <Container style={container}>
           <Text style={paragraph}>Hello {candidateName},</Text>
 
           <Text style={paragraph}>
-            We`&apos;`re reaching out to let you know that your access to our
+            We&apos;re reaching out to let you know that your access to our
             website has been successfully restored. You can now log in, explore
             our platform, and apply to available offers as usual.
           </Text>
@@ -33,7 +33,7 @@ export const AccessRestoredNotificationEmail = ({
           </Text>
 
           <Text style={paragraph}>
-            If you have any questions or need assistance, please don`&apos;`t
+            If you have any questions or need assistance, please don&apos;t
             hesitate to contact us at{" "}
             <Link href="mailto:info@teamandes.com">info@teamandes.com</Link>.
           </Text>
