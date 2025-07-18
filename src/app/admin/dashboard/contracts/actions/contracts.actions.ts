@@ -142,14 +142,57 @@ export const finalizarContrato = async (
 ) => {
   const axios = await createServerAxios();
   try {
+    console.log("🔄 [finalizarContrato] Iniciando finalización de contrato:", {
+      procesoId,
+      data,
+    });
+
     const response = await axios.patch(
       `/admin/contratacion/${procesoId}/finalizar`,
       data
     );
-    return response.data;
+
+    console.log("✅ [finalizarContrato] Respuesta exitosa del servidor:", {
+      contractId: procesoId,
+      success: response.data.success,
+      message: response.data.message,
+      procesoContratacion: response.data.procesoContratacion,
+      postulacion: response.data.postulacion,
+      candidato: response.data.candidato,
+      propuesta: response.data.propuesta,
+      status: response.status,
+      statusText: response.statusText,
+    });
+
+    // Validar que la respuesta sea exitosa
+    if (response.data.success) {
+      console.log("✅ [finalizarContrato] Contrato finalizado exitosamente");
+      return {
+        success: true,
+        message: "Contract terminated successfully",
+        data: response.data,
+      };
+    } else {
+      console.error(
+        "❌ [finalizarContrato] Error en la respuesta:",
+        response.data
+      );
+      throw new Error(response.data.message || "Error finalizing contract");
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error("Error finalizing contract:", error);
-    throw error;
+    console.error("❌ [finalizarContrato] Error finalizing contract:", {
+      procesoId,
+      data,
+      error: error.response?.data || error.message,
+      status: error.response?.status,
+    });
+
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Error finalizing contract"
+    );
   }
 };
