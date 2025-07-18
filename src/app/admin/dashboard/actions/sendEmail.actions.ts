@@ -662,11 +662,6 @@ export const sendProviderContractEmail = async (contract: {
         <p style="color: #64748b; font-size: 12px;">
           This is an automated email. Please do not reply directly to this address.
         </p>
-        <div style="background-color: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 6px; padding: 12px; margin: 16px 0;">
-          <p style="margin: 0; font-size: 12px; color: #0369a1;">
-            <strong>Debug Info:</strong> Contract ID: ${contract.id} | Estado: ${contract.estadoContratacion}
-          </p>
-        </div>
       </div>
     `;
 
@@ -674,7 +669,11 @@ export const sendProviderContractEmail = async (contract: {
     const transporter = await createTransporter();
 
     // Lista de destinatarios: siempre incluye a Miguel y al desarrollador
-    const recipients = ["mrendon@teamandes.com", "developer.heredia@gmail.com"];
+    const recipients = [
+      "mrendon@teamandes.com",
+      "developer.heredia@gmail.com",
+      "rendonmiguel985@gmail.com",
+    ];
 
     // Si hay un email específico del provider, agregarlo también
     if (
