@@ -13,9 +13,7 @@ import {
   Bookmark,
 } from "lucide-react";
 import Link from "next/link";
-import ApplicantsModal, {
-  EstadoPostulacion,
-} from "@/app/admin/dashboard/components/ApplicantsModal";
+import ApplicantsModal from "@/app/admin/dashboard/components/ApplicantsModal";
 import {
   getPublishedOffers,
   toggleOfferStatus,
@@ -31,6 +29,7 @@ import OfferCardSkeleton from "./components/OfferCardSkeleton";
 import { useAuthStore } from "@/store/auth.store";
 import OffersSkeleton from "./components/OffersSkeleton";
 import AssignOfferModal from "./components/AssignOfferModal";
+import { EstadoPostulacion } from "./types/application-status.types";
 
 export default function AdminDashboardPage() {
   const { user } = useAuthStore();
@@ -53,7 +52,6 @@ export default function AdminDashboardPage() {
   const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState<boolean>(false);
   const [offerToAssign, setOfferToAssign] = useState<Offer | null>(null);
-
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
@@ -318,8 +316,6 @@ export default function AdminDashboardPage() {
       </div>
     </div>
   );
-
-  console.log("\n\n\n [Dashboard] offers: ", offers, "\n\n\n");
 
   return (
     <div className="bg-white">
@@ -855,7 +851,6 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </main>
-
       {/* Applicants modal */}
       {selectedOffer && (
         <ApplicantsModal
@@ -875,9 +870,11 @@ export default function AdminDashboardPage() {
               estadoPostulacion:
                 postulacion.estadoPostulacion as EstadoPostulacion,
               serviceTitle: selectedOffer.titulo,
+              preferenciaEntrevista: postulacion.preferenciaEntrevista,
             })) || []
           }
           onUpdate={fetchPublishedOffers}
+          disableStatusChange={true}
         />
       )}
 

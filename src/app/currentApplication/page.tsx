@@ -814,9 +814,7 @@ export default function CurrentApplication() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0097B2] mx-auto" />
-          <p className="mt-4 text-gray-600">
-            Loading employment information...
-          </p>
+          <p className="mt-4 text-gray-600">Loading service information...</p>
         </div>
       </div>
     );
@@ -827,9 +825,7 @@ export default function CurrentApplication() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle size={48} className="text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">
-            No current employment information found
-          </p>
+          <p className="text-gray-600">No current service information found</p>
         </div>
       </div>
     );
@@ -882,7 +878,7 @@ export default function CurrentApplication() {
             <div className="bg-[#0097B2] text-white p-6">
               <h1 className="text-2xl font-bold">Contract Status</h1>
               <p className="text-blue-100 mt-1">
-                Your employment contract information
+                Your service contract information
               </p>
             </div>
 
@@ -900,9 +896,9 @@ export default function CurrentApplication() {
                         Contract Signature Pending
                       </h2>
                       <p className="text-yellow-700 mb-4">
-                        Your employment contract is ready for signature. Please
-                        sign the contract to access your employment dashboard
-                        and benefits.
+                        Your service contract is ready for signature. Please
+                        sign the contract to access your service dashboard and
+                        benefits.
                       </p>
 
                       {/* Botón para firmar si hay URL disponible */}
@@ -1004,8 +1000,8 @@ export default function CurrentApplication() {
                         Contract Rejected
                       </h2>
                       <p className="text-red-700 mb-4">
-                        The employment contract was rejected. Please contact HR
-                        for more information.
+                        The service contract was rejected. Please contact HR for
+                        more information.
                       </p>
                       {getContractStatusBadge(displayContractStatus)}
                     </div>
@@ -1021,8 +1017,8 @@ export default function CurrentApplication() {
                         Contract Expired
                       </h2>
                       <p className="text-gray-700 mb-4">
-                        The employment contract has expired. Please contact HR
-                        to generate a new contract.
+                        The service contract has expired. Please contact HR to
+                        generate a new contract.
                       </p>
                       {getContractStatusBadge(displayContractStatus)}
                     </div>

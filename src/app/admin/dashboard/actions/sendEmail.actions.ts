@@ -8,6 +8,7 @@ import { ContractJob } from "../emails/ContratJob";
 import { AdvanceNextStep } from "../emails/AdvanceNextStep";
 import { AssignJobNotification } from "../emails/AssignJobNotification";
 import { BlacklistNotificationEmail } from "../emails/BlacklistNotification";
+import { AccessRestoredNotificationEmail } from "../emails/AccessRestoredNotification";
 import { RemovalNotificationEmail } from "../emails/RemovalNotification";
 import { CompanyWelcomeEmail } from "../emails/CompanyWelcomeEmail";
 import { ContractSentEmail } from "../emails/ContractSentEmail";
@@ -250,6 +251,53 @@ export const sendBlacklistNotification = async (
     };
   } catch (error) {
     console.error("Error sending blacklist notification email:", error);
+    return { success: false, error };
+  }
+};
+
+export const sendAccessRestoredNotification = async (
+  candidateName: string,
+  candidateEmail: string
+) => {
+  try {
+    console.log(
+      "🚀 [sendAccessRestoredNotification] Sending access restored notification:",
+      {
+        candidateName,
+        candidateEmail,
+      }
+    );
+
+    const emailHtml = await render(
+      AccessRestoredNotificationEmail({
+        candidateName,
+      })
+    );
+
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
+      from: "Andes Workforce <no-reply@teamandes.com>",
+      to: [candidateEmail],
+      subject: "Access Restored – You're Welcome Back!",
+      html: emailHtml,
+    });
+
+    console.log(
+      "✅ [sendAccessRestoredNotification] Email sent successfully:",
+      info
+    );
+
+    return {
+      success: true,
+      message: "Access restored notification email sent successfully",
+      data: info,
+    };
+  } catch (error) {
+    console.error(
+      "❌ [sendAccessRestoredNotification] Error sending email:",
+      error
+    );
     return { success: false, error };
   }
 };

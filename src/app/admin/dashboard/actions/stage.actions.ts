@@ -3,6 +3,8 @@
 import { createServerAxios } from "@/services/axios.server";
 import { revalidatePath } from "next/cache";
 
+import { EstadoPostulacion } from "../types/application-status.types";
+
 export async function currentStageStatus(
   postulationId: string,
   candidateId: string
@@ -39,13 +41,7 @@ export async function currentStageStatus(
 export async function advancedStage(
   postulationId: string,
   candidateId: string,
-  currentStage:
-    | "PENDIENTE"
-    | "EN_EVALUACION"
-    | "EN_EVALUACION_CLIENTE"
-    | "FINALISTA"
-    | "ACEPTADA"
-    | "RECHAZADA",
+  currentStage: EstadoPostulacion,
   action: "NEXT" | "CONTRACT" = "NEXT"
 ) {
   console.log("🚀 [advancedStage] Iniciando con parámetros:", {
@@ -57,13 +53,7 @@ export async function advancedStage(
 
   const axios = await createServerAxios();
   try {
-    let nextStage:
-      | "PENDIENTE"
-      | "EN_EVALUACION"
-      | "EN_EVALUACION_CLIENTE"
-      | "FINALISTA"
-      | "ACEPTADA"
-      | "RECHAZADA";
+    let nextStage: EstadoPostulacion;
     let additionalData = {};
 
     if (action === "CONTRACT") {
@@ -89,6 +79,12 @@ export async function advancedStage(
           };
           break;
         case "EN_EVALUACION":
+          nextStage = "PRIMERA_ENTREVISTA_REALIZADA";
+          additionalData = {
+            notasInternas: "First interview completed",
+          };
+          break;
+        case "PRIMERA_ENTREVISTA_REALIZADA":
           nextStage = "EN_EVALUACION_CLIENTE";
           additionalData = {
             notasInternas:
@@ -96,6 +92,17 @@ export async function advancedStage(
           };
           break;
         case "EN_EVALUACION_CLIENTE":
+          nextStage = "SEGUNDA_ENTREVISTA_REALIZADA";
+          additionalData = {
+            notasInternas: "Second interview completed",
+          };
+          break;
+        case "SEGUNDA_ENTREVISTA_REALIZADA":
+          nextStage = "FINALISTA";
+          additionalData = {
+            notasInternas: "Candidate selected as finalist",
+          };
+          break;
           nextStage = "FINALISTA";
           additionalData = {
             notasInternas:

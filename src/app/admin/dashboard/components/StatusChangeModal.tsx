@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { X, CheckCircle } from "lucide-react";
 import type { CandidateStatus } from "../postulants/page";
-import { sendBlacklistNotification } from "../actions/sendEmail.actions";
+import {
+  sendBlacklistNotification,
+  sendAccessRestoredNotification,
+} from "../actions/sendEmail.actions";
 
 interface StatusChangeModalProps {
   isOpen: boolean;
@@ -86,6 +89,15 @@ export default function StatusChangeModal({
           await sendBlacklistNotification(candidateName, candidateEmail);
         } catch (error) {
           console.error("Error sending blacklist notification:", error);
+        }
+      }
+
+      // Enviar email si el estado cambió a ACTIVE (especialmente desde BLACKLIST)
+      if (selectedStatus === "ACTIVE" && currentStatus === "BLACKLIST") {
+        try {
+          await sendAccessRestoredNotification(candidateName, candidateEmail);
+        } catch (error) {
+          console.error("Error sending access restored notification:", error);
         }
       }
 

@@ -9,9 +9,8 @@ import ConfirmPauseModal from "@/app/components/ConfirmPauseModal";
 import { useNotificationStore } from "@/store/notifications.store";
 import OffersSkeleton from "@/app/admin/dashboard/components/OffersSkeleton";
 import OfferCardSkeleton from "@/app/admin/dashboard/components/OfferCardSkeleton";
-import ApplicantsModal, {
-  EstadoPostulacion,
-} from "@/app/admin/dashboard/components/ApplicantsModal";
+import ApplicantsModal from "@/app/admin/dashboard/components/ApplicantsModal";
+import { EstadoPostulacion } from "@/app/admin/dashboard/actions/update-application-status.actions";
 
 export default function CompanyDashboard() {
   const { addNotification } = useNotificationStore();
@@ -527,6 +526,7 @@ export default function CompanyDashboard() {
               estadoPostulacion:
                 postulacion.estadoPostulacion as EstadoPostulacion,
               serviceTitle: selectedOffer.titulo || "",
+              preferenciaEntrevista: postulacion.preferenciaEntrevista || false,
             })) || []
           }
         />

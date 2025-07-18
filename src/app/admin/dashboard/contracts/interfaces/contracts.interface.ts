@@ -3,8 +3,15 @@ export enum EstadoContratacion {
   DOCUMENTOS_EN_LECTURA = "DOCUMENTOS_EN_LECTURA",
   DOCUMENTOS_COMPLETADOS = "DOCUMENTOS_COMPLETADOS",
   PENDIENTE_FIRMA = "PENDIENTE_FIRMA",
+  PENDIENTE_FIRMA_CANDIDATO = "PENDIENTE_FIRMA_CANDIDATO",
+  PENDIENTE_FIRMA_PROVEEDOR = "PENDIENTE_FIRMA_PROVEEDOR",
   FIRMADO = "FIRMADO",
+  FIRMADO_CANDIDATO = "FIRMADO_CANDIDATO",
+  FIRMADO_COMPLETO = "FIRMADO_COMPLETO",
+  LECTURA_DOCS_COMPLETA = "LECTURA_DOCS_COMPLETA",
   CONTRATO_FINALIZADO = "CONTRATO_FINALIZADO",
+  CANCELADO = "CANCELADO",
+  EXPIRADO = "EXPIRADO",
 }
 
 export interface PaymentRecord {
@@ -70,6 +77,10 @@ export interface ProcesoContratacion {
   fechaFirmaProveedor?: Date | null;
   fechaFirma?: Date | null;
   activo: boolean;
+
+  // Información del cliente
+  clienteNombre?: string;
+  clienteId?: string;
 
   // Estados de lectura de documentos
   introduccionLeido: boolean;
