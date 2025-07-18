@@ -24,20 +24,25 @@ import CandidateActionModal from "../components/CandidateActionModal";
 import SendEmailModal from "../components/SendEmailModal";
 import SignContractModal from "./components/SignContractModal";
 import { sendInterviewInvitation } from "../actions/sendEmail.actions";
+import UpdateStatusModal from "../components/UpdateStatusModal";
+import { EstadoPostulacion } from "../types/application-status.types";
 
 interface CandidatoWithPostulationId extends Candidato {
   postulationId: string;
+  estadoPostulacion?: string; // ✅ AGREGADO: Campo estadoPostulacion directamente
 }
 
 export type CandidateStatus = "ACTIVE" | "BLACKLIST" | "DISMISS" | "INACTIVE";
 
 export type StageStatus =
   | "PROFILE_INCOMPLETE"
+  | "AVAILABLE"
   | "FIRST_INTERVIEW_PENDING"
+  | "FIRST_INTERVIEW_COMPLETED"
   | "SECOND_INTERVIEW_PENDING"
+  | "SECOND_INTERVIEW_COMPLETED"
   | "FINALIST"
   | "HIRED"
-  | "AVAILABLE"
   | "TERMINATED"
   | "BLACKLIST";
 
@@ -94,6 +99,15 @@ export default function PostulantsPage() {
     null
   );
   const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
+
+  // Estados para el modal de actualización de estado
+  const [isUpdateStatusModalOpen, setIsUpdateStatusModalOpen] = useState(false);
+  const [selectedStatusUpdate, setSelectedStatusUpdate] = useState<{
+    postulacionId: string;
+    candidatoId: string;
+    currentStatus: EstadoPostulacion;
+    candidatoName: string;
+  } | null>(null);
 
   const fetchApplicants = async (page = 1, searchValue = "") => {
     setIsLoading(true);
@@ -285,14 +299,28 @@ export default function PostulantsPage() {
     }
 
     // 4. Si tiene aplicación activa, basarse en el estado de la aplicación
-    const estado = applicant.lastRelevantPostulacion?.estado;
+    // ✅ PRIORIDAD: Usar estadoPostulacion directamente, fallback a lastRelevantPostulacion.estado
+    const estado =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (applicant as any).estadoPostulacion ||
+      applicant.lastRelevantPostulacion?.estado;
+
+    // ✅ CONTRATOS FINALIZADOS: Si estadoPostulacion es null, significa que el contrato terminó
+    if (estado === null || estado === undefined) {
+      return "AVAILABLE"; // Disponible para nuevas postulaciones
+    }
+
     switch (estado) {
       case "PENDIENTE":
-        return "FIRST_INTERVIEW_PENDING";
+        return "AVAILABLE";
       case "EN_EVALUACION":
         return "FIRST_INTERVIEW_PENDING";
+      case "PRIMERA_ENTREVISTA_REALIZADA":
+        return "FIRST_INTERVIEW_COMPLETED";
       case "EN_EVALUACION_CLIENTE":
         return "SECOND_INTERVIEW_PENDING";
+      case "SEGUNDA_ENTREVISTA_REALIZADA":
+        return "SECOND_INTERVIEW_COMPLETED";
       case "FINALISTA":
         return "FINALIST";
       case "ACEPTADA":
@@ -312,39 +340,51 @@ export default function PostulantsPage() {
             Profile Incomplete
           </span>
         );
+      case "AVAILABLE":
+        return (
+          <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full cursor-pointer">
+            Available
+          </span>
+        );
       case "FIRST_INTERVIEW_PENDING":
         return (
-          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-            First Interview Pending
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full cursor-pointer">
+            First Interview
+          </span>
+        );
+      case "FIRST_INTERVIEW_COMPLETED":
+        return (
+          <span className="px-2 py-1 bg-blue-200 text-blue-900 text-xs rounded-full cursor-pointer">
+            First Interview Completed
           </span>
         );
       case "SECOND_INTERVIEW_PENDING":
         return (
-          <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-            Second Interview Pending
+          <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full cursor-pointer">
+            Second Interview
+          </span>
+        );
+      case "SECOND_INTERVIEW_COMPLETED":
+        return (
+          <span className="px-2 py-1 bg-purple-200 text-purple-900 text-xs rounded-full cursor-pointer">
+            Second Interview Completed
           </span>
         );
       case "FINALIST":
         return (
-          <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+          <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full cursor-pointer">
             Finalist
           </span>
         );
       case "HIRED":
         return (
-          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full cursor-pointer">
             Hired
-          </span>
-        );
-      case "AVAILABLE":
-        return (
-          <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full">
-            Available
           </span>
         );
       case "TERMINATED":
         return (
-          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full cursor-pointer">
             Terminated
           </span>
         );
@@ -357,6 +397,31 @@ export default function PostulantsPage() {
       default:
         return <span></span>;
     }
+  };
+
+  const renderClickableStageStatusBadge = (
+    stage: StageStatus,
+    applicant: ExtendedCandidate
+  ) => {
+    const canUpdate =
+      hasActiveApplication(applicant) &&
+      stage !== "PROFILE_INCOMPLETE" &&
+      stage !== "BLACKLIST";
+
+    const badgeElement = renderStageStatusBadge(stage);
+
+    if (canUpdate) {
+      return (
+        <button
+          onClick={() => handleOpenUpdateStatusModal(applicant)}
+          className="transition-all duration-200 hover:scale-105 hover:shadow-md"
+        >
+          {badgeElement}
+        </button>
+      );
+    }
+
+    return badgeElement;
   };
 
   // Nueva función para renderizar Applicant Status
@@ -560,6 +625,40 @@ export default function PostulantsPage() {
     );
     setSelectedApplicant(applicant);
     setIsSignContractModalOpen(true);
+  };
+
+  const handleOpenUpdateStatusModal = (applicant: ExtendedCandidate) => {
+    // Verificar que el candidato tenga una postulación activa
+    if (
+      !applicant.lastRelevantPostulacion ||
+      applicant.lastRelevantPostulacion.titulo === "No applications"
+    ) {
+      addNotification(
+        "This candidate doesn't have an active application",
+        "error"
+      );
+      return;
+    }
+
+    setSelectedStatusUpdate({
+      postulacionId: applicant.lastRelevantPostulacion.id,
+      candidatoId: applicant.id,
+      currentStatus: applicant.lastRelevantPostulacion
+        .estado as EstadoPostulacion,
+      candidatoName: applicant.nombre || "Candidate",
+    });
+    setIsUpdateStatusModalOpen(true);
+  };
+
+  const handleCloseUpdateStatusModal = () => {
+    setIsUpdateStatusModalOpen(false);
+    setSelectedStatusUpdate(null);
+  };
+
+  const handleStatusUpdated = () => {
+    // Refrescar la lista de applicants
+    fetchApplicants(currentPage, search);
+    addNotification("Application status updated successfully", "success");
   };
 
   const hasActiveApplication = (applicant: ExtendedCandidate) => {
@@ -863,8 +962,9 @@ export default function PostulantsPage() {
                         <div className="text-sm mb-2">
                           <span className="text-gray-500">Stage:</span>
                           <div className="mt-1">
-                            {renderStageStatusBadge(
-                              renderStageStatus(applicant)
+                            {renderClickableStageStatusBadge(
+                              renderStageStatus(applicant),
+                              applicant
                             )}
                           </div>
                         </div>
@@ -1027,7 +1127,7 @@ export default function PostulantsPage() {
         </div>
 
         {/* View Desktop */}
-        <div className="hidden lg:block">
+        <div className="hidden md:block">
           <div
             className="bg-white rounded-lg shadow-lg w-full max-w-7xl mx-auto max-h-[90vh] flex flex-col"
             style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
@@ -1183,8 +1283,9 @@ export default function PostulantsPage() {
 
                               {/* Stage */}
                               <td className="py-4 px-4">
-                                {renderStageStatusBadge(
-                                  renderStageStatus(applicant)
+                                {renderClickableStageStatusBadge(
+                                  renderStageStatus(applicant),
+                                  applicant
                                 )}
                               </td>
 
@@ -1432,6 +1533,26 @@ export default function PostulantsPage() {
           applicant={selectedApplicant as Applicant}
         />
       )}
+      {isUpdateStatusModalOpen && selectedStatusUpdate && (
+        <UpdateStatusModal
+          isOpen={isUpdateStatusModalOpen}
+          onClose={handleCloseUpdateStatusModal}
+          postulacionId={selectedStatusUpdate.postulacionId}
+          candidatoId={selectedStatusUpdate.candidatoId}
+          currentStatus={selectedStatusUpdate.currentStatus}
+          candidatoName={selectedStatusUpdate.candidatoName}
+          onUpdate={handleStatusUpdated}
+        />
+      )}
+      {/* {isApplicationsModalOpen && selectedCandidateForApplications && (
+        <CandidateApplicationsModal
+          isOpen={isApplicationsModalOpen}
+          onClose={handleCloseApplicationsModal}
+          candidateId={selectedCandidateForApplications.id}
+          candidateName={selectedCandidateForApplications.name}
+          onApplicationDeactivated={handleApplicationDeactivated}
+        />
+      )} */}
     </CandidateProfileProvider>
   );
 }

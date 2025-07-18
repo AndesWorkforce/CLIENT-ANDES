@@ -164,7 +164,7 @@ export async function sendContractSignatureEmail(
 
     // Enviar correo
     await transporter.sendMail({
-      from: "Andes Team Contracts <contracts@teamandes.com>",
+      from: "Andes Team Contracts <info@teamandes.com>",
       to: "mrendon@teamandes.com",
       subject: "Contract Signature - Andes Workforce",
       html: emailHtml,
@@ -265,7 +265,7 @@ export async function sendProviderContractEmail(contract: {
 
     // Enviar correo
     await transporter.sendMail({
-      from: "Andes Team Contracts <contracts@teamandes.com>",
+      from: "Andes Team Contracts <info@teamandes.com>",
       to: "mrendon@teamandes.com", // TODO: Reemplazar con el email real del proveedor
       subject: "Contract Signature - Andes Workforce",
       html: emailHtml,

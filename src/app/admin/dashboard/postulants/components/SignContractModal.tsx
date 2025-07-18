@@ -114,7 +114,34 @@ const PDFPreview: React.FC<{
     );
   }
 
-  // Solo usar StatementOfWorkPDF para evitar problemas con React 19
+  // Renderizar el template correspondiente
+  const renderPDFTemplate = () => {
+    // Verificar que los datos estén disponibles antes de renderizar
+    if (!contractData || !contractData.nombreCompleto) {
+      return null;
+    }
+
+    try {
+      return <StatementOfWorkPDF data={contractData} />;
+    } catch (error) {
+      console.error('Error rendering PDF template:', error);
+      return null;
+    }
+  };
+
+  const pdfTemplate = renderPDFTemplate();
+
+  if (!pdfTemplate) {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0097B2] mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Loading PDF preview...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <PDFViewer
       key={pdfKey}
@@ -123,7 +150,7 @@ const PDFPreview: React.FC<{
       showToolbar={false}
       className="border-0"
     >
-      <StatementOfWorkPDF data={contractData} />
+      {pdfTemplate}
     </PDFViewer>
   );
 };
@@ -145,12 +172,17 @@ export default function SignContractModal({
 
     // Agregar servicios específicos
     Object.entries(SERVICIOS_DISPONIBLES).forEach(([key, servicio]) => {
+      // Eliminar completamente el servicio en inglés
+      if (key === 'ENGLISH_SERVICE_AGREEMENT') {
+        return;
+      }
+      
       workingTemplates.push({
         id: key.toLowerCase().replace(/_/g, "-"),
         name: servicio.nombre,
         description: servicio.descripcion,
         subject: `Statement of Work - {{nombreCompleto}} - ${servicio.nombre}`,
-        component: "StatementOfWorkPDF", // O el template correspondiente
+        component: "StatementOfWorkPDF",
         category:
           Object.values(CATEGORIAS_SERVICIOS).find((cat) =>
             cat.servicios.includes(key)
@@ -183,6 +215,7 @@ export default function SignContractModal({
     cedula: "",
     telefono: applicant.telefono || "",
     nacionalidad: applicant.pais || "",
+    direccionCompleta: "",
 
     // Datos del puesto
     puestoTrabajo:
@@ -204,6 +237,10 @@ export default function SignContractModal({
       month: "long",
       day: "numeric",
     }),
+
+    // Campos adicionales para contratos en inglés
+    nombreBanco: "",
+    numeroCuenta: "",
   }));
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -283,16 +320,26 @@ export default function SignContractModal({
   const getPDFData = () => {
     return {
       ...contractData,
-      // Asegurar que todos los campos estén presentes
-      nacionalidad: contractData.nacionalidad || "",
-      descripcionServicios: contractData.descripcionServicios || "",
-      fechaEjecucion:
-        contractData.fechaEjecucion ||
-        new Date().toLocaleDateString("es-ES", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
+      // Asegurar que todos los campos estén presentes con valores seguros
+      nombreCompleto: contractData.nombreCompleto || "Contractor Name",
+      correoElectronico: contractData.correoElectronico || "contractor@email.com",
+      cedula: contractData.cedula || "000000000",
+      telefono: contractData.telefono || "000-000-0000",
+      nacionalidad: contractData.nacionalidad || "Unknown",
+      direccionCompleta: contractData.direccionCompleta || "Address not provided",
+      puestoTrabajo: contractData.puestoTrabajo || "Professional Services",
+      descripcionServicios: contractData.descripcionServicios || "Professional services to be provided",
+      ofertaSalarial: contractData.ofertaSalarial || "0",
+      salarioProbatorio: contractData.salarioProbatorio || "0",
+      monedaSalario: contractData.monedaSalario || "USD",
+      nombreBanco: contractData.nombreBanco || "Bank Name",
+      numeroCuenta: contractData.numeroCuenta || "Account Number",
+      fechaEjecucion: contractData.fechaEjecucion || new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      fechaInicioLabores: contractData.fechaInicioLabores || new Date().toISOString().split("T")[0],
     };
   };
 
@@ -330,9 +377,21 @@ export default function SignContractModal({
       // Importar dinámicamente las librerías de PDF
       const { pdf } = await import("@react-pdf/renderer");
 
-      // Usar StatementOfWorkPDF para evitar problemas con React 19
+      // Generar el PDF usando el template correspondiente
       const pdfData = getPDFData();
-      const pdfDocument = <StatementOfWorkPDF data={pdfData} />;
+      let pdfDocument;
+      
+      // Verificar que los datos estén disponibles antes de renderizar
+      if (!pdfData || !pdfData.nombreCompleto) {
+        throw new Error('Missing required contract data');
+      }
+
+      try {
+        pdfDocument = <StatementOfWorkPDF data={pdfData} />;
+      } catch (error) {
+        console.error('Error creating PDF document:', error);
+        throw error;
+      }
 
       // Generar el PDF como blob
       const pdfBlob = await pdf(pdfDocument).toBlob();
@@ -684,6 +743,8 @@ export default function SignContractModal({
                         )
                     )}
                   </div>
+
+                  {/* English Contract Specific Fields - REMOVED */}
                 </div>
               </div>
             )}

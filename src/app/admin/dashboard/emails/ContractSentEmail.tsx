@@ -59,7 +59,7 @@ export const ContractSentEmail = ({
             }}
           >
             Please check your profile under your current applications. Your
-            employment contract has been sent and is ready for your review and
+            service contract has been sent and is ready for your review and
             signature.
           </Text>
 

@@ -163,6 +163,7 @@ export default function ContractsPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedClient, setSelectedClient] = useState<string>("");
   const [selectedContract, setSelectedContract] =
     useState<ProcesoContratacion | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -173,12 +174,12 @@ export default function ContractsPage() {
   >([]);
   const [loadingEvaluaciones, setLoadingEvaluaciones] = useState(false);
   const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false);
-  // const [contractDocumentReadStatus] = useState<Record<string, boolean>>({});
+  const [isSigningContract, setIsSigningContract] = useState<string | null>(
+    null
+  );
 
   console.log(
-    isEvaluacionesModalOpen,
-    evaluacionesMensuales,
-    loadingEvaluaciones
+    `${isEvaluacionesModalOpen}, ${evaluacionesMensuales}, ${loadingEvaluaciones}`
   );
 
   const loadContracts = async () => {
@@ -215,6 +216,27 @@ export default function ContractsPage() {
     setCurrentPage(1);
   };
 
+  const handleClientFilterChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setSelectedClient(e.target.value);
+    setCurrentPage(1);
+  };
+
+  // Obtener lista única de clientes para el filtro
+  const uniqueClients = Array.from(
+    new Set(
+      contracts
+        .map((contract) => contract.clienteNombre)
+        .filter((cliente): cliente is string => !!cliente)
+    )
+  ).sort();
+
+  // Filtrar contratos por cliente seleccionado
+  const filteredContracts = selectedClient
+    ? contracts.filter((contract) => contract.clienteNombre === selectedClient)
+    : contracts;
+
   const goToPreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
@@ -233,32 +255,60 @@ export default function ContractsPage() {
 
     switch (status) {
       case EstadoContratacion.PENDIENTE_DOCUMENTOS:
-        colorClass = "bg-gray-100 text-gray-600";
+        colorClass = "text-gray-600";
         text = "Pending Docs";
         break;
       case EstadoContratacion.DOCUMENTOS_EN_LECTURA:
-        colorClass = "bg-[#E6F4F6] text-[#0097B2]";
-        text = "In Reading";
+        colorClass = "text-blue-600";
+        text = "Reading Docs";
         break;
       case EstadoContratacion.DOCUMENTOS_COMPLETADOS:
-        colorClass = "bg-[#E6F4F6] text-[#0097B2]";
+        colorClass = "text-green-600";
         text = "Docs Complete";
         break;
+      case EstadoContratacion.LECTURA_DOCS_COMPLETA:
+        colorClass = "text-green-600";
+        text = "Reading Complete";
+        break;
       case EstadoContratacion.PENDIENTE_FIRMA:
-        colorClass = "bg-gray-100 text-gray-600";
+        colorClass = "text-yellow-600";
         text = "Pending Signature";
         break;
+      case EstadoContratacion.PENDIENTE_FIRMA_CANDIDATO:
+        colorClass = "text-yellow-600";
+        text = "Pending Candidate";
+        break;
+      case EstadoContratacion.PENDIENTE_FIRMA_PROVEEDOR:
+        colorClass = "text-yellow-600";
+        text = "Pending Provider";
+        break;
       case EstadoContratacion.FIRMADO:
-        colorClass = "bg-[#E6F4F6] text-[#0097B2]";
+        colorClass = " text-[#0097B2]";
         text = "Signed";
         break;
+      case EstadoContratacion.FIRMADO_CANDIDATO:
+        colorClass = " text-[#0097B2]";
+        text = "Candidate Signed";
+        break;
+      case EstadoContratacion.FIRMADO_COMPLETO:
+        colorClass = " text-[#0097B2]";
+        text = "Complete Signed";
+        break;
       case EstadoContratacion.CONTRATO_FINALIZADO:
-        colorClass = "bg-green-100 text-green-800";
+        colorClass = "text-green-800";
         text = "Contract Finalized";
+        break;
+      case EstadoContratacion.CANCELADO:
+        colorClass = "text-red-600";
+        text = "Cancelled";
+        break;
+      case EstadoContratacion.EXPIRADO:
+        colorClass = "text-red-600";
+        text = "Expired";
         break;
       default:
         colorClass = "bg-gray-100 text-gray-800";
-        text = "Unknown";
+        text = status || "Unknown";
     }
 
     return (
@@ -270,20 +320,11 @@ export default function ContractsPage() {
     );
   };
 
-  // const handleDocumentReadStatusChange = (
-  //   contractId: string,
-  //   status: boolean
-  // ) => {
-  //   setContractDocumentReadStatus((prev) => ({
-  //     ...prev,
-  //     [contractId]: status,
-  //   }));
-  // };
-
   const handleSignContract = async (contractId: string) => {
-    const contract = contracts.find((c) => c.id === contractId);
+    const contract = filteredContracts.find((c) => c.id === contractId);
     if (!contract) return;
 
+    setIsSigningContract(contractId);
     try {
       // Send email to provider
       const emailResult = await sendProviderContractEmail({
@@ -315,11 +356,15 @@ export default function ContractsPage() {
         "There was an error sending the documents to the provider.",
         "error"
       );
+    } finally {
+      setIsSigningContract(null);
     }
   };
 
   const handleUploadContract = async (contractId: string) => {
-    setSelectedContract(contracts.find((c) => c.id === contractId) || null);
+    setSelectedContract(
+      filteredContracts.find((c) => c.id === contractId) || null
+    );
     setIsUploadModalOpen(true);
   };
 
@@ -347,57 +392,8 @@ export default function ContractsPage() {
     }
   };
 
-  // const handleUpdateRevision = async (
-  //   evaluacionId: string,
-  //   pagoHabilitado: boolean,
-  //   observaciones: string
-  // ) => {
-  //   try {
-  //     const response = await updateRevisionEvaluacion(evaluacionId, {
-  //       pagoHabilitado,
-  //       observacionesRevision: observaciones,
-  //     });
-
-  //     if (response.success) {
-  //       // Recargar las evaluaciones
-  //       if (selectedContract) {
-  //         handleViewEvaluaciones(selectedContract);
-  //       }
-  //       alert("Revisión actualizada correctamente");
-  //     } else {
-  //       alert(`Error: ${response.message}`);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error updating revision:", error);
-  //     alert("Error al actualizar la revisión");
-  //   }
-  // };
-
-  // const getStatusBadge = (status: string) => {
-  //   switch (status) {
-  //     case "APPROVED":
-  //       return (
-  //         <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-  //           Aprobado
-  //         </span>
-  //       );
-  //     case "REJECTED":
-  //       return (
-  //         <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
-  //           Rechazado
-  //         </span>
-  //       );
-  //     default:
-  //       return (
-  //         <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-  //           Pendiente
-  //         </span>
-  //       );
-  //   }
-  // };
-
   const handleFinalizarContrato = async (procesoId: string) => {
-    const contract = contracts.find((c) => c.id === procesoId);
+    const contract = filteredContracts.find((c) => c.id === procesoId);
     if (!contract) return;
 
     setSelectedContract(contract);
@@ -664,19 +660,31 @@ export default function ContractsPage() {
     );
   };
 
-  console.log(`\n\n\n [CONTRACTS] contracts`, contracts, "\n\n\n");
-
   return (
     <div className="w-full max-w-7xl mx-auto mt-8 flex flex-col h-screen">
       {/* Search Input */}
       <div className="mb-6 px-4 flex flex-col md:flex-row gap-3 md:px-0 md:justify-between md:items-center">
-        <input
-          type="text"
-          placeholder="Search by name or job position"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
-        />
+        <div className="flex flex-col md:flex-row gap-3 flex-1">
+          <input
+            type="text"
+            placeholder="Search by name or job position"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="border border-gray-300 rounded-md px-3 py-2 w-full md:flex-1 focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+          />
+          <select
+            value={selectedClient}
+            onChange={handleClientFilterChange}
+            className="border border-gray-300 rounded-md px-3 py-2 w-full md:w-48 focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+          >
+            <option value="">All Clients</option>
+            {uniqueClients.map((client) => (
+              <option key={client} value={client}>
+                {client}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Desktop View */}
@@ -701,8 +709,9 @@ export default function ContractsPage() {
             ) : contracts.length > 0 ? (
               <>
                 <div className="mb-4 text-gray-500 text-sm">
-                  Total: {contracts.length} contracts | Page {currentPage} of{" "}
-                  {totalPages}
+                  Total: {filteredContracts.length} contracts
+                  {selectedClient ? ` (${contracts.length} total)` : ""} | Page{" "}
+                  {currentPage} of {totalPages}
                 </div>
 
                 <div
@@ -715,34 +724,37 @@ export default function ContractsPage() {
                   <table className="w-full border-collapse">
                     <thead className="sticky top-0 bg-white z-20 shadow-sm">
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
                           Candidate Name
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
                           Email
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
+                          Client
+                        </th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
                           Position
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
                           Contract Status
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
                           Documents Read
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
                           Signed Contract
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
                           Upload Contract
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
                           Actions
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {contracts.map((contract) => (
+                      {filteredContracts.map((contract) => (
                         <tr
                           key={contract.id}
                           className="border-b border-gray-200 hover:bg-gray-50"
@@ -752,6 +764,11 @@ export default function ContractsPage() {
                           </td>
                           <td className="py-4 px-4 text-gray-700">
                             {contract.correo}
+                          </td>
+                          <td className="py-4 px-4 text-gray-700">
+                            <span className="px-2 py-1 text-blue-800 text-xs rounded-full">
+                              {contract.clienteNombre || "No specified"}
+                            </span>
                           </td>
                           <td className="py-4 px-4 text-gray-700">
                             {contract.puestoTrabajo}
@@ -821,11 +838,25 @@ export default function ContractsPage() {
                                   onClick={() =>
                                     handleSignContract(contract.id)
                                   }
-                                  className="text-[#0097B2] hover:text-[#007A8C] flex items-center cursor-pointer"
+                                  disabled={isSigningContract === contract.id}
+                                  className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${
+                                    isSigningContract === contract.id
+                                      ? "bg-gray-400 text-white cursor-not-allowed"
+                                      : "bg-[#0097B2] text-white hover:bg-[#007A8C] hover:shadow-md active:scale-95"
+                                  }`}
                                   title="Send contract to provider for signature"
                                 >
-                                  <PenTool size={16} className="mr-1" />
-                                  Send to Provider
+                                  {isSigningContract === contract.id ? (
+                                    <>
+                                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                                      Sending...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <PenTool size={16} className="mr-2" />
+                                      Send to Provider
+                                    </>
+                                  )}
                                 </button>
                               )}
 
@@ -836,10 +867,10 @@ export default function ContractsPage() {
                                     onClick={() =>
                                       handleFinalizarContrato(contract.id)
                                     }
-                                    className="text-red-600 hover:text-red-800 flex items-center"
+                                    className="px-3 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
                                     title="Terminate Contract"
                                   >
-                                    <XSquare size={16} className="mr-1" />
+                                    <XSquare size={16} className="mr-2" />
                                     Terminate
                                   </button>
                                 )}
@@ -954,12 +985,13 @@ export default function ContractsPage() {
           ) : contracts.length > 0 ? (
             <>
               <div className="mb-4 text-gray-500 text-sm">
-                Total: {contracts.length} contracts | Page {currentPage} of{" "}
-                {totalPages}
+                Total: {filteredContracts.length} contracts
+                {selectedClient ? ` (${contracts.length} total)` : ""} | Page{" "}
+                {currentPage} of {totalPages}
               </div>
 
               <div className="space-y-4">
-                {contracts.map((contract) => (
+                {filteredContracts.map((contract) => (
                   <div
                     key={contract.id}
                     className="bg-white rounded-lg shadow-md p-4 space-y-3"
@@ -974,6 +1006,11 @@ export default function ContractsPage() {
                     <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
                       <span className="text-gray-600 font-bold">Email:</span>
                       <span className="text-gray-700">{contract.correo}</span>
+
+                      <span className="text-gray-600 font-bold">Client:</span>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full inline-block">
+                        {contract.clienteNombre || "No specified"}
+                      </span>
 
                       <span className="text-gray-600 font-bold">Position:</span>
                       <span className="text-gray-700">
@@ -1052,11 +1089,25 @@ export default function ContractsPage() {
                           EstadoContratacion.DOCUMENTOS_COMPLETADOS && (
                           <button
                             onClick={() => handleSignContract(contract.id)}
-                            className="flex items-center justify-center px-3 py-1 border border-[#0097B2] text-[#0097B2] rounded-md hover:bg-[#0097B2]/10"
+                            disabled={isSigningContract === contract.id}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${
+                              isSigningContract === contract.id
+                                ? "bg-gray-400 text-white cursor-not-allowed"
+                                : "bg-[#0097B2] text-white hover:bg-[#007A8C] hover:shadow-md active:scale-95"
+                            }`}
                             title="Send contract to provider for signature"
                           >
-                            <PenTool size={16} className="mr-1" />
-                            Send to Provider
+                            {isSigningContract === contract.id ? (
+                              <>
+                                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                                Sending...
+                              </>
+                            ) : (
+                              <>
+                                <PenTool size={16} className="mr-2" />
+                                Send to Provider
+                              </>
+                            )}
                           </button>
                         )}
 
@@ -1067,9 +1118,9 @@ export default function ContractsPage() {
                               onClick={() =>
                                 handleFinalizarContrato(contract.id)
                               }
-                              className="flex items-center justify-center px-3 py-1 border border-red-600 text-red-600 rounded-md hover:bg-red-50"
+                              className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
                             >
-                              <XSquare size={16} className="mr-1" />
+                              <XSquare size={16} className="mr-2" />
                               Terminate
                             </button>
                           )}

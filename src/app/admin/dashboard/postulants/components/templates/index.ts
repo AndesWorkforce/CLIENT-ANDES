@@ -31,8 +31,35 @@ export const statementOfWorkTemplate: ContractTemplate = {
   ],
 };
 
-// Exportar solo el template PDF
-export const contractTemplates: ContractTemplate[] = [statementOfWorkTemplate];
+// Template para Statement of Work en Inglés (PDF)
+export const statementOfWorkEnglishTemplate: ContractTemplate = {
+  id: "statement-of-work-english-pdf",
+  name: "Statement of Work - English PDF",
+  description:
+    "Professional document Statement of Work generated as PDF in English",
+  subject: "Statement of Work - {{nombreCompleto}} - {{puestoTrabajo}}",
+  variables: [
+    "nombreCompleto",
+    "correoElectronico",
+    "cedula",
+    "telefono",
+    "direccionCompleta",
+    "puestoTrabajo",
+    "descripcionServicios",
+    "ofertaSalarial",
+    "salarioProbatorio",
+    "fechaInicioLabores",
+    "fechaEjecucion",
+    "nombreBanco",
+    "numeroCuenta",
+  ],
+};
+
+// Exportar templates
+export const contractTemplates: ContractTemplate[] = [
+  statementOfWorkTemplate,
+  statementOfWorkEnglishTemplate,
+];
 
 // La interfaz ya está exportada arriba
 

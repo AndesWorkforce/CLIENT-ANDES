@@ -50,6 +50,7 @@ export interface Postulacion {
   cv: string | null;
   documentosPostulacion: DocumentoPostulacion[];
   candidato: Candidato;
+  preferenciaEntrevista: boolean;
 }
 
 // Interfaz básica para una oferta

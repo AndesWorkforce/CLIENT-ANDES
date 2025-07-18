@@ -27,6 +27,11 @@ export const ContractJob = ({ candidateName, jobTitle }: ContractJobProps) => {
           >
             Hi {candidateName},
           </Text>
+          <Text
+            style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
+          >
+            Congratulations! You have been selected for the offer: {jobTitle}.
+          </Text>
 
           <Text
             style={{

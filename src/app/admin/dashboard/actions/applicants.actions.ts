@@ -1,6 +1,7 @@
 "use server";
 
 import { createServerAxios } from "@/services/axios.server";
+import { sendRemovalNotification } from "./sendEmail.actions";
 
 interface CreateApplicantData {
   nombre: string;
@@ -123,6 +124,29 @@ export async function removeMultipleApplications(
     });
 
     if (response.status === 200) {
+      // Enviar notificaciones de eliminación a los candidatos afectados
+      if (response.data.details && response.data.details.removedApplications) {
+        for (const application of response.data.details.removedApplications) {
+          try {
+            await sendRemovalNotification(
+              application.candidateName,
+              application.candidateEmail,
+              application.offerName,
+              "Your application has been removed from this position by the administrator."
+            );
+          } catch (emailError) {
+            console.warn(
+              `Failed to send removal notification to ${application.candidateEmail}:`,
+              emailError
+            );
+          }
+        }
+      } else {
+        console.warn(
+          "No removedApplications data received from backend - notifications not sent"
+        );
+      }
+
       return {
         success: true,
         message: response.data.message || "Applications removed successfully",
@@ -197,6 +221,89 @@ export async function updateInterviewPreference(
     return {
       success: false,
       message: "Error updating interview preference",
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Desactiva una postulación específica
+ * @param postulationId ID de la postulación a desactivar
+ * @returns Respuesta de la API
+ */
+export async function deactivateApplication(
+  postulationId: string
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.patch(
+      `applications/${postulationId}/deactivate`
+    );
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Postulación desactivada exitosamente",
+        data: response.data,
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data.message || "Error al desactivar postulación",
+        error: response.data.error,
+      };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error("Error deactivating application:", error.response || error);
+
+    const errorMessage =
+      error.response?.data?.message || "Error al desactivar postulación";
+    return {
+      success: false,
+      message: "Error deactivating application",
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Obtiene todas las postulaciones de un candidato específico
+ * @param candidateId ID del candidato
+ * @returns Respuesta de la API con las postulaciones
+ */
+export async function getCandidateApplications(
+  candidateId: string
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.get(`users/${candidateId}/applications`);
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Postulaciones obtenidas exitosamente",
+        data: response.data.data,
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data.message || "Error al obtener postulaciones",
+        error: response.data.error,
+      };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error(
+      "Error getting candidate applications:",
+      error.response || error
+    );
+
+    const errorMessage =
+      error.response?.data?.message || "Error al obtener postulaciones";
+    return {
+      success: false,
+      message: "Error getting candidate applications",
       error: errorMessage,
     };
   }
