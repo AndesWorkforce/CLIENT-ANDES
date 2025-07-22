@@ -228,15 +228,23 @@ export const sendBlacklistNotification = async (
   candidateName: string,
   candidateEmail: string
 ) => {
+  console.log("🚀 [sendBlacklistNotification] Iniciando envío de email:", {
+    candidateName,
+    candidateEmail,
+  });
+
   try {
+    console.log("📧 [sendBlacklistNotification] Renderizando template...");
     const emailHtml = await render(
       BlacklistNotificationEmail({
         candidateName,
       })
     );
 
+    console.log("🔧 [sendBlacklistNotification] Creando transportador...");
     const transporter = await createTransporter();
 
+    console.log("📨 [sendBlacklistNotification] Enviando email...");
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
@@ -244,13 +252,20 @@ export const sendBlacklistNotification = async (
       html: emailHtml,
     });
 
+    console.log(
+      "✅ [sendBlacklistNotification] Email enviado exitosamente:",
+      info
+    );
     return {
       success: true,
       message: "Blacklist notification email sent successfully",
       data: info,
     };
   } catch (error) {
-    console.error("Error sending blacklist notification email:", error);
+    console.error(
+      "❌ [sendBlacklistNotification] Error sending blacklist notification email:",
+      error
+    );
     return { success: false, error };
   }
 };
@@ -321,7 +336,6 @@ export const sendRemovalNotification = async (
       RemovalNotificationEmail({
         candidateName,
         offerName,
-        reason,
       })
     );
 

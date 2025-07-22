@@ -13,7 +13,7 @@ import {
   sendContractJobEmail,
   sendInterviewInvitation,
   sendRejectionEmail,
-  sendAdvanceNextStep,
+  sendRemovalNotification,
 } from "../actions/sendEmail.actions";
 import { useRouter } from "next/navigation";
 import { removeMultipleApplications } from "../actions/applicants.actions";
@@ -43,7 +43,7 @@ interface CandidatoWithPostulationId extends Candidato {
   postulationId: string;
   estadoPostulacion: EstadoPostulacion;
   serviceTitle: string;
-  preferenciaEntrevista: boolean;
+  preferenciaEntrevista: boolean | null;
 }
 
 interface ExtendedApplicant extends CandidatoWithPostulationId {
@@ -100,7 +100,7 @@ const AdminApplicantsTable = ({
     applicant: ExtendedApplicant
   ) => React.ReactElement;
   renderStageStatus: (applicant: ExtendedApplicant) => StageStatus;
-  interviewPreferences: Record<string, boolean>;
+  interviewPreferences: Record<string, boolean | undefined>;
   preferencesEstablished: Record<string, boolean>;
   handleSelectCandidate: (
     postulationId: string,
@@ -476,7 +476,6 @@ const CompanyApplicantsTable = ({
   renderClickableStageStatusBadge,
   renderStageStatus,
   interviewPreferences,
-  preferencesEstablished,
   handleInterviewPreferenceChange,
   handleHireCandidate,
   handleRejectCandidate,
@@ -492,7 +491,7 @@ const CompanyApplicantsTable = ({
     applicant: ExtendedApplicant
   ) => React.ReactElement;
   renderStageStatus: (applicant: ExtendedApplicant) => StageStatus;
-  interviewPreferences: Record<string, boolean>;
+  interviewPreferences: Record<string, boolean | undefined>;
   preferencesEstablished: Record<string, boolean>;
   handleInterviewPreferenceChange: (
     applicantId: string,
@@ -561,10 +560,10 @@ const CompanyApplicantsTable = ({
             Schedule Interview?
           </th>
           <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Second Interview
+            Hire
           </th>
           <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Rejected
+            Reject
           </th>
         </tr>
       </thead>
@@ -596,49 +595,105 @@ const CompanyApplicantsTable = ({
               </div>
             </td>
             <td className="py-4 px-4">
-              {preferencesEstablished[applicant.id] === true ? (
-                // Si ya está establecida, solo mostrar el texto
-                <div className="flex items-center gap-2">
-                  {interviewPreferences[applicant.id] === true ? (
-                    <span className="text-green-600 text-sm font-medium">
-                      ✓ Yes
-                    </span>
-                  ) : (
-                    <span className="text-orange-600 text-sm font-medium">
-                      ✗ No
-                    </span>
-                  )}
-                  <span className="text-xs text-gray-500">(Set)</span>
-                </div>
-              ) : (
-                // Si no está establecida, mostrar los radio buttons
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name={`interview-${applicant.id}`}
-                      checked={interviewPreferences[applicant.id] === true}
-                      onChange={() =>
-                        handleInterviewPreferenceChange(applicant.id, true)
-                      }
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    <span className="text-sm">Yes</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name={`interview-${applicant.id}`}
-                      checked={interviewPreferences[applicant.id] === false}
-                      onChange={() =>
-                        handleInterviewPreferenceChange(applicant.id, false)
-                      }
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    <span className="text-sm">No</span>
-                  </label>
-                </div>
-              )}
+              {(() => {
+                const preference = interviewPreferences[applicant.id];
+
+                // Para empresa: siempre mostrar radio buttons para permitir cambios
+                // Solo mostrar el estado actual si está definido
+                if (preference === true) {
+                  return (
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`interview-${applicant.id}`}
+                          checked={true}
+                          onChange={() =>
+                            handleInterviewPreferenceChange(applicant.id, true)
+                          }
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm font-medium text-green-600">
+                          Yes
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`interview-${applicant.id}`}
+                          checked={false}
+                          onChange={() =>
+                            handleInterviewPreferenceChange(applicant.id, false)
+                          }
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm">No</span>
+                      </label>
+                    </div>
+                  );
+                } else if (preference === false) {
+                  return (
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`interview-${applicant.id}`}
+                          checked={false}
+                          onChange={() =>
+                            handleInterviewPreferenceChange(applicant.id, true)
+                          }
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm">Yes</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`interview-${applicant.id}`}
+                          checked={true}
+                          onChange={() =>
+                            handleInterviewPreferenceChange(applicant.id, false)
+                          }
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm font-medium text-orange-600">
+                          No
+                        </span>
+                      </label>
+                    </div>
+                  );
+                } else {
+                  // Estado no seleccionado - mostrar radio buttons sin seleccionar
+                  return (
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`interview-${applicant.id}`}
+                          checked={false}
+                          onChange={() =>
+                            handleInterviewPreferenceChange(applicant.id, true)
+                          }
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm">Yes</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`interview-${applicant.id}`}
+                          checked={false}
+                          onChange={() =>
+                            handleInterviewPreferenceChange(applicant.id, false)
+                          }
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm">No</span>
+                      </label>
+                    </div>
+                  );
+                }
+              })()}
             </td>
             <td className="py-4 px-4">
               <div className="text-gray-400 text-xs">
@@ -739,7 +794,7 @@ export default function ApplicantsModal({
     user?.rol === "EMPRESA" || user?.rol === "EMPLEADO_EMPRESA";
   const [applicants, setApplicants] = useState<ExtendedApplicant[]>([]);
   const [isLoadingApplicants, setIsLoadingApplicants] = useState(false);
-
+  console.log("\n\n\n [ApplicantsModal] applicants", applicants, "\n\n\n");
   // Estados de loading para acciones específicas
   const [loadingActions, setLoadingActions] = useState<{
     [key: string]: "hiring" | "rejecting" | "advancing" | null;
@@ -934,8 +989,9 @@ export default function ApplicantsModal({
   );
 
   // Estado para manejar las preferencias de entrevista
+  // undefined = no seleccionado, true = Yes, false = No
   const [interviewPreferences, setInterviewPreferences] = useState<
-    Record<string, boolean>
+    Record<string, boolean | undefined>
   >({});
 
   // Estado para rastrear si la preferencia ya fue establecida (para evitar cambios constantes)
@@ -986,7 +1042,7 @@ export default function ApplicantsModal({
     setIsLoadingApplicants(true);
 
     // Objetos para acumular las preferencias
-    const newInterviewPreferences: Record<string, boolean> = {};
+    const newInterviewPreferences: Record<string, boolean | undefined> = {};
     const newPreferencesEstablished: Record<string, boolean> = {};
 
     // Primero, cargar las preferencias de entrevista desde los datos iniciales
@@ -999,21 +1055,25 @@ export default function ApplicantsModal({
         } (tipo: ${typeof applicant.preferenciaEntrevista})`
       );
 
-      // Para usuarios de empresa: siempre permitir cambiar la preferencia
-      // No marcar como establecida inicialmente para que puedan seleccionar
+      // Para usuarios de empresa: permitir cambiar la preferencia
       if (isCompanyUser) {
-        // Para empresa, siempre mostrar como no establecida para permitir selección
-        newPreferencesEstablished[applicant.id] = false;
-        // Si hay un valor, usarlo como inicial, si no, dejar undefined
+        // Solo si hay un valor explícito (true o false), usarlo como inicial y marcarlo como establecido
+        // Si es null/undefined, dejar como undefined para mostrar estado "no seleccionado"
         if (
           applicant.preferenciaEntrevista !== null &&
           applicant.preferenciaEntrevista !== undefined
         ) {
           newInterviewPreferences[applicant.id] =
             applicant.preferenciaEntrevista;
+          // Si ya hay un valor guardado, marcarlo como establecido pero permitir cambios
+          newPreferencesEstablished[applicant.id] = true;
+        } else {
+          // Si es null/undefined, no está establecida
+          newPreferencesEstablished[applicant.id] = false;
         }
+        // No asignar nada si es null/undefined (queda como undefined)
       } else {
-        // Para admin, usar la lógica original
+        // Para admin, usar la lógica original pero mejorada
         if (
           applicant.preferenciaEntrevista !== null &&
           applicant.preferenciaEntrevista !== undefined
@@ -1028,8 +1088,9 @@ export default function ApplicantsModal({
           console.log(
             `📝 [ApplicantsModal] No hay preferencia inicial para ${applicant.nombre} (valor: ${applicant.preferenciaEntrevista})`
           );
-          // Explícitamente marcar como NO establecida
+          // Explícitamente marcar como NO establecida y dejar undefined
           newPreferencesEstablished[applicant.id] = false;
+          // No asignar nada, queda como undefined
         }
       }
     });
@@ -1250,23 +1311,12 @@ export default function ApplicantsModal({
       );
 
       if (response && response.success) {
-        // Enviar email de avance a siguiente etapa
-        const emailResponse = await sendAdvanceNextStep(
-          candidateName,
-          candidateEmail
+        // TODO: Implementar email específico para segunda entrevista
+        console.log(
+          "✅ [handleSecondInterview] Candidato movido a segunda entrevista - Email específico pendiente de implementar"
         );
 
-        if (emailResponse && emailResponse.success) {
-          addNotification(
-            "Second interview invitation sent successfully",
-            "success"
-          );
-        } else {
-          addNotification(
-            "Stage updated but error sending second interview invitation",
-            "warning"
-          );
-        }
+        addNotification("Candidate moved to second interview stage", "success");
 
         // Actualizar lista de candidatos
         setApplicants((prevApplicants) =>
@@ -1319,14 +1369,8 @@ export default function ApplicantsModal({
 
     setActionLoading(candidateId, "hiring");
     try {
-      // Determinar el estado objetivo y email según el rol del usuario
+      // Determinar el estado objetivo según el rol del usuario
       let targetStage: EstadoPostulacion;
-      let emailFunction: (
-        name: string,
-        email: string,
-        title?: string
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ) => Promise<any>;
       let successMessage: string;
 
       if (isCompanyUser) {
@@ -1345,7 +1389,6 @@ export default function ApplicantsModal({
         }
 
         targetStage = "FINALISTA";
-        emailFunction = sendAdvanceNextStep;
         successMessage = "Candidate moved to finalist successfully";
       } else {
         // Para administradores: Hire significa pasar a ACEPTADA
@@ -1359,10 +1402,7 @@ export default function ApplicantsModal({
         }
 
         targetStage = "ACEPTADA";
-        emailFunction = (name: string, email: string) =>
-          sendContractJobEmail(name, email, serviceTitle);
-        successMessage =
-          "Candidate hired and contract notification sent successfully";
+        successMessage = "Candidate hired successfully";
       }
 
       // Actualizar estado
@@ -1373,18 +1413,44 @@ export default function ApplicantsModal({
       );
 
       if (response && response.success) {
-        // Enviar email correspondiente
-        const emailResponse = await emailFunction(
-          candidateName,
-          candidateEmail,
-          serviceTitle
-        );
+        // Enviar email correspondiente SOLO si la actualización fue exitosa
+        try {
+          let emailResponse;
 
-        if (emailResponse && emailResponse.success) {
-          addNotification(successMessage, "success");
-        } else {
+          if (isCompanyUser) {
+            // Para empresas: NO enviar email cuando pasan a finalista
+            // El candidato será notificado cuando el admin tome la decisión final
+            console.log(
+              "📧 Company user moved candidate to finalist - no email sent"
+            );
+            addNotification(
+              `${successMessage} - candidate will be notified when final decision is made`,
+              "success"
+            );
+          } else {
+            // Para admins: enviar email de contratación
+            emailResponse = await sendContractJobEmail(
+              candidateName,
+              candidateEmail,
+              serviceTitle
+            );
+
+            if (emailResponse && emailResponse.success) {
+              addNotification(
+                `${successMessage} and notification sent`,
+                "success"
+              );
+            } else {
+              addNotification(
+                `${successMessage} but notification failed to send`,
+                "warning"
+              );
+            }
+          }
+        } catch (emailError) {
+          console.error("❌ Error sending notification email:", emailError);
           addNotification(
-            `Candidate status updated but error sending notification`,
+            `${successMessage} but notification failed to send`,
             "warning"
           );
         }
@@ -1515,30 +1581,13 @@ export default function ApplicantsModal({
             );
           }
         } else {
+          // Para otras acciones como FINALIST, no enviar emails genéricos
           console.log(
-            "📧 [handleSelectCandidate] Enviando email de avance a siguiente etapa..."
-          );
-          const emailResponse = await sendAdvanceNextStep(
-            candidateName,
-            candidateEmail
+            "✅ [handleSelectCandidate] Candidato avanzado sin email genérico. Acción:",
+            action
           );
 
-          console.log(
-            "📧 [handleSelectCandidate] Respuesta del email de avance:",
-            emailResponse
-          );
-
-          if (emailResponse && emailResponse.success) {
-            addNotification(
-              "Candidate advanced and email sent successfully",
-              "success"
-            );
-          } else {
-            addNotification(
-              "Candidate advanced but there was an error sending the email",
-              "warning"
-            );
-          }
+          addNotification("Candidate stage updated successfully", "success");
         }
 
         // Revalida el path principal para actualizar la lista
@@ -1577,8 +1626,9 @@ export default function ApplicantsModal({
     applicantId: string,
     wantsInterview: boolean
   ) => {
-    // Para usuarios empresa, permitir cambios incluso si ya está establecido
-    // Para usuarios admin, solo mostrar la información (no editable)
+    console.log(
+      `📝 [handleInterviewPreferenceChange] Cambiando preferencia para ${applicantId}: ${wantsInterview}`
+    );
 
     // Actualizar estado local inmediatamente
     setInterviewPreferences((prev) => ({
@@ -1597,12 +1647,11 @@ export default function ApplicantsModal({
           );
 
           if (response.success) {
-            // Para usuarios de empresa, NO marcar como establecido
-            // para permitir cambios futuros
-            // setPreferencesEstablished((prev) => ({
-            //   ...prev,
-            //   [applicantId]: true,
-            // }));
+            // Marcar como establecida después de guardar exitosamente
+            setPreferencesEstablished((prev) => ({
+              ...prev,
+              [applicantId]: true,
+            }));
 
             const preferenceText = wantsInterview ? "YES" : "NO";
             const candidateName = `${applicant.nombre} ${applicant.apellido}`;
@@ -1611,13 +1660,17 @@ export default function ApplicantsModal({
               `Interview preference set to "${preferenceText}" for ${candidateName}`,
               "success"
             );
+
+            console.log(
+              `✅ [handleInterviewPreferenceChange] Preferencia guardada y marcada como establecida para ${applicantId}`
+            );
           } else {
             console.error("❌ Error al guardar preferencia:", response.error);
             addNotification("Error saving interview preference", "error");
             // Revertir el estado local si hay error
             setInterviewPreferences((prev) => ({
               ...prev,
-              [applicantId]: !wantsInterview,
+              [applicantId]: undefined, // Volver al estado no seleccionado
             }));
           }
         }
@@ -1627,7 +1680,7 @@ export default function ApplicantsModal({
         // Revertir el estado local si hay error
         setInterviewPreferences((prev) => ({
           ...prev,
-          [applicantId]: !wantsInterview,
+          [applicantId]: undefined, // Volver al estado no seleccionado
         }));
       }
     }
@@ -1752,13 +1805,13 @@ export default function ApplicantsModal({
       const response = await removeMultipleApplications(postulationIds);
 
       if (response && response.success) {
-        // Remover los candidatos eliminados de la lista
+        // Remover los candidatos eliminados de la lista inmediatamente
         setApplicants((prevApplicants) =>
           prevApplicants.filter((app) => !selectedCandidates.has(app.id))
         );
         setSelectedCandidates(new Set());
 
-        // Mostrar mensaje detallado si está disponible
+        // Mostrar mensaje de éxito inmediatamente
         if (response.data && response.data.removed > 0) {
           addNotification(
             `Successfully removed ${response.data.removed} of ${response.data.total} applications`,
@@ -1775,8 +1828,26 @@ export default function ApplicantsModal({
           addNotification("Applications removed successfully", "success");
         }
 
+        // Actualizar la interfaz
         router.refresh();
         onUpdate?.();
+
+        // Enviar correos de notificación de forma asíncrona en background
+        if (
+          response.data.details &&
+          response.data.details.removedApplications
+        ) {
+          // Mostrar notificación de que se están enviando los correos
+          addNotification(
+            `Sending removal notifications to ${response.data.details.removedApplications.length} candidates...`,
+            "info"
+          );
+
+          // Enviar correos en background sin bloquear la UI
+          sendRemovalNotificationsInBackground(
+            response.data.details.removedApplications
+          );
+        }
       } else {
         addNotification(
           response.error || "Error removing applications",
@@ -1789,6 +1860,62 @@ export default function ApplicantsModal({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Función para enviar notificaciones en background
+  const sendRemovalNotificationsInBackground = async (
+    removedApplications: Array<{
+      candidateName: string;
+      candidateEmail: string;
+      offerName: string;
+    }>
+  ) => {
+    let successCount = 0;
+    let errorCount = 0;
+
+    // Procesar todos los emails de forma concurrente pero sin bloquear la UI
+    const emailPromises = removedApplications.map(async (application) => {
+      try {
+        await sendRemovalNotification(
+          application.candidateName,
+          application.candidateEmail,
+          application.offerName,
+          "Your application has been removed from this position by the administrator."
+        );
+        successCount++;
+        console.log(
+          `✅ Removal notification sent to ${application.candidateEmail}`
+        );
+      } catch (emailError) {
+        errorCount++;
+        console.warn(
+          `❌ Failed to send removal notification to ${application.candidateEmail}:`,
+          emailError
+        );
+      }
+    });
+
+    // Esperar a que todos los emails se procesen (pero esto no bloquea porque se ejecuta después de la respuesta)
+    Promise.all(emailPromises)
+      .then(() => {
+        // Mostrar resumen final de notificaciones
+        if (successCount > 0) {
+          addNotification(
+            `${successCount} removal notification(s) sent successfully`,
+            "success"
+          );
+        }
+        if (errorCount > 0) {
+          addNotification(
+            `${errorCount} notification(s) failed to send`,
+            "warning"
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error in background email processing:", error);
+        addNotification("Some notifications failed to send", "warning");
+      });
   };
 
   if (!isOpen) return null;

@@ -1,7 +1,6 @@
 "use server";
 
 import { createServerAxios } from "@/services/axios.server";
-import { sendRemovalNotification } from "./sendEmail.actions";
 
 interface CreateApplicantData {
   nombre: string;
@@ -124,33 +123,10 @@ export async function removeMultipleApplications(
     });
 
     if (response.status === 200) {
-      // Enviar notificaciones de eliminación a los candidatos afectados
-      if (response.data.details && response.data.details.removedApplications) {
-        for (const application of response.data.details.removedApplications) {
-          try {
-            await sendRemovalNotification(
-              application.candidateName,
-              application.candidateEmail,
-              application.offerName,
-              "Your application has been removed from this position by the administrator."
-            );
-          } catch (emailError) {
-            console.warn(
-              `Failed to send removal notification to ${application.candidateEmail}:`,
-              emailError
-            );
-          }
-        }
-      } else {
-        console.warn(
-          "No removedApplications data received from backend - notifications not sent"
-        );
-      }
-
       return {
         success: true,
         message: response.data.message || "Applications removed successfully",
-        data: response.data.details,
+        data: response.data,
       };
     } else {
       return {
@@ -188,12 +164,18 @@ export async function updateInterviewPreference(
   postulationId: string,
   preferenciaEntrevista: boolean
 ): Promise<ApiResponse> {
+  console.log(
+    `🔍 Enviando: ${preferenciaEntrevista} (${typeof preferenciaEntrevista})`
+  );
+
   const axios = await createServerAxios();
   try {
     const response = await axios.patch(
       `applications/${postulationId}/interview-preference`,
       { preferenciaEntrevista }
     );
+
+    console.log(`✅ Respuesta del backend:`, response.data);
 
     if (response.status === 200) {
       return {

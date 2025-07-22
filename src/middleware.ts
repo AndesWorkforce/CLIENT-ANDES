@@ -55,6 +55,14 @@ const publicRoutes = [
 ];
 
 export function middleware(request: NextRequest) {
+  const host = request.headers.get("host");
+  if (host === "andes.client.andes-workforce.com") {
+    // clonar la URL y forzar el host principal
+    const url = request.nextUrl.clone();
+    url.host = "andes-workforce.com";
+    return NextResponse.redirect(url, 301);
+  }
+
   const { pathname } = request.nextUrl;
 
   // Verificar autenticación usando la cookie

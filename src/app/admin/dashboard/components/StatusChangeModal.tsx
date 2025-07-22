@@ -14,7 +14,7 @@ interface StatusChangeModalProps {
     candidateId: string,
     status: CandidateStatus,
     notes?: string
-  ) => void;
+  ) => Promise<{ success: boolean; message?: string }>;
   candidateName?: string;
   candidateId: string;
   candidateEmail: string;
@@ -77,28 +77,93 @@ export default function StatusChangeModal({
 
     setIsSubmitting(true);
     try {
-      await onStatusChange(
+      console.log("🔄 [StatusChangeModal] Iniciando cambio de estado...", {
+        candidateId,
+        selectedStatus,
+        currentStatus,
+      });
+
+      // Intentar cambiar el estado primero
+      const statusChangeResult = await onStatusChange(
         candidateId,
         selectedStatus,
         statusNotes || undefined
       );
 
-      // Enviar email si el estado es BLACKLIST
-      if (selectedStatus === "BLACKLIST") {
-        try {
-          await sendBlacklistNotification(candidateName, candidateEmail);
-        } catch (error) {
-          console.error("Error sending blacklist notification:", error);
-        }
-      }
+      console.log(
+        "🔄 [StatusChangeModal] Resultado del cambio de estado:",
+        statusChangeResult
+      );
 
-      // Enviar email si el estado cambió a ACTIVE (especialmente desde BLACKLIST)
-      if (selectedStatus === "ACTIVE" && currentStatus === "BLACKLIST") {
-        try {
-          await sendAccessRestoredNotification(candidateName, candidateEmail);
-        } catch (error) {
-          console.error("Error sending access restored notification:", error);
+      // Solo enviar emails si el cambio de estado fue exitoso
+      if (statusChangeResult.success) {
+        console.log(
+          "✅ [StatusChangeModal] Estado cambiado exitosamente, procediendo con emails"
+        );
+
+        // Enviar email si el estado es BLACKLIST
+        if (selectedStatus === "BLACKLIST") {
+          console.log("🚀 [StatusChangeModal] Enviando email de blacklist:", {
+            candidateName,
+            candidateEmail,
+            selectedStatus,
+            currentStatus,
+          });
+
+          try {
+            const emailResult = await sendBlacklistNotification(
+              candidateName,
+              candidateEmail
+            );
+            console.log(
+              "✅ [StatusChangeModal] Resultado del email de blacklist:",
+              emailResult
+            );
+
+            if (emailResult?.success) {
+              console.log(
+                "📧 [StatusChangeModal] Email de blacklist enviado exitosamente"
+              );
+            } else {
+              console.warn(
+                "⚠️ [StatusChangeModal] Email de blacklist falló:",
+                emailResult
+              );
+            }
+          } catch (error) {
+            console.error(
+              "❌ [StatusChangeModal] Error sending blacklist notification:",
+              error
+            );
+          }
         }
+
+        // Enviar email si el estado cambió a ACTIVE (especialmente desde BLACKLIST)
+        if (selectedStatus === "ACTIVE" && currentStatus === "BLACKLIST") {
+          console.log(
+            "🚀 [StatusChangeModal] Enviando email de acceso restaurado..."
+          );
+          try {
+            const emailResult = await sendAccessRestoredNotification(
+              candidateName,
+              candidateEmail
+            );
+            console.log(
+              "✅ [StatusChangeModal] Resultado del email de acceso restaurado:",
+              emailResult
+            );
+          } catch (error) {
+            console.error(
+              "❌ [StatusChangeModal] Error sending access restored notification:",
+              error
+            );
+          }
+        }
+      } else {
+        console.warn(
+          "⚠️ [StatusChangeModal] Cambio de estado falló, no se enviarán emails:",
+          statusChangeResult
+        );
       }
 
       // Esperar un momento para que se complete la actualización

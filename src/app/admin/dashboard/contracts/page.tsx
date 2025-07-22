@@ -76,9 +76,10 @@ const TerminateContractModal = ({
         motivo: motivo.trim(),
         observaciones: observaciones.trim() || undefined,
       });
-      onClose();
+      // No llamar onClose() aquí - se maneja desde la función principal
     } catch (error) {
       console.error("Error submitting termination:", error);
+      // El modal permanece abierto en caso de error para que el usuario pueda reintentar
     } finally {
       setIsSubmitting(false);
     }
@@ -464,7 +465,25 @@ export default function ContractsPage() {
       );
 
       // Recargar contratos para ver los cambios
-      await loadContracts();
+      try {
+        await loadContracts();
+        console.log(
+          "✅ [handleConfirmTermination] Contratos recargados exitosamente"
+        );
+      } catch (loadError) {
+        console.error(
+          "❌ [handleConfirmTermination] Error recargando contratos:",
+          loadError
+        );
+        addNotification(
+          "Contract terminated successfully but failed to reload the list. Please refresh the page.",
+          "warning"
+        );
+      }
+
+      // Cerrar modal y limpiar estado solo después de que todo termine
+      setIsTerminateModalOpen(false);
+      setSelectedContract(null);
     } catch (error) {
       console.error(
         "❌ [handleConfirmTermination] Error terminating contract:",
@@ -479,6 +498,9 @@ export default function ContractsPage() {
         `Error terminating contract for ${selectedContract.nombreCompleto}. Please try again.`,
         "error"
       );
+
+      // En caso de error, no cerrar el modal para que el usuario pueda reintentar
+      throw error;
     }
   };
 
