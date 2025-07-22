@@ -5,6 +5,23 @@ import type { NextRequest } from "next/server";
 const AUTH_COOKIE = "auth_token";
 const USER_INFO_COOKIE = "user_info";
 
+// Función helper para crear redirects limpios sin puerto
+function createCleanRedirect(request: NextRequest, pathname: string) {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+
+  // En producción, limpiar el puerto si es necesario
+  if (process.env.NODE_ENV === "production") {
+    url.port = "";
+    // Asegurar que use el host correcto en producción
+    if (url.hostname.includes("andes-workforce.com")) {
+      url.host = "andes-workforce.com";
+    }
+  }
+
+  return NextResponse.redirect(url);
+}
+
 // Rutas de autenticación que deben redirigir si el usuario ya está autenticado
 const authRoutes: string[] = [
   "/auth/login",
@@ -60,6 +77,7 @@ export function middleware(request: NextRequest) {
     // clonar la URL y forzar el host principal
     const url = request.nextUrl.clone();
     url.host = "andes-workforce.com";
+    url.port = ""; // Limpiar puerto en redirección
     return NextResponse.redirect(url, 301);
   }
 
@@ -96,18 +114,14 @@ export function middleware(request: NextRequest) {
       (route) => pathname === route || pathname.startsWith(`${route}/`)
     )
   ) {
-    const url = request.nextUrl.clone();
-
-    // Redireccionar según el rol
+    // Redireccionar según el rol usando función helper
     if (isAdmin) {
-      url.pathname = "/admin/dashboard"; // Redirección para administradores
+      return createCleanRedirect(request, "/admin/dashboard");
     } else if (isCompany) {
-      url.pathname = "/companies/dashboard"; // Redirección para empresas
+      return createCleanRedirect(request, "/companies/dashboard");
     } else {
-      url.pathname = "/pages/offers"; // Redirección para usuarios normales
+      return createCleanRedirect(request, "/pages/offers");
     }
-
-    return NextResponse.redirect(url);
   }
 
   // 2. Si es empresa e intenta acceder a rutas que no le corresponden
@@ -122,9 +136,7 @@ export function middleware(request: NextRequest) {
     )
   ) {
     // Redirigir a la empresa a su dashboard
-    const url = request.nextUrl.clone();
-    url.pathname = "/companies/dashboard";
-    return NextResponse.redirect(url);
+    return createCleanRedirect(request, "/companies/dashboard");
   }
 
   // 3. Verificar si la ruta actual es una ruta exclusiva de empresa
