@@ -191,6 +191,8 @@ export default function CompanyDashboard() {
     fetchAssignedOffers();
   }, []);
 
+  console.log("🔍 [CompanyDashboard] Offers:", offers);
+
   const LoadingIndicator = () => (
     <div className="flex justify-center py-4">
       <div className="animate-pulse flex space-x-2">
@@ -526,7 +528,7 @@ export default function CompanyDashboard() {
               estadoPostulacion:
                 postulacion.estadoPostulacion as EstadoPostulacion,
               serviceTitle: selectedOffer.titulo || "",
-              preferenciaEntrevista: postulacion.preferenciaEntrevista || false,
+              preferenciaEntrevista: postulacion.preferenciaEntrevista ?? null,
             })) || []
           }
         />

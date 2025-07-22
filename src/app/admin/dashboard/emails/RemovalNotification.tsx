@@ -11,27 +11,13 @@ import {
 interface RemovalNotificationEmailProps {
   candidateName: string;
   offerName: string;
-  reason?: string;
 }
 
 // Stage 6: Removal Notification
 export const RemovalNotificationEmail = ({
   candidateName,
   offerName,
-  reason,
 }: RemovalNotificationEmailProps) => {
-  const getReasonText = (reason?: string) => {
-    switch (reason) {
-      case "applied_by_mistake":
-        return "due to an application submitted by mistake";
-      case "position_unavailable":
-        return "as the position is no longer available";
-      case "candidate_not_interested":
-        return "as you are no longer interested or available for this position";
-      default:
-        return "due to internal reasons or lack of available vacancies";
-    }
-  };
   return (
     <Html>
       <Head />
@@ -53,7 +39,8 @@ export const RemovalNotificationEmail = ({
             }}
           >
             We wanted to inform you that you have been removed from the offer{" "}
-            <strong>{offerName}</strong> {getReasonText(reason)}.
+            <strong>{offerName}</strong>. This may be due to a lack of available
+            vacancies or other internal reasons.
           </Text>
 
           <Text

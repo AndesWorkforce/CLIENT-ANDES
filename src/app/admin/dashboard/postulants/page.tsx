@@ -200,12 +200,12 @@ export default function PostulantsPage() {
     candidateId: string,
     status: CandidateStatus,
     notes?: string
-  ) => {
+  ): Promise<{ success: boolean; message?: string }> => {
     const candidate = applicants.find((c) => c.id === candidateId);
 
     if (!candidate) {
       addNotification("Error: Candidate not found", "error");
-      return;
+      return { success: false, message: "Candidate not found" };
     }
 
     const candidateName = candidate.nombre || "Candidate";
@@ -242,6 +242,7 @@ export default function PostulantsPage() {
           `Status of ${candidateName} updated to ${status}`,
           "success"
         );
+        return { success: true };
       } else {
         console.error(
           "❌ Error en la respuesta del servidor:",
@@ -259,6 +260,10 @@ export default function PostulantsPage() {
           )
         );
         addNotification(response.message || "Error updating status", "error");
+        return {
+          success: false,
+          message: response.message || "Error updating status",
+        };
       }
     } catch (error) {
       console.error("❌ Error al actualizar estado del candidato:", error);
@@ -274,6 +279,7 @@ export default function PostulantsPage() {
         )
       );
       addNotification("Error updating candidate status", "error");
+      return { success: false, message: "Error updating candidate status" };
     }
   };
 

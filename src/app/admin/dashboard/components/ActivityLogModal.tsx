@@ -1,12 +1,15 @@
 //
 
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Edit2, Trash2, Save, XIcon } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import {
   createManualNote,
   getCandidateActivityLogs,
+  updateActivityLog,
+  deleteActivityLog,
 } from "../actions/activity.logs.actions";
+
 interface Propuesta {
   id: string;
   titulo: string;
@@ -44,6 +47,17 @@ export default function ActivityLogModal({
   const [showAddNote, setShowAddNote] = useState(false);
   const [note, setNote] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+
+  // Estados para edición
+  const [editingLogId, setEditingLogId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Estados para eliminación
+  const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [logToDelete, setLogToDelete] = useState<Log | null>(null);
+
   const { addNotification } = useNotificationStore();
 
   const fetchCandidateLogs = async () => {
@@ -136,6 +150,76 @@ export default function ActivityLogModal({
     } finally {
       setIsAdding(false);
     }
+  };
+
+  // Nueva función para iniciar edición de un log
+  const handleStartEdit = (log: Log) => {
+    setEditingLogId(log.id);
+    setEditingText(log.descripcion);
+  };
+
+  // Nueva función para cancelar edición
+  const handleCancelEdit = () => {
+    setEditingLogId(null);
+    setEditingText("");
+  };
+
+  // Nueva función para guardar edición
+  const handleSaveEdit = async () => {
+    if (!editingLogId || !editingText.trim()) return;
+
+    setIsUpdating(true);
+    try {
+      const result = await updateActivityLog(editingLogId, editingText.trim());
+      if (result.success) {
+        addNotification("Log updated successfully", "success");
+        setEditingLogId(null);
+        setEditingText("");
+        fetchCandidateLogs();
+      } else {
+        addNotification(result.message || "Error updating log", "error");
+      }
+    } catch (error) {
+      console.error("[ActivityLogModal] Error updating log:", error);
+      addNotification("Error updating log", "error");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // Nueva función para confirmar eliminación
+  const handleDeleteConfirm = (log: Log) => {
+    setLogToDelete(log);
+    setShowDeleteConfirm(true);
+  };
+
+  // Nueva función para eliminar log
+  const handleDeleteLog = async () => {
+    if (!logToDelete) return;
+
+    setDeletingLogId(logToDelete.id);
+    try {
+      const result = await deleteActivityLog(logToDelete.id);
+      if (result.success) {
+        addNotification("Log deleted successfully", "success");
+        setShowDeleteConfirm(false);
+        setLogToDelete(null);
+        fetchCandidateLogs();
+      } else {
+        addNotification(result.message || "Error deleting log", "error");
+      }
+    } catch (error) {
+      console.error("[ActivityLogModal] Error deleting log:", error);
+      addNotification("Error deleting log", "error");
+    } finally {
+      setDeletingLogId(null);
+    }
+  };
+
+  // Nueva función para verificar si un log se puede editar/eliminar
+  const canEditLog = (log: Log) => {
+    // Solo se pueden editar/eliminar notas manuales
+    return log.tipoEvento === "NOTA_MANUAL";
   };
 
   if (!isOpen) return null;
@@ -239,13 +323,79 @@ export default function ActivityLogModal({
                         </span>
                       )}
                     </div>
-                    <span className="text-gray-500 text-sm">
-                      {formatDate(log.fechaEvento)}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-500 text-sm">
+                        {formatDate(log.fechaEvento)}
+                      </span>
+                      {/* Botones de editar y eliminar solo para notas manuales */}
+                      {canEditLog(log) && (
+                        <div className="flex items-center space-x-1">
+                          {editingLogId === log.id ? (
+                            <>
+                              <button
+                                onClick={handleSaveEdit}
+                                disabled={isUpdating || !editingText.trim()}
+                                className="text-green-600 hover:text-green-800 disabled:opacity-50"
+                                title="Save changes"
+                              >
+                                <Save size={16} />
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                disabled={isUpdating}
+                                className="text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                                title="Cancel editing"
+                              >
+                                <XIcon size={16} />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handleStartEdit(log)}
+                                className="text-blue-600 hover:text-blue-800"
+                                title="Edit log"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteConfirm(log)}
+                                disabled={deletingLogId === log.id}
+                                className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                                title="Delete log"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-gray-700 my-2">{log.descripcion}</p>
+
+                  {/* Contenido del log - editable o readonly */}
+                  {editingLogId === log.id ? (
+                    <div className="my-2">
+                      <textarea
+                        value={editingText}
+                        onChange={(e) => setEditingText(e.target.value)}
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+                        rows={3}
+                        disabled={isUpdating}
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-gray-700 my-2">{log.descripcion}</p>
+                  )}
+
                   <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
                     <span>By: {log.creadoPor}</span>
+                    {isUpdating && editingLogId === log.id && (
+                      <span className="text-blue-600">Saving...</span>
+                    )}
+                    {deletingLogId === log.id && (
+                      <span className="text-red-600">Deleting...</span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -257,6 +407,56 @@ export default function ActivityLogModal({
           )}
         </div>
       </div>
+
+      {/* Modal de confirmación para eliminar */}
+      {showDeleteConfirm && logToDelete && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-[rgba(0,0,0,0.6)]">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-auto p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Confirm deletion
+            </h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to delete this log entry? This action cannot
+              be undone.
+            </p>
+            <div className="bg-gray-50 p-3 rounded mb-4">
+              <p className="text-sm text-gray-700 italic">
+                &quot;{logToDelete.descripcion.substring(0, 100)}
+                {logToDelete.descripcion.length > 100 ? "..." : ""}&quot;
+              </p>
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setLogToDelete(null);
+                }}
+                disabled={deletingLogId === logToDelete.id}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteLog}
+                disabled={deletingLogId === logToDelete.id}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 flex items-center"
+              >
+                {deletingLogId === logToDelete.id ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} className="mr-2" />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
