@@ -108,12 +108,33 @@ export default function ActivityLogModal({
 
   const getEventTypeColor = (tipoEvento: string) => {
     switch (tipoEvento) {
+      case "REGISTRO_USUARIO":
       case "POSTULACION_CREADA":
+      case "COMPLETADO_PERFIL":
+      case "VALIDACION_CUENTA":
+      case "CLASIFICACION_ACTIVE":
+      case "DESBLOQUEO_POSTULACIONES":
         return "bg-green-100 text-green-800";
+
+      case "ACTUALIZACION_PERFIL":
+      case "CAMBIO_ESTADO_POSTULACION":
       case "POSTULACION_ACTUALIZADA":
+      case "CONTRATACION":
         return "bg-blue-100 text-blue-800";
+
+      case "RECHAZO_POSTULACION":
       case "POSTULACION_RECHAZADA":
+      case "CLASIFICACION_BLACKLIST":
+      case "CLASIFICACION_INACTIVE":
+      case "BLOQUEO_POSTULACIONES":
         return "bg-red-100 text-red-800";
+
+      case "NOTA_MANUAL":
+        return "bg-purple-100 text-purple-800";
+
+      case "ACCION_ADMINISTRATIVA":
+        return "bg-orange-100 text-orange-800";
+
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -121,14 +142,41 @@ export default function ActivityLogModal({
 
   const getEventTypeName = (tipoEvento: string) => {
     switch (tipoEvento) {
+      case "REGISTRO_USUARIO":
+        return "User registration";
+      case "ACTUALIZACION_PERFIL":
+        return "Profile updated";
+      case "COMPLETADO_PERFIL":
+        return "Profile completed";
       case "POSTULACION_CREADA":
         return "Postulation created";
+      case "CAMBIO_ESTADO_POSTULACION":
+        return "Application status changed";
+      case "VALIDACION_CUENTA":
+        return "Account validated";
+      case "RECHAZO_POSTULACION":
+        return "Application rejected";
+      case "CONTRATACION":
+        return "Hiring process";
+      case "BLOQUEO_POSTULACIONES":
+        return "Applications blocked";
+      case "DESBLOQUEO_POSTULACIONES":
+        return "Applications unblocked";
+      case "CLASIFICACION_ACTIVE":
+        return "Classified as Active";
+      case "CLASIFICACION_INACTIVE":
+        return "Classified as Inactive";
+      case "CLASIFICACION_BLACKLIST":
+        return "Classified as Blacklist";
+      case "ACCION_ADMINISTRATIVA":
+        return "Administrative action";
+      case "NOTA_MANUAL":
+        return "Manual note";
+      // Legacy events (keeping for backward compatibility)
       case "POSTULACION_ACTUALIZADA":
         return "Postulation updated";
       case "POSTULACION_RECHAZADA":
         return "Postulation rejected";
-      case "NOTA_MANUAL":
-        return "Manual note";
       default:
         return tipoEvento.replace(/_/g, " ").toLowerCase();
     }
@@ -218,7 +266,10 @@ export default function ActivityLogModal({
 
   // Nueva función para verificar si un log se puede editar/eliminar
   const canEditLog = (log: Log) => {
-    // Solo se pueden editar/eliminar notas manuales
+    // ✅ SOLO se pueden editar/eliminar NOTAS MANUALES por seguridad:
+    // - Los eventos automáticos del sistema NO deben modificarse (integridad de datos)
+    // - Solo las notas que agregan manualmente los administradores son editables
+    // - Esto preserva la trazabilidad y el historial completo del candidato
     return log.tipoEvento === "NOTA_MANUAL";
   };
 
@@ -226,17 +277,18 @@ export default function ActivityLogModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.5)]">
-      <div className="relative bg-white rounded-lg shadow-lg w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto">
-        {/* Close button */}
+      <div className="relative bg-white rounded-lg shadow-lg w-full max-w-2xl mx-auto max-h-[90vh] flex flex-col">
+        {/* Close button - FIJO en la esquina superior derecha */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 cursor-pointer z-10"
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 cursor-pointer z-20 bg-white rounded-full p-1 shadow-sm hover:shadow-md transition-shadow"
+          title="Cerrar modal"
         >
           <X size={20} />
         </button>
 
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200">
+        {/* Header - FIJO */}
+        <div className="p-4 pr-12 border-b border-gray-200 flex-shrink-0">
           <h3 className="text-lg font-medium text-gray-900">Activity Logs</h3>
           {(postulante || candidateName) && (
             <p className="text-sm text-gray-500">
@@ -253,8 +305,8 @@ export default function ActivityLogModal({
           )}
         </div>
 
-        {/* Add Note Button and Form */}
-        <div className="p-4 border-b border-gray-100 flex items-center gap-2">
+        {/* Add Note Button and Form - FIJO */}
+        <div className="p-4 border-b border-gray-100 flex items-center gap-2 flex-shrink-0">
           {!showAddNote ? (
             <button
               className="bg-[#0097B2] text-white px-3 py-1 rounded hover:bg-[#007a8f] text-sm"
@@ -295,8 +347,8 @@ export default function ActivityLogModal({
           )}
         </div>
 
-        {/* Content */}
-        <div className="p-4">
+        {/* Content - SCROLLEABLE */}
+        <div className="flex-1 overflow-y-auto p-4">
           {isLoading ? (
             <div className="py-8 flex justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0097B2]" />
@@ -327,7 +379,7 @@ export default function ActivityLogModal({
                       <span className="text-gray-500 text-sm">
                         {formatDate(log.fechaEvento)}
                       </span>
-                      {/* Botones de editar y eliminar solo para notas manuales */}
+                      {/* Botones de editar/eliminar - SOLO para notas manuales (eventos automáticos son de solo lectura) */}
                       {canEditLog(log) && (
                         <div className="flex items-center space-x-1">
                           {editingLogId === log.id ? (

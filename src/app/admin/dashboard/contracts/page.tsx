@@ -185,12 +185,6 @@ export default function ContractsPage() {
   );
 
   const loadContracts = async () => {
-    console.log("🔄 [loadContracts] Cargando contratos...", {
-      currentPage,
-      contractsPerPage: CONTRACTS_PER_PAGE,
-      searchQuery,
-    });
-
     setIsLoading(true);
     try {
       const response = await getContracts(
@@ -199,41 +193,15 @@ export default function ContractsPage() {
         searchQuery
       );
 
-      console.log("📊 [loadContracts] Respuesta del servidor:", {
-        success: response.success,
-        dataExists: !!response.data,
-        totalResults: response.data?.resultados?.length || 0,
-        totalPages: response.totalPages || 1,
-        contracts:
-          response.data?.resultados?.map((c) => ({
-            id: c.id,
-            name: c.nombreCompleto,
-            active: c.activo,
-            status: c.estadoContratacion,
-          })) || [],
-      });
-
       if (response.success && response.data) {
         setContracts(response.data.resultados);
         setTotalPages(response.totalPages || 1);
-
-        console.log("✅ [loadContracts] Contratos cargados exitosamente:", {
-          activeContracts: response.data.resultados.filter((c) => c.activo)
-            .length,
-          inactiveContracts: response.data.resultados.filter((c) => !c.activo)
-            .length,
-          totalLoaded: response.data.resultados.length,
-        });
       } else {
-        console.warn(
-          "⚠️ [loadContracts] No se recibieron datos válidos:",
-          response
-        );
         setContracts([]);
         setTotalPages(1);
       }
     } catch (error) {
-      console.error("❌ [loadContracts] Error fetching contracts:", error);
+      console.error("Error fetching contracts:", error);
       setContracts([]);
       setTotalPages(1);
     } finally {
@@ -440,24 +408,8 @@ export default function ContractsPage() {
   }) => {
     if (!selectedContract) return;
 
-    console.log(
-      "🔄 [handleConfirmTermination] Iniciando terminación de contrato:",
-      {
-        contractId: selectedContract.id,
-        contractName: selectedContract.nombreCompleto,
-        currentStatus: selectedContract.estadoContratacion,
-        isActive: selectedContract.activo,
-        data,
-      }
-    );
-
     try {
       const result = await finalizarContrato(selectedContract.id, data);
-
-      console.log(
-        "✅ [handleConfirmTermination] Contrato terminado exitosamente:",
-        result
-      );
 
       addNotification(
         `Contract for ${selectedContract.nombreCompleto} terminated successfully. Both contract and application are now inactive - the candidate can apply to new positions.`,
@@ -467,14 +419,8 @@ export default function ContractsPage() {
       // Recargar contratos para ver los cambios
       try {
         await loadContracts();
-        console.log(
-          "✅ [handleConfirmTermination] Contratos recargados exitosamente"
-        );
       } catch (loadError) {
-        console.error(
-          "❌ [handleConfirmTermination] Error recargando contratos:",
-          loadError
-        );
+        console.error("Error reloading contracts:", loadError);
         addNotification(
           "Contract terminated successfully but failed to reload the list. Please refresh the page.",
           "warning"
@@ -485,14 +431,7 @@ export default function ContractsPage() {
       setIsTerminateModalOpen(false);
       setSelectedContract(null);
     } catch (error) {
-      console.error(
-        "❌ [handleConfirmTermination] Error terminating contract:",
-        {
-          contractId: selectedContract.id,
-          contractName: selectedContract.nombreCompleto,
-          error: error instanceof Error ? error.message : error,
-        }
-      );
+      console.error("Error terminating contract:", error);
 
       addNotification(
         `Error terminating contract for ${selectedContract.nombreCompleto}. Please try again.`,
