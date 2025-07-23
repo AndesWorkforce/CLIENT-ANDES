@@ -1,13 +1,8 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  Suspense,
-} from "react";
-import { X, FileText, Send, Eye, Loader2 } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { X, FileText, Send, Eye } from "lucide-react";
+import { PDFViewer } from "@react-pdf/renderer";
 import { SERVICIOS_DISPONIBLES, CATEGORIAS_SERVICIOS } from "./templates";
 import {
   sendContractToSignWell,
@@ -34,108 +29,6 @@ interface SignContractModalProps {
   onClose: () => void;
   applicant: Applicant;
 }
-
-// Componente simplificado para el preview del PDF
-const PDFPreview = React.memo(
-  ({
-    selectedTemplate,
-    contractData,
-  }: {
-    selectedTemplate: ContractTemplate | null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    contractData: any;
-  }) => {
-    const [pdfBlob, setPdfBlob] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const generatePDF = useCallback(async () => {
-      if (!selectedTemplate || !contractData) return;
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const { pdf } = await import("@react-pdf/renderer");
-
-        let pdfDocument;
-        if (selectedTemplate.id === "english-contract") {
-          pdfDocument = <StatementOfWorkEnglishPDF data={contractData} />;
-        } else {
-          pdfDocument = <StatementOfWorkPDF data={contractData} />;
-        }
-
-        const blob = await pdf(pdfDocument).toBlob();
-        const url = URL.createObjectURL(blob);
-        setPdfBlob(url);
-      } catch (err) {
-        console.error("Error generating PDF:", err);
-        setError("Error al generar el PDF");
-      } finally {
-        setIsLoading(false);
-      }
-    }, [selectedTemplate?.id, contractData]);
-
-    useEffect(() => {
-      generatePDF();
-
-      return () => {
-        if (pdfBlob) {
-          URL.revokeObjectURL(pdfBlob);
-        }
-      };
-    }, [generatePDF]);
-
-    if (isLoading) {
-      return (
-        <div className="h-full flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#0097B2]" />
-            <p className="text-gray-600">Generando vista previa...</p>
-          </div>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="h-full flex items-center justify-center bg-red-50">
-          <div className="text-center">
-            <p className="text-red-600 mb-4">{error}</p>
-            <button
-              onClick={generatePDF}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-            >
-              Reintentar
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    if (!pdfBlob) {
-      return (
-        <div className="h-full flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <FileText className="h-8 w-8 mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600">Preparando vista previa...</p>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <iframe
-        src={pdfBlob}
-        className="w-full h-full border-0 rounded-lg"
-        title="PDF Preview"
-        style={{ minHeight: "500px" }}
-      />
-    );
-  }
-);
-
-PDFPreview.displayName = "PDFPreview";
 
 // Funciones auxiliares para labels y placeholders
 const getFieldLabel = (field: string): string => {
@@ -189,6 +82,79 @@ const getFieldPlaceholder = (field: string): string => {
   return placeholders[field] || `Enter ${field}`;
 };
 
+// Componente separado para el preview del PDF - simplificado para evitar errores con React 19
+const PDFPreview: React.FC<{
+  selectedTemplate: ContractTemplate;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  contractData: any;
+}> = ({ selectedTemplate, contractData }) => {
+  const [pdfKey, setPdfKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPDF, setShowPDF] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(true);
+    setShowPDF(false);
+    // Espera breve para desmontar el PDFViewer y evitar reconciliación conflictiva
+    const timer = setTimeout(() => {
+      setPdfKey((prev) => prev + 1);
+      setIsLoading(false);
+      setShowPDF(true);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [selectedTemplate.id, contractData]);
+
+  // Skeleton de carga
+  if (isLoading || !showPDF) {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0097B2] mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Loading PDF preview...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Renderizar el template correspondiente
+  let pdfTemplate = undefined;
+  if (contractData && contractData.nombreCompleto) {
+    try {
+      if (selectedTemplate.id === "english-contract") {
+        pdfTemplate = <StatementOfWorkEnglishPDF data={contractData} />;
+      } else {
+        pdfTemplate = <StatementOfWorkPDF data={contractData} />;
+      }
+    } catch (error) {
+      console.error("Error rendering PDF template:", error);
+      pdfTemplate = undefined;
+    }
+  }
+
+  if (!pdfTemplate) {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0097B2] mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Loading PDF preview...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <PDFViewer
+      key={pdfKey}
+      width="100%"
+      height="100%"
+      showToolbar={false}
+      className="border-0"
+    >
+      {pdfTemplate}
+    </PDFViewer>
+  );
+};
+
 export default function SignContractModal({
   isOpen,
   onClose,
@@ -197,11 +163,11 @@ export default function SignContractModal({
   const { addNotification } = useNotificationStore();
   const [selectedTemplate, setSelectedTemplate] =
     useState<ContractTemplate | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
-
-  // Lista de templates disponibles
+  const [selectedServiceId, setSelectedServiceId] = useState<string>("custom");
+  console.log(selectedServiceId);
+  // Lista simplificada de templates que funcionan correctamente
   const contractTemplates = useMemo((): ContractTemplate[] => {
+    // Eliminar el template estándar, solo dejar los específicos y el custom
     const workingTemplates: ContractTemplate[] = [];
 
     // Agregar contrato en inglés como primera opción
@@ -235,6 +201,7 @@ export default function SignContractModal({
 
     // Agregar servicios específicos
     Object.entries(SERVICIOS_DISPONIBLES).forEach(([key, servicio]) => {
+      // Eliminar completamente el servicio en inglés
       if (key === "ENGLISH_SERVICE_AGREEMENT") {
         return;
       }
@@ -270,99 +237,62 @@ export default function SignContractModal({
     return workingTemplates;
   }, []);
 
-  // Datos del contrato - MEMOIZADO para evitar re-renders infinitos
   const [contractData, setContractData] = useState(() => ({
+    // Datos básicos del empleado
     nombreCompleto: `${applicant.nombre} ${applicant.apellido}`,
     correoElectronico: applicant.correo,
     cedula: "",
     telefono: applicant.telefono || "",
     nacionalidad: applicant.pais || "",
     direccionCompleta: "",
+
+    // Datos del puesto
     puestoTrabajo:
       applicant.lastRelevantPostulacion?.titulo || "Administrative Assistant",
     descripcionServicios:
       "Serves as the first point of contact for new or prospective clients. Responsible for gathering initial case information, verifying basic eligibility, and entering client details into internal systems.",
+
+    // Datos salariales
     ofertaSalarial: "1100",
     salarioProbatorio: "1000",
     monedaSalario: "USD",
+
+    // Fechas
     fechaInicioLabores: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
       .toISOString()
-      .split("T")[0],
+      .split("T")[0], // 2 weeks from today
     fechaEjecucion: new Date().toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     }),
+
+    // Campos adicionales para contratos en inglés
     nombreBanco: "",
     numeroCuenta: "",
   }));
+  const [isLoading, setIsLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // Memoizar los datos procesados para el PDF
-  const memoizedPDFData = useMemo(
-    () => ({
-      ...contractData,
-      nombreCompleto: contractData.nombreCompleto || "Contractor Name",
-      correoElectronico:
-        contractData.correoElectronico || "contractor@email.com",
-      cedula: contractData.cedula || "000000000",
-      telefono: contractData.telefono || "000-000-0000",
-      nacionalidad: contractData.nacionalidad || "Unknown",
-      direccionCompleta:
-        contractData.direccionCompleta || "Address not provided",
-      puestoTrabajo: contractData.puestoTrabajo || "Professional Services",
-      descripcionServicios:
-        contractData.descripcionServicios ||
-        "Professional services to be provided",
-      ofertaSalarial: contractData.ofertaSalarial || "0",
-      salarioProbatorio: contractData.salarioProbatorio || "0",
-      monedaSalario: contractData.monedaSalario || "USD",
-      nombreBanco: contractData.nombreBanco || "Bank Name",
-      numeroCuenta: contractData.numeroCuenta || "Account Number",
-      fechaEjecucion:
-        contractData.fechaEjecucion ||
-        new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
-      fechaInicioLabores:
-        contractData.fechaInicioLabores ||
-        new Date().toISOString().split("T")[0],
-    }),
-    [contractData]
-  );
-
-  // Inicializar template cuando se abre el modal
   useEffect(() => {
-    if (isOpen && contractTemplates.length > 0 && !selectedTemplate) {
-      const firstTemplate = contractTemplates[0];
-      setSelectedTemplate(firstTemplate);
+    if (isOpen && contractTemplates.length > 0) {
+      setSelectedTemplate(contractTemplates[0]);
+      // Actualizar la descripción de servicios según el template seleccionado
       setContractData((prev) => ({
         ...prev,
-        descripcionServicios:
-          firstTemplate.description || prev.descripcionServicios,
+        descripcionServicios: contractTemplates[0].description,
       }));
-    }
-  }, [isOpen, contractTemplates, selectedTemplate]);
-
-  // Reset cuando se cierra el modal
-  useEffect(() => {
-    if (!isOpen) {
-      setSelectedTemplate(null);
-      setValidationErrors([]);
     }
   }, [isOpen]);
 
+  // Función para manejar el cambio de template y actualizar la descripción automáticamente
   const handleTemplateChange = (template: ContractTemplate) => {
-    setValidationErrors([]);
     setSelectedTemplate(template);
+
+    // Actualizar automáticamente la descripción de servicios
     setContractData((prev) => ({
       ...prev,
-      descripcionServicios: template.description || prev.descripcionServicios,
-      puestoTrabajo:
-        template.name !== prev.puestoTrabajo
-          ? template.name
-          : prev.puestoTrabajo,
+      descripcionServicios: template.description,
     }));
   };
 
@@ -372,6 +302,7 @@ export default function SignContractModal({
       [key]: value,
     }));
 
+    // Limpiar errores cuando el usuario edite un campo
     if (validationErrors.length > 0) {
       setValidationErrors([]);
     }
@@ -404,6 +335,7 @@ export default function SignContractModal({
     let result = content;
     Object.entries(contractData).forEach(([key, value]) => {
       const regex = new RegExp(`{{${key}}}`, "g");
+      // Formatear fecha de inicio con ordinal
       if (key === "fechaInicioLabores" && value) {
         result = result.replace(regex, formatDateWithOrdinal(value.toString()));
       } else {
@@ -413,8 +345,46 @@ export default function SignContractModal({
     return result;
   };
 
+  // Función helper para asegurar compatibilidad de datos
+  const getPDFData = () => {
+    return {
+      ...contractData,
+      // Asegurar que todos los campos estén presentes con valores seguros
+      nombreCompleto: contractData.nombreCompleto || "Contractor Name",
+      correoElectronico:
+        contractData.correoElectronico || "contractor@email.com",
+      cedula: contractData.cedula || "000000000",
+      telefono: contractData.telefono || "000-000-0000",
+      nacionalidad: contractData.nacionalidad || "Unknown",
+      direccionCompleta:
+        contractData.direccionCompleta || "Address not provided",
+      puestoTrabajo: contractData.puestoTrabajo || "Professional Services",
+      descripcionServicios:
+        contractData.descripcionServicios ||
+        "Professional services to be provided",
+      ofertaSalarial: contractData.ofertaSalarial || "0",
+      salarioProbatorio: contractData.salarioProbatorio || "0",
+      monedaSalario: contractData.monedaSalario || "USD",
+      nombreBanco: contractData.nombreBanco || "Bank Name",
+      numeroCuenta: contractData.numeroCuenta || "Account Number",
+      fechaEjecucion:
+        contractData.fechaEjecucion ||
+        new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+      fechaInicioLabores:
+        contractData.fechaInicioLabores ||
+        new Date().toISOString().split("T")[0],
+    };
+  };
+
+  // Validar campos obligatorios
   const validateRequiredFields = () => {
     const errors: string[] = [];
+
+    // Solo validar campos realmente necesarios
     const requiredFields = ["nombreCompleto", "correoElectronico"];
 
     requiredFields.forEach((field) => {
@@ -434,33 +404,54 @@ export default function SignContractModal({
   const handleSendContract = async () => {
     if (!selectedTemplate || !applicant.lastRelevantPostulacion?.id) return;
 
+    // Validar campos obligatorios antes de enviar
     if (!validateRequiredFields()) {
       return;
     }
 
     setIsLoading(true);
     try {
+      // Importar dinámicamente las librerías de PDF
       const { pdf } = await import("@react-pdf/renderer");
 
+      // Generar el PDF usando el template correspondiente
+      const pdfData = getPDFData();
       let pdfDocument;
-      if (selectedTemplate.id === "english-contract") {
-        pdfDocument = <StatementOfWorkEnglishPDF data={memoizedPDFData} />;
-      } else {
-        pdfDocument = <StatementOfWorkPDF data={memoizedPDFData} />;
+
+      // Verificar que los datos estén disponibles antes de renderizar
+      if (!pdfData || !pdfData.nombreCompleto) {
+        throw new Error("Missing required contract data");
       }
 
+      try {
+        // Si es el template en inglés, usar StatementOfWorkEnglishPDF
+        if (selectedTemplate.id === "english-contract") {
+          pdfDocument = <StatementOfWorkEnglishPDF data={pdfData} />;
+        } else {
+          // Para el resto de templates, usar StatementOfWorkPDF
+          pdfDocument = <StatementOfWorkPDF data={pdfData} />;
+        }
+      } catch (error) {
+        console.error("Error creating PDF document:", error);
+        throw error;
+      }
+
+      // Generar el PDF como blob
       const pdfBlob = await pdf(pdfDocument).toBlob();
 
+      // Convertir a base64
       const base64Content = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
           const result = reader.result as string;
+          // Extraer solo el contenido base64 (sin el prefijo data:application/pdf;base64,)
           const base64 = result.split(",")[1];
           resolve(base64);
         };
         reader.readAsDataURL(pdfBlob);
       });
 
+      // Datos para el endpoint del backend usando la interfaz definida
       const contractPayload: SendContractPayload = {
         nombreCompleto: contractData.nombreCompleto,
         puestoTrabajo: contractData.puestoTrabajo,
@@ -472,13 +463,23 @@ export default function SignContractModal({
         urlRedirect: `${window.location.origin}/admin/dashboard/contracts/callback`,
       };
 
+      // Usar la action para enviar el contrato
       const result = await sendContractToSignWell(
         applicant.lastRelevantPostulacion.id,
         contractPayload
       );
 
       if (result.success) {
+        console.log("Contract sent successfully:", result.data);
+
+        // Show signing URLs and redirect to first signer
         if (result.signingUrls && result.signingUrls.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          result.signingUrls.forEach((signer: any) => {
+            console.log(`${signer.name}: ${signer.signingUrl}`);
+          });
+
+          // Redirect to first signer URL (candidate)
           const candidateUrl = result.signingUrls.find(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (signer: any) =>
@@ -487,15 +488,18 @@ export default function SignContractModal({
           );
 
           if (candidateUrl?.signingUrl) {
+            // Open signing URL for the candidate in a new tab
             window.open(candidateUrl.signingUrl, "_blank");
           }
         }
 
+        // Show success message
         addNotification(
           "Contract sent successfully! The signing window has been opened for the candidate.",
           "success"
         );
 
+        // Send contract notification email
         try {
           const emailResponse = await sendContractSentNotification(
             contractData.nombreCompleto,
@@ -503,17 +507,29 @@ export default function SignContractModal({
           );
 
           if (emailResponse.success) {
+            console.log("✅ Contract notification email sent successfully");
             addNotification(
               "Contract notification email sent to candidate.",
               "success"
             );
+          } else {
+            console.error(
+              "❌ Error sending contract notification email:",
+              emailResponse.error
+            );
+            // Don't show error to user since the main action succeeded
           }
         } catch (emailError) {
-          console.error("Error sending email:", emailError);
+          console.error(
+            "❌ Error sending contract notification email:",
+            emailError
+          );
+          // Don't show error to user since the main action succeeded
         }
 
         onClose();
       } else {
+        console.error("Error sending contract:", result.message);
         addNotification(`Error sending contract: ${result.message}`, "error");
       }
     } catch (error) {
@@ -546,7 +562,7 @@ export default function SignContractModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden custom-scrollbar">
           {/* Left Side - Templates */}
           <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-gray-200 p-6 overflow-y-auto">
             <h3 className="text-lg font-medium text-gray-700 mb-4">
@@ -557,7 +573,15 @@ export default function SignContractModal({
               {contractTemplates.map((template) => (
                 <div
                   key={template.id}
-                  onClick={() => handleTemplateChange(template)}
+                  onClick={() => {
+                    handleTemplateChange(template);
+                    setSelectedServiceId(template.id);
+                    // También actualizar el puesto de trabajo
+                    setContractData((prev) => ({
+                      ...prev,
+                      puestoTrabajo: template.name,
+                    }));
+                  }}
                   className={`p-4 border rounded-lg cursor-pointer transition-all ${
                     selectedTemplate?.id === template.id
                       ? "border-[#0097B2] bg-[#0097B2]/10"
@@ -610,7 +634,6 @@ export default function SignContractModal({
                     </ul>
                   </div>
                 )}
-
                 <div className="space-y-4">
                   {/* Personal Data */}
                   <div className="border-b border-[#0097B2] pb-3">
@@ -748,7 +771,7 @@ export default function SignContractModal({
                               {getFieldLabel(field)}
                             </label>
                             <input
-                              type="date"
+                              type={field.includes("fecha") ? "date" : "text"}
                               value={
                                 contractData[
                                   field as keyof typeof contractData
@@ -840,18 +863,19 @@ export default function SignContractModal({
                 {/* PDF Preview */}
                 <div className="bg-white rounded border shadow-sm">
                   <div className="h-[600px] border rounded-lg overflow-hidden">
-                    <Suspense
-                      fallback={
-                        <div className="h-full flex items-center justify-center">
-                          <Loader2 className="h-8 w-8 animate-spin text-[#0097B2]" />
-                        </div>
-                      }
-                    >
+                    {contractData && selectedTemplate ? (
                       <PDFPreview
                         selectedTemplate={selectedTemplate}
-                        contractData={memoizedPDFData}
+                        contractData={getPDFData()}
                       />
-                    </Suspense>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-gray-500">
+                        <div className="text-center">
+                          <FileText size={48} className="mx-auto mb-4" />
+                          <p>Loading PDF preview...</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -881,7 +905,7 @@ export default function SignContractModal({
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                 Sending...
               </>
             ) : (

@@ -73,7 +73,7 @@ interface ExtendedCandidate extends CandidatoWithPostulationId {
 }
 
 export default function PostulantsPage() {
-  const APPLICANTS_PER_PAGE = 7;
+  const [applicantsPerPage, setApplicantsPerPage] = useState<number>(15);
   const [applicants, setApplicants] = useState<ExtendedCandidate[]>([]);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>("");
@@ -114,7 +114,7 @@ export default function PostulantsPage() {
     try {
       const response = await getApplicants(
         page,
-        APPLICANTS_PER_PAGE,
+        applicantsPerPage,
         searchValue
       );
 
@@ -138,10 +138,17 @@ export default function PostulantsPage() {
   useEffect(() => {
     fetchApplicants(currentPage, search);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, search]);
+  }, [currentPage, search, applicantsPerPage]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setApplicantsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
 
@@ -780,8 +787,14 @@ export default function PostulantsPage() {
               <option value="FIRST_INTERVIEW_PENDING">
                 First Interview Pending
               </option>
+              <option value="FIRST_INTERVIEW_COMPLETED">
+                First Interview Completed
+              </option>
               <option value="SECOND_INTERVIEW_PENDING">
                 Second Interview Pending
+              </option>
+              <option value="SECOND_INTERVIEW_COMPLETED">
+                Second Interview Completed
               </option>
               <option value="FINALIST">Finalist</option>
               <option value="HIRED">Hired</option>
@@ -1046,86 +1059,109 @@ export default function PostulantsPage() {
               )}
             </div>
 
-            {/* Pagination for mobile */}
-            {totalPages > 1 && (
-              <div className="border-t border-gray-200 p-3 flex justify-center">
-                <div className="inline-flex border border-gray-300 rounded-md">
-                  <button
-                    className={`px-3 py-1 text-[#0097B2] border-r border-gray-300 ${
-                      currentPage === 1
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-gray-50 cursor-pointer"
-                    }`}
-                    onClick={goToPreviousPage}
-                    disabled={currentPage === 1}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M15 18L9 12L15 6"
-                        stroke="#0097B2"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNumber;
-                    if (totalPages <= 5) {
-                      pageNumber = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNumber = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNumber = totalPages - 4 + i;
-                    } else {
-                      pageNumber = currentPage - 2 + i;
-                    }
-
-                    return (
+            {/* Pagination and selector for mobile */}
+            {applicants.length > 0 && (
+              <div className="border-t border-gray-200 p-3">
+                {totalPages > 1 && (
+                  <div className="flex justify-center mb-2">
+                    <div className="inline-flex border border-gray-300 rounded-md">
                       <button
-                        key={i}
-                        className={`px-3 py-1 ${
-                          currentPage === pageNumber
-                            ? "text-white bg-[#0097B2]"
-                            : "text-[#0097B2] hover:bg-gray-50"
+                        className={`px-3 py-1 text-[#0097B2] border-r border-gray-300 ${
+                          currentPage === 1
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-gray-50 cursor-pointer"
                         }`}
-                        onClick={() => goToPage(pageNumber)}
+                        onClick={goToPreviousPage}
+                        disabled={currentPage === 1}
                       >
-                        {pageNumber}
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15 18L9 12L15 6"
+                            stroke="#0097B2"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
                       </button>
-                    );
-                  })}
-                  <button
-                    className={`px-3 py-1 text-[#0097B2] border-l border-gray-300 ${
-                      currentPage === totalPages
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-gray-50 cursor-pointer"
-                    }`}
-                    onClick={goToNextPage}
-                    disabled={currentPage === totalPages}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          let pageNumber;
+                          if (totalPages <= 5) {
+                            pageNumber = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNumber = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNumber = totalPages - 4 + i;
+                          } else {
+                            pageNumber = currentPage - 2 + i;
+                          }
+
+                          return (
+                            <button
+                              key={i}
+                              className={`px-3 py-1 ${
+                                currentPage === pageNumber
+                                  ? "text-white bg-[#0097B2]"
+                                  : "text-[#0097B2] hover:bg-gray-50"
+                              }`}
+                              onClick={() => goToPage(pageNumber)}
+                            >
+                              {pageNumber}
+                            </button>
+                          );
+                        }
+                      )}
+                      <button
+                        className={`px-3 py-1 text-[#0097B2] border-l border-gray-300 ${
+                          currentPage === totalPages
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-gray-50 cursor-pointer"
+                        }`}
+                        onClick={goToNextPage}
+                        disabled={currentPage === totalPages}
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M9 18L15 12L9 6"
+                            stroke="#0097B2"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div className="flex justify-center">
+                  <div className="flex items-center text-xs text-gray-500">
+                    <span className="mr-2">Mostrar:</span>
+                    <select
+                      value={applicantsPerPage}
+                      onChange={handleItemsPerPageChange}
+                      className="border border-gray-300 rounded text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
                     >
-                      <path
-                        d="M9 18L15 12L9 6"
-                        stroke="#0097B2"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={15}>15</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             )}
@@ -1135,7 +1171,7 @@ export default function PostulantsPage() {
         {/* View Desktop */}
         <div className="hidden md:block">
           <div
-            className="bg-white rounded-lg shadow-lg w-full max-w-7xl mx-auto max-h-[90vh] flex flex-col"
+            className="bg-white mb-10 rounded-lg shadow-lg w-full max-w-7xl mx-auto max-h-[90vh] flex flex-col"
             style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
           >
             {/* Header with title and close button */}
@@ -1394,73 +1430,92 @@ export default function PostulantsPage() {
                 </div>
               )}
             </div>
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="border-t border-gray-200 p-4 flex justify-center">
-                <div className="inline-flex border border-gray-300 rounded-md">
-                  <button
-                    className={`px-3 py-1 text-[#0097B2] border-r border-gray-300 ${
-                      currentPage === 1
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-gray-50 cursor-pointer"
-                    }`}
-                    onClick={goToPreviousPage}
-                    disabled={currentPage === 1}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+            {/* Pagination and items per page selector */}
+            {applicants.length > 0 && (
+              <div className="border-t border-gray-200 p-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <span className="mr-2">Mostrar:</span>
+                    <select
+                      value={applicantsPerPage}
+                      onChange={handleItemsPerPageChange}
+                      className="border border-gray-300 rounded text-sm px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
                     >
-                      <path
-                        d="M15 18L9 12L15 6"
-                        stroke="#0097B2"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-                  {Array.from({ length: totalPages }, (_, index) => (
-                    <button
-                      key={index}
-                      className={`px-3 py-1 ${
-                        currentPage === index + 1
-                          ? "text-white bg-[#0097B2]"
-                          : "text-[#0097B2] hover:bg-gray-50"
-                      }`}
-                      onClick={() => goToPage(index + 1)}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
-                  <button
-                    className={`px-3 py-1 text-[#0097B2] border-l border-gray-300 ${
-                      currentPage === totalPages
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-gray-50 cursor-pointer"
-                    }`}
-                    onClick={goToNextPage}
-                    disabled={currentPage === totalPages}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M9 18L15 12L9 6"
-                        stroke="#0097B2"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={15}>15</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                    </select>
+                    <span className="ml-2">elementos por página</span>
+                  </div>
+                  {totalPages > 1 && (
+                    <div className="inline-flex border border-gray-300 rounded-md">
+                      <button
+                        className={`px-3 py-1 text-[#0097B2] border-r border-gray-300 ${
+                          currentPage === 1
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-gray-50 cursor-pointer"
+                        }`}
+                        onClick={goToPreviousPage}
+                        disabled={currentPage === 1}
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15 18L9 12L15 6"
+                            stroke="#0097B2"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                      {Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                          key={index}
+                          className={`px-3 py-1 ${
+                            currentPage === index + 1
+                              ? "text-white bg-[#0097B2]"
+                              : "text-[#0097B2] hover:bg-gray-50"
+                          }`}
+                          onClick={() => goToPage(index + 1)}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                      <button
+                        className={`px-3 py-1 text-[#0097B2] border-l border-gray-300 ${
+                          currentPage === totalPages
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-gray-50 cursor-pointer"
+                        }`}
+                        onClick={goToNextPage}
+                        disabled={currentPage === totalPages}
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M9 18L15 12L9 6"
+                            stroke="#0097B2"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
