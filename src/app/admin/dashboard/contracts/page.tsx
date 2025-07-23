@@ -409,7 +409,7 @@ export default function ContractsPage() {
     if (!selectedContract) return;
 
     try {
-      const result = await finalizarContrato(selectedContract.id, data);
+      await finalizarContrato(selectedContract.id, data);
 
       addNotification(
         `Contract for ${selectedContract.nombreCompleto} terminated successfully. Both contract and application are now inactive - the candidate can apply to new positions.`,
