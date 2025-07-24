@@ -87,6 +87,7 @@ export const toggleCompanyStatus = async (
       success: true,
       message: "Company status updated successfully",
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error in toggleCompanyStatus:", error);
     const errorMessage =
@@ -113,6 +114,7 @@ export const deleteCompany = async (
       success: true,
       message: "Company deleted successfully",
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error in deleteCompany:", error);
     const errorMessage =
@@ -212,6 +214,7 @@ export const updateCompany = async (
       success: true,
       message: "Company updated successfully",
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error in updateCompany:", error);
     const errorMessage =
