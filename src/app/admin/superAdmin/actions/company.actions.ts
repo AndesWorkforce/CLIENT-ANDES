@@ -87,11 +87,13 @@ export const toggleCompanyStatus = async (
       success: true,
       message: "Company status updated successfully",
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in toggleCompanyStatus:", error);
+    const errorMessage =
+      error?.response?.data?.message || "Error changing company status";
     return {
       success: false,
-      message: "Error changing company status",
+      message: errorMessage,
     };
   }
 };
@@ -111,11 +113,13 @@ export const deleteCompany = async (
       success: true,
       message: "Company deleted successfully",
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in deleteCompany:", error);
+    const errorMessage =
+      error?.response?.data?.message || "Error deleting company";
     return {
       success: false,
-      message: "Error deleting company",
+      message: errorMessage,
     };
   }
 };
@@ -188,14 +192,17 @@ export const updateCompany = async (
 ): Promise<ApiResponse> => {
   const axios = await createServerAxios();
   try {
-    // Para actualización, no enviamos contrasena ni datos del representante
+    // Para actualización, enviamos todos los datos excepto la contraseña
     const updateData = {
       nombre: data.nombre,
       descripcion: data.descripcion,
       correo: data.correo,
+      nombreRepresentante: data.nombreRepresentante,
+      apellidoRepresentante: data.apellidoRepresentante,
+      // No enviamos la contraseña en las actualizaciones
     };
 
-    const response = await axios.patch(`/companies/${companyId}`, updateData);
+    const response = await axios.patch(`companies/${companyId}`, updateData);
 
     if (response.status !== 200) {
       throw new Error(response.data.message || "Error updating company");
@@ -205,11 +212,13 @@ export const updateCompany = async (
       success: true,
       message: "Company updated successfully",
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in updateCompany:", error);
+    const errorMessage =
+      error?.response?.data?.message || "Error updating company";
     return {
       success: false,
-      message: "Error updating company",
+      message: errorMessage,
     };
   }
 };

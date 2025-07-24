@@ -332,20 +332,25 @@ export default function Navbar() {
                                 Logout
                               </button>
                             </>
-                          ) : user?.rol === "ADMIN" ? (
+                          ) : user?.rol === "ADMIN" ||
+                            user?.rol === "ADMIN_RECLUTAMIENTO" ? (
                             <>
-                              <Link
-                                href="/admin/superAdmin"
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-                                onClick={() => setShowUserMenu(false)}
-                              >
-                                <Settings
-                                  size={16}
-                                  className="mr-2 text-[#0097B2] cursor-pointer"
-                                />
-                                Super Admin Panel
-                              </Link>
-                              <hr className="my-1 border-gray-200" />
+                              {user?.rol === "ADMIN" && (
+                                <>
+                                  <Link
+                                    href="/admin/superAdmin"
+                                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                                    onClick={() => setShowUserMenu(false)}
+                                  >
+                                    <Settings
+                                      size={16}
+                                      className="mr-2 text-[#0097B2] cursor-pointer"
+                                    />
+                                    Super Admin Panel
+                                  </Link>
+                                  <hr className="my-1 border-gray-200" />
+                                </>
+                              )}
                               <Link
                                 href="/admin/dashboard"
                                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
@@ -355,7 +360,9 @@ export default function Navbar() {
                                   size={16}
                                   className="mr-2 text-[#0097B2] cursor-pointer"
                                 />
-                                Offers Management
+                                {user?.rol === "ADMIN"
+                                  ? "Offers Management"
+                                  : "Dashboard"}
                               </Link>
                               <hr className="my-1 border-gray-200" />
                               <button
@@ -526,31 +533,38 @@ export default function Navbar() {
                     ) : (
                       <>
                         {user?.rol === "ADMIN" && (
+                          <>
+                            <Link
+                              href="/admin/superAdmin"
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                              onClick={() => setShowMobileSidebar(false)}
+                            >
+                              <Settings
+                                size={20}
+                                className="mr-2 text-[#0097B2]"
+                              />
+                              Super Admin Panel
+                            </Link>
+                            <hr className="my-1 border-gray-200" />
+                          </>
+                        )}
+
+                        {(user?.rol === "ADMIN" ||
+                          user?.rol === "ADMIN_RECLUTAMIENTO") && (
                           <Link
-                            href="/admin/superAdmin"
+                            href="/admin/dashboard"
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
                             onClick={() => setShowMobileSidebar(false)}
                           >
-                            <Settings
+                            <LayoutDashboard
                               size={20}
                               className="mr-2 text-[#0097B2]"
                             />
-                            Super Admin Panel
+                            {user?.rol === "ADMIN"
+                              ? "Offers Management"
+                              : "Dashboard"}
                           </Link>
                         )}
-                        <hr className="my-1 border-gray-200" />
-
-                        <Link
-                          href="/admin/dashboard"
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                          onClick={() => setShowMobileSidebar(false)}
-                        >
-                          <LayoutDashboard
-                            size={20}
-                            className="mr-2 text-[#0097B2]"
-                          />
-                          Offers Management
-                        </Link>
                       </>
                     )}
                   </>
