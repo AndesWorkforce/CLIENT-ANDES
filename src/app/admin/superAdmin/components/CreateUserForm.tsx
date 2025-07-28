@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createUserSchema,
   type CreateUserFormData,
 } from "../schemas/createUser.schema";
-import { X } from "lucide-react";
+import { X, Eye, EyeOff } from "lucide-react";
 import { createUserEmployeeAdmin } from "../actions/createUser.action";
 import { updateUser } from "../actions/user.actions";
 import { useNotificationStore } from "@/store/notifications.store";
@@ -23,6 +24,7 @@ export default function CreateUserForm({
   userId,
 }: Props) {
   const { addNotification } = useNotificationStore();
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -140,12 +142,27 @@ export default function CreateUserForm({
             <label className="block text-sm font-medium text-gray-700">
               Password {userId && "(leave blank to keep the current password)"}
             </label>
-            <input
-              type="password"
-              {...register("contrasena")}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#0097B2] focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-              placeholder={userId ? "••••••••" : ""}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                {...register("contrasena")}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#0097B2] focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                placeholder={userId ? "••••••••" : ""}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-2 top-[60%] transform -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff size={18} color="#0097B2" />
+                ) : (
+                  <Eye size={18} color="#0097B2" />
+                )}
+              </button>
+            </div>
             {errors.contrasena && (
               <p className="mt-1 text-sm text-red-600">
                 {errors.contrasena.message}
