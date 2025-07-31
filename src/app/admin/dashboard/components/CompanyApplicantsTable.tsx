@@ -584,6 +584,9 @@ export default function CompanyApplicantsTable({
           candidatoId={selectedStatusUpdate.candidatoId}
           currentStatus={selectedStatusUpdate.currentStatus}
           candidatoName={selectedStatusUpdate.candidatoName}
+          applicant={applicants.find(
+            (a) => a.id === selectedStatusUpdate.candidatoId
+          )}
           onUpdate={handleStatusUpdated}
         />
       )}

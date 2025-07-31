@@ -245,6 +245,7 @@ export default function PostulantsPage() {
 
       if (response.success) {
         console.log("✅ Estado actualizado exitosamente");
+
         addNotification(
           `Status of ${candidateName} updated to ${status}`,
           "success"
@@ -668,8 +669,10 @@ export default function PostulantsPage() {
     setSelectedStatusUpdate(null);
   };
 
-  const handleStatusUpdated = () => {
-    // Refrescar la lista de applicants
+  // Función para manejar actualización de status y envío de correo según el stage
+  // Puedes ajustar los tipos según tu modelo de datos
+  const handleStatusUpdateWithEmail = async () => {
+    // Refrescar la lista de applicants después de actualizar
     fetchApplicants(currentPage, search);
     addNotification("Application status updated successfully", "success");
   };
@@ -1602,7 +1605,10 @@ export default function PostulantsPage() {
           candidatoId={selectedStatusUpdate.candidatoId}
           currentStatus={selectedStatusUpdate.currentStatus}
           candidatoName={selectedStatusUpdate.candidatoName}
-          onUpdate={handleStatusUpdated}
+          applicant={applicants.find(
+            (a) => a.id === selectedStatusUpdate.candidatoId
+          )}
+          onUpdate={handleStatusUpdateWithEmail}
         />
       )}
       {/* {isApplicationsModalOpen && selectedCandidateForApplications && (

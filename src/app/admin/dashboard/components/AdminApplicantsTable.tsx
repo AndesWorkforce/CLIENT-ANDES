@@ -1013,6 +1013,7 @@ export default function AdminApplicantsTable({
           candidatoId={selectedStatusUpdate.candidatoId}
           currentStatus={selectedStatusUpdate.currentStatus}
           candidatoName={selectedStatusUpdate.candidatoName}
+          applicant={selectedApplicant} // Pass the selected applicant
           onUpdate={handleStatusUpdated}
         />
       )}

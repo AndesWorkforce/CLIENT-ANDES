@@ -10,6 +10,7 @@ import {
 } from "../actions/stage.actions";
 import { useAuthStore } from "@/store/auth.store";
 import {
+  sendAdvanceNextStep,
   sendContractJobEmail,
   sendInterviewInvitation,
   sendRejectionEmail,
@@ -1311,12 +1312,30 @@ export default function ApplicantsModal({
       );
 
       if (response && response.success) {
-        // TODO: Implementar email específico para segunda entrevista
-        console.log(
-          "✅ [handleSecondInterview] Candidato movido a segunda entrevista - Email específico pendiente de implementar"
-        );
-
-        addNotification("Candidate moved to second interview stage", "success");
+        // Enviar email de avance a segunda entrevista
+        try {
+          const emailResponse = await sendAdvanceNextStep(
+            candidateName,
+            candidateEmail
+          );
+          if (emailResponse && emailResponse.success) {
+            addNotification(
+              "Candidate moved to second interview stage and email sent successfully",
+              "success"
+            );
+          } else {
+            addNotification(
+              "Candidate moved to second interview stage but there was an error sending the email",
+              "warning"
+            );
+          }
+        } catch (emailError) {
+          console.error("❌ Error sending second interview email:", emailError);
+          addNotification(
+            "Candidate moved to second interview stage but there was an error sending the email",
+            "warning"
+          );
+        }
 
         // Actualizar lista de candidatos
         setApplicants((prevApplicants) =>
@@ -1870,52 +1889,61 @@ export default function ApplicantsModal({
       offerName: string;
     }>
   ) => {
-    let successCount = 0;
-    let errorCount = 0;
-
-    // Procesar todos los emails de forma concurrente pero sin bloquear la UI
-    const emailPromises = removedApplications.map(async (application) => {
-      try {
-        await sendRemovalNotification(
-          application.candidateName,
-          application.candidateEmail,
-          application.offerName,
-          "Your application has been removed from this position by the administrator."
-        );
-        successCount++;
-        console.log(
-          `✅ Removal notification sent to ${application.candidateEmail}`
-        );
-      } catch (emailError) {
-        errorCount++;
-        console.warn(
-          `❌ Failed to send removal notification to ${application.candidateEmail}:`,
-          emailError
+    // Procesar todos los emails y esperar resultados
+    try {
+      const results = await Promise.all(
+        removedApplications.map(async (application) => {
+          try {
+            const res = await sendRemovalNotification(
+              application.candidateName,
+              application.candidateEmail,
+              application.offerName,
+              "Your application has been removed from this position by the administrator."
+            );
+            if (res && res.success) {
+              return { success: true, email: application.candidateEmail };
+            } else {
+              return {
+                success: false,
+                email: application.candidateEmail,
+                error: res?.error || "Unknown error",
+              };
+            }
+          } catch (emailError) {
+            return {
+              success: false,
+              email: application.candidateEmail,
+              error:
+                typeof emailError === "object" &&
+                emailError !== null &&
+                "message" in emailError
+                  ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (emailError as any).message
+                  : String(emailError),
+            };
+          }
+        })
+      );
+      const successCount = results.filter((r) => r.success).length;
+      const errorResults = results.filter((r) => !r.success);
+      if (successCount > 0) {
+        addNotification(
+          `${successCount} removal notification(s) sent successfully`,
+          "success"
         );
       }
-    });
-
-    // Esperar a que todos los emails se procesen (pero esto no bloquea porque se ejecuta después de la respuesta)
-    Promise.all(emailPromises)
-      .then(() => {
-        // Mostrar resumen final de notificaciones
-        if (successCount > 0) {
+      if (errorResults.length > 0) {
+        errorResults.forEach((r) => {
           addNotification(
-            `${successCount} removal notification(s) sent successfully`,
-            "success"
-          );
-        }
-        if (errorCount > 0) {
-          addNotification(
-            `${errorCount} notification(s) failed to send`,
+            `Failed to send removal notification to ${r.email}: ${r.error}`,
             "warning"
           );
-        }
-      })
-      .catch((error) => {
-        console.error("Error in background email processing:", error);
-        addNotification("Some notifications failed to send", "warning");
-      });
+        });
+      }
+    } catch (error) {
+      console.error("Error in background email processing:", error);
+      addNotification("Some notifications failed to send", "warning");
+    }
   };
 
   if (!isOpen) return null;
@@ -2784,6 +2812,9 @@ export default function ApplicantsModal({
           candidatoId={selectedStatusUpdate.candidatoId}
           currentStatus={selectedStatusUpdate.currentStatus}
           candidatoName={selectedStatusUpdate.candidatoName}
+          applicant={applicants.find(
+            (a) => a.id === selectedStatusUpdate.candidatoId
+          )}
           onUpdate={handleStatusUpdated}
         />
       )}
