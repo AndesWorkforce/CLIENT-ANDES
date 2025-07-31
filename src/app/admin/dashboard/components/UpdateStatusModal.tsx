@@ -6,6 +6,11 @@ import {
   STATUS_TRANSLATIONS,
   AVAILABLE_STATUSES,
 } from "../types/application-status.types";
+import {
+  sendAdvanceNextStep,
+  sendContractJobEmail,
+  sendInterviewInvitation,
+} from "../actions/sendEmail.actions";
 
 interface UpdateStatusModalProps {
   isOpen: boolean;
@@ -14,7 +19,10 @@ interface UpdateStatusModalProps {
   candidatoId: string;
   currentStatus: EstadoPostulacion;
   candidatoName: string;
-  onUpdate: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  applicant: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onUpdate: (newStatus: string, applicant: any) => void | Promise<void>;
 }
 
 const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({
@@ -24,6 +32,7 @@ const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({
   candidatoId,
   currentStatus,
   candidatoName,
+  applicant,
   onUpdate,
 }) => {
   const [selectedStatus, setSelectedStatus] =
@@ -50,7 +59,75 @@ const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({
       );
 
       if (response.success) {
-        onUpdate();
+        // Determinar el nuevo stage (StageStatus) a partir del selectedStatus
+        let newStage: string = "";
+        switch (selectedStatus) {
+          case "EN_EVALUACION":
+            newStage = "FIRST_INTERVIEW_PENDING";
+            break;
+          case "PRIMERA_ENTREVISTA_REALIZADA":
+            newStage = "FIRST_INTERVIEW_COMPLETED";
+            break;
+          case "EN_EVALUACION_CLIENTE":
+            newStage = "SECOND_INTERVIEW_PENDING";
+            break;
+          case "SEGUNDA_ENTREVISTA_REALIZADA":
+            newStage = "SECOND_INTERVIEW_COMPLETED";
+            break;
+          case "FINALISTA":
+            newStage = "FINALIST";
+            break;
+          case "ACEPTADA":
+            newStage = "HIRED";
+            break;
+          case "RECHAZADA":
+            newStage = "TERMINATED";
+            break;
+          default:
+            newStage = "AVAILABLE";
+            break;
+        }
+
+        // Enviar correo según el nuevo stage
+        try {
+          switch (newStage) {
+            case "FIRST_INTERVIEW_PENDING":
+              // await sendInterviewInvitation(applicant.nombre, applicant.correo);
+              await sendInterviewInvitation(
+                applicant.candidateName,
+                applicant.correo
+              );
+              break;
+            case "SECOND_INTERVIEW_PENDING":
+              // await sendAdvanceNextStep(applicant.nombre, applicant.correo);
+              await sendAdvanceNextStep(applicant.nombre, applicant.correo);
+              break;
+            case "HIRED":
+              // await sendContractJobEmail(applicant.nombre, applicant.correo);
+              await sendContractJobEmail(
+                applicant.candidateName,
+                applicant.correo,
+                applicant.titulo
+              );
+              break;
+            case "TERMINATED":
+              // await sendRejectionEmail(applicant.nombre, applicant.correo);
+              break;
+            case "FINALIST":
+              // await sendFinalistEmail(applicant.nombre, applicant.correo);
+              break;
+            // Agrega más casos según los stages que manejes
+            default:
+              // No enviar correo para otros estados
+              break;
+          }
+        } catch (emailError) {
+          // Aquí puedes mostrar una notificación de error de correo
+          console.error("Error enviando correo de stage:", emailError);
+        }
+
+        // Pasar el nuevo status y el postulante (applicant) al callback
+        onUpdate(selectedStatus, applicant);
         onClose();
         // Aquí puedes agregar una notificación de éxito
       } else {
