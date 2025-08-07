@@ -58,6 +58,7 @@ interface ExtendedApplication {
 interface ExtendedCandidate extends CandidatoWithPostulationId {
   isExpanded: boolean;
   lastRelevantPostulacion?: ExtendedApplication;
+  puestoTrabajo?: string;
   applicationStatus?: string;
   clasificacionGlobal: CandidateStatus;
   favorite?: boolean;
@@ -862,7 +863,7 @@ export default function PostulantsPage() {
                 <div className="space-y-4 p-4">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <div
-                      key={index}
+                      key={`skeleton-${index}`}
                       className="border-b border-gray-200 pb-4 animate-pulse"
                     >
                       <div className="flex items-center">
@@ -952,11 +953,13 @@ export default function PostulantsPage() {
                             Current Application:
                           </span>
                           <div className="mt-1">
-                            {applicant.lastRelevantPostulacion?.titulo &&
-                            applicant.lastRelevantPostulacion?.titulo !==
-                              "No applications" ? (
+                            {applicant.lastRelevantPostulacion?.titulo ? (
                               <span className="text-gray-700 text-sm truncate">
                                 {applicant.lastRelevantPostulacion.titulo}
+                              </span>
+                            ) : applicant.puestoTrabajo ? (
+                              <span className="text-gray-700 text-sm truncate">
+                                {applicant.puestoTrabajo}
                               </span>
                             ) : (
                               <span className="text-gray-400">
@@ -1109,7 +1112,7 @@ export default function PostulantsPage() {
 
                           return (
                             <button
-                              key={i}
+                              key={`mobile-pagination-${pageNumber}`}
                               className={`px-3 py-1 ${
                                 currentPage === pageNumber
                                   ? "text-white bg-[#0097B2]"
@@ -1307,26 +1310,13 @@ export default function PostulantsPage() {
                               </td>
 
                               {/* Current Application */}
-                              <td className="py-4 px-4">
-                                {applicant.lastRelevantPostulacion?.titulo &&
-                                applicant.lastRelevantPostulacion?.titulo !==
-                                  "No applications" ? (
-                                  <span className="text-gray-700 text-sm">
-                                    {applicant.lastRelevantPostulacion.titulo}
-                                  </span>
-                                ) : (
-                                  <span className="text-gray-400 text-sm">
-                                    No active application
-                                  </span>
-                                )}
+                              <td className="py-4 px-4 text-gray-700">
+                                {applicant.lastRelevantPostulacion?.titulo
+                                  ? applicant.lastRelevantPostulacion.titulo
+                                  : applicant.puestoTrabajo
+                                  ? applicant.puestoTrabajo
+                                  : "Sin aplicación"}
                               </td>
-
-                              {/* Preliminary Interview */}
-                              <td className="py-4 px-4">
-                                {renderPreliminaryInterviewStatus(applicant)}
-                              </td>
-
-                              {/* Stage */}
                               <td className="py-4 px-4">
                                 {renderClickableStageStatusBadge(
                                   renderStageStatus(applicant),
@@ -1481,7 +1471,7 @@ export default function PostulantsPage() {
                       </button>
                       {Array.from({ length: totalPages }, (_, index) => (
                         <button
-                          key={index}
+                          key={`desktop-pagination-${index + 1}`}
                           className={`px-3 py-1 ${
                             currentPage === index + 1
                               ? "text-white bg-[#0097B2]"

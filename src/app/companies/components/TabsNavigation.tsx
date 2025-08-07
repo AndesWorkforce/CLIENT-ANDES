@@ -193,170 +193,72 @@ export default function TabsNavigation() {
                 Manage employee
               </Link>
             )}
-            {/* Applicants */}
-            {/* <Link
-              href="/admin/dashboard/postulants"
-              className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
-                pathname === "/admin/dashboard/postulants"
-                  ? "bg-[#B6B4B4] text-white"
-                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="ml-1"
+            {isCompany && (
+              <Link
+                href="/companies/dashboard/team-members"
+                className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
+                  pathname === "/companies/dashboard/team-members"
+                    ? "bg-[#B6B4B4] text-white"
+                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                }`}
               >
-                <path
-                  d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                  stroke={
-                    pathname === "/admin/dashboard/postulants"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle
-                  cx="12"
-                  cy="7"
-                  r="4"
-                  stroke={
-                    pathname === "/admin/dashboard/postulants"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Applicants
-            </Link> */}
-            {/* Clients */}
-            {/* <Link
-              href="/admin/dashboard/clients"
-              className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
-                pathname === "/admin/dashboard/clients"
-                  ? "bg-[#B6B4B4] text-white"
-                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 15 15"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M1.875 13.125H13.125"
-                  stroke={
-                    pathname === "/admin/dashboard/clients"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M2.5 13.125V6.25L6.875 2.5V13.125"
-                  stroke={
-                    pathname === "/admin/dashboard/clients"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12.5 13.125V6.25L8.125 2.5V13.125"
-                  stroke={
-                    pathname === "/admin/dashboard/clients"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M4.375 5H5"
-                  stroke={
-                    pathname === "/admin/dashboard/clients"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M4.375 7.5H5"
-                  stroke={
-                    pathname === "/admin/dashboard/clients"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M4.375 10H5"
-                  stroke={
-                    pathname === "/admin/dashboard/clients"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M10 5H10.625"
-                  stroke={
-                    pathname === "/admin/dashboard/clients"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M10 7.5H10.625"
-                  stroke={
-                    pathname === "/admin/dashboard/clients"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M10 10H10.625"
-                  stroke={
-                    pathname === "/admin/dashboard/clients"
-                      ? "#FFFFFF"
-                      : "#6D6D6D"
-                  }
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Clients
-            </Link> */}
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 15 15"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.625 13.125V11.875C10.625 11.212 10.3616 10.5761 9.89277 10.1073C9.42393 9.63839 8.78804 9.375 8.125 9.375H3.125C2.46196 9.375 1.82607 9.63839 1.35723 10.1073C0.888392 10.5761 0.625 11.212 0.625 11.875V13.125"
+                    stroke={
+                      pathname === "/companies/dashboard/team-members"
+                        ? "#FFFFFF"
+                        : "#6D6D6D"
+                    }
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M5.625 6.875C7.00571 6.875 8.125 5.75571 8.125 4.375C8.125 2.99429 7.00571 1.875 5.625 1.875C4.24429 1.875 3.125 2.99429 3.125 4.375C3.125 5.75571 4.24429 6.875 5.625 6.875Z"
+                    stroke={
+                      pathname === "/companies/dashboard/team-members"
+                        ? "#FFFFFF"
+                        : "#6D6D6D"
+                    }
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M14.375 13.125V11.875C14.3744 11.3219 14.1902 10.7831 13.8502 10.3393C13.5102 9.89555 13.0329 9.57132 12.4844 9.41875"
+                    stroke={
+                      pathname === "/companies/dashboard/team-members"
+                        ? "#FFFFFF"
+                        : "#6D6D6D"
+                    }
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9.98438 1.91875C10.5346 2.07006 11.0138 2.39397 11.3553 2.83842C11.6967 3.28287 11.8815 3.82309 11.8815 4.37734C11.8815 4.93159 11.6967 5.47181 11.3553 5.91626C11.0138 6.36071 10.5346 6.68462 9.98438 6.83594"
+                    stroke={
+                      pathname === "/companies/dashboard/team-members"
+                        ? "#FFFFFF"
+                        : "#6D6D6D"
+                    }
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Team Members
+              </Link>
+            )}
             {/* Process */}
-            <Link
+            {/* <Link
               href="/admin/dashboard/process"
               className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
                 pathname === "/admin/dashboard/process"
@@ -413,7 +315,7 @@ export default function TabsNavigation() {
                 </defs>
               </svg>
               Process
-            </Link>
+            </Link> */}
           </div>
         </div>
 
