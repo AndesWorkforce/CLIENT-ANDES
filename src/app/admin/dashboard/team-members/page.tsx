@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/store/auth.store";
-import { getOffersWithAccepted } from "../actions/offers-with-accepted.actions";
+import { getAllOffersWithAcceptedGlobal } from "../actions/offers-with-accepted.actions";
 import CandidateProfileModal from "@/app/admin/dashboard/components/CandidateProfileModal";
 import { CandidateProfileProvider } from "@/app/admin/dashboard/context/CandidateProfileContext";
 
@@ -15,10 +14,10 @@ const columns = [
   { key: "contractDate", label: "Contract Date" },
   { key: "contractStatus", label: "Contract Status" },
   { key: "position", label: "Position" },
+  { key: "firm", label: "Firm" },
 ];
 
 export default function TeamMembersPage() {
-  const { user } = useAuthStore();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>("");
   const [orderBy, setOrderBy] = useState("fullName");
@@ -26,6 +25,10 @@ export default function TeamMembersPage() {
   const [rowsPerPage, setRowsPerPage] = useState(15);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  type EmpresaOferta = {
+    id: string;
+    nombre: string;
+  };
   type Candidato = {
     id: string;
     nombre: string;
@@ -34,6 +37,7 @@ export default function TeamMembersPage() {
     telefono?: string;
     pais?: string;
     residencia?: string;
+    empresa?: EmpresaOferta | null;
   };
   type Postulacion = {
     id: string;
@@ -44,10 +48,13 @@ export default function TeamMembersPage() {
   type OfferWithAccepted = {
     id: string;
     titulo: string;
+    descripcion: string;
     postulaciones: Postulacion[];
+    empresaOferta?: EmpresaOferta | null;
   };
   interface Member {
-    id: string;
+    id: string; // id de la postulación para key única
+    candidateId: string; // id del candidato
     fullName: string;
     email: string;
     phone?: string;
@@ -56,21 +63,32 @@ export default function TeamMembersPage() {
     profileUrl: string;
     contractDate?: string;
     contractStatus?: string;
+    firm?: string; // nombre de la empresa asociada a la oferta
   }
   const [members, setMembers] = useState<Member[]>([]);
 
-  // Ordenar solo por columnas válidas
-  const sortKeys = ["fullName", "email", "position"];
-  // Filtro por nombre solo en mobile
-  const filteredMembers = search
-    ? members.filter((m) =>
-        m.fullName.toLowerCase().includes(search.toLowerCase())
-      )
-    : members;
+  // Permitir sort en todas las columnas relevantes
+  const sortKeys = ["fullName", "email", "phone", "firm", "position"];
+
+  // Filtro por cliente (firm)
+  const [firmFilter, setFirmFilter] = useState<string>("");
+  const uniqueFirms = Array.from(
+    new Set(members.map((m) => m.firm).filter(Boolean))
+  );
+
+  // Filtro combinado: por nombre y por cliente
+  const filteredMembers = members.filter((m) => {
+    const matchesName = search
+      ? m.fullName.toLowerCase().includes(search.toLowerCase())
+      : true;
+    const matchesFirm = firmFilter ? m.firm === firmFilter : true;
+    return matchesName && matchesFirm;
+  });
+
   const sortedMembers = [...filteredMembers].sort((a, b) => {
     if (!sortKeys.includes(orderBy)) return 0;
-    const aVal = a[orderBy as keyof typeof a] as string;
-    const bVal = b[orderBy as keyof typeof b] as string;
+    const aVal = (a[orderBy as keyof Member] || "") as string;
+    const bVal = (b[orderBy as keyof Member] || "") as string;
     if (aVal < bVal) return orderDir === "asc" ? -1 : 1;
     if (aVal > bVal) return orderDir === "asc" ? 1 : -1;
     return 0;
@@ -107,10 +125,9 @@ export default function TeamMembersPage() {
     setIsProfileModalOpen(true);
   };
 
-  async function getOffersWithCompanyId() {
+  async function getOffersWithAcceptedGlobal() {
     try {
-      const response = await getOffersWithAccepted(user?.empresaId || "");
-      console.log("Response:", response);
+      const response = await getAllOffersWithAcceptedGlobal();
 
       if (response.success && Array.isArray(response.data)) {
         // Aplanar postulaciones aceptadas de todas las ofertas
@@ -127,7 +144,8 @@ export default function TeamMembersPage() {
                 });
               }
               return {
-                id: p.candidato.id,
+                id: p.id, // id de la postulación para key única
+                candidateId: p.candidato.id,
                 fullName: `${p.candidato.nombre} ${p.candidato.apellido}`,
                 email: p.candidato.correo,
                 phone: p.candidato.telefono,
@@ -136,6 +154,7 @@ export default function TeamMembersPage() {
                 profileUrl: `/profile/${p.candidato.id}`,
                 contractDate: formattedDate,
                 contractStatus: p.estadoPostulacion,
+                firm: offer.empresaOferta?.nombre || "",
               };
             })
         );
@@ -155,10 +174,8 @@ export default function TeamMembersPage() {
   }
 
   useEffect(() => {
-    if (user?.empresaId) {
-      getOffersWithCompanyId();
-    }
-  }, [user?.empresaId]);
+    getOffersWithAcceptedGlobal();
+  }, []);
 
   return (
     <CandidateProfileProvider>
@@ -167,8 +184,8 @@ export default function TeamMembersPage() {
           Team Members
         </h1>
 
-        {/* Desktop: buscador arriba de la tabla */}
-        <div className="hidden md:flex mb-2 justify-start">
+        {/* Desktop: buscador y filtro arriba de la tabla */}
+        <div className="hidden md:flex mb-2 gap-4 items-center">
           <input
             type="text"
             placeholder="Search by name..."
@@ -176,10 +193,22 @@ export default function TeamMembersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <select
+            className="border rounded px-2 py-1 text-xs md:text-sm"
+            value={firmFilter}
+            onChange={(e) => setFirmFilter(e.target.value)}
+          >
+            <option value="">All Clients</option>
+            {uniqueFirms.map((firm) => (
+              <option key={firm} value={firm}>
+                {firm}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Mobile: filtro por nombre */}
-        <div className="block md:hidden mb-4">
+        {/* Mobile: filtro por nombre y cliente */}
+        <div className="md:hidden mb-4 flex flex-col gap-2">
           <input
             type="text"
             placeholder="Search by name..."
@@ -187,12 +216,24 @@ export default function TeamMembersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <select
+            className="w-full border rounded px-3 py-2 text-sm"
+            value={firmFilter}
+            onChange={(e) => setFirmFilter(e.target.value)}
+          >
+            <option value="">All Clients</option>
+            {uniqueFirms.map((firm) => (
+              <option key={firm} value={firm}>
+                {firm}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Tabla solo en desktop */}
         <div className="overflow-x-auto bg-white rounded-lg shadow custom-scrollbar hidden md:block">
           <table className="min-w-full text-xs md:text-sm">
-            <thead className="bg-white border-b-[#0097B2]">
+            <thead className="bg-white border-b">
               <tr>
                 {columns.map((col) => (
                   <th
@@ -236,14 +277,14 @@ export default function TeamMembersPage() {
               {paginatedMembers.map((member) => (
                 <tr
                   key={member.id}
-                  className="border-b-[#0097B2] hover:bg-gray-50 transition-colors"
+                  className="border-b-gray-500 hover:bg-gray-50 transition-colors"
                 >
                   <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap text-[#17323A]">
                     {member.fullName}
                   </td>
                   <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
                     <button
-                      onClick={() => handleOpenProfile(member.id)}
+                      onClick={() => handleOpenProfile(member.candidateId)}
                       className="text-[#0097B2] hover:underline font-medium"
                     >
                       View
@@ -274,6 +315,9 @@ export default function TeamMembersPage() {
                   </td>
                   <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap text-[#17323A]">
                     {member.position}
+                  </td>
+                  <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap text-[#17323A]">
+                    {member.firm}
                   </td>
                 </tr>
               ))}
@@ -331,7 +375,7 @@ export default function TeamMembersPage() {
                   {member.fullName}
                 </span>
                 <button
-                  onClick={() => handleOpenProfile(member.id)}
+                  onClick={() => handleOpenProfile(member.candidateId)}
                   className="text-[#0097B2] hover:underline font-medium text-sm"
                 >
                   View profile
@@ -342,6 +386,7 @@ export default function TeamMembersPage() {
               </div>
               <div className="text-xs text-gray-500">Email: {member.email}</div>
               <div className="text-xs text-gray-500">Phone: {member.phone}</div>
+              <div className="text-xs text-gray-500">Firm: {member.firm}</div>
               <div className="flex items-center gap-2">
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-medium ${

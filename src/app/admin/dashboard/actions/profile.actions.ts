@@ -3,6 +3,7 @@
 import { createServerAxios } from "@/services/axios.server";
 
 export async function getProfile(id: string) {
+  console.log("\n\n\n Fetching profile for user ID:", id, "\n\n\n");
   const axios = await createServerAxios();
   try {
     const response = await axios.get(`usuarios/${id}/perfil-completo`);

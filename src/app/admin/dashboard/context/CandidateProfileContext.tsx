@@ -42,7 +42,7 @@ export const CandidateProfileProvider = ({
     setIsLoading(true);
     try {
       const response = await getProfile(candidateId);
-
+      console.log("Profile response:", response);
       if (response.success) {
         // Verificamos la estructura de los datos
         if (response.data && response.data.data) {
@@ -59,6 +59,7 @@ export const CandidateProfileProvider = ({
         addNotification("Error loading profile", "error");
       }
     } catch (error) {
+      console.error("Error loading profile:", error);
       // Mensajes específicos para ciertos errores
       const errorMsg = String(error);
       if (errorMsg.includes("429")) {
