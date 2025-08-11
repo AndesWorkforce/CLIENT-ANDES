@@ -18,20 +18,31 @@ export async function createServerAxios() {
   axiosServer.interceptors.response.use(
     (response) => response,
     async (error) => {
-      if (error.response?.status === 401) {
+      // Ignorar los errores 401 en la ruta de login
+      if (
+        error.response?.status === 401 &&
+        !error.config?.url?.includes("auth/login")
+      ) {
         console.log("[Axios] Interceptor de respuesta 401");
 
         // Eliminar las cookies usando el método delete
-        cookieStore.delete(AUTH_COOKIE);
-        cookieStore.delete(USER_INFO_COOKIE);
+        try {
+          cookieStore.delete(AUTH_COOKIE);
+          cookieStore.delete(USER_INFO_COOKIE);
 
-        // Redirigir a la página de logout forzado con los parámetros correctos
-        const currentPath = error.config?.url || "/";
-        redirect(
-          `/auth/forced-logout?reason=session_expired&callbackUrl=${encodeURIComponent(
-            currentPath
-          )}`
-        );
+          // Redirigir a la página de logout forzado con los parámetros correctos
+          const currentPath = error.config?.url || "/";
+          redirect(
+            `/auth/forced-logout?reason=session_expired&callbackUrl=${encodeURIComponent(
+              currentPath
+            )}`
+          );
+        } catch (redirectError) {
+          console.error("[Axios] Error en la redirección:", redirectError);
+          // Este bloque catch asegura que el error de redirección sea manejado correctamente
+          // y no interrumpa el flujo normal si algo falla
+          throw error; // Mantener el error original para que el código que llamó pueda manejarlo
+        }
       }
       return Promise.reject(error);
     }

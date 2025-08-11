@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import "react-quill/dist/quill.snow.css";
 import "quill/dist/quill.snow.css";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -121,6 +122,7 @@ export default function RootLayout({
         <Footer />
         <Toast />
       </body>
+      <Script src="/appwise-banner.js" />
     </html>
   );
 }

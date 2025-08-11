@@ -10,6 +10,7 @@ interface ExperienceModalProps {
   onClose: () => void;
   onSave: (userId: string, data: Experience) => void;
   experienceData?: Experience;
+  candidateId?: string;
 }
 
 export default function ExperienceModal({
@@ -17,6 +18,7 @@ export default function ExperienceModal({
   onClose,
   experienceData,
   onSave,
+  candidateId,
 }: ExperienceModalProps) {
   const { user } = useAuthStore();
   const modalRef = useRef<HTMLDivElement>(null);
@@ -132,7 +134,7 @@ export default function ExperienceModal({
       descripcion: formData.get("descripcion") as string,
     };
 
-    onSave(user?.id || "", data);
+    onSave(candidateId || user?.id || "", data);
     resetForm();
     onClose();
   };
@@ -220,18 +222,18 @@ export default function ExperienceModal({
                 required
               >
                 <option value="">Month</option>
-                <option value="Ene">Ene</option>
+                <option value="Jan">Jan</option>
                 <option value="Feb">Feb</option>
                 <option value="Mar">Mar</option>
-                <option value="Abr">Abr</option>
+                <option value="Apr">Apr</option>
                 <option value="May">May</option>
                 <option value="Jun">Jun</option>
                 <option value="Jul">Jul</option>
-                <option value="Ago">Ago</option>
+                <option value="Aug">Aug</option>
                 <option value="Sep">Sep</option>
                 <option value="Oct">Oct</option>
                 <option value="Nov">Nov</option>
-                <option value="Dic">Dic</option>
+                <option value="Dec">Dec</option>
               </select>
               <select
                 name="startYear"
@@ -285,18 +287,18 @@ export default function ExperienceModal({
                 required={!atPresent}
               >
                 <option value="">Month</option>
-                <option value="Ene">Ene</option>
+                <option value="Jan">Jan</option>
                 <option value="Feb">Feb</option>
                 <option value="Mar">Mar</option>
-                <option value="Abr">Abr</option>
+                <option value="Apr">Apr</option>
                 <option value="May">May</option>
                 <option value="Jun">Jun</option>
                 <option value="Jul">Jul</option>
-                <option value="Ago">Ago</option>
+                <option value="Aug">Aug</option>
                 <option value="Sep">Sep</option>
                 <option value="Oct">Oct</option>
                 <option value="Nov">Nov</option>
-                <option value="Dic">Dic</option>
+                <option value="Dec">Dec</option>
               </select>
               <select
                 name="endYear"

@@ -13,6 +13,7 @@ interface InterviewInvitationEmailProps {
   bookingLink: string;
 }
 
+// Stage 2: Invite to Interview
 export const InterviewInvitationEmail = ({
   candidateName,
   bookingLink,
@@ -40,10 +41,10 @@ export const InterviewInvitationEmail = ({
             }}
           >
             Thank you for expressing interest in offering your services to Andes
-            Workforce! We&apos;ve had the chance to review your offer for remote
-            positions, and we may have an opportunity that aligns with your
-            experience. We&apos;d like to schedule a brief call to discuss your
-            background further.
+            Workforce! We&#39;ve had the chance to review your application for
+            remote positions, and we may have an opportunity that aligns with
+            your experience. We&#39;d like to schedule a brief call to discuss
+            your background further.
           </Text>
 
           <Text
@@ -65,7 +66,7 @@ export const InterviewInvitationEmail = ({
           </Link>
 
           <img
-            src="https://appwiseinnovations.dev/Andes/firma_nicole.png"
+            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/firma_laura.jpeg"
             alt="Signature"
             style={{ marginTop: "32px", width: "400px", height: "200px" }}
           />

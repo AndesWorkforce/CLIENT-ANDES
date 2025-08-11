@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Edit, Trash2 } from "lucide-react";
+import { Bookmark, Calendar, Edit, Trash2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import {
   deleteOffer,
@@ -12,6 +12,7 @@ import EditOfferModal from "@/app/components/EditOfferModal";
 import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 import { useNotificationStore } from "@/store/notifications.store";
 import OfferCardSkeleton from "@/app/admin/dashboard/components/OfferCardSkeleton";
+import AssignOfferModal from "../components/AssignOfferModal";
 
 export default function SaveOffersPage() {
   const { addNotification } = useNotificationStore();
@@ -25,6 +26,8 @@ export default function SaveOffersPage() {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [offerToDelete, setOfferToDelete] = useState<string | undefined>();
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState<boolean>(false);
+  const [offerToAssign, setOfferToAssign] = useState<Offer | null>(null);
 
   const fetchSavedOffers = useCallback(async () => {
     try {
@@ -168,6 +171,11 @@ export default function SaveOffersPage() {
     }
   };
 
+  const handleAssignOffer = (offer: Offer) => {
+    setOfferToAssign(offer);
+    setIsAssignModalOpen(true);
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       {loading ? (
@@ -193,10 +201,19 @@ export default function SaveOffersPage() {
               >
                 <div className="p-4">
                   <div className="flex justify-between items-center">
-                    <div className="flex items-center">
+                    <div className="flex items-center justify-between w-full">
                       <h3 className="text-base font-medium text-gray-900">
                         {offer.titulo}
                       </h3>
+                      <button
+                        className="text-gray-400 hover:text-[#0097B2] cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAssignOffer(offer);
+                        }}
+                      >
+                        <Bookmark size={20} className="text-[#0097B2]" />
+                      </button>
                     </div>
                   </div>
                   <hr className="my-2 border-[#E2E2E2]" />
@@ -251,6 +268,14 @@ export default function SaveOffersPage() {
         message="Are you sure you want to delete this offer? This action cannot be undone."
         confirmButtonText="Yes, delete"
         cancelButtonText="Cancel"
+      />
+
+      {/* Modal de asignación */}
+      <AssignOfferModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        offerId={offerToAssign?.id || ""}
+        offerTitle={offerToAssign?.titulo || ""}
       />
     </div>
   );

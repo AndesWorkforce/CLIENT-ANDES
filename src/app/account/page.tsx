@@ -41,7 +41,6 @@ export default function AccountPage() {
           logout();
         }, 2000);
       } else {
-        console.error("[Account] Error al cambiar el email:", result.message);
         addNotification("Error changing email", "error");
       }
     }
@@ -63,10 +62,6 @@ export default function AccountPage() {
           logout();
         }, 2000);
       } else {
-        console.error(
-          "[Account] Error al cambiar la contraseña:",
-          result.message
-        );
         addNotification("Error changing password", "error");
       }
     }

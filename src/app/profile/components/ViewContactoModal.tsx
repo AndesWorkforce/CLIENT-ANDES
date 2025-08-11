@@ -2,6 +2,18 @@
 
 import { useProfileContext } from "../context/ProfileContext";
 
+// Tipo extendido para los datos personales
+interface DatosPersonalesExtendidos {
+  nombre?: string;
+  apellido?: string;
+  correo?: string;
+  telefono?: string;
+  residencia?: string;
+  fotoPerfil?: string | null;
+  pais?: string;
+  paisImagen?: string;
+}
+
 interface ViewContactoModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -15,6 +27,10 @@ export default function ViewContactoModal({
 }: ViewContactoModalProps) {
   const { profile } = useProfileContext();
 
+  // Tratamos los datos personales como un tipo extendido
+  const datosPersonales =
+    profile.datosPersonales as unknown as DatosPersonalesExtendidos;
+
   if (!isOpen) return null;
 
   return (
@@ -26,7 +42,7 @@ export default function ViewContactoModal({
             <div>
               <h3 className="font-medium text-gray-700">Phone</h3>
               <p className="mt-1 text-gray-600">
-                {profile.datosPersonales.telefono || "Not specified"}
+                {datosPersonales.telefono || "No especificado"}
               </p>
             </div>
             <div>
@@ -34,8 +50,25 @@ export default function ViewContactoModal({
                 Residence or Address
               </h3>
               <p className="mt-1 text-gray-600">
-                {profile.datosPersonales.residencia || "Not specified"}
+                {datosPersonales.residencia || "No especificado"}
               </p>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-700">Country</h3>
+              {datosPersonales.pais ? (
+                <div className="mt-1 flex items-center space-x-2">
+                  <p className="text-gray-600">{datosPersonales.pais}</p>
+                  {datosPersonales.paisImagen && (
+                    <img
+                      src={datosPersonales.paisImagen}
+                      alt={`Bandera de ${datosPersonales.pais}`}
+                      className="h-5 w-auto"
+                    />
+                  )}
+                </div>
+              ) : (
+                <p className="mt-1 text-gray-600">Not specified</p>
+              )}
             </div>
           </div>
           <div className="mt-6 flex justify-end space-x-3">

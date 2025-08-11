@@ -5,6 +5,7 @@ export interface DatosPersonales {
   telefono: string;
   residencia: string;
   fotoPerfil: string;
+  pais: string;
 }
 
 export interface RequisitosDispositivo {
@@ -22,6 +23,8 @@ export interface Archivos {
   imagenTestExterno: string;
   imagenTestVelocidad: string;
   imagenRequerimientosPC: string;
+  fotoCedulaFrente: string | null;
+  fotoCedulaDorso: string | null;
 }
 
 export interface DatosFormulario {
@@ -29,7 +32,9 @@ export interface DatosFormulario {
   "What Internet provider do you use?": string;
   "What is the URL for their website?": string;
   "Do you use a wired internet connection?": string;
-  "In what city and country do you reside?": string;
+  "In which city and country do you live?": string;
+  "Have you been referred by someone?": string;
+  "Referrer Name"?: string;
   "What 3 words best describe you and why?": string;
   "What phone number do you use for WhatsApp?": string;
   "How much RAM is available on your computer?": string;
@@ -84,6 +89,7 @@ export interface PerfilCompleto {
   estadoPerfil: "COMPLETO" | "INCOMPLETO";
   validacionExterna: boolean;
   videoPresentacion: string;
+  assessmentUrl?: string | null;
 }
 
 export interface ProfileResponse {

@@ -8,20 +8,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormValues } from "../schemas/login.schema";
 import { loginAction } from "../actions/login.action";
 import { useNotificationStore } from "@/store/notifications.store";
-import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import CryptoJS from "crypto-js";
 
 const REMEMBER_KEY = "andes_remembered_email";
-const SECRET = process.env.NEXT_PUBLIC_CRYPTO_KEY!; // Puedes mover esto a un env si lo deseas
+const SECRET = process.env.NEXT_PUBLIC_CRYPTO_KEY || "default-secret-key";
 
 export default function LoginForm() {
-  const router = useRouter();
   const { setUser, setAuthenticated, setToken } = useAuthStore();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -30,62 +26,116 @@ export default function LoginForm() {
   const {
     register,
     handleSubmit,
-    reset,
     setValue,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      correo: "",
+      contrasena: "",
+    },
   });
 
   useEffect(() => {
-    const encrypted = localStorage.getItem(REMEMBER_KEY);
-    if (encrypted) {
-      try {
-        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET);
-        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-        if (decrypted) {
-          setEmail(decrypted);
-          setValue("correo", decrypted);
+    try {
+      const remembered = localStorage.getItem(REMEMBER_KEY);
+      if (remembered) {
+        const bytes = CryptoJS.AES.decrypt(remembered, SECRET);
+        const decryptedEmail = bytes.toString(CryptoJS.enc.Utf8);
+
+        if (decryptedEmail && decryptedEmail.includes("@")) {
+          setValue("correo", decryptedEmail);
           setRememberMe(true);
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
         }
-      } catch {}
+      }
+    } catch (error) {
+      console.error("Error loading remembered email:", error);
+      localStorage.removeItem(REMEMBER_KEY);
     }
   }, [setValue]);
+
+  const safeRedirect = (url: string) => {
+    setTimeout(() => {
+      window.location.href = url;
+    }, 500);
+  };
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
       setIsSubmitting(true);
-      const result = await loginAction(data);
 
-      if (result.success) {
-        addNotification("Successfully logged in", "success");
-        setUser(result.data?.usuario);
-        setAuthenticated(true);
-        setToken(result.data?.accessToken);
-
-        if (rememberMe) {
+      // Manejar Remember Me
+      if (rememberMe && data.correo) {
+        try {
           const encrypted = CryptoJS.AES.encrypt(
             data.correo,
             SECRET
           ).toString();
           localStorage.setItem(REMEMBER_KEY, encrypted);
-        } else {
-          localStorage.removeItem(REMEMBER_KEY);
+        } catch (error) {
+          console.error("Error saving remembered email:", error);
         }
-
-        reset();
-        router.push("/pages/offers");
       } else {
-        addNotification(result.error || "Error logging in", "error");
-        reset();
+        localStorage.removeItem(REMEMBER_KEY);
+      }
+
+      // Intentar login
+      try {
+        const result = await loginAction(data);
+
+        if (result.success) {
+          addNotification("Successfully logged in", "success");
+          setUser(result.data?.usuario);
+          setAuthenticated(true);
+          setToken(result.data?.accessToken);
+          console.log(
+            "\n\n\n result.data?.usuario?.rol",
+            result.data?.usuario?.rol,
+            "\n\n\n"
+          );
+          if (
+            result.data?.usuario?.rol === "EMPRESA" ||
+            result.data?.usuario?.rol === "EMPLEADO_EMPRESA"
+          ) {
+            safeRedirect("/companies/dashboard");
+          } else if (
+            result.data?.usuario?.rol === "ADMIN" ||
+            result.data?.usuario?.rol === "EMPLEADO_ADMIN" ||
+            result.data?.usuario?.rol === "ADMIN_RECLUTAMIENTO"
+          ) {
+            safeRedirect("/admin/dashboard");
+          } else {
+            if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
+              safeRedirect("/profile");
+            } else {
+              safeRedirect("/pages/offers");
+            }
+          }
+        } else {
+          addNotification(result.error || "Error logging in", "error");
+          console.error("Login error:", result.error);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (loginError: any) {
+        if (
+          loginError.message &&
+          (loginError.message.includes("NEXT_REDIRECT") ||
+            loginError.message.includes("307") ||
+            loginError.message.includes("redirect"))
+        ) {
+          addNotification("Successfully logged in", "success");
+          safeRedirect("/profile");
+        } else {
+          throw loginError;
+        }
       }
     } catch (error) {
-      console.error("Error in the form:", error);
-      addNotification("Unexpected error logging in", "error");
-      reset();
+      console.error("Form submission error:", error);
+      addNotification("Unexpected error during login", "error");
     } finally {
       setIsSubmitting(false);
-      reset();
     }
   };
 
@@ -108,8 +158,6 @@ export default function LoginForm() {
             placeholder="Write your email"
             className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
             {...register("correo")}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
           />
           {errors.correo && (
             <span className="text-red-500 text-xs mt-1">
@@ -129,16 +177,6 @@ export default function LoginForm() {
               placeholder="Write your password"
               className="bg-transparent text-black border-b border-gray-300 w-full px-3 py-1 focus:outline-none focus:border-andes-blue text-[12px]"
               {...register("contrasena")}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setValue("contrasena", e.target.value); // sincroniza con RHF
-              }}
-              onInput={(e) => {
-                const value = (e.target as HTMLInputElement).value;
-                setPassword(value);
-                setValue("contrasena", value); // asegura sincronización en autocompletar/pegar
-              }}
             />
             <button
               type="button"
@@ -170,6 +208,7 @@ export default function LoginForm() {
             type="checkbox"
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
+            className="form-checkbox h-4 w-4 text-[#0097B2] transition duration-150 ease-in-out"
           />
           <label htmlFor="rememberMe" className="text-sm text-gray-700 ml-2">
             Remember me

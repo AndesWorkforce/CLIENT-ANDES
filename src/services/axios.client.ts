@@ -11,7 +11,7 @@ axiosClient.interceptors.request.use(
       .find((row) => row.startsWith("auth_token="))
       ?.split("=")[1];
     const zustandToken = useAuthStore.getState().token;
-
+    console.log("[Axios] Interceptor de solicitud", token, zustandToken);
     if (token || zustandToken) {
       config.headers.Authorization = `Bearer ${token || zustandToken}`;
     }

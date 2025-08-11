@@ -16,6 +16,13 @@ export const excludedRoutes = {
     "/admin/dashboard",
     "/admin/superAdmin",
     "/admin/dashboard/offers",
+    "/admin/dashboard/account",
+    "/companies/dashboard",
+    "/companies/dashboard/offers",
+    "/companies/dashboard/employees",
+    "/companies/dashboard/employees/new",
+    "/companies/account",
+    "/currentApplication",
   ],
   footer: [
     "/auth",
@@ -24,6 +31,13 @@ export const excludedRoutes = {
     "/auth/reset-password",
     "/admin/dashboard",
     "/admin/superAdmin",
+    "/companies/dashboard",
+    "/companies/dashboard/offers",
+    "/admin/dashboard/account",
+    "/companies/dashboard/employees",
+    "/companies/dashboard/employees/new",
+    "/companies/account",
+    "/currentApplication",
   ],
 };
 

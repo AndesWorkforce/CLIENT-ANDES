@@ -5,12 +5,14 @@ import { createOffer } from "./actions/offers.actions";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useRouter } from "next/navigation";
 import QuillEditor from "../components/QuillEditor";
+import { COUNTRY_SELECT_OPTIONS } from "@/lib/countries";
 
 export default function OfferDetailPage() {
   const { addNotification } = useNotificationStore();
   const router = useRouter();
   const [title, setTitle] = useState<string>("");
   const [descriptionHTML, setDescriptionHTML] = useState<string>("");
+  const [country, setCountry] = useState<string>("");
   const [key, setKey] = useState<number>(0);
 
   const handleDescriptionChange = (content: string) => {
@@ -23,7 +25,7 @@ export default function OfferDetailPage() {
 
   const handlePublish = async () => {
     if (!title || isContentEmpty(descriptionHTML)) {
-      addNotification("Debes completar el título y la descripción", "error");
+      addNotification("You must complete the title and description", "error");
       return;
     }
 
@@ -31,21 +33,24 @@ export default function OfferDetailPage() {
     formData.append("title", title);
     formData.append("description", descriptionHTML);
     formData.append("estado", "publicado");
+    if (country) {
+      formData.append("pais", country);
+    }
 
     const response = await createOffer(formData);
     if (response.success) {
-      addNotification("Oferta publicada", "success");
+      addNotification("Offer published", "success");
       resetForm();
       router.refresh();
       router.push("/admin/dashboard/offers");
     } else {
-      addNotification("Error al publicar oferta", "error");
+      addNotification("Error publishing offer", "error");
     }
   };
 
   const handleSave = async () => {
     if (!title || isContentEmpty(descriptionHTML)) {
-      addNotification("Debes completar el título y la descripción", "error");
+      addNotification("You must complete the title and description", "error");
       return;
     }
 
@@ -53,27 +58,31 @@ export default function OfferDetailPage() {
     formData.append("title", title);
     formData.append("description", descriptionHTML);
     formData.append("estado", "borrador");
+    if (country) {
+      formData.append("pais", country);
+    }
 
     const response = await createOffer(formData);
     if (response.success) {
-      addNotification("Oferta guardada como borrador", "success");
+      addNotification("Offer saved as draft", "success");
       resetForm();
       router.refresh();
       router.push("/admin/dashboard/offers");
     } else {
-      addNotification("Error al guardar cambios", "error");
+      addNotification("Error saving changes", "error");
     }
   };
 
   const resetForm = () => {
     setTitle("");
     setDescriptionHTML("");
+    setCountry("");
     setKey((prev) => prev + 1);
   };
 
   const handleDiscard = () => {
     resetForm();
-    addNotification("Cambios descartados", "info");
+    addNotification("Changes discarded", "info");
     router.push("/admin/dashboard/offers/list");
   };
 
@@ -96,6 +105,36 @@ export default function OfferDetailPage() {
               placeholder="Graphic design service"
               className="shadow-sm focus:ring-[#0097B2] focus:border-[#0097B2] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
             />
+          </div>
+
+          <div>
+            <label
+              htmlFor="country"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Country available (optional)
+            </label>
+            <select
+              id="country"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className="shadow-sm focus:ring-[#0097B2] focus:border-[#0097B2] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+            >
+              {COUNTRY_SELECT_OPTIONS.map((option) => (
+                <option
+                  key={option.value}
+                  value={option.value}
+                  disabled={option.disabled}
+                  className={option.disabled ? "text-gray-400" : ""}
+                >
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-sm text-gray-500">
+              {`Select a specific country to restrict applications, or leave "All
+              countries" to allow global applications.`}
+            </p>
           </div>
 
           <div>

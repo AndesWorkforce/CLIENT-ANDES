@@ -17,7 +17,7 @@ export default function LoginPage() {
           className="object-fill blur-lg brightness-75"
           priority
         />
-        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="absolute inset-0 bg-black/50" />
       </div>
 
       <div className="flex-1 flex flex-col w-full z-10 justify-center items-center md:px-8">

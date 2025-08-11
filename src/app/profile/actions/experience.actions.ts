@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { createServerAxios } from "@/services/axios.server";
 
 export interface Experience {
   id?: string;
@@ -16,6 +17,7 @@ export interface Experience {
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function addExperience(userId: string, experience: Experience) {
+  const axios = await createServerAxios();
   try {
     if (!API_URL) {
       return {
@@ -34,27 +36,20 @@ export async function addExperience(userId: string, experience: Experience) {
       };
     }
 
-    const response = await fetch(`${API_URL}users/${userId}/experience`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(experience),
-      cache: "no-store",
-    });
+    const response = await axios.patch(
+      `${API_URL}users/${userId}/experience`,
+      experience,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-    const responseText = await response.text();
+    const responseData = await response.data;
 
-    let responseData;
-    try {
-      responseData = JSON.parse(responseText);
-    } catch (e) {
-      console.error("[Experience] Error al analizar la respuesta:", e);
-      responseData = { message: responseText };
-    }
-
-    if (!response.ok) {
+    if (response.status !== 200) {
       return {
         success: false,
         message: `Error del servidor: ${response.status} ${
@@ -63,7 +58,16 @@ export async function addExperience(userId: string, experience: Experience) {
       };
     }
 
-    revalidatePath("/profile");
+    revalidatePath("/profile", "layout");
+
+    revalidatePath("/profile", "page");
+
+    try {
+      revalidatePath("/profile", "layout");
+      revalidatePath("/profile", "page");
+    } catch (error) {
+      console.error("[Experience] Error en addExperience:", error);
+    }
 
     return {
       success: true,
@@ -79,6 +83,7 @@ export async function addExperience(userId: string, experience: Experience) {
 }
 
 export async function deleteExperience(userId: string, experienceId: string) {
+  const axios = await createServerAxios();
   try {
     if (!API_URL) {
       return {
@@ -97,35 +102,36 @@ export async function deleteExperience(userId: string, experienceId: string) {
       };
     }
 
-    const response = await fetch(
+    const response = await axios.delete(
       `${API_URL}users/${userId}/experience/${experienceId}`,
       {
-        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        cache: "no-store",
       }
     );
 
-    const responseText = await response.text();
+    const responseData = await response.data;
 
-    let responseData;
-    try {
-      responseData = JSON.parse(responseText);
-    } catch (e) {
-      console.error("[Experience] Error al analizar la respuesta:", e);
-      responseData = { message: responseText };
-    }
-
-    if (!response.ok) {
+    if (response.status !== 200) {
       return {
         success: false,
         message: `Error del servidor: ${response.status} ${
           response.statusText
         }. ${responseData.message || ""}`,
       };
+    }
+
+    revalidatePath("/profile", "layout");
+
+    revalidatePath("/profile", "page");
+
+    try {
+      revalidatePath("/profile", "layout");
+      revalidatePath("/profile", "page");
+    } catch (error) {
+      console.error("[Experience] Error en deleteExperience:", error);
     }
 
     revalidatePath("/profile");

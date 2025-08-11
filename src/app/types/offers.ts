@@ -14,6 +14,7 @@ export interface Candidato {
   telefono: string;
   fotoPerfil: string | null;
   videoPresentacion: string | null;
+  clasificacionGlobal?: string;
 }
 
 // Interfaz para documentos de postulación
@@ -49,6 +50,7 @@ export interface Postulacion {
   cv: string | null;
   documentosPostulacion: DocumentoPostulacion[];
   candidato: Candidato;
+  preferenciaEntrevista: boolean;
 }
 
 // Interfaz básica para una oferta
@@ -79,6 +81,15 @@ export interface Offer {
     postulaciones: number;
   };
   postulacionesCount?: number;
+  empresasAsociadas?:
+    | {
+        empresa: {
+          id: string;
+          nombre: string;
+        };
+      }[]
+    | null
+    | undefined; // Lista de empresas asociadas a la oferta
 }
 
 // Estados posibles de una oferta
@@ -141,6 +152,9 @@ export interface ApiResponse {
   message: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
+  currentPage?: number;
+  totalPages?: number;
+  hasMore?: boolean;
 }
 
 // Funciones helper para convertir entre tipos

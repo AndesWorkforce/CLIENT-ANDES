@@ -9,17 +9,35 @@ import {
   View,
   StyleSheet,
   PDFDownloadLink,
+  Image,
+  Link,
 } from "@react-pdf/renderer";
 
 interface PDFDownloadButtonProps {
   profile: PerfilCompleto;
 }
 
+// Helper function to check if profile has enough data to generate PDF
+const hasMinimumData = (profile: PerfilCompleto): boolean => {
+  return !!(
+    profile?.datosPersonales?.nombre && profile?.datosPersonales?.apellido
+  );
+};
+
 const styles = StyleSheet.create({
   page: {
     flexDirection: "column",
     backgroundColor: "#ffffff",
     padding: 30,
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  logo: {
+    width: 150,
+    height: 50,
+    objectFit: "contain",
   },
   section: {
     marginBottom: 20,
@@ -39,6 +57,12 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: "#4B5563",
   },
+  linkText: {
+    fontSize: 12,
+    marginBottom: 5,
+    color: "#0097B2",
+    textDecoration: "underline",
+  },
   listItem: {
     flexDirection: "row",
     marginBottom: 5,
@@ -46,123 +70,186 @@ const styles = StyleSheet.create({
   bullet: {
     width: 10,
   },
+  imageContainer: {
+    marginBottom: 10,
+  },
+  image: {
+    width: 200,
+    height: 150,
+    objectFit: "contain",
+  },
 });
 
 const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
+      {/* Logo de Andes */}
+      <View style={styles.logoContainer}>
+        <Image src="/images/logo-andes.png" style={styles.logo} />
+      </View>
+
       {/* Datos Personales */}
       <View style={styles.section}>
+        <Text style={styles.subtitle}>Contact Information</Text>
         <Text style={styles.title}>
-          {profile.datosPersonales.nombre} {profile.datosPersonales.apellido}
+          {profile?.datosPersonales?.nombre || ""}{" "}
+          {profile?.datosPersonales?.apellido || ""}
         </Text>
-        <Text style={styles.subtitle}>Datos de contacto</Text>
-        <Text style={styles.text}>
-          Teléfono: {profile.datosPersonales.telefono}
-        </Text>
-        <Text style={styles.text}>Email: {profile.datosPersonales.correo}</Text>
+        {profile?.datosPersonales?.residencia && (
+          <Text style={styles.text}>
+            Address: {profile.datosPersonales.residencia}
+          </Text>
+        )}
+        {profile?.datosPersonales?.pais && (
+          <Text style={styles.text}>
+            Country: {profile.datosPersonales.pais}
+          </Text>
+        )}
       </View>
 
       {/* Video */}
-      {profile.archivos.videoPresentacion && (
+      {profile?.archivos?.videoPresentacion && (
         <View style={styles.section}>
-          <Text style={styles.subtitle}>Video Presentación</Text>
-          <Text style={styles.text}>
-            URL: {profile.archivos.videoPresentacion}
-          </Text>
+          <Text style={styles.subtitle}>Video Presentation</Text>
+          <Link
+            src={profile.archivos.videoPresentacion}
+            style={styles.linkText}
+          >
+            Ver video de presentación
+          </Link>
         </View>
       )}
 
       {/* Skills */}
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>Skills</Text>
-        {profile.habilidades.map((habilidad) => (
-          <View key={habilidad.id} style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.text}>{habilidad.nombre}</Text>
-          </View>
-        ))}
-      </View>
+      {profile?.habilidades && profile.habilidades.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.subtitle}>Skills</Text>
+          {profile.habilidades.map((habilidad) => (
+            <View key={habilidad.id} style={styles.listItem}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.text}>{habilidad?.nombre || ""}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Especificaciones PC */}
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>Especificaciones PC</Text>
-        {profile.archivos.imagenTestVelocidad && (
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.text}>
-              Test de Velocidad: {profile.archivos.imagenTestVelocidad}
-            </Text>
-          </View>
-        )}
-        {profile.archivos.imagenRequerimientosPC && (
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.text}>
-              Requerimientos PC: {profile.archivos.imagenRequerimientosPC}
-            </Text>
-          </View>
-        )}
-      </View>
+      {(profile?.archivos?.imagenTestVelocidad ||
+        profile?.archivos?.imagenRequerimientosPC) && (
+        <View style={styles.section}>
+          <Text style={styles.subtitle}>PC Specifications</Text>
+          {profile?.archivos?.imagenTestVelocidad && (
+            <View style={{ marginBottom: 10 }}>
+              <Text style={styles.text}>Speed Test:</Text>
+              <Link
+                src={profile.archivos.imagenTestVelocidad}
+                style={styles.linkText}
+              >
+                Ver imagen del test de velocidad
+              </Link>
+            </View>
+          )}
+          {profile?.archivos?.imagenRequerimientosPC && (
+            <View style={{ marginBottom: 10 }}>
+              <Text style={styles.text}>PC Requirements:</Text>
+              <Link
+                src={profile.archivos.imagenRequerimientosPC}
+                style={styles.linkText}
+              >
+                Ver imagen de requerimientos de PC
+              </Link>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Experiencia */}
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>Experiencia</Text>
-        {profile.experiencia.map((exp) => (
-          <View key={exp.id} style={{ marginBottom: 10 }}>
-            <Text style={{ ...styles.text, fontWeight: "bold" }}>
-              {exp.cargo}
-            </Text>
-            <Text style={styles.text}>{exp.empresa}</Text>
-            <Text style={styles.text}>
-              {exp.fechaInicio} - {exp.fechaFin || "Presente"}
-            </Text>
-            <Text style={styles.text}>{exp.descripcion}</Text>
-          </View>
-        ))}
-      </View>
+      {profile?.experiencia && profile.experiencia.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.subtitle}>Experience</Text>
+          {profile.experiencia.map((exp) => (
+            <View key={exp.id} style={{ marginBottom: 10 }}>
+              <Text style={{ ...styles.text, fontWeight: "bold" }}>
+                {exp?.cargo || "No title specified"}
+              </Text>
+              <Text style={styles.text}>
+                {exp?.empresa || "No company specified"}
+              </Text>
+              <Text style={styles.text}>
+                {exp?.fechaInicio || ""} - {exp?.fechaFin || "Presente"}
+              </Text>
+              {exp?.descripcion && (
+                <Text style={styles.text}>{exp.descripcion}</Text>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
     </Page>
 
     <Page size="A4" style={styles.page}>
       {/* Educación */}
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>Educación</Text>
-        {profile.educacion.map((edu) => (
-          <View key={edu.id} style={{ marginBottom: 10 }}>
-            <Text style={{ ...styles.text, fontWeight: "bold" }}>
-              {edu.titulo}
-            </Text>
-            <Text style={styles.text}>{edu.institucion}</Text>
-            <Text style={styles.text}>
-              {edu.añoInicio} - {edu.añoFin || "Presente"}
-            </Text>
-          </View>
-        ))}
-      </View>
+      {profile?.educacion && profile.educacion.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.subtitle}>Education</Text>
+          {profile.educacion.map((edu) => (
+            <View key={edu.id} style={{ marginBottom: 10 }}>
+              <Text style={{ ...styles.text, fontWeight: "bold" }}>
+                {edu?.titulo || "No title specified"}
+              </Text>
+              <Text style={styles.text}>
+                {edu?.institucion || "No institution specified"}
+              </Text>
+              <Text style={styles.text}>
+                {edu?.añoInicio || ""} - {edu?.añoFin || "Presente"}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Formulario */}
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>Formulario</Text>
-        {Object.entries(profile.datosFormulario).map(
-          ([pregunta, respuesta], index) => (
-            <View key={index} style={{ marginBottom: 10 }}>
-              <Text style={{ ...styles.text, fontWeight: "bold" }}>
-                {pregunta}
-              </Text>
-              <Text style={styles.text}>{respuesta}</Text>
-            </View>
-          )
+      {profile?.datosFormulario &&
+        Object.keys(profile.datosFormulario).length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.subtitle}>Form</Text>
+            {Object.entries(profile.datosFormulario)
+              .filter(([pregunta]) => {
+                const preguntaLower = pregunta.toLowerCase();
+                return (
+                  !preguntaLower.includes("whatsapp") &&
+                  !preguntaLower.includes("gmail") &&
+                  !preguntaLower.includes("correo")
+                );
+              })
+              .map(([pregunta, respuesta], index) => (
+                <View key={index} style={{ marginBottom: 10 }}>
+                  <Text style={{ ...styles.text, fontWeight: "bold" }}>
+                    {pregunta || "No question"}
+                  </Text>
+                  <Text style={styles.text}>{respuesta || "No answer"}</Text>
+                </View>
+              ))}
+          </View>
         )}
-      </View>
     </Page>
   </Document>
 );
 
 export default function PDFDownloadButton({ profile }: PDFDownloadButtonProps) {
+  // Don't show the button if there's not enough data
+  if (!hasMinimumData(profile)) {
+    return null;
+  }
+
+  const fileName = `perfil_${profile?.datosPersonales?.nombre || "unknown"}_${
+    profile?.datosPersonales?.apellido || "user"
+  }.pdf`;
+
   return (
     <PDFDownloadLink
       document={<ProfilePDF profile={profile} />}
-      fileName={`perfil_${profile.datosPersonales.nombre}_${profile.datosPersonales.apellido}.pdf`}
+      fileName={fileName}
       className="flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors"
     >
       {({ loading, error }) => (
@@ -170,10 +257,10 @@ export default function PDFDownloadButton({ profile }: PDFDownloadButtonProps) {
           <Download size={18} />
           <span>
             {loading
-              ? "Generando PDF..."
+              ? "Generating PDF..."
               : error
-              ? "Error al generar PDF"
-              : "Descargar PDF"}
+              ? "Error generating PDF"
+              : "Download PDF"}
           </span>
         </>
       )}

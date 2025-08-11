@@ -11,19 +11,20 @@ interface RejectPositionEmailProps {
   candidateName: string;
 }
 
+// Stage 5: Reject Position Notification
 export const RejectPositionEmail = ({
   candidateName,
 }: RejectPositionEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Update on Your Application Status</Preview>
+      <Preview>Update on your application</Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>
           <Text
             style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
-            Hi {candidateName},
+            Dear {candidateName},
           </Text>
 
           <Text
@@ -34,9 +35,9 @@ export const RejectPositionEmail = ({
               lineHeight: "1.5",
             }}
           >
-            We want to express our sincere appreciation for your interest and
-            for taking the time to participate in our selection process. We have
-            carefully reviewed your profile and experience.
+            Thank you for taking the time to participate in our selection
+            process. We truly appreciate your interest in the position and the
+            effort you put into your application.
           </Text>
 
           <Text
@@ -47,10 +48,9 @@ export const RejectPositionEmail = ({
               lineHeight: "1.5",
             }}
           >
-            Although we were impressed with your background, we have decided to
-            move forward with other candidates at this time. We would like to
-            keep your information in our database for future opportunities that
-            might better align with your profile.
+            After careful consideration, we regret to inform you that you were
+            not selected for the role. This decision was not easy, as we had
+            many strong candidates, including yourself.
           </Text>
 
           <Text
@@ -61,25 +61,20 @@ export const RejectPositionEmail = ({
               lineHeight: "1.5",
             }}
           >
-            We encourage you to stay connected with us, as new opportunities may
-            arise in the future that could be a better match.
+            We wish you all the best in your job search and future professional
+            endeavors. Please don&#39;t hesitate to apply for future
+            opportunities with us—we&#39;d be happy to consider your profile
+            again.
           </Text>
 
           <Text
             style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
-            Thank you again for your interest. We wish you success in your
-            future endeavors.
-          </Text>
-
-          <Text
-            style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
-          >
-            Best regards.
+            Warm regards,
           </Text>
 
           <img
-            src="https://appwiseinnovations.dev/Andes/firma_nicole.png"
+            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/firma_laura.jpeg"
             alt="Signature"
             style={{ marginTop: "32px", width: "200px", height: "auto" }}
           />

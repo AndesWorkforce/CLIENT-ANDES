@@ -13,6 +13,8 @@ export async function updateProfilePersonal(
     const response = await axios.patch(`usuarios/${userId}`, {
       telefono: profileData.telefono,
       residencia: profileData.residencia,
+      pais: profileData.pais,
+      paisImagen: profileData.paisImagen,
     });
 
     if (response.status !== 200) {
@@ -36,14 +38,14 @@ export async function updateProfilePersonal(
 
     return {
       success: true,
-      message: "Perfil actualizado correctamente",
+      message: "Profile updated successfully",
       data: responseData,
     };
   } catch (error) {
-    console.error("[Profile] Error en updateProfile:", error);
+    console.error("[Profile] Error in updateProfile:", error);
     return {
       success: false,
-      message: "Error en updateProfile: " + error,
+      message: "Error in updateProfile: " + error,
     };
   }
 }

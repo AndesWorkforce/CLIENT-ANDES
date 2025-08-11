@@ -11,12 +11,13 @@ interface AdvanceNextStepProps {
   candidateName: string;
 }
 
+// Stage 3: Schedule Second Interview
 export const AdvanceNextStep = ({ candidateName }: AdvanceNextStepProps) => {
   return (
     <Html>
       <Head />
       <Preview>
-        Congratulations! You&apos;ve been selected for the next stage
+        Congratulations! You&#39;ve Been Selected for the Next Stage
       </Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>
@@ -36,11 +37,24 @@ export const AdvanceNextStep = ({ candidateName }: AdvanceNextStepProps) => {
           >
             Congratulations! We are pleased to inform you that you have been
             selected to advance to the next stage of the process. We would like
-            to schedule a meeting to discuss the next steps.
+            to schedule a meeting with our client to discuss the next steps.
+            You&#39;ll receive a follow-up email shortly with possible times and
+            dates.
+          </Text>
+
+          <Text
+            style={{
+              color: "#333",
+              fontSize: "16px",
+              margin: "0 0 20px 0",
+              lineHeight: "1.5",
+            }}
+          >
+            Warm regards,
           </Text>
 
           <img
-            src="https://appwiseinnovations.dev/Andes/firma_nicole.png"
+            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/firma_laura.jpeg"
             alt="Signature"
             style={{ marginTop: "32px", width: "400px", height: "200px" }}
           />

@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { ChevronLeft, Clock, Calendar, X } from "lucide-react";
-import Link from "next/link";
-import Logo from "@/app/components/Logo";
+import { Clock, Calendar, X, CheckCircle, Trash2 } from "lucide-react";
+
 import {
   Application,
   getMyApplications,
+  removeMyApplication,
 } from "@/app/applications/actions/applications.actions";
+import SimpleHeader from "../components/SimpleHeader";
+import { useNotificationStore } from "@/store/notifications.store";
 
 export default function ApplicationsPage() {
+  const { addNotification } = useNotificationStore();
   const [applications, setApplications] = useState<Application[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -17,6 +20,9 @@ export default function ApplicationsPage() {
   const [selectedApplication, setSelectedApplication] =
     useState<Application | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [applicationToDelete, setApplicationToDelete] =
+    useState<Application | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const observer = useRef<IntersectionObserver | null>(null);
 
   const fetchApplications = async () => {
@@ -70,6 +76,42 @@ export default function ApplicationsPage() {
     document.body.style.overflow = "auto";
   };
 
+  const handleDeleteApplication = (app: Application) => {
+    setApplicationToDelete(app);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteApplication = async () => {
+    if (!applicationToDelete) return;
+
+    try {
+      const response = await removeMyApplication(applicationToDelete.id);
+
+      if (response.success) {
+        addNotification("Application removed successfully", "success");
+        // Remove the application from the local state
+        setApplications((prev) =>
+          prev.filter((app) => app.id !== applicationToDelete.id)
+        );
+        setShowDeleteModal(false);
+        setApplicationToDelete(null);
+      } else {
+        addNotification(
+          response.error || "Error removing application",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error removing application:", error);
+      addNotification("Error removing application", "error");
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setApplicationToDelete(null);
+  };
+
   const renderStatusIndicator = (status: string) => {
     if (status === "PENDIENTE") {
       return (
@@ -92,7 +134,7 @@ export default function ApplicationsPage() {
           <span className="text-red-500 font-medium">Finalist</span>
         </div>
       );
-    } else if (status === "ACEPTADO") {
+    } else if (status === "ACEPTADA") {
       return (
         <div className="flex items-center">
           <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
@@ -103,28 +145,18 @@ export default function ApplicationsPage() {
       return (
         <div className="flex items-center">
           <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-          <span className="text-red-500 font-medium">Finalist</span>
+          <span className="text-red-500 font-medium">Rejected</span>
         </div>
       );
     }
   };
 
+  console.log("\n\n\n [Applications] applications: ", applications, "\n\n\n");
+
   return (
     <div className="container mx-auto min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Link href="/" className="text-gray-700">
-              <ChevronLeft size={20} color="#0097B2" />
-            </Link>
-            <h1 className="text-xl font-medium">My Applications</h1>
-          </div>
-          <div>
-            <Logo />
-          </div>
-        </div>
-      </header>
+      <SimpleHeader title="My Applications" />
 
       {/* Contenido */}
       <div className="container mx-auto px-4 py-6">
@@ -144,9 +176,21 @@ export default function ApplicationsPage() {
                   }
                 >
                   <div className="p-4">
-                    <h2 className="text-lg font-medium text-[#0097B2] mb-2 line-clamp-2">
-                      {app?.propuesta.titulo}
-                    </h2>
+                    <div className="flex justify-between items-start mb-2">
+                      <h2 className="text-lg font-medium text-[#0097B2] line-clamp-2 flex-1">
+                        {app?.propuesta.titulo}
+                      </h2>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteApplication(app);
+                        }}
+                        className="ml-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                        title="Remove application"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
 
                     <div className="flex flex-col">
                       <div
@@ -164,15 +208,15 @@ export default function ApplicationsPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 p-4 space-y-2 bg-gray-100 rounded-b-lg">
-                    {app.applicationDate && (
+                  <div className="border-t flex flex-col items-start justify-start border-gray-200 p-4 space-y-2 bg-gray-100 rounded-b-lg">
+                    {/* {app.applicationDate && (
                       <div className="flex items-center text-xs text-gray-600">
                         <div className="w-5 h-5 rounded-sm bg-[#0097B2] flex items-center justify-center mr-2">
                           <Calendar size={12} className="text-white" />
                         </div>
                         <span>Application date: {app?.applicationDate}</span>
                       </div>
-                    )}
+                    )} */}
 
                     <div className="flex items-center text-xs text-gray-600">
                       <div className="w-5 h-5 rounded-sm bg-[#0097B2] flex items-center justify-center mr-2">
@@ -183,6 +227,18 @@ export default function ApplicationsPage() {
                         {renderStatusIndicator(app?.estadoPostulacion)}
                       </span>
                     </div>
+
+                    {app.estadoPostulacion === "ACEPTADA" && (
+                      <div className="w-full mt-2 text-sm text-green-600 flex items-center justify-center gap-2">
+                        <CheckCircle size={14} />
+                        <a
+                          href="/currentApplication"
+                          className="underline hover:text-green-700 transition-colors"
+                        >
+                          Accepted - View in Current Application
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -196,16 +252,18 @@ export default function ApplicationsPage() {
         )}
 
         {!hasMore && applications.length > 0 && (
-          <p className="text-center text-gray-500 py-4">
-            No more applications to show
-          </p>
+          <div className="text-center py-8 mt-4">
+            <p className="text-gray-400 text-sm">
+              ✓ You&apos;ve reached the end of your applications
+            </p>
+          </div>
         )}
       </div>
 
       {/* Modal para ver detalles completos */}
       {showModal && selectedApplication && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-center p-4 border-b">
               <h2 className="text-xl font-medium text-[#0097B2]">
                 {selectedApplication?.propuesta.titulo}
@@ -220,9 +278,7 @@ export default function ApplicationsPage() {
 
             <div className="p-6">
               <div className="mb-6">
-                <h3 className="text-lg font-medium mb-2">
-                  Oferta del servicio
-                </h3>
+                <h3 className="text-lg font-medium mb-2">Service Offer</h3>
                 <div
                   className="text-gray-700 prose max-w-none"
                   dangerouslySetInnerHTML={{
@@ -257,6 +313,38 @@ export default function ApplicationsPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para eliminar aplicación */}
+      {showDeleteModal && applicationToDelete && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Remove Application
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                {`Are you sure you want to remove your application for "
+                ${applicationToDelete.propuesta.titulo}"? This action cannot be
+                undone.`}
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={closeDeleteModal}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteApplication}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Remove
+                </button>
               </div>
             </div>
           </div>
