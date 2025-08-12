@@ -1,14 +1,15 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Logo from "@/components/ui/Logo";
 import { resetPasswordAction } from "./actions/reset-password.action";
-import { useParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
-export default function ResetPasswordPage() {
+function ResetPasswordComponents() {
   const router = useRouter();
-  const { token } = useParams();
+  const params = useSearchParams();
+  const token = params.get("token");
 
   const {
     register,
@@ -16,6 +17,7 @@ export default function ResetPasswordPage() {
     watch,
     formState: { errors },
   } = useForm<{ password: string; confirmPassword: string }>();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -127,5 +129,13 @@ export default function ResetPasswordPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordComponents />
+    </Suspense>
   );
 }
