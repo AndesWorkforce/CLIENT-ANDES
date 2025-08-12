@@ -201,7 +201,6 @@ export default function SignContractModal({
   const { addNotification } = useNotificationStore();
   const [selectedTemplate, setSelectedTemplate] =
     useState<ContractTemplate | null>(null);
-  const [selectedServiceId, setSelectedServiceId] = useState<string>("custom");
   const [previewKey, setPreviewKey] = useState(0);
   const [showPreview, setShowPreview] = useState(true);
   // Lista simplificada de templates que funcionan correctamente
@@ -617,7 +616,6 @@ export default function SignContractModal({
                   key={template.id}
                   onClick={() => {
                     handleTemplateChange(template);
-                    setSelectedServiceId(template.id);
                     // También actualizar el puesto de trabajo
                     setContractData((prev) => ({
                       ...prev,
