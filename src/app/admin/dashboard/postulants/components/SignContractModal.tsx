@@ -95,7 +95,6 @@ const PDFPreview: React.FC<{
   useEffect(() => {
     setIsLoading(true);
     setShowPDF(false);
-    // Espera breve para desmontar el PDFViewer y evitar reconciliación conflictiva
     const timer = setTimeout(() => {
       setPdfKey((prev) => prev + 1);
       setIsLoading(false);
@@ -104,7 +103,15 @@ const PDFPreview: React.FC<{
     return () => clearTimeout(timer);
   }, [selectedTemplate.id, contractData]);
 
-  // Skeleton de carga
+  // Validar que todos los campos requeridos existen y no son nulos/undefined
+  const requiredFields = selectedTemplate?.variables || [];
+  const missingFields = requiredFields.filter(
+    (field) =>
+      contractData[field] === undefined ||
+      contractData[field] === null ||
+      contractData[field] === ""
+  );
+
   if (isLoading || !showPDF) {
     return (
       <div className="h-full flex items-center justify-center text-gray-500">
@@ -116,27 +123,58 @@ const PDFPreview: React.FC<{
     );
   }
 
-  // Renderizar el template correspondiente
-  let pdfTemplate = undefined;
-  if (contractData && contractData.nombreCompleto) {
-    try {
-      if (selectedTemplate.id === "english-contract") {
-        pdfTemplate = <StatementOfWorkEnglishPDF data={contractData} />;
-      } else {
-        pdfTemplate = <StatementOfWorkPDF data={contractData} />;
-      }
-    } catch (error) {
-      console.error("Error rendering PDF template:", error);
-      pdfTemplate = undefined;
-    }
+  if (missingFields.length > 0) {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <FileText size={48} className="mx-auto mb-4" />
+          <p className="text-sm text-gray-600 mb-2">
+            Faltan datos para el contrato:
+          </p>
+          <ul className="text-xs text-red-500 mb-2">
+            {missingFields.map((field) => (
+              <li key={field}>{field}</li>
+            ))}
+          </ul>
+          <p className="text-xs text-gray-400">
+            Completa todos los campos requeridos para ver el PDF.
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  if (!pdfTemplate) {
+  if (!showPDF) {
+    // fallback extra por seguridad
     return (
       <div className="h-full flex items-center justify-center text-gray-500">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0097B2] mx-auto mb-2"></div>
           <p className="text-sm text-gray-600">Loading PDF preview...</p>
+        </div>
+      </div>
+    );
+  }
+
+  let pdfTemplate = undefined;
+  try {
+    if (selectedTemplate.id === "english-contract") {
+      pdfTemplate = <StatementOfWorkEnglishPDF data={contractData} />;
+    } else {
+      pdfTemplate = <StatementOfWorkPDF data={contractData} />;
+    }
+  } catch (error) {
+    console.error("Error rendering PDF template:", error);
+    return (
+      <div className="h-full flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <FileText size={48} className="mx-auto mb-4" />
+          <p className="text-sm text-gray-600 mb-2">
+            Error al renderizar el PDF.
+          </p>
+          <p className="text-xs text-gray-400">
+            Intenta revisar los datos o selecciona otro contrato.
+          </p>
         </div>
       </div>
     );
@@ -164,7 +202,8 @@ export default function SignContractModal({
   const [selectedTemplate, setSelectedTemplate] =
     useState<ContractTemplate | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("custom");
-  console.log(selectedServiceId);
+  const [previewKey, setPreviewKey] = useState(0);
+  const [showPreview, setShowPreview] = useState(true);
   // Lista simplificada de templates que funcionan correctamente
   const contractTemplates = useMemo((): ContractTemplate[] => {
     // Eliminar el template estándar, solo dejar los específicos y el custom
@@ -287,13 +326,16 @@ export default function SignContractModal({
 
   // Función para manejar el cambio de template y actualizar la descripción automáticamente
   const handleTemplateChange = (template: ContractTemplate) => {
-    setSelectedTemplate(template);
-
-    // Actualizar automáticamente la descripción de servicios
-    setContractData((prev) => ({
-      ...prev,
-      descripcionServicios: template.description,
-    }));
+    setShowPreview(false);
+    setTimeout(() => {
+      setSelectedTemplate(template);
+      setContractData((prev) => ({
+        ...prev,
+        descripcionServicios: template.description,
+      }));
+      setPreviewKey((k) => k + 1);
+      setShowPreview(true);
+    }, 350); // tiempo para skeleton
   };
 
   const handleInputChange = (key: string, value: string) => {
@@ -848,8 +890,11 @@ export default function SignContractModal({
               </div>
             </div>
 
-            {selectedTemplate ? (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+            {selectedTemplate && showPreview ? (
+              <div
+                key={previewKey}
+                className="bg-gray-50 border border-gray-200 rounded-lg p-6"
+              >
                 {/* Subject Preview */}
                 <div className="mb-6 pb-4 border-b border-[#0097B2]">
                   <h4 className="text-sm font-medium text-gray-600 mb-2">
@@ -863,20 +908,20 @@ export default function SignContractModal({
                 {/* PDF Preview */}
                 <div className="bg-white rounded border shadow-sm">
                   <div className="h-[600px] border rounded-lg overflow-hidden">
-                    {contractData && selectedTemplate ? (
-                      <PDFPreview
-                        selectedTemplate={selectedTemplate}
-                        contractData={getPDFData()}
-                      />
-                    ) : (
-                      <div className="h-full flex items-center justify-center text-gray-500">
-                        <div className="text-center">
-                          <FileText size={48} className="mx-auto mb-4" />
-                          <p>Loading PDF preview...</p>
-                        </div>
-                      </div>
-                    )}
+                    <PDFPreview
+                      selectedTemplate={selectedTemplate}
+                      contractData={getPDFData()}
+                    />
                   </div>
+                </div>
+              </div>
+            ) : !showPreview ? (
+              <div className="h-full flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0097B2] mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-600">
+                    Cargando vista previa del contrato...
+                  </p>
                 </div>
               </div>
             ) : (
