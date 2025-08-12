@@ -199,6 +199,15 @@ export default function LoginForm() {
               {errors.contrasena.message}
             </span>
           )}
+          {/* Forgot password link */}
+          <div className="mt-2 text-right">
+            <Link
+              href="/auth/fargot-password"
+              className="text-[#0097B2] text-xs hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
         </div>
 
         {/* Remember me checkbox */}
