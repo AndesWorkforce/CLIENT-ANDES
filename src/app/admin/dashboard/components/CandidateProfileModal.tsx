@@ -52,6 +52,7 @@ export default function CandidateProfileModal({
   onClose,
   candidateId,
 }: CandidateProfileModalProps) {
+  console.log("Candidate ID:", candidateId);
   const { profile, isLoading, loadProfile } = useCandidateProfile();
   const { addNotification } = useNotificationStore();
   const { user } = useAuthStore();

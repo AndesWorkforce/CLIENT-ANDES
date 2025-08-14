@@ -5,7 +5,6 @@ import { pdf } from "@react-pdf/renderer";
 import { FileText, AlertCircle, Loader2 } from "lucide-react";
 
 // Importar todos los templates de PDF dinámicamente
-import StatementOfWorkPDF from "./templates/StatementOfWorkPDF";
 import StatementOfWorkEnglishPDF from "./templates/StatementOfWorkEnglishPDF";
 import AdmisionesContractPDF from "./templates/AdmisionesContractPDF";
 import LlamadaBienvenidaContractPDF from "./templates/LlamadaBienvenidaContractPDF";
@@ -112,12 +111,12 @@ const PDFPreviewSSG: React.FC<PDFPreviewSSGProps> = ({
 
           default:
             // Para todos los demás casos, usar StatementOfWorkPDF
-            return <StatementOfWorkPDF data={safeData} />;
+            return <StatementOfWorkEnglishPDF data={safeData} />;
         }
       } catch (error) {
         console.error("Error creating PDF component:", error);
         // Fallback a StatementOfWorkPDF si hay error
-        return <StatementOfWorkPDF data={data} />;
+        return <StatementOfWorkEnglishPDF data={data} />;
       }
     },
     []
