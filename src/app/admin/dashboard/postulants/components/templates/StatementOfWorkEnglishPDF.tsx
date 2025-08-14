@@ -368,12 +368,12 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
           once a Contractor reaches the 30-day balance limit.
         </Text>
 
-        <Text style={styles.paragraph}>
+        {/* <Text style={styles.paragraph}>
           Agreed to this day, by and between,
-        </Text>
+        </Text> */}
 
         {/* Signature section */}
-        <View style={styles.signatureSection}>
+        {/* <View style={styles.signatureSection}>
           <View style={styles.signatureBlock}>
             <Text style={styles.signatureLabel}>
               _______Firma Miguel__________
@@ -387,7 +387,7 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
               {data.nombreCompleto || "____________________________"}
             </Text>
           </View>
-        </View>
+        </View> */}
       </Page>
 
       {/* Página 2: Professional Services Agreement */}
@@ -399,117 +399,219 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
           </View>
         </View>
 
-        {/* Título */}
-        <Text style={styles.title}>PROFESSIONAL SERVICES AGREEMENT</Text>
-
-        <Text style={styles.paragraph}>
-          This Professional Services Agreement (&quot;Agreement&quot;) is
-          entered into effective as of{" "}
-          <Text style={styles.underline}>
-            {data.fechaEjecucion
-              ? formatDate(data.fechaEjecucion)
-              : "_____________"}
-          </Text>
-          , between Andes Workforce LLC, a Florida limited liability company
-          (&quot;Company&quot;), and{" "}
-          <Text style={styles.underline}>
-            {data.nombreCompleto || "__________________________"}
-          </Text>
-          , an individual (&quot;Contractor&quot;).
-        </Text>
-
-        <Text style={styles.clauseTitle}>1. Services</Text>
-        <Text style={styles.paragraph}>
-          Contractor agrees to provide the Services described in one or more
-          Statements of Work (&quot;SOW&quot;) entered into between the parties
-          pursuant to this Agreement. Each SOW will describe the Services to be
-          performed, the compensation to be paid by Company for such Services,
-          and any other terms specific to such Services.
-        </Text>
-
-        <Text style={styles.clauseTitle}>2. Payment</Text>
-        <Text style={styles.paragraph}>
-          Company will pay Contractor the amounts specified in the applicable
-          SOW for Services satisfactorily performed by Contractor hereunder.
-          Unless otherwise specified in an SOW, Company will pay Contractor
-          within thirty (30) days after the end of each calendar month for
-          Services performed during such month.
-        </Text>
-
-        <Text style={styles.clauseTitle}>3. Independent Contractor</Text>
-        <Text style={styles.paragraph}>
-          Contractor acknowledges and agrees that Contractor is an independent
-          contractor and not an employee of Company. Contractor will not be
-          entitled to any employee benefits, including without limitation,
-          health or dental insurance, disability insurance, or participation in
-          any pension, profit sharing or similar plan. Contractor is responsible
-          for paying all taxes associated with compensation received hereunder.
-        </Text>
-
-        <Text style={styles.clauseTitle}>4. Confidentiality</Text>
-        <Text style={styles.paragraph}>
-          During the performance of Services, Contractor may have access to
-          certain confidential and proprietary information of Company
-          (&quot;Confidential Information&quot;). Contractor agrees to maintain
-          in confidence and not disclose any Confidential Information to any
-          third party without the prior written consent of Company.
-        </Text>
-
-        <Text style={styles.clauseTitle}>5. Ownership of Work Product</Text>
-        <Text style={styles.paragraph}>
-          Any work product, inventions, discoveries, developments, or other
-          materials created by Contractor in the performance of Services
-          (&quot;Work Product&quot;) shall be the sole and exclusive property of
-          Company. Contractor hereby assigns to Company all right, title and
-          interest in and to the Work Product.
-        </Text>
-
-        <Text style={styles.clauseTitle}>6. Non-Solicitation</Text>
-        <Text style={styles.paragraph}>
-          During the term of this Agreement and for a period of twelve (12)
-          months thereafter, Contractor agrees not to directly or indirectly
-          solicit, recruit, or hire any employee of Company or any of its
-          affiliates.
-        </Text>
-
-        <Text style={styles.clauseTitle}>7. Termination</Text>
-        <Text style={styles.paragraph}>
-          This Agreement may be terminated by either party upon thirty (30)
-          days&apos; written notice to the other party. Upon termination,
-          Contractor shall promptly return all Confidential Information and
-          Company property in Contractor&apos;s possession.
-        </Text>
-
-        <Text style={styles.clauseTitle}>8. Governing Law</Text>
-        <Text style={styles.paragraph}>
-          This Agreement shall be governed by and construed in accordance with
-          the laws of the State of Florida, without regard to its conflict of
-          law principles.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          IN WITNESS WHEREOF, the parties have executed this Agreement as of the
-          date first written above.
-        </Text>
-
-        {/* Signature section */}
-        <View style={styles.signatureSection}>
-          <View style={styles.signatureBlock}>
-            <Text style={styles.signatureLabel}>COMPANY:</Text>
-            <View style={styles.signatureLine}></View>
-            <Text style={styles.signatureLabel}>
-              By: Miguel Rendon, Manager
+        {/* Título y encabezado alineados como en el diseño */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            marginBottom: 10,
+          }}
+        >
+          <View>
+            <Text style={[styles.bold, { fontSize: 14 }]}>
+              PROFESSIONAL SERVICES AGREEMENT
             </Text>
-            <Text style={styles.signatureLabel}>Andes Workforce LLC</Text>
-          </View>
-          <View style={styles.signatureBlock}>
-            <Text style={styles.signatureLabel}>CONTRACTOR:</Text>
-            <View style={styles.signatureLine}></View>
-            <Text style={styles.signatureLabel}>
-              {data.nombreCompleto || "____________________________"}
+            <Text style={[styles.bold, { fontSize: 12, marginTop: 8 }]}>
+              EFFECTIVE DATE:{" "}
+              <Text style={styles.underline}>
+                {data.fechaEjecucion
+                  ? formatDate(data.fechaEjecucion)
+                  : "_____________"}
+              </Text>
             </Text>
           </View>
         </View>
+
+        <Text style={styles.paragraph}>
+          This Professional Services Agreement (this &quot;Agreement&quot;) is
+          made by and between:
+        </Text>
+
+        <Text style={styles.paragraph}>
+          Andes Workforce LLC, registered in the United States under Limited
+          Liability Company Registration No. L24000192685 having its principal
+          place of business in Florida, United States, (&quot;Company&quot;),
+        </Text>
+
+        <Text style={styles.paragraph}>And</Text>
+
+        <Text style={styles.paragraph}>
+          <Text style={styles.underline}>
+            {data.nombreCompleto || "__________________________"}
+          </Text>
+          , having its principal place of business at address,
+          <Text style={styles.underline}>
+            {data.direccionCompleta || "__________________________"}
+          </Text>
+          , (&quot;Contractor&quot;).
+        </Text>
+
+        <Text style={styles.paragraph}>
+          Company and Contractor (each referred to as “Party” and referred to
+          together as “Parties”) wish to enter into an Agreement for the
+          Contractor to provide services to Company, according to the terms,
+          conditions, and provisions set forth below, along with any Statements
+          of Work.
+        </Text>
+
+        <Text style={[styles.bold, { fontSize: 14 }]}>SERVICE OBLIGATIONS</Text>
+
+        <Text style={styles.clauseTitle}>1. Statements of Work.</Text>
+        <Text style={styles.paragraph}>
+          During the term of this Agreement, Company and Contractor may execute
+          one or more statements of work detailing the specific services to be
+          performed by Contractor (as executed, a &quot;Statement of
+          Work(s)&quot;). Each Statement of Work will expressly refer to this
+          Agreement, will form a part of this Agreement, and will be subject to
+          the terms and conditions contained herein. A Statement of Work may be
+          amended only by a signed (by each party`&apos;s authorized signatory)
+          and written agreement of the parties.
+        </Text>
+
+        <Text style={styles.clauseTitle}>
+          2. Confidential Information and Intellectual Property Assignment
+          Agreement:
+        </Text>
+        <Text style={styles.paragraph}>
+          Contractor shall sign, or has signed, a Confidential Information and
+          Intellectual Property Assignment Agreement in the form set forth as
+          Exhibit A hereto, on or before the date Contractor begins providing
+          the Services.
+        </Text>
+
+        <Text style={styles.clauseTitle}>
+          3. Personal Performance Required:
+        </Text>
+        <Text style={styles.paragraph}>
+          Contractor shall promote the interests of the Company and, unless
+          prevented by ill health or accident, devote as much time as is
+          necessary for the performance of your obligations under this
+          Agreement. Where personal performance by Contractor is required, if
+          Contractor is unable to provide the Services due to illness or injury,
+          Contractor shall notify Company as soon as reasonably practicable. For
+          the avoidance of doubt, no fee shall be payable for Services which are
+          not provided.
+        </Text>
+
+        <Text style={styles.clauseTitle}>4. Geographic Restrictions:</Text>
+        <Text style={styles.paragraph}>
+          Under no circumstances may you perform work for Andes Workforce LLC
+          and its Client(s) while in any U.S. territory whatsoever. In case of
+          travel by You to the United States or any of its territories, you must
+          take time off (paid or unpaid) and cease any work duties whatsoever.
+        </Text>
+
+        <Text style={[styles.bold, { fontSize: 14 }]}>PAYMENT OBLIGATIONS</Text>
+
+        <Text style={styles.clauseTitle}>5. Fees.</Text>
+        <Text style={styles.paragraph}>
+          As compensation for the Services provided by Contractor, Company shall
+          pay Contractor the amounts specified in each Statement of Work in
+          accordance with the terms set forth therein. Contractor acknowledges
+          and agrees that Company’s payment obligation will be expressly subject
+          to Contractor’s completion of specified Services and/or achievement of
+          milestones to Company’s reasonable satisfaction.
+        </Text>
+
+        <Text style={[styles.bold, { fontSize: 14 }]}>
+          WARRANTIES AND DISCLAIMERS
+        </Text>
+
+        <Text style={styles.clauseTitle}>6. No Employment Relationship.</Text>
+        <Text style={styles.paragraph}>
+          Under the terms of this Agreement, Contractor’s relationship with
+          Company will be that of an independent contractor providing Services
+          to Company, and not that of an employee, worker, agent, or partner of
+          Company. The Parties expressly state that Contractor is an independent
+          service provider who will provide services on a fee basis without
+          subordination and dependence on the Company, thus creating a civil
+          relationship between them and never an employment relationship.
+          Consequently, Contractor shall not be considered in any way as an
+          employee of the Company, which shall not be subject to any labor or
+          social security obligation whatsoever with respect to him/her.
+          Contractor will not be entitled to any Company entitlements or
+          statutory benefits payable to employees or workers by law. To the
+          extent requested by Company or required by applicable law, Contractor
+          will provide Company with all documents to authenticate or validate
+          this business-to-business relationship. Where required by applicable
+          law, Contractor will undertake all required registrations and/or
+          licenses with government or taxation agencies as an independent
+          contractor or separate entity from Company.
+        </Text>
+
+        <Text style={styles.clauseTitle}>7. No Authority.</Text>
+        <Text style={styles.paragraph}>
+          Contractor is NOT an agent of Company and cannot bind Company in any
+          contracts or other obligations. Contractor will not hold itself out as
+          being an employee, agent, partner or assignee of Company, as having
+          any authority to bind Company or to incur any liability on behalf of
+          Company and will make such absence of authority clear in its dealings
+          with any third parties.
+        </Text>
+
+        <Text style={styles.clauseTitle}>8. Insurance.</Text>
+        <Text style={styles.paragraph}>
+          Contractor certifies that it is currently insured and will maintain in
+          force suitable insurance policies. Contractor acknowledges that
+          Company will not carry any liability insurance on behalf of
+          Contractor. Contractor will provide promptly copies of such insurance
+          obtained on reasonable request.
+        </Text>
+
+        <Text style={styles.clauseTitle}>9. No Conflicts.</Text>
+        <Text style={styles.paragraph}>
+          Contractor represents and warrants that Contractor is not under any
+          pre-existing obligation or commitments (and will not assume or
+          otherwise undertake any obligations or commitments) in conflict or in
+          any way inconsistent with the provisions of this Agreement. Contractor
+          represents and warrants that Contractor’s performance of all the terms
+          of this Agreement will not breach any agreement to keep in confidence
+          proprietary information acquired by Contractor in confidence or in
+          trust prior to commencement of this Agreement. Contractor warrants
+          that Contractor has the right to disclose and/or or use all ideas,
+          processes, techniques, and other information, if any, which Contractor
+          has gained from third parties, and which Contractor discloses to the
+          Company or uses during performance of this Agreement, without
+          liability to such third parties. Notwithstanding the foregoing,
+          Contractor agrees that Contractor shall not bundle with or incorporate
+          into any deliveries provided to the Company herewith any third-party
+          products, ideas, processes, or other techniques, without the express,
+          written prior approval of the Company. Contractor represents and
+          warrants that Contractor has not granted and will not grant any rights
+          or licenses to any intellectual property or technology that would
+          conflict with Contractor’s obligations under this Agreement.
+          Contractor will not knowingly infringe upon any copyright, patent,
+          trade secret or other property right of any former client, employer or
+          third party in the performance of the Services.
+        </Text>
+        <Text style={styles.clauseTitle}>10. Entire Agreement.</Text>
+        <Text style={styles.paragraph}>
+          This Agreement, together with any addenda, and all duly executed
+          Statements of Work, constitutes the entire Agreement between Company
+          and Contractor, and supersedes all prior understandings and
+          agreements. To the extent of any conflict between this Agreement and
+          any other agreement between the Parties, this Agreement shall
+          supersede such other agreement to the extent of such conflict except
+          if such other agreement explicitly states otherwise. Handwritten
+          changes to this Agreement are unenforceable. Any change or waiver of
+          any provision of this Agreement must be in writing and signed by the
+          parties hereto. Each party agrees that it will have no claim for
+          innocent or negligent misrepresentation based on any provision of this
+          Agreement.
+        </Text>
+
+        <Text style={styles.clauseTitle}>11. Authority to Bind.</Text>
+        <Text style={styles.paragraph}>
+          Signatories below represent and warrant that they have full power and
+          authority to enter into the Agreement and to fulfill all its terms and
+          conditions. This Agreement may be executed electronically, by
+          facsimile, and in counterparts.
+        </Text>
+
+        <Text style={styles.paragraph}>
+          By signing below Company and Contractor agree to the above terms, and
+          any other attached addendum and referenced Statements of Work.
+        </Text>
       </Page>
 
       {/* Página 3: Confidentiality Agreement */}
@@ -522,120 +624,272 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
         </View>
 
         {/* Título */}
-        <Text style={styles.title}>CONFIDENTIALITY AGREEMENT</Text>
+        <Text style={styles.title}>
+          Confidentiality and Intellectual Property Agreement
+        </Text>
 
         <Text style={styles.paragraph}>
-          This Confidentiality Agreement (&quot;Agreement&quot;) is entered into
-          effective as of{" "}
-          <Text style={styles.underline}>
-            {data.fechaEjecucion
-              ? formatDate(data.fechaEjecucion)
-              : "_____________"}
-          </Text>
-          , between Andes Workforce LLC (&quot;Company&quot;) and{" "}
+          This Confidentiality and Intellectual Property Agreement
+          (&quot;CIPA&quot;) is intended to set clear expectations regarding
+          confidentiality and intellectual property between{" "}
           <Text style={styles.underline}>
             {data.nombreCompleto || "__________________________"}
           </Text>
-          (&quot;Contractor&quot;).
+          , (&quot;Contractor&quot;) and Andes Workforce LLC, including its
+          parent companies, subsidiaries, and affiliates (“Customer”).
+          Contractor and Customer may be referred to collectively as the Parties
+          or individually as a Party.
+        </Text>
+
+        <Text style={styles.clauseTitle}>Consideration</Text>
+        <Text style={styles.paragraph}>
+          The Parties acknowledge and agree that this CIPA is not an employment
+          contract, and it does not purport to set forth all of the terms and
+          conditions of Contractor’s engagement with Customer, which is governed
+          by separate agreement(s) and the legislation of Contractor’s home
+          country. If, however, there are any inconsistent terms between this
+          CIPA and any other agreement(s) between the Parties related to the
+          subject matter herein, the terms of this CIPA control. The terms of
+          this CIPA can only be changed by a subsequent, written agreement
+          signed by the Parties. Contractor understands and acknowledges that
+          this CIPA is and has been a material part of the consideration for
+          Contractor’s engagement with Customer.
+        </Text>
+        <Text style={styles.paragraph}>
+          Contractor has not entered into, and agrees not to enter into, any
+          agreement (either written or oral) in conflict with this CIPA or
+          Contractor’s engagement with Customer. Contractor agrees not to (a)
+          violate any agreement with or rights of any third party, or (b) use or
+          disclose Contractor’s own or any third party’s confidential
+          information or intellectual property (as detailed in the paragraph
+          “Open-Source and Third-Party Components,” below) (i) when acting
+          within the scope of Contractor’s engagement, or (ii) on behalf of
+          Customer, except as expressly authorized in writing herein. Further,
+          Contractor represents that Contractor has not retained anything
+          containing any confidential information of a prior employer or other
+          third party, whether or not created by Contractor.
+        </Text>
+
+        <Text style={styles.clauseTitle}>Consideration</Text>
+        <Text style={styles.paragraph}>
+          In discussions and activities surrounding Contractor’s work, sales,
+          products, technology, and models that Customer may use or develop,
+          Contractor may obtain, or may already have obtained, Confidential
+          Information about Customer’s business. This CIPA prevents unauthorized
+          use or disclosure of Confidential Information.
+        </Text>
+        <Text style={styles.paragraph}>
+          Confidential Information includes all non-public knowledge, documents,
+          information, and data of Customer, which includes but is not limited
+          to, customer lists, prices and how they are set, non-public
+          intellectual property (including but not limited to trade secrets),
+          employee information, business plans, coding, processes, inventions,
+          computer-related equipment or technology, applications, operating
+          systems, databases and other computer related software technical data,
+          new ideas, methods of doing business, any other information received
+          in any other form bearing a note on or pointing out the confidential
+          nature of such information, any personal information governed by
+          applicable data-protection regulations, and any Confidential
+          Information that Customer has received (or that may be received in the
+          future) from third parties that Customer has agreed to treat as
+          confidential. For purposes of this CIPA, the term trade secrets has
+          its ordinary meaning under applicable law but includes, without
+          limitation, any information that is: (a) commercially valuable because
+          it is secret, (b) known only to a limited group of persons; and (c)
+          subject to reasonable steps taken by the owner of such information to
+          keep it secret. Confidential Information does not include information
+          that is (a) previously known on a nonconfidential basis by the
+          Contractor, (b) in the public domain through no fault of the
+          Contractor, (c) received from a person other than any of the other
+          Parties or their respective representatives or agents, so long as such
+          other person was not, to the best knowledge of the Contractor, subject
+          to a duty of confidentiality to Customer, (d) developed independently
+          by the Contractor without reference to Confidential Information, or
+          (e) specifically allowed for disclosure by Customer in a written
+          release. If the information becomes public because of Contractor’s
+          violation of this CIPA, it is still deemed Confidential Information
+          and protected by this CIPA.
+        </Text>
+        <Text style={styles.paragraph}>
+          Contractor agrees to keep the Confidential Information confidential
+          and to exercise reasonable care to protect the confidentiality of
+          Confidential Information. Reasonable care means at least the same
+          level of care that Contractor would reasonably use to protect
+          Contractor’s own confidential information. As part of such reasonable
+          care, Contractor may not allow anyone else to access Customer’s tools
+          or computer access passwords without Customer&#39;s written approval.
+          Contractor agrees not to disclose Customer’s Confidential Information
+          to any third party and to only use the Confidential Information for
+          the purposes of Contractor’s relationship with Customer. To that end,
+          Contractor may disclose such information to Contractor’s own
+          consultants, agents, or advisors as required to fulfill Contractor’s
+          engagement with Customer, provided that such representatives (a) are
+          under a written obligation to treat the Confidential Information as
+          confidential and not to use it other than in the manner and to the
+          same extent as set out in this CIPA, or (b) have professional (or
+          other) duties of confidentiality. However, Contractor is fully
+          responsible and liable for any unauthorized disclosure or use by such
+          representatives.
+        </Text>
+        <Text style={styles.paragraph}>
+          Contractor agrees: (a) not to use any Confidential Information in
+          competition with Customer; (b) not to use any Confidential Information
+          in any way that harms Customer; (c) not to share any Confidential
+          Information with Customer’s competitors; (d) not to use any
+          Confidential Information for Contractor’s own or any third party’s
+          business advantage; and (e) not to reverse engineer, or have reverse
+          engineered, any Confidential Information. Some confidential
+          information, like trade secrets, intellectual property, and certain
+          personally identifiable information, is protected by law. Contractor’s
+          legal duty to keep that information confidential and protected in
+          accordance with such law is in addition to the obligations under this
+          CIPA.
+        </Text>
+        <Text style={styles.paragraph}>
+          Contractor agrees to notify Customer immediately of any unauthorized
+          access, disclosure, loss, or misuse of Confidential Information or of
+          any other breaches of this CIPA by Contractor or Contractor’s
+          representatives (collectively, a “Breach of Confidentiality”).
+          Contractor will also use best efforts to immediately contain and
+          remedy any such Breach of Confidentiality. Finally, Contractor will
+          fully cooperate with Customer in any effort to enforce their
+          respective rights related to any such Breach of Confidentiality.
+          Contractor agrees that money damages are not a sufficient remedy for
+          any breach or threatened breach of this CIPA. Therefore, in addition
+          to other remedies available, Customer is entitled to seek injunctive
+          relief (including interim relief without notice) or specific
+          performance to enforce the terms of the CIPA, and Contractor waives
+          any requirement for the securing or posting of any bond or the showing
+          of actual monetary damages in connection with such claim. Contractor
+          further agrees not to oppose the granting of such relief on the basis
+          that Customer has an adequate remedy at law. Should litigation arise
+          concerning this CIPA, the prevailing Party will be entitled to its
+          reasonable attorneys’ fees and court costs in addition to any other
+          relief that may be awarded. Contractor may be required by law, court
+          order, regulatory inquiry, or subpoena to disclose Customer’s
+          Confidential Information (a “Compelled Disclosure”). If Contractor
+          receives a notice of Compelled Disclosure, Contractor must provide
+          Customer prompt notice of the same, to the extent allowed by law, and
+          must provide reasonable assistance if Customer decides to contest the
+          Compelled Disclosure.
+        </Text>
+
+        <Text style={styles.clauseTitle}>Intellectual Property</Text>
+        <Text style={styles.paragraph}>
+          For purposes of this CIPA, the term “IP Rights” includes but is not
+          necessarily limited to patents, rights to inventions, utility model
+          rights, trade marks, business names and domain names, rights in get-up
+          and trade dress, design rights, semiconductor topography rights,
+          integrated circuit topography rights, plant variety rights, database
+          rights, copyright and related rights (including all rights of
+          paternity, integrity, disclosure, and withdrawal, and any other rights
+          that may be known as or referred to as “moral rights,” “artist’s
+          rights,” “droit moral,” or the like (collectively “Moral Rights”)),
+          mask work rights, rights in goodwill and the right to sue for passing
+          off or unfair competition, rights to use, and protect the
+          confidentiality of, Confidential Information (including knowhow and
+          trade secrets) and all other intellectual property rights of any kind,
+          whether registered or unregistered, including all applications and
+          rights to apply for and be granted, renewals or extensions of, and
+          rights to claim priority from, registrations, and all similar or
+          equivalent rights that exist or will exist in any part of the world.
+          For avoidance of doubt, copyrights under this CIPA include but are not
+          necessarily limited to the full rights of reproduction, adaptation
+          (including but not limited to the right to create derivative works),
+          publication, performance, and display.
         </Text>
 
         <Text style={styles.clauseTitle}>
-          1. Definition of Confidential Information
+          Transfer and Assignment of Ownership Rights.
         </Text>
         <Text style={styles.paragraph}>
-          &quot;Confidential Information&quot; means any and all non-public,
-          confidential or proprietary information disclosed by Company to
-          Contractor, including but not limited to:
+          For purposes of any assignment, transfer, or licensing of any IP
+          Rights contemplated herein, to the extent required by applicable law,
+          the term “Customer” refers to the Customer indicated in the preamble
+          of this CIPA, exclusive of any parent companies, subsidiaries, or
+          affiliates.
         </Text>
-        <Text style={styles.listItem}>
-          • Technical data, know-how, research, product plans, products,
-          services, customers, customer lists, markets, software, developments,
-          inventions, processes, formulas, technology, designs, drawings,
-          engineering, hardware configuration information, marketing, finances,
-          or other business information.
-        </Text>
-        <Text style={styles.listItem}>
-          • Information received from third parties that Company is obligated to
-          treat as confidential.
-        </Text>
-        <Text style={styles.listItem}>
-          • Any other information that Contractor knew, or reasonably should
-          have known, was the confidential information of Company.
-        </Text>
-
-        <Text style={styles.clauseTitle}>2. Non-Disclosure Obligations</Text>
-        <Text style={styles.paragraph}>Contractor agrees to:</Text>
-        <Text style={styles.listItem}>
-          • Hold and maintain all Confidential Information in strict confidence;
-        </Text>
-        <Text style={styles.listItem}>
-          • Not disclose any Confidential Information to any third parties
-          without Company&apos;s prior written consent;
-        </Text>
-        <Text style={styles.listItem}>
-          • Not use any Confidential Information for any purpose other than
-          performing Services for Company;
-        </Text>
-        <Text style={styles.listItem}>
-          • Take reasonable precautions to prevent unauthorized disclosure of
-          Confidential Information.
-        </Text>
-
-        <Text style={styles.clauseTitle}>3. Exceptions</Text>
         <Text style={styles.paragraph}>
-          The obligations set forth in Section 2 shall not apply to information
-          that:
-        </Text>
-        <Text style={styles.listItem}>
-          • Is or becomes publicly available through no breach of this Agreement
-          by Contractor;
-        </Text>
-        <Text style={styles.listItem}>
-          • Is rightfully received by Contractor from a third party without
-          restriction and without breach of this Agreement;
-        </Text>
-        <Text style={styles.listItem}>
-          • Is independently developed by Contractor without use of or reference
-          to Confidential Information;
-        </Text>
-        <Text style={styles.listItem}>
-          • Is required to be disclosed by law or court order, provided that
-          Contractor gives Company reasonable advance notice of such required
-          disclosure.
+          To the fullest extent allowed by applicable law and by operation
+          thereof, Customer owns all Works and IP Rights in and relating to any
+          and all Works (which the Parties agree are works made for hire or the
+          equivalent under applicable law) made or conceived or reduced to
+          practice, in whole or in part, by Contractor (a) at Customer’s request
+          or (b) within the scope of and during the term of Contractor’s
+          engagement with Customer (collectively, “Resulting IP,” the IP Rights
+          to which are collectively referred to as the “Resulting IP Rights”).
+          To the extent there are any Resulting IP Rights that Customer does not
+          or cannot obtain by operation of and under applicable law, Contractor
+          hereby permanently and irrevocably assigns to Customer all Resulting
+          IP Rights. Such Resulting IP Rights are transferred and/or assigned to
+          Customer in full, from the moment of creation.
         </Text>
 
-        <Text style={styles.clauseTitle}>4. Return of Materials</Text>
+        <Text style={styles.clauseTitle}>General Terms</Text>
         <Text style={styles.paragraph}>
-          Upon termination of Contractor&apos;s relationship with Company, or
-          upon Company&apos;s request, Contractor will promptly return to
-          Company all documents, materials, and other tangible items containing
-          or representing Confidential Information and all copies thereof.
+          Contractor&#39;s confidentiality and cooperation obligations under
+          this CIPA remain in effect after termination of Contractor&#39;s
+          engagement with Customer, regardless of the reason or reasons for
+          termination of such engagement. Customer is entitled to disclose
+          Contractor&#39;s obligations under this CIPA to any future employer or
+          potential employer of Contractor. To the extent applicable, the
+          obligations set forth herein are also binding on Contractor&#39;s
+          heirs, executors, assigns, and administrators for the benefit of
+          Customer and its subsidiaries, successors, and assigns.
+        </Text>
+        <Text style={styles.paragraph}>
+          At the end of Contractor&#39;s engagement with Customer, and no later
+          than within thirty days of Customer’s request, Contractor must return
+          all materials, documents and any copies or reproductions (hard copy or
+          electronic), extracts, summaries or analyses of Confidential
+          Information in any medium or format in Contractor&#39;s possession,
+          custody, or control containing, reflecting, incorporating (in whole or
+          in part) Confidential Information and provide certification that all
+          electronic Confidential Information in Contractor’s possession has
+          been destroyed.
         </Text>
 
-        <Text style={styles.clauseTitle}>5. Remedies</Text>
+        <Text style={styles.clauseTitle}>Additional Legal Provisions</Text>
         <Text style={styles.paragraph}>
-          Contractor acknowledges that any breach of this Agreement may cause
-          irreparable harm to Company for which monetary damages would be
-          inadequate. Therefore, Company shall be entitled to seek injunctive
-          relief and other equitable remedies to enforce this Agreement.
-        </Text>
-
-        <Text style={styles.clauseTitle}>6. Duration</Text>
-        <Text style={styles.paragraph}>
-          This Agreement shall remain in effect for a period of five (5) years
-          from the date first written above, or until the Confidential
-          Information is no longer confidential, whichever occurs first.
-        </Text>
-
-        <Text style={styles.clauseTitle}>7. Governing Law</Text>
-        <Text style={styles.paragraph}>
-          This Agreement shall be governed by and construed in accordance with
-          the laws of the State of Florida.
+          If Contractor is in a jurisdiction where any of the above clauses are
+          not lawful, require additional consideration, or have been held to be
+          unenforceable, such clause is severable, and all other provisions of
+          this CIPA will continue in full force and effect.
         </Text>
 
         <Text style={styles.paragraph}>
-          IN WITNESS WHEREOF, the parties have executed this Agreement as of the
-          date first written above.
+          This CIPA is fully assignable and transferable by Customer, but any
+          purported assignment or transfer by Contractor is void.
+        </Text>
+
+        <Text style={styles.paragraph}>
+          Any delay by a Party to enforce any right under this CIPA will not act
+          as a waiver of that right or as a waiver of the ability to later
+          assert that right. Waiver of any breach will not be a waiver of the
+          underlying obligation.
+        </Text>
+
+        <Text style={styles.paragraph}>
+          The CIPA can only be changed by a written amendment explicitly
+          referencing this CIPA that is executed by both Parties.
+        </Text>
+
+        <Text style={styles.paragraph}>
+          The undersigned represent that they are authorized to enter into the
+          CIPA, which may be executed in counterparts. Electronic signatures are
+          acceptable.
+        </Text>
+        <Text style={styles.paragraph}>
+          Having read this CIPA carefully and after being provided with a
+          reasonable opportunity to obtain independent legal advice regarding
+          this CIPA, Contractor understands and accepts the obligations that
+          this CIPA imposes on Contractor without reservation. No promises or
+          representations have been made to induce Contractor to sign this CIPA.
+          Contractor signs this CIPA voluntarily and freely.
+        </Text>
+
+        <Text style={styles.paragraph}>
+          Agreed, on the dates noted below, by and between:
         </Text>
 
         {/* Signature section */}
