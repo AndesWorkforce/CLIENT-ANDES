@@ -765,6 +765,8 @@ export default function PostulantsPage() {
     }
   };
 
+  console.log("\n\n [POSTULANTS] Error maps id:", applicants, "\n\n");
+
   return (
     <CandidateProfileProvider>
       <div className="w-full max-w-7xl mx-auto mt-8 flex flex-col h-screen">
@@ -863,7 +865,7 @@ export default function PostulantsPage() {
                 <div className="space-y-4 p-4">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <div
-                      key={`skeleton-${index}`}
+                      key={`skeleton-mobile-${index}`}
                       className="border-b border-gray-200 pb-4 animate-pulse"
                     >
                       <div className="flex items-center">
@@ -1601,15 +1603,6 @@ export default function PostulantsPage() {
           onUpdate={handleStatusUpdateWithEmail}
         />
       )}
-      {/* {isApplicationsModalOpen && selectedCandidateForApplications && (
-        <CandidateApplicationsModal
-          isOpen={isApplicationsModalOpen}
-          onClose={handleCloseApplicationsModal}
-          candidateId={selectedCandidateForApplications.id}
-          candidateName={selectedCandidateForApplications.name}
-          onApplicationDeactivated={handleApplicationDeactivated}
-        />
-      )} */}
     </CandidateProfileProvider>
   );
 }
