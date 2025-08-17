@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import * as XLSX from "xlsx";
 import { getAllOffersWithAcceptedGlobal } from "../actions/offers-with-accepted.actions";
 import CandidateProfileModal from "@/app/admin/dashboard/components/CandidateProfileModal";
 import { CandidateProfileProvider } from "@/app/admin/dashboard/context/CandidateProfileContext";
@@ -94,6 +95,26 @@ export default function TeamMembersPage() {
     return 0;
   });
 
+  const handleExportExcel = () => {
+    // Export all filtered + sorted rows (not just current page)
+    const exportRows = sortedMembers.map((m) => ({
+      "Full Name": m.fullName,
+      "View profile": "View", // text only, without link
+      Email: m.email || "",
+      "Phone Number": m.phone || "",
+      "Country of Residence": m.country || "",
+      "Contract Date": m.contractDate || "",
+      "Contract Status": m.contractStatus || "",
+      Position: m.position || "",
+      Firm: m.firm || "",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportRows, { skipHeader: false });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Team Members");
+    XLSX.writeFile(wb, "team-members.xlsx");
+  };
+
   // Paginación solo para desktop
   const totalRows = sortedMembers.length;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
@@ -184,8 +205,14 @@ export default function TeamMembersPage() {
           Team Members
         </h1>
 
-        {/* Desktop: buscador y filtro arriba de la tabla */}
+        {/* Top actions: Export + filters (desktop) */}
         <div className="hidden md:flex mb-2 gap-4 items-center">
+          <button
+            onClick={handleExportExcel}
+            className="bg-[#0097B2] hover:bg-[#007a8e] text-white px-3 py-2 rounded text-xs md:text-sm"
+          >
+            Export to Excel
+          </button>
           <input
             type="text"
             placeholder="Search by name..."
@@ -207,8 +234,14 @@ export default function TeamMembersPage() {
           </select>
         </div>
 
-        {/* Mobile: filtro por nombre y cliente */}
+        {/* Mobile: Export + filters */}
         <div className="md:hidden mb-4 flex flex-col gap-2">
+          <button
+            onClick={handleExportExcel}
+            className="bg-[#0097B2] hover:bg-[#007a8e] text-white px-3 py-2 rounded text-sm"
+          >
+            Export to Excel
+          </button>
           <input
             type="text"
             placeholder="Search by name..."

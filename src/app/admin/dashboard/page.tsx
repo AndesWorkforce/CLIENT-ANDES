@@ -56,6 +56,33 @@ export default function AdminDashboardPage() {
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const clearTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const didMountRef = useRef<boolean>(false);
+
+  // Fallback client-side sort to ensure: published first, then paused; within group, more applicants first; then newest
+  const sortOffers = useCallback((a: Offer, b: Offer) => {
+    const norm = (s?: string) => (s || "").toLowerCase();
+    const ea = norm(a.estado);
+    const eb = norm(b.estado);
+    const isPub = (s: string) => s.startsWith("public"); // publicado/publicada
+    if (isPub(ea) !== isPub(eb)) return isPub(ea) ? -1 : 1;
+    //eslint-disable-next-line
+    const ca = (a as any).postulacionesCount ?? a.postulaciones?.length ?? 0;
+    //eslint-disable-next-line
+    const cb = (b as any).postulacionesCount ?? b.postulaciones?.length ?? 0;
+    if (ca !== cb) return cb - ca;
+    //eslint-disable-next-line
+    const da = (a as any).fechaCreacion
+      ? //eslint-disable-next-line
+        new Date((a as any).fechaCreacion).getTime()
+      : 0;
+    //eslint-disable-next-line
+    const db = (b as any).fechaCreacion
+      ? //eslint-disable-next-line
+        new Date((b as any).fechaCreacion).getTime()
+      : 0;
+    return db - da;
+  }, []);
 
   const loadMoreRef = useCallback(
     (node: HTMLDivElement) => {
@@ -104,14 +131,17 @@ export default function AdminDashboardPage() {
       const offerData = response.data.data || [];
 
       if (reset) {
-        setOffers(offerData);
+        // Ordenamos en el cliente como respaldo para garantizar la prioridad por postulantes
+        setOffers([...offerData].sort(sortOffers));
         if (offerData.length > 0) {
           setSelectedJob(offerData[0]);
         } else {
           setSelectedJob(null);
         }
       } else {
-        setOffers((prevOffers) => [...prevOffers, ...offerData]);
+        setOffers((prevOffers) =>
+          [...prevOffers, ...offerData].sort(sortOffers)
+        );
       }
 
       setHasMore(response.hasMore || false);
@@ -143,7 +173,7 @@ export default function AdminDashboardPage() {
         response.data.data &&
         response.data.data.length > 0
       ) {
-        setOffers((prev) => [...prev, ...response.data.data]);
+        setOffers((prev) => [...prev, ...response.data.data].sort(sortOffers));
         setHasMore(response.hasMore || false);
       } else {
         setHasMore(false);
@@ -304,6 +334,21 @@ export default function AdminDashboardPage() {
     fetchPublishedOffers();
   }, []);
 
+  // Auto-reset: cuando el input queda vacío (trim), que recargue todas las ofertas sin presionar Search
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+    if (searchTerm.trim() === "") {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = setTimeout(() => {
+        fetchPublishedOffers(true);
+      }, 150);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
   const LoadingIndicator = () => (
     <div className="flex justify-center py-4">
       <div className="animate-pulse flex space-x-2">
@@ -333,7 +378,20 @@ export default function AdminDashboardPage() {
                   type="text"
                   placeholder="Search by title..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setSearchTerm(v);
+                    if (clearTimerRef.current) {
+                      clearTimeout(clearTimerRef.current);
+                      clearTimerRef.current = null;
+                    }
+                    if (v.trim() === "") {
+                      // debounce pequeño para no disparar múltiples llamadas
+                      clearTimerRef.current = setTimeout(() => {
+                        fetchPublishedOffers(true);
+                      }, 200);
+                    }
+                  }}
                   onKeyDown={handleKeyDown}
                   className="focus:ring-[#0097B2] focus:border-[#0097B2] block w-full pl-10 pr-4 sm:text-sm border-gray-300 rounded-l-md"
                   disabled={isSearching}
