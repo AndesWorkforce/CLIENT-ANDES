@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import * as XLSX from "xlsx";
 import { useAuthStore } from "@/store/auth.store";
 import { getOffersWithAccepted } from "../actions/offers-with-accepted.actions";
 import CandidateProfileModal from "@/app/admin/dashboard/components/CandidateProfileModal";
@@ -77,7 +76,8 @@ export default function TeamMembersPage() {
     return 0;
   });
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await import("xlsx");
     // Export all filtered + sorted rows (not just current page)
     const exportRows = sortedMembers.map((m) => ({
       "Full Name": m.fullName,
