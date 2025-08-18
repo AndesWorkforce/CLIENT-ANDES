@@ -41,6 +41,12 @@ export default function TeamMembersPage() {
     candidato: Candidato;
     fechaPostulacion?: string;
     estadoPostulacion?: string;
+    // Backend may include procesosContratacion for accepted candidates
+    procesosContratacion?: Array<{
+      id: string;
+      activo?: boolean;
+      fechaInicio?: string;
+    }>;
   };
   type OfferWithAccepted = {
     id: string;
@@ -135,11 +141,19 @@ export default function TeamMembersPage() {
       if (response.success && Array.isArray(response.data)) {
         // Aplanar postulaciones aceptadas de todas las ofertas
         const allMembers: Member[] = response.data.flatMap(
-          (offer: OfferWithAccepted) =>
-            offer.postulaciones.map((p: Postulacion) => {
+          // eslint-disable-next-line
+          (offer: OfferWithAccepted & { postulaciones: any[] }) =>
+            offer.postulaciones.map((p) => {
+              const proceso = Array.isArray(p.procesosContratacion)
+                ? // eslint-disable-next-line
+                  p.procesosContratacion.find((pc: any) => pc.activo) ||
+                  p.procesosContratacion[0]
+                : undefined;
+              const fechaBase: string | undefined =
+                proceso?.fechaInicio || p.fechaPostulacion;
               let formattedDate = "";
-              if (p.fechaPostulacion) {
-                const d = new Date(p.fechaPostulacion);
+              if (fechaBase) {
+                const d = new Date(fechaBase);
                 formattedDate = d.toLocaleDateString("es-ES", {
                   year: "numeric",
                   month: "2-digit",

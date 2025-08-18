@@ -45,6 +45,12 @@ export default function TeamMembersPage() {
     candidato: Candidato;
     fechaPostulacion?: string;
     estadoPostulacion?: string;
+    // Backend may include procesosContratacion for accepted candidates
+    procesosContratacion?: Array<{
+      id: string;
+      activo?: boolean;
+      fechaInicio?: string;
+    }>;
   };
   type OfferWithAccepted = {
     id: string;
@@ -153,19 +159,36 @@ export default function TeamMembersPage() {
       if (response.success && Array.isArray(response.data)) {
         // Aplanar postulaciones aceptadas de todas las ofertas
         const allMembers: Member[] = response.data.flatMap(
-          (offer: OfferWithAccepted) =>
-            offer.postulaciones.map((p: Postulacion) => {
+          // eslint-disable-next-line
+          (offer: OfferWithAccepted & { postulaciones: any[] }) =>
+            offer.postulaciones.map((p) => {
+              // Preferir fecha de inicio del proceso de contratación (si existe), sino usar fechaPostulacion
+              const proceso = Array.isArray(p.procesosContratacion)
+                ? // eslint-disable-next-line
+                  p.procesosContratacion.find((pc: any) => pc.activo) ||
+                  p.procesosContratacion[0]
+                : undefined;
+              const fechaBase: string | undefined =
+                proceso?.fechaInicio || p.fechaPostulacion;
               let formattedDate = "";
-              if (p.fechaPostulacion) {
-                const d = new Date(p.fechaPostulacion);
+              if (fechaBase) {
+                const d = new Date(fechaBase);
                 formattedDate = d.toLocaleDateString("es-ES", {
                   year: "numeric",
                   month: "2-digit",
                   day: "2-digit",
                 });
               }
+              // Mapear estado: si viene 'ACEPTADA' => 'ACTIVE' (verde). Cualquier otro => vacío
+              const rawStatus =
+                typeof p.estadoPostulacion === "string"
+                  ? p.estadoPostulacion
+                  : "";
+
+              const mappedStatus =
+                rawStatus.toUpperCase() === "ACEPTADA" ? "ACTIVE" : "";
               return {
-                id: p.id, // id de la postulación para key única
+                id: p.id,
                 candidateId: p.candidato.id,
                 fullName: `${p.candidato.nombre} ${p.candidato.apellido}`,
                 email: p.candidato.correo,
@@ -174,8 +197,9 @@ export default function TeamMembersPage() {
                 position: offer.titulo,
                 profileUrl: `/profile/${p.candidato.id}`,
                 contractDate: formattedDate,
-                contractStatus: p.estadoPostulacion,
-                firm: offer.empresaOferta?.nombre || "",
+                contractStatus: mappedStatus,
+                // eslint-disable-next-line
+                firm: (offer as any).empresaOferta?.nombre || "",
               };
             })
         );
@@ -336,15 +360,11 @@ export default function TeamMembersPage() {
                     {member.contractDate}
                   </td>
                   <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        member.contractStatus === "Active"
-                          ? "bg-[#EBFFF9] text-[#0097B2]"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {member.contractStatus}
-                    </span>
+                    {member.contractStatus ? (
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#EBFFF9] text-[#0097B2]">
+                        {member.contractStatus}
+                      </span>
+                    ) : null}
                   </td>
                   <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap text-[#17323A]">
                     {member.position}
@@ -421,15 +441,11 @@ export default function TeamMembersPage() {
               <div className="text-xs text-gray-500">Phone: {member.phone}</div>
               <div className="text-xs text-gray-500">Firm: {member.firm}</div>
               <div className="flex items-center gap-2">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    member.contractStatus === "Active"
-                      ? "bg-[#EBFFF9] text-[#0097B2]"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {member.contractStatus}
-                </span>
+                {member.contractStatus ? (
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#EBFFF9] text-[#0097B2]">
+                    {member.contractStatus}
+                  </span>
+                ) : null}
                 <span className="text-xs text-gray-500">
                   {member.contractDate}
                 </span>
