@@ -125,7 +125,6 @@ export async function deleteOffer(offerId: string) {
   }
 }
 
-// Función para obtener una propuesta específica
 export async function getProposal(propuestaId: string) {
   const axios = await createServerAxios();
   try {

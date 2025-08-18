@@ -58,6 +58,7 @@ interface ExtendedApplication {
 interface ExtendedCandidate extends CandidatoWithPostulationId {
   isExpanded: boolean;
   lastRelevantPostulacion?: ExtendedApplication;
+  puestoTrabajo?: string;
   applicationStatus?: string;
   clasificacionGlobal: CandidateStatus;
   favorite?: boolean;
@@ -954,11 +955,13 @@ export default function PostulantsPage() {
                             Current Application:
                           </span>
                           <div className="mt-1">
-                            {applicant.lastRelevantPostulacion?.titulo &&
-                            applicant.lastRelevantPostulacion?.titulo !==
-                              "No applications" ? (
+                            {applicant.lastRelevantPostulacion?.titulo ? (
                               <span className="text-gray-700 text-sm truncate">
                                 {applicant.lastRelevantPostulacion.titulo}
+                              </span>
+                            ) : applicant.puestoTrabajo ? (
+                              <span className="text-gray-700 text-sm truncate">
+                                {applicant.puestoTrabajo}
                               </span>
                             ) : (
                               <span className="text-gray-400">
@@ -1309,26 +1312,13 @@ export default function PostulantsPage() {
                               </td>
 
                               {/* Current Application */}
-                              <td className="py-4 px-4">
-                                {applicant.lastRelevantPostulacion?.titulo &&
-                                applicant.lastRelevantPostulacion?.titulo !==
-                                  "No applications" ? (
-                                  <span className="text-gray-700 text-sm">
-                                    {applicant.lastRelevantPostulacion.titulo}
-                                  </span>
-                                ) : (
-                                  <span className="text-gray-400 text-sm">
-                                    No active application
-                                  </span>
-                                )}
+                              <td className="py-4 px-4 text-gray-700">
+                                {applicant.lastRelevantPostulacion?.titulo
+                                  ? applicant.lastRelevantPostulacion.titulo
+                                  : applicant.puestoTrabajo
+                                  ? applicant.puestoTrabajo
+                                  : "Sin aplicación"}
                               </td>
-
-                              {/* Preliminary Interview */}
-                              <td className="py-4 px-4">
-                                {renderPreliminaryInterviewStatus(applicant)}
-                              </td>
-
-                              {/* Stage */}
                               <td className="py-4 px-4">
                                 {renderClickableStageStatusBadge(
                                   renderStageStatus(applicant),
