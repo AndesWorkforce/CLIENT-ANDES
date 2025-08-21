@@ -106,7 +106,7 @@ export const CompanyWelcomeEmail = ({
             <li>
               Visit{" "}
               <Link
-                href="https://app.andes-workforce.com/auth/login"
+                href="https://andes-workforce.com/auth/login"
                 style={{ color: "#0097B2", textDecoration: "underline" }}
               >
                 our login page
