@@ -61,26 +61,64 @@ export default function Navbar() {
     try {
       const response = await userIsAppliedToOffer(user.id);
 
-      if (response.success) {
+      if (response?.success && response?.data) {
         const isComplete = response.data?.perfilCompleto === "COMPLETO";
         setIsValidProfileUserState(isComplete);
+      } else {
+        // Usuario sin datos de perfil - estado por defecto
+        setIsValidProfileUserState(false);
       }
     } catch (error) {
-      console.error("[Navbar] Error verifying profile:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Solo logear errores reales, no respuestas vacías o 404
+      if (
+        !errorMessage.includes("404") &&
+        !errorMessage.includes("Not Found")
+      ) {
+        console.error("[Navbar] Error verifying profile:", errorMessage);
+      }
+
+      // Estado por defecto en caso de error
+      setIsValidProfileUserState(false);
     }
   };
 
   const currentContract = async () => {
     if (!user?.id) return;
+
     try {
       const response = await getCurrentContract(user.id);
-      console.log("\n\n [Navbar] response", response.data, "\n\n");
-      if (response.success) {
-        setCurrentContractStatus(response.data?.activo);
+
+      // Solo logear si realmente hay datos válidos
+      if (response?.success && response?.data) {
+        console.log("[Navbar] Contract data loaded successfully");
+        setCurrentContractStatus(response.data?.activo || false);
         setStepContract(response.data?.estadoContratacion || "");
+      } else {
+        // Usuario sin contrato activo - esto es normal, no es un error
+        setCurrentContractStatus(false);
+        setStepContract("");
       }
     } catch (error) {
-      console.error("[Navbar] Error fetching current contract:", error);
+      // Solo logear errores reales de conexión/servidor, no 404 o "sin datos"
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      if (
+        !errorMessage.includes("404") &&
+        !errorMessage.includes("Not Found")
+      ) {
+        console.error(
+          "[Navbar] Error fetching current contract:",
+          errorMessage
+        );
+      }
+
+      // Resetear estados en caso de error
+      setCurrentContractStatus(false);
+      setStepContract("");
     }
   };
 
@@ -98,11 +136,13 @@ export default function Navbar() {
 
   useEffect(() => {
     if (user) {
+      // Solo ejecutar las funciones cuando el usuario cambia, no en cada pathname
       fetchAndUpdateProfileStatus();
       currentContract();
     }
-  }, [user, pathname]);
+  }, [user]); // Removido pathname de las dependencias
 
+  // Efecto separado para manejar redirecciones basadas en stepContract
   useEffect(() => {
     if (stepContract.length > 0) {
       if (stepContract === "FIRMADO_CANDIDATO") {

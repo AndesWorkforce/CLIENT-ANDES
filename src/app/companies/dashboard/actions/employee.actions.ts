@@ -2,6 +2,7 @@
 
 import { createServerAxios } from "@/services/axios.server";
 import { revalidatePath } from "next/cache";
+import { sendEmployeeWelcomeEmail } from "@/app/admin/dashboard/actions/sendEmail.actions";
 
 interface CreateEmployeeData {
   nombre: string;
@@ -47,10 +48,45 @@ export async function createEmployee(employeeData: CreateEmployeeData) {
     });
 
     if (response.status === 201) {
+      // Enviar email de bienvenida con las credenciales
+      if (employeeData.contrasena && employeeData.nombre) {
+        console.log("📧 [createEmployee] Sending welcome email...");
+
+        try {
+          const employeeName =
+            `${employeeData.nombre} ${employeeData.apellido}`.trim();
+          const companyName =
+            response.data.data?.empresa?.nombre || "Your Company";
+
+          const emailResponse = await sendEmployeeWelcomeEmail(
+            employeeName,
+            companyName,
+            employeeData.correo,
+            employeeData.contrasena,
+            "Employee"
+          );
+
+          if (emailResponse.success) {
+            console.log("✅ [createEmployee] Welcome email sent successfully");
+          } else {
+            console.warn(
+              "⚠️ [createEmployee] Failed to send welcome email:",
+              emailResponse.error
+            );
+          }
+        } catch (emailError) {
+          console.error(
+            "❌ [createEmployee] Error sending welcome email:",
+            emailError
+          );
+          // No fallar la creación del empleado si el email falla
+        }
+      }
+
       revalidatePath("/companies/dashboard/employees");
       return {
         success: true,
-        message: "Employee created successfully",
+        message: "Employee created successfully and welcome email sent",
         data: response.data,
       };
     }

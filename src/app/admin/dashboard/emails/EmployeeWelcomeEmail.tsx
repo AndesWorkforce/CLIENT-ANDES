@@ -8,29 +8,31 @@ import {
   Link,
 } from "@react-email/components";
 
-interface CompanyWelcomeEmailProps {
+interface EmployeeWelcomeEmailProps {
+  employeeName: string;
   companyName: string;
-  representativeName: string;
   email: string;
   temporaryPassword: string;
+  role?: string;
 }
 
-export const CompanyWelcomeEmail = ({
+export const EmployeeWelcomeEmail = ({
+  employeeName,
   companyName,
-  representativeName,
   email,
   temporaryPassword,
-}: CompanyWelcomeEmailProps) => {
+  role = "Employee",
+}: EmployeeWelcomeEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Welcome to Andes Workforce - Company Account Created</Preview>
+      <Preview>Welcome to Andes Workforce - Employee Account Created</Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>
           <Text
             style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
-            Dear {representativeName},
+            Dear {employeeName},
           </Text>
 
           <Text
@@ -41,8 +43,9 @@ export const CompanyWelcomeEmail = ({
               lineHeight: "1.5",
             }}
           >
-            Welcome to Andes Workforce! Your company account for{" "}
-            <strong>{companyName}</strong> has been successfully created.
+            Welcome to Andes Workforce! Your employee account for{" "}
+            <strong>{companyName}</strong> has been successfully created with
+            the role of <strong>{role}</strong>.
           </Text>
 
           <Text
@@ -53,8 +56,9 @@ export const CompanyWelcomeEmail = ({
               lineHeight: "1.5",
             }}
           >
-            Through your account, you will be able to view job offers assigned
-            to your company and manage applicants who apply to those positions.
+            Through your account, you will be able to access your company&apos;s
+            dashboard, view assigned job offers, and manage applicants according
+            to your role permissions.
           </Text>
 
           <Text
@@ -87,6 +91,12 @@ export const CompanyWelcomeEmail = ({
             <Text style={{ margin: "8px 0", color: "#333" }}>
               Password: <strong>{temporaryPassword}</strong>
             </Text>
+            <Text style={{ margin: "8px 0", color: "#333" }}>
+              Company: <strong>{companyName}</strong>
+            </Text>
+            <Text style={{ margin: "8px 0", color: "#333" }}>
+              Role: <strong>{role}</strong>
+            </Text>
           </div>
 
           <Text
@@ -100,62 +110,22 @@ export const CompanyWelcomeEmail = ({
             To access your company dashboard and change your password:
           </Text>
 
-          <ol
-            style={{ color: "#475569", margin: "16px 0", paddingLeft: "24px" }}
-          >
-            <li>
-              Visit{" "}
-              <Link
-                href="https://andes-workforce.com/auth/login"
-                style={{ color: "#0097B2", textDecoration: "underline" }}
-              >
-                our login page
-              </Link>
-            </li>
-            <li>Sign in with your email and password</li>
-            <li>Click on your name in the top right corner</li>
-            <li>Select &quot;My Account&quot; from the dropdown menu</li>
-            <li>Change your password for security</li>
-          </ol>
-
-          <div
-            style={{
-              textAlign: "center",
-              margin: "30px 0",
-            }}
-          >
+          <div style={{ textAlign: "center", margin: "32px 0" }}>
             <Link
               href="https://andes-workforce.com/auth/login"
               style={{
-                backgroundColor: "#0097B2",
+                backgroundColor: "#3b82f6",
                 color: "white",
                 padding: "12px 24px",
                 textDecoration: "none",
                 borderRadius: "6px",
                 display: "inline-block",
+                fontWeight: "500",
               }}
             >
-              Access Your Company Dashboard
+              Access Your Dashboard
             </Link>
           </div>
-
-          <Text
-            style={{
-              color: "#64748b",
-              fontSize: "14px",
-              margin: "0 0 20px 0",
-              lineHeight: "1.5",
-            }}
-          >
-            If you have any questions or need assistance accessing your assigned
-            job offers, please don&apos;t hesitate to contact us at{" "}
-            <Link
-              href="mailto:info@teamandes.com"
-              style={{ color: "#0097B2", textDecoration: "underline" }}
-            >
-              info@teamandes.com
-            </Link>
-          </Text>
 
           <Text
             style={{
@@ -165,8 +135,37 @@ export const CompanyWelcomeEmail = ({
               lineHeight: "1.5",
             }}
           >
-            Best regards,
+            If you have any questions or need assistance, please don&apos;t
+            hesitate to contact our support team.
           </Text>
+
+          <div
+            style={{
+              borderTop: "1px solid #e2e8f0",
+              paddingTop: "20px",
+              marginTop: "32px",
+            }}
+          >
+            <Text
+              style={{
+                color: "#6b7280",
+                fontSize: "14px",
+                margin: "0",
+                lineHeight: "1.5",
+              }}
+            >
+              Best regards,
+              <br />
+              The Andes Workforce Team
+              <br />
+              <Link
+                href="mailto:info@teamandes.com"
+                style={{ color: "#0097B2", textDecoration: "underline" }}
+              >
+                info@teamandes.com
+              </Link>
+            </Text>
+          </div>
 
           <img
             src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/firma_laura.jpeg"
@@ -181,14 +180,22 @@ export const CompanyWelcomeEmail = ({
               margin: "20px 0",
             }}
           />
-          <Text style={{ color: "#64748b", fontSize: "12px", margin: "0" }}>
-            This is an automated email. Please do not reply directly to this
-            address.
-          </Text>
+
+          <div style={{ marginTop: "32px" }}>
+            <Text
+              style={{
+                color: "#9ca3af",
+                fontSize: "12px",
+                margin: "0",
+                textAlign: "center",
+              }}
+            >
+              This is an automated message. Please do not reply directly to this
+              email.
+            </Text>
+          </div>
         </Container>
       </Body>
     </Html>
   );
 };
-
-export default CompanyWelcomeEmail;

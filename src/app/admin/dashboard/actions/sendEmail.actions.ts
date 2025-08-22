@@ -11,6 +11,7 @@ import { BlacklistNotificationEmail } from "../emails/BlacklistNotification";
 import { AccessRestoredNotificationEmail } from "../emails/AccessRestoredNotification";
 import { RemovalNotificationEmail } from "../emails/RemovalNotification";
 import { CompanyWelcomeEmail } from "../emails/CompanyWelcomeEmail";
+import { EmployeeWelcomeEmail } from "../emails/EmployeeWelcomeEmail";
 import { ContractSentEmail } from "../emails/ContractSentEmail";
 
 // Crear transportador de nodemailer con autenticación básica
@@ -401,6 +402,53 @@ export const sendCompanyWelcomeEmail = async (
     };
   } catch (error) {
     console.error("❌ [sendCompanyWelcomeEmail] Error sending email:", error);
+    return { success: false, error };
+  }
+};
+
+export const sendEmployeeWelcomeEmail = async (
+  employeeName: string,
+  companyName: string,
+  email: string,
+  temporaryPassword: string,
+  role: string = "Employee"
+) => {
+  try {
+    console.log("🚀 [sendEmployeeWelcomeEmail] Sending welcome email:", {
+      employeeName,
+      companyName,
+      email,
+      role,
+    });
+
+    const emailHtml = await render(
+      EmployeeWelcomeEmail({
+        employeeName,
+        companyName,
+        email,
+        temporaryPassword,
+        role,
+      })
+    );
+
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
+      from: "Andes Workforce <no-reply@teamandes.com>",
+      to: [email],
+      subject: "Welcome to Andes Workforce - Employee Account Created",
+      html: emailHtml,
+    });
+
+    console.log("✅ [sendEmployeeWelcomeEmail] Email sent successfully:", info);
+
+    return {
+      success: true,
+      message: "Employee welcome email sent successfully",
+      data: info,
+    };
+  } catch (error) {
+    console.error("❌ [sendEmployeeWelcomeEmail] Error sending email:", error);
     return { success: false, error };
   }
 };

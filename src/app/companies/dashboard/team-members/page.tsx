@@ -160,6 +160,13 @@ export default function TeamMembersPage() {
                   day: "2-digit",
                 });
               }
+              const rawStatus =
+                typeof p.estadoPostulacion === "string"
+                  ? p.estadoPostulacion
+                  : "";
+              const mappedStatus =
+                rawStatus.toUpperCase() === "ACEPTADA" ? "ACTIVE" : "";
+
               return {
                 id: p.candidato.id,
                 fullName: `${p.candidato.nombre} ${p.candidato.apellido}`,
@@ -169,7 +176,7 @@ export default function TeamMembersPage() {
                 position: offer.titulo,
                 profileUrl: `/profile/${p.candidato.id}`,
                 contractDate: formattedDate,
-                contractStatus: p.estadoPostulacion,
+                contractStatus: mappedStatus,
               };
             })
         );
@@ -308,15 +315,11 @@ export default function TeamMembersPage() {
                     {member.contractDate}
                   </td>
                   <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        member.contractStatus === "Active"
-                          ? "bg-[#EBFFF9] text-[#0097B2]"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {member.contractStatus}
-                    </span>
+                    {member.contractStatus ? (
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#EBFFF9] text-[#0097B2]">
+                        {member.contractStatus}
+                      </span>
+                    ) : null}
                   </td>
                   <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap text-[#17323A]">
                     {member.position}
@@ -389,15 +392,11 @@ export default function TeamMembersPage() {
               <div className="text-xs text-gray-500">Email: {member.email}</div>
               <div className="text-xs text-gray-500">Phone: {member.phone}</div>
               <div className="flex items-center gap-2">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    member.contractStatus === "Active"
-                      ? "bg-[#EBFFF9] text-[#0097B2]"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {member.contractStatus}
-                </span>
+                {member.contractStatus ? (
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#EBFFF9] text-[#0097B2]">
+                    {member.contractStatus}
+                  </span>
+                ) : null}
                 <span className="text-xs text-gray-500">
                   {member.contractDate}
                 </span>
