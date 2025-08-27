@@ -157,51 +157,59 @@ export default function TeamMembersPage() {
       const response = await getAllOffersWithAcceptedGlobal();
 
       if (response.success && Array.isArray(response.data)) {
-        // Aplanar postulaciones aceptadas de todas las ofertas
+        // Solo incluir postulaciones con al menos un proceso de contratación activo
         const allMembers: Member[] = response.data.flatMap(
-          // eslint-disable-next-line
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (offer: OfferWithAccepted & { postulaciones: any[] }) =>
-            offer.postulaciones.map((p) => {
-              // Preferir fecha de inicio del proceso de contratación (si existe), sino usar fechaPostulacion
-              const proceso = Array.isArray(p.procesosContratacion)
-                ? // eslint-disable-next-line
-                  p.procesosContratacion.find((pc: any) => pc.activo) ||
-                  p.procesosContratacion[0]
-                : undefined;
-              const fechaBase: string | undefined =
-                proceso?.fechaInicio || p.fechaPostulacion;
-              let formattedDate = "";
-              if (fechaBase) {
-                const d = new Date(fechaBase);
-                formattedDate = d.toLocaleDateString("es-ES", {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                });
-              }
-              // Mapear estado: si viene 'ACEPTADA' => 'ACTIVE' (verde). Cualquier otro => vacío
-              const rawStatus =
-                typeof p.estadoPostulacion === "string"
-                  ? p.estadoPostulacion
-                  : "";
+            offer.postulaciones
+              .filter(
+                (p) =>
+                  Array.isArray(p.procesosContratacion) &&
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  p.procesosContratacion.some((pc: any) => pc.activo === true)
+              )
+              .map((p) => {
+                // Preferir fecha de inicio del proceso de contratación activo
+                const proceso = Array.isArray(p.procesosContratacion)
+                  ? // eslinit-disable-next-line @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    p.procesosContratacion.find((pc: any) => pc.activo) ||
+                    p.procesosContratacion[0]
+                  : undefined;
+                const fechaBase: string | undefined =
+                  proceso?.fechaInicio || p.fechaPostulacion;
+                let formattedDate = "";
+                if (fechaBase) {
+                  const d = new Date(fechaBase);
+                  formattedDate = d.toLocaleDateString("es-ES", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                  });
+                }
+                // Mapear estado: si viene 'ACEPTADA' => 'ACTIVE' (verde). Cualquier otro => vacío
+                const rawStatus =
+                  typeof p.estadoPostulacion === "string"
+                    ? p.estadoPostulacion
+                    : "";
 
-              const mappedStatus =
-                rawStatus.toUpperCase() === "ACEPTADA" ? "ACTIVE" : "";
-              return {
-                id: p.id,
-                candidateId: p.candidato.id,
-                fullName: `${p.candidato.nombre} ${p.candidato.apellido}`,
-                email: p.candidato.correo,
-                phone: p.candidato.telefono,
-                country: p.candidato.pais,
-                position: offer.titulo,
-                profileUrl: `/profile/${p.candidato.id}`,
-                contractDate: formattedDate,
-                contractStatus: mappedStatus,
-                // eslint-disable-next-line
-                firm: (offer as any).empresaOferta?.nombre || "",
-              };
-            })
+                const mappedStatus =
+                  rawStatus.toUpperCase() === "ACEPTADA" ? "ACTIVE" : "";
+                return {
+                  id: p.id,
+                  candidateId: p.candidato.id,
+                  fullName: `${p.candidato.nombre} ${p.candidato.apellido}`,
+                  email: p.candidato.correo,
+                  phone: p.candidato.telefono,
+                  country: p.candidato.pais,
+                  position: offer.titulo,
+                  profileUrl: `/profile/${p.candidato.id}`,
+                  contractDate: formattedDate,
+                  contractStatus: mappedStatus,
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  firm: (offer as any).empresaOferta?.nombre || "",
+                };
+              })
         );
         setMembers(allMembers);
       } else {

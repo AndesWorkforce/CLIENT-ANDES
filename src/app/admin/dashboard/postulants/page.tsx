@@ -1157,7 +1157,7 @@ export default function PostulantsPage() {
                 )}
                 <div className="flex justify-center">
                   <div className="flex items-center text-xs text-gray-500">
-                    <span className="mr-2">Mostrar:</span>
+                    <span className="mr-2">Show:</span>
                     <select
                       value={applicantsPerPage}
                       onChange={handleItemsPerPageChange}
@@ -1179,7 +1179,7 @@ export default function PostulantsPage() {
         {/* View Desktop */}
         <div className="hidden md:block">
           <div
-            className="bg-white mb-10 rounded-lg shadow-lg w-full max-w-7xl mx-auto max-h-[90vh] flex flex-col"
+            className="bg-white mb-10 rounded-lg shadow-lg w-full max-w-7xl mx-auto"
             style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
           >
             {/* Header with title and close button */}
@@ -1192,7 +1192,7 @@ export default function PostulantsPage() {
             </div>
 
             {/* Container of the table with relative position for the sticky header */}
-            <div className="flex-1 overflow-hidden relative p-6">
+            <div className="relative p-6">
               {isLoading ? (
                 <div className="p-6">
                   <TableSkeleton />
@@ -1206,13 +1206,10 @@ export default function PostulantsPage() {
 
                   {/* Container of the table with overflow */}
                   <div
-                    className="overflow-y-auto max-h-[calc(90vh-13rem)]"
-                    style={{
-                      scrollbarWidth: "thin",
-                      scrollbarColor: "#0097B2 #f3f4f6",
-                    }}
+                    className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 border-b border-gray-200"
+                    style={{ WebkitOverflowScrolling: "touch" }}
                   >
-                    <table className="w-full border-collapse">
+                    <table className="w-full border-collapse bg-white">
                       <thead className="sticky top-0 bg-white z-20 shadow-sm">
                         <tr className="border-b border-gray-200">
                           <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[140px]">
@@ -1278,7 +1275,7 @@ export default function PostulantsPage() {
                               }`}
                             >
                               {/* Name */}
-                              <td className="py-4 px-4 text-gray-700">
+                              <td className="py-4 px-4 text-gray-700 text-center align-middle">
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium">
                                     {`${applicant.nombre} ${applicant.apellido}`}
@@ -1307,19 +1304,50 @@ export default function PostulantsPage() {
                               </td>
 
                               {/* Email */}
-                              <td className="py-4 px-4 text-gray-700">
+                              <td className="py-4 px-4 text-gray-700 text-center align-middle">
                                 {applicant.correo}
                               </td>
 
                               {/* Current Application */}
-                              <td className="py-4 px-4 text-gray-700">
+                              <td className="py-4 px-4 text-gray-700 text-center align-middle">
                                 {applicant.lastRelevantPostulacion?.titulo
                                   ? applicant.lastRelevantPostulacion.titulo
                                   : applicant.puestoTrabajo
                                   ? applicant.puestoTrabajo
                                   : "Sin aplicación"}
                               </td>
-                              <td className="py-4 px-4">
+                              <td className="py-4 px-4 text-center align-middle">
+                                {applicant.entrevistaPreliminar ? (
+                                  <div className="flex flex-col items-center">
+                                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full mb-1">
+                                      ✓ Sent
+                                    </span>
+                                    {applicant.fechaEntrevistaPreliminar && (
+                                      <span className="text-xs text-gray-500">
+                                        {new Date(
+                                          applicant.fechaEntrevistaPreliminar
+                                        ).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <button
+                                    className="px-3 py-1 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
+                                    onClick={() =>
+                                      handlePreliminaryInterview(
+                                        applicant.id,
+                                        `${applicant.nombre} ${applicant.apellido}`,
+                                        applicant.correo
+                                      )
+                                    }
+                                  >
+                                    Send Invitation
+                                  </button>
+                                )}
+                              </td>
+
+                              {/* Stage */}
+                              <td className="py-4 px-4 text-center align-middle">
                                 {renderClickableStageStatusBadge(
                                   renderStageStatus(applicant),
                                   applicant
@@ -1327,7 +1355,7 @@ export default function PostulantsPage() {
                               </td>
 
                               {/* Applicant Status */}
-                              <td className="py-4 px-4">
+                              <td className="py-4 px-4 text-center align-middle">
                                 <div className="flex items-center gap-2">
                                   {renderApplicantStatusBadge(
                                     renderApplicantStatus(applicant)
@@ -1344,7 +1372,7 @@ export default function PostulantsPage() {
                               </td>
 
                               {/* Logs */}
-                              <td className="py-4 px-4">
+                              <td className="py-4 px-4 text-center align-middle">
                                 <button
                                   onClick={() => handleViewLogs(applicant.id)}
                                   className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
@@ -1355,7 +1383,7 @@ export default function PostulantsPage() {
                               </td>
 
                               {/* Actions */}
-                              <td className="py-4 px-4">
+                              <td className="py-4 px-4 text-center align-middle">
                                 <div className="flex space-x-2">
                                   <div className="relative group">
                                     <button
@@ -1430,7 +1458,7 @@ export default function PostulantsPage() {
               <div className="border-t border-gray-200 p-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center text-sm text-gray-500">
-                    <span className="mr-2">Mostrar:</span>
+                    <span className="mr-2">Show:</span>
                     <select
                       value={applicantsPerPage}
                       onChange={handleItemsPerPageChange}
@@ -1442,7 +1470,7 @@ export default function PostulantsPage() {
                       <option value={25}>25</option>
                       <option value={50}>50</option>
                     </select>
-                    <span className="ml-2">elementos por página</span>
+                    <span className="ml-2">items per page</span>
                   </div>
                   {totalPages > 1 && (
                     <div className="inline-flex border border-gray-300 rounded-md">

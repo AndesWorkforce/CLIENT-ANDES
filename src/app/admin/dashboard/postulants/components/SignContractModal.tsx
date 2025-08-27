@@ -387,6 +387,14 @@ export default function SignContractModal({
   };
 
   // Función helper para asegurar compatibilidad de datos
+  // Formatea fecha YYYY-MM-DD a MM/DD/YY
+  const formatDateMMDDYY = (dateString: string) => {
+    if (!dateString) return "";
+    const [year, month, day] = dateString.split("-");
+    if (!year || !month || !day) return dateString;
+    return `${month}/${day}/${year.slice(-2)}`;
+  };
+
   const getPDFData = () => {
     return {
       ...contractData,
@@ -415,9 +423,9 @@ export default function SignContractModal({
           month: "long",
           day: "numeric",
         }),
-      fechaInicioLabores:
-        contractData.fechaInicioLabores ||
-        new Date().toISOString().split("T")[0],
+      fechaInicioLabores: contractData.fechaInicioLabores
+        ? formatDateMMDDYY(contractData.fechaInicioLabores)
+        : formatDateMMDDYY(new Date().toISOString().split("T")[0]),
     };
   };
 

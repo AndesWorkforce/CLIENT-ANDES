@@ -132,19 +132,6 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
     }
   };
 
-  const formatDateShort = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
   return (
     <Document>
       {/* Página 1: Statement of Work */}
@@ -186,9 +173,7 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
           services as further detailed below (&quot;Services&quot;) to Company
           beginning on{" "}
           <Text style={styles.underline}>
-            {data.fechaInicioLabores
-              ? formatDateShort(data.fechaInicioLabores)
-              : "_____________"}
+            {data.fechaInicioLabores || "_____________"}
           </Text>{" "}
           (&quot;Start Date&quot;) and continuing until it expires or is
           terminated by Company or Contractor.

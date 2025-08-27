@@ -28,7 +28,7 @@ export default function ListEmployees() {
     setLoading(true);
     try {
       const response = await getCompanyEmployees(user.empresaId);
-      console.log("response", response);
+
       if (response.success && Array.isArray(response.data.data)) {
         // Filter employees by search term if provided
         let filteredEmployees = response.data.data;
@@ -116,13 +116,6 @@ export default function ListEmployees() {
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#0097B2] focus:border-[#0097B2] sm:text-sm"
               />
             </div>
-            {/* <button
-              onClick={() => router.push("/companies/dashboard/employees/new")}
-              className="bg-[#0097B2] text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-[#007B8E] transition-colors cursor-pointer whitespace-nowrap"
-            >
-              <PlusIcon size={18} />
-              <span>Create Employee</span>
-            </button> */}
           </div>
         </div>
 

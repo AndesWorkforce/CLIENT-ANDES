@@ -168,19 +168,6 @@ const EnglishServiceAgreementPDF: React.FC<EnglishServiceAgreementPDFProps> = ({
     }
   };
 
-  const formatDateShort = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -221,9 +208,7 @@ const EnglishServiceAgreementPDF: React.FC<EnglishServiceAgreementPDFProps> = ({
           services as further detailed below (&quot;Services&quot;) to Company
           beginning on{" "}
           <Text style={styles.underline}>
-            {safeData.fechaInicioLabores
-              ? formatDateShort(safeData.fechaInicioLabores)
-              : "_____________"}
+            {safeData.fechaInicioLabores || "_____________"}
           </Text>{" "}
           (&quot;Start Date&quot;) and continuing until it expires or is
           terminated by Company or Contractor.
