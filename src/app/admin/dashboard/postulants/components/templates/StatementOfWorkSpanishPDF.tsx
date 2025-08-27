@@ -101,15 +101,6 @@ interface StatementOfWorkSpanishPDFProps {
 const StatementOfWorkSpanishPDF: React.FC<StatementOfWorkSpanishPDFProps> = ({
   data,
 }) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -121,12 +112,11 @@ const StatementOfWorkSpanishPDF: React.FC<StatementOfWorkSpanishPDFProps> = ({
 
         <View style={styles.section}>
           <Text style={styles.paragraph}>
-            Esta Declaración de Trabajo se ejecuta el{" "}
-            {formatDate(data.fechaInicioLabores)}, entre Andes Workforce LLC
-            (&quot;Empresa&quot;) y {data.nombreCompleto}{" "}
-            (&quot;Contratista&quot;). Esta Declaración de Trabajo describe los
-            Servicios que serán realizados y proporcionados por el Contratista
-            según el Acuerdo de Servicios Profesionales.
+            Esta Declaración de Trabajo se ejecuta el {data.fechaInicioLabores},
+            entre Andes Workforce LLC (&quot;Empresa&quot;) y{" "}
+            {data.nombreCompleto} (&quot;Contratista&quot;). Esta Declaración de
+            Trabajo describe los Servicios que serán realizados y proporcionados
+            por el Contratista según el Acuerdo de Servicios Profesionales.
           </Text>
         </View>
 
@@ -136,7 +126,7 @@ const StatementOfWorkSpanishPDF: React.FC<StatementOfWorkSpanishPDFProps> = ({
             El Contratista acuerda proporcionar servicios de{" "}
             {data.puestoTrabajo} como se detalla más adelante
             (&quot;Servicios&quot;) a la Empresa comenzando el{" "}
-            {formatDate(data.fechaInicioLabores)}
+            {data.fechaInicioLabores}
             (&quot;Fecha de Inicio&quot;) y continuando hasta que expire o sea
             terminado por la Empresa o el Contratista.
           </Text>

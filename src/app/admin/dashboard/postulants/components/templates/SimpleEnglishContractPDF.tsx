@@ -115,20 +115,6 @@ const SimpleEnglishContractPDF: React.FC<SimpleEnglishContractPDFProps> = ({
     }
   };
 
-  const formatDateShort = (dateString: string) => {
-    if (!dateString) return "_____________";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -155,9 +141,8 @@ const SimpleEnglishContractPDF: React.FC<SimpleEnglishContractPDFProps> = ({
           Contractor agrees to provide{" "}
           {data.puestoTrabajo || "____________________"} services as further
           detailed below (&quot;Services&quot;) to Company beginning on{" "}
-          {formatDateShort(data.fechaInicioLabores || "")} (&quot;Start
-          Date&quot;) and continuing until it expires or is terminated by
-          Company or Contractor.
+          {data.fechaInicioLabores || ""} (&quot;Start Date&quot;) and
+          continuing until it expires or is terminated by Company or Contractor.
         </Text>
 
         <Text style={styles.clauseTitle}>Services</Text>
