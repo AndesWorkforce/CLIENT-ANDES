@@ -74,30 +74,40 @@ export async function getApplicants(page = 1, limit = 10, search = "") {
 
     const responseData = response.data;
 
-    const total =
-      responseData.meta?.pagination?.total || responseData.total || 0;
-    const totalPages =
-      responseData.meta?.pagination?.totalPages ||
-      Math.ceil(total / limit) ||
-      1;
-    const hasNextPage =
-      responseData.meta?.pagination?.hasNextPage || page < totalPages;
+    // Manejar estructura anidada del backend
+    const actualData = responseData.data || responseData;
+    const resultados =
+      actualData.resultados || actualData.data?.resultados || [];
+    const pagination =
+      actualData.pagination || actualData.data?.pagination || {};
+
+    const total = pagination.total || responseData.total || resultados.length;
+    const totalPages = pagination.totalPages || Math.ceil(total / limit) || 1;
+    const hasNextPage = page < totalPages;
 
     revalidatePath("/admin/dashboard/postulants");
 
     return {
       success: true,
-      message: "Ofertas publicadas y pausadas obtenidas correctamente",
-      data: responseData,
+      message: "Aplicantes obtenidos correctamente",
+      data: {
+        resultados: resultados,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages,
+        },
+      },
       currentPage: page,
       totalPages: totalPages,
       hasMore: hasNextPage,
     };
   } catch (error) {
-    console.error("[Offers] Error en getPublishedOffers:", error);
+    console.error("[Offers] Error en getApplicants:", error);
     return {
       success: false,
-      message: "Error en getPublishedOffers: " + error,
+      message: "Error en getApplicants: " + error,
     };
   }
 }

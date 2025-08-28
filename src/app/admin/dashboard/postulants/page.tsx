@@ -118,9 +118,9 @@ export default function PostulantsPage() {
         applicantsPerPage,
         searchValue
       );
-
+      console.log(response);
       if (response.success) {
-        setApplicants(response.data?.resultados);
+        setApplicants(response.data?.resultados || []);
         setTotalPages(response.totalPages || 1);
       } else {
         console.error("Error in getApplicants:", response.message);
@@ -841,7 +841,9 @@ export default function PostulantsPage() {
                   {isLoading ? "Loading applicants..." : "Applicants"}
                 </h3>
                 <div className="text-sm text-gray-500">
-                  {applicants.length > 0 && `Total: ${applicants.length}`}
+                  {Array.isArray(applicants) &&
+                    applicants.length > 0 &&
+                    `Total: ${applicants.length}`}
                 </div>
               </div>
               {totalPages > 1 && (
@@ -878,7 +880,7 @@ export default function PostulantsPage() {
                     </div>
                   ))}
                 </div>
-              ) : applicants.length > 0 ? (
+              ) : Array.isArray(applicants) && applicants.length > 0 ? (
                 applicants
                   .filter((applicant) => {
                     // Filtro por Stage
@@ -1068,7 +1070,7 @@ export default function PostulantsPage() {
             </div>
 
             {/* Pagination and selector for mobile */}
-            {applicants.length > 0 && (
+            {Array.isArray(applicants) && applicants.length > 0 && (
               <div className="border-t border-gray-200 p-3">
                 {totalPages > 1 && (
                   <div className="flex justify-center mb-2">
@@ -1197,7 +1199,7 @@ export default function PostulantsPage() {
                 <div className="p-6">
                   <TableSkeleton />
                 </div>
-              ) : applicants.length > 0 ? (
+              ) : Array.isArray(applicants) && applicants.length > 0 ? (
                 <>
                   <div className="mb-4 text-gray-500 text-sm">
                     Total: {applicants.length} applicants | Showing page{" "}
@@ -1454,7 +1456,7 @@ export default function PostulantsPage() {
               )}
             </div>
             {/* Pagination and items per page selector */}
-            {applicants.length > 0 && (
+            {Array.isArray(applicants) && applicants.length > 0 && (
               <div className="border-t border-gray-200 p-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center text-sm text-gray-500">

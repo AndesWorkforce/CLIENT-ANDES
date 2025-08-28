@@ -137,7 +137,7 @@ export async function getCompanyEmployees(empresaId: string) {
 export async function toggleEmployeeStatus(employeeId: string) {
   try {
     const axios = await createServerAxios();
-    const response = await axios.patch(
+    const response = await axios.delete(
       `usuarios/empleados/empresa/${employeeId}/desactivar`
     );
 
@@ -229,7 +229,7 @@ export async function updateEmployee(
 export async function deleteEmployee(id: string) {
   try {
     const axios = await createServerAxios();
-    const response = await axios.patch(
+    const response = await axios.delete(
       `usuarios/empleados/empresa/${id}/desactivar`
     );
 

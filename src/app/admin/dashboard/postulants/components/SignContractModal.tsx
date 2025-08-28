@@ -199,6 +199,42 @@ export default function SignContractModal({
   applicant,
 }: SignContractModalProps) {
   const { addNotification } = useNotificationStore();
+
+  // Función helper para formatear fechas - mover aquí para usar en inicialización
+  const formatDateMMDDYY = (dateString: string) => {
+    if (!dateString) return "";
+
+    // Si la fecha ya está en formato DD/MM/YY, devolverla tal como está
+    if (dateString.match(/^\d{1,2}\/\d{1,2}\/\d{2}$/)) {
+      return dateString;
+    }
+
+    // Si está en formato YYYY-MM-DD, convertir a DD/MM/YY
+    const [year, month, day] = dateString.split("-");
+    if (!year || !month || !day) return dateString;
+    return `${day}/${month}/${year.slice(-2)}`;
+  };
+
+  // Función para convertir fecha DD/MM/YY a YYYY-MM-DD (para el input date)
+  const formatDateForInput = (dateString: string) => {
+    if (!dateString) return "";
+
+    // Si ya está en formato YYYY-MM-DD, devolverlo tal como está
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateString;
+    }
+
+    // Si está en formato DD/MM/YY, convertir a YYYY-MM-DD
+    const ddmmyyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
+    if (ddmmyyMatch) {
+      const [, day, month, year] = ddmmyyMatch;
+      const fullYear = `20${year}`;
+      return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+
+    return dateString;
+  };
+
   const [selectedTemplate, setSelectedTemplate] =
     useState<ContractTemplate | null>(null);
   const [previewKey, setPreviewKey] = useState(0);
@@ -296,9 +332,11 @@ export default function SignContractModal({
     monedaSalario: "USD",
 
     // Fechas
-    fechaInicioLabores: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 2 weeks from today
+    fechaInicioLabores: formatDateMMDDYY(
+      new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0]
+    ), // 2 weeks from today in DD/MM/YY format
     fechaEjecucion: new Date().toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -387,14 +425,6 @@ export default function SignContractModal({
   };
 
   // Función helper para asegurar compatibilidad de datos
-  // Formatea fecha YYYY-MM-DD a MM/DD/YY
-  const formatDateMMDDYY = (dateString: string) => {
-    if (!dateString) return "";
-    const [year, month, day] = dateString.split("-");
-    if (!year || !month || !day) return dateString;
-    return `${month}/${day}/${year.slice(-2)}`;
-  };
-
   const getPDFData = () => {
     return {
       ...contractData,
@@ -423,9 +453,9 @@ export default function SignContractModal({
           month: "long",
           day: "numeric",
         }),
-      fechaInicioLabores: contractData.fechaInicioLabores
-        ? formatDateMMDDYY(contractData.fechaInicioLabores)
-        : formatDateMMDDYY(new Date().toISOString().split("T")[0]),
+      fechaInicioLabores:
+        contractData.fechaInicioLabores ||
+        formatDateMMDDYY(new Date().toISOString().split("T")[0]),
     };
   };
 
@@ -819,17 +849,35 @@ export default function SignContractModal({
                               {getFieldLabel(field)}
                             </label>
                             <input
-                              type={field.includes("fecha") ? "date" : "text"}
-                              value={
+                              type="date"
+                              value={formatDateForInput(
                                 contractData[
                                   field as keyof typeof contractData
                                 ] || ""
-                              }
-                              onChange={(e) =>
-                                handleInputChange(field, e.target.value)
-                              }
+                              )}
+                              onChange={(e) => {
+                                // Convertir la fecha seleccionada al formato DD/MM/YY
+                                const selectedDate = e.target.value;
+                                const formattedDate = selectedDate
+                                  ? formatDateMMDDYY(selectedDate)
+                                  : "";
+                                handleInputChange(field, formattedDate);
+                              }}
                               className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
                             />
+                            {/* Mostrar la fecha en formato DD/MM/YY debajo del input */}
+                            {contractData[
+                              field as keyof typeof contractData
+                            ] && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Selected:{" "}
+                                {
+                                  contractData[
+                                    field as keyof typeof contractData
+                                  ]
+                                }
+                              </p>
+                            )}
                           </div>
                         )
                     )}
