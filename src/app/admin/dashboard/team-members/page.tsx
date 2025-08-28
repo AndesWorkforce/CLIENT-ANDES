@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 import { getAllOffersWithAcceptedGlobal } from "../actions/offers-with-accepted.actions";
 import CandidateProfileModal from "@/app/admin/dashboard/components/CandidateProfileModal";
 import { CandidateProfileProvider } from "@/app/admin/dashboard/context/CandidateProfileContext";
+import AssignApplicationModal from "@/app/admin/dashboard/components/AssignApplicationModal";
 
 const columns = [
   { key: "fullName", label: "Full Name" },
@@ -16,11 +17,13 @@ const columns = [
   { key: "contractStatus", label: "Contract Status" },
   { key: "position", label: "Position" },
   { key: "firm", label: "Firm" },
+  { key: "assign", label: "Assign" },
 ];
 
 export default function TeamMembersPage() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>("");
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState<boolean>(false);
   const [orderBy, setOrderBy] = useState("fullName");
   const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
   const [rowsPerPage, setRowsPerPage] = useState(15);
@@ -113,6 +116,7 @@ export default function TeamMembersPage() {
       "Contract Status": m.contractStatus || "",
       Position: m.position || "",
       Firm: m.firm || "",
+      Assign: "Assign", // text only, without link
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportRows, { skipHeader: false });
@@ -152,6 +156,11 @@ export default function TeamMembersPage() {
     setIsProfileModalOpen(true);
   };
 
+  const handleAssignApplicant = (candidateId: string) => {
+    setSelectedCandidateId(candidateId);
+    setIsAssignModalOpen(true);
+  };
+
   async function getOffersWithAcceptedGlobal() {
     try {
       const response = await getAllOffersWithAcceptedGlobal();
@@ -181,11 +190,11 @@ export default function TeamMembersPage() {
                 let formattedDate = "";
                 if (fechaBase) {
                   const d = new Date(fechaBase);
-                  formattedDate = d.toLocaleDateString("es-ES", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                  });
+                  // Formato americano MM/DD/YY
+                  const month = (d.getMonth() + 1).toString().padStart(2, "0");
+                  const day = d.getDate().toString().padStart(2, "0");
+                  const year = d.getFullYear().toString().slice(-2);
+                  formattedDate = `${month}/${day}/${year}`;
                 }
                 // Mapear estado: si viene 'ACEPTADA' => 'ACTIVE' (verde). Cualquier otro => vacío
                 const rawStatus =
@@ -304,7 +313,11 @@ export default function TeamMembersPage() {
                   <th
                     key={col.key}
                     className="px-2 md:px-4 py-2 md:py-3 text-left font-medium text-[#17323A] uppercase cursor-pointer select-none"
-                    onClick={() => col.key !== "profile" && handleSort(col.key)}
+                    onClick={() =>
+                      col.key !== "profile" &&
+                      col.key !== "assign" &&
+                      handleSort(col.key)
+                    }
                   >
                     <span className="flex items-center gap-1">
                       {col.label}
@@ -374,11 +387,19 @@ export default function TeamMembersPage() {
                       </span>
                     ) : null}
                   </td>
-                  <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap text-[#17323A]">
+                  <td className="px-2 md:px-4 py-2 md:py-3 text-[#17323A] max-w-48 break-words">
                     {member.position}
                   </td>
                   <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap text-[#17323A]">
                     {member.firm}
+                  </td>
+                  <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                    <button
+                      onClick={() => handleAssignApplicant(member.candidateId)}
+                      className="text-[#0097B2] hover:underline font-medium"
+                    >
+                      Assign
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -448,15 +469,23 @@ export default function TeamMembersPage() {
               <div className="text-xs text-gray-500">Email: {member.email}</div>
               <div className="text-xs text-gray-500">Phone: {member.phone}</div>
               <div className="text-xs text-gray-500">Firm: {member.firm}</div>
-              <div className="flex items-center gap-2">
-                {member.contractStatus ? (
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#EBFFF9] text-[#0097B2]">
-                    {member.contractStatus}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  {member.contractStatus ? (
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#EBFFF9] text-[#0097B2]">
+                      {member.contractStatus}
+                    </span>
+                  ) : null}
+                  <span className="text-xs text-gray-500">
+                    {member.contractDate}
                   </span>
-                ) : null}
-                <span className="text-xs text-gray-500">
-                  {member.contractDate}
-                </span>
+                </div>
+                <button
+                  onClick={() => handleAssignApplicant(member.candidateId)}
+                  className="text-[#0097B2] hover:underline font-medium text-xs"
+                >
+                  Assign
+                </button>
               </div>
             </div>
           ))}
@@ -465,6 +494,11 @@ export default function TeamMembersPage() {
       <CandidateProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
+        candidateId={selectedCandidateId}
+      />
+      <AssignApplicationModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
         candidateId={selectedCandidateId}
       />
     </CandidateProfileProvider>
