@@ -11,6 +11,7 @@ import {
 import { sendContractSentNotification } from "../../actions/sendEmail.actions";
 import StatementOfWorkPDF from "./templates/StatementOfWorkPDF";
 import StatementOfWorkEnglishPDF from "./templates/StatementOfWorkEnglishPDF";
+import NewStatementOfWorkEnglishPDF from "./templates/NewStatementOfWorkEnglishPDF";
 import { Applicant } from "../../../../types/applicant";
 import { useNotificationStore } from "@/store/notifications.store";
 
@@ -160,6 +161,8 @@ const PDFPreview: React.FC<{
   try {
     if (selectedTemplate.id === "english-contract") {
       pdfTemplate = <StatementOfWorkEnglishPDF data={contractData} />;
+    } else if (selectedTemplate.id === "new-english-contract") {
+      pdfTemplate = <NewStatementOfWorkEnglishPDF data={contractData} />;
     } else {
       pdfTemplate = <StatementOfWorkPDF data={contractData} />;
     }
@@ -266,6 +269,31 @@ export default function SignContractModal({
         "ofertaSalarial",
         "salarioProbatorio",
         "monedaSalario",
+        "fechaInicioLabores",
+        "fechaEjecucion",
+        "nombreBanco",
+        "numeroCuenta",
+      ],
+    });
+
+    // Agregar nuevo contrato en inglés actualizado
+    workingTemplates.push({
+      id: "new-english-contract",
+      name: "New English Contract (Updated Service Fee Structure)",
+      description:
+        "Updated English contract with new Service Fee structure ($300 minimum for 30 hours) and comprehensive confidentiality agreement.",
+      subject:
+        "Statement of Work - {{nombreCompleto}} - New English Contract Package",
+      component: "NewStatementOfWorkEnglishPDF",
+      category: "International",
+      variables: [
+        "nombreCompleto",
+        "correoElectronico",
+        "cedula",
+        "telefono",
+        "direccionCompleta",
+        "puestoTrabajo",
+        "descripcionServicios",
         "fechaInicioLabores",
         "fechaEjecucion",
         "nombreBanco",
@@ -506,6 +534,8 @@ export default function SignContractModal({
         // Si es el template en inglés, usar StatementOfWorkEnglishPDF
         if (selectedTemplate.id === "english-contract") {
           pdfDocument = <StatementOfWorkEnglishPDF data={pdfData} />;
+        } else if (selectedTemplate.id === "new-english-contract") {
+          pdfDocument = <NewStatementOfWorkEnglishPDF data={pdfData} />;
         } else {
           // Para el resto de templates, usar StatementOfWorkPDF
           pdfDocument = <StatementOfWorkPDF data={pdfData} />;
@@ -884,7 +914,8 @@ export default function SignContractModal({
                   </div>
 
                   {/* English Contract Specific Fields */}
-                  {selectedTemplate.id === "english-contract" && (
+                  {(selectedTemplate.id === "english-contract" ||
+                    selectedTemplate.id === "new-english-contract") && (
                     <div className="border-b border-[#0097B2] pb-3">
                       <h5 className="text-sm font-semibold text-gray-600 mb-2">
                         Banking Information (Required for English Contract)

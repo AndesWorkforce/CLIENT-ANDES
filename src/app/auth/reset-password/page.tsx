@@ -20,6 +20,9 @@ function ResetPasswordComponents() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<"success" | "error" | null>(
+    null
+  );
 
   const onSubmit = async (data: {
     password: string;
@@ -27,13 +30,16 @@ function ResetPasswordComponents() {
   }) => {
     setIsSubmitting(true);
     setMessage(null);
+    setMessageType(null);
     try {
       if (!token) {
         setMessage("Invalid or missing token.");
+        setMessageType("error");
         return;
       }
       if (data.password !== data.confirmPassword) {
         setMessage("Passwords do not match.");
+        setMessageType("error");
         return;
       }
       const response = await resetPasswordAction({
@@ -41,20 +47,28 @@ function ResetPasswordComponents() {
         token: token as string,
       });
 
+      console.log("🔍 [Reset Password Component] Response:", response);
+
       if (response?.success) {
         setMessage(
-          "Your password has been reset successfully. Redirecting to login..."
+          response.message ||
+            "Your password has been reset successfully. Redirecting to login..."
         );
+        setMessageType("success");
         setTimeout(() => {
           router.push("/auth/login");
         }, 3000);
       } else {
         setMessage(
-          response?.message || "There was an error. Please try again."
+          response?.error ||
+            response?.message ||
+            "There was an error. Please try again."
         );
+        setMessageType("error");
       }
     } catch {
       setMessage("There was an error. Please try again.");
+      setMessageType("error");
     } finally {
       setIsSubmitting(false);
     }
@@ -72,7 +86,15 @@ function ResetPasswordComponents() {
           className="flex flex-col space-y-8 w-full"
         >
           {message ? (
-            <div className="text-center text-[#0097B2] mt-2">{message}</div>
+            <div
+              className={`text-center mt-2 p-3 rounded-lg ${
+                messageType === "success"
+                  ? "text-green-700 bg-green-100 border border-green-300"
+                  : "text-red-700 bg-red-100 border border-red-300"
+              }`}
+            >
+              {message}
+            </div>
           ) : (
             <>
               <div>

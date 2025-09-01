@@ -55,10 +55,33 @@ export const statementOfWorkEnglishTemplate: ContractTemplate = {
   ],
 };
 
+// Template para Nuevo Statement of Work en Inglés (PDF) - Version actualizada
+export const newStatementOfWorkEnglishTemplate: ContractTemplate = {
+  id: "new-statement-of-work-english-pdf",
+  name: "New Statement of Work - English PDF (Updated)",
+  description:
+    "Updated professional Statement of Work document with new Service Fee structure and confidentiality agreement",
+  subject: "Statement of Work - {{nombreCompleto}} - {{puestoTrabajo}}",
+  variables: [
+    "nombreCompleto",
+    "correoElectronico",
+    "cedula",
+    "telefono",
+    "direccionCompleta",
+    "puestoTrabajo",
+    "descripcionServicios",
+    "fechaInicioLabores",
+    "fechaEjecucion",
+    "nombreBanco",
+    "numeroCuenta",
+  ],
+};
+
 // Exportar templates
 export const contractTemplates: ContractTemplate[] = [
   statementOfWorkTemplate,
   statementOfWorkEnglishTemplate,
+  newStatementOfWorkEnglishTemplate,
 ];
 
 // La interfaz ya está exportada arriba
