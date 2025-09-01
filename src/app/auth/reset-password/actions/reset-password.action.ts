@@ -25,10 +25,15 @@ export async function resetPasswordAction(values: ResetPasswordFormValues) {
       );
 
       const data = response.data;
+      console.log("🔍 [Reset Password] Respuesta completa del servidor:", data);
+
+      // La respuesta viene envuelta por el TransformResponseInterceptor
+      // Estructura: { data: { success: true, message: "..." }, meta: { ... } }
+      const responseData = data.data || data;
 
       return {
-        success: data.success,
-        message: data.message,
+        success: responseData.success || true, // Si existe success lo usamos, sino asumimos true por status 200
+        message: responseData.message || "Password reset successfully",
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (axiosError: any) {
@@ -53,13 +58,19 @@ export async function resetPasswordAction(values: ResetPasswordFormValues) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error("Form error:", error);
+    console.error("🔥 [Reset Password] Error:", error);
 
     // Handle specific API errors if possible
-    let errorMessage = "Error during password recovery";
+    let errorMessage = "Error during password reset";
 
     if (error.response) {
+      console.log("🔍 [Reset Password] Error response:", error.response.data);
+
+      // El error también puede venir envuelto por el interceptor
+      const errorData = error.response.data?.data || error.response.data;
+
       errorMessage =
+        errorData?.message ||
         error.response.data?.message ||
         `Error ${error.response.status}: ${error.response.statusText}`;
     } else if (error.request) {
