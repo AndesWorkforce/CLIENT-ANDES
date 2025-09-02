@@ -243,16 +243,12 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
             {data.ofertaSalarial || "________"}
           </Text>{" "}
           fixed per month, inclusive of all taxes (howsoever described)
-          (&quot;Service Fee&quot;). Payment of the Service Fee to Contractor
-          will be initiated on the last day of the month. This Service Fee will
-          be increased by 5% annually.
+          (“Service Fee”). Payment of the Service Fee to Contractor will be
+          initiated on the last day of the month. This Service Fee will be
+          increased by 5% annually. Contractors will receive extra pay when
+          required to work during a local holiday according to their country of
+          residence regulation.
         </Text>
-
-        <Text style={styles.paragraph}>
-          Contractors will receive extra pay when required to work during a
-          local holiday according to their country of residence regulation.
-        </Text>
-
         <Text style={styles.paragraph}>
           Additionally, Contractor will receive a 2-week holiday bonus at the
           end of each calendar year. The holiday bonus will be prorated for
@@ -261,45 +257,8 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
         </Text>
 
         <Text style={styles.paragraph}>
-          Contractor will receive payment via direct deposit to the bank account
-          below:
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Name of Bank:{" "}
-          <Text style={styles.underline}>
-            {data.nombreBanco || "________________"}
-          </Text>
-        </Text>
-        <Text style={styles.paragraph}>
-          Account Number:{" "}
-          <Text style={styles.underline}>
-            {data.numeroCuenta || "____________"}
-          </Text>
-        </Text>
-        <Text style={styles.paragraph}>
-          Account holder name as it appears on bank account:{" "}
-          <Text style={styles.underline}>
-            {data.nombreCompleto || "_________________________________"}
-          </Text>
-        </Text>
-        <Text style={styles.paragraph}>
-          Account holder address, city, state, and zip code:{" "}
-          <Text style={styles.underline}>
-            {data.direccionCompleta || "____________________________________"}
-          </Text>
-        </Text>
-        <Text style={styles.paragraph}>
-          Telephone number:{" "}
-          <Text style={styles.underline}>
-            {data.telefono || "__________________________"}
-          </Text>
-        </Text>
-        <Text style={styles.paragraph}>
-          Government Identification Number:{" "}
-          <Text style={styles.underline}>
-            {data.cedula || "__________________"}
-          </Text>
+          Contractor will receive payment via direct deposit to the account
+          listed in the contractor’s profile.
         </Text>
 
         {/* Independent Contractor Relationship */}
@@ -323,56 +282,17 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
           reasonably determined by the Company, or on the last date practicable
           after the Start Date in accordance with applicable law, unless
           extended by the parties in writing. Additional Statements of Work may
-          be entered into upon mutual agreement of the Parties. During the
-          3-month probationary period, either party may terminate this Statement
-          of Work without cause, upon at least 2 days written notice to the
-          other Party.
+          be entered into upon mutual agreement of the Parties.
         </Text>
 
         <Text style={styles.paragraph}>
-          After completion of the 3-month probationary period, the Company
-          requires a two-week notice to terminate this Statement of Work. In the
-          event of separation from the company, whether voluntary or
-          involuntary, contractor shall ensure a proper turnover of all duties
-          and responsibilities to other employees, including any and all company
-          records, documents, properties, equipment and other materials in
-          possession and custody of contractor.
+          The Company requires a two-week notice to terminate this Statement of
+          Work. In the event of separation from the company, whether voluntary
+          or involuntary, the contractor shall ensure a proper turnover of all
+          duties and responsibilities to other employees, including any and all
+          company records, documents, properties, equipment and other materials
+          in possession and custody of contractor.
         </Text>
-
-        {/* Paid Time Off */}
-        <Text style={styles.clauseTitle}>Paid Time Off (PTO)</Text>
-        <Text style={styles.paragraph}>
-          Contractor will accrue 15 PTO days per calendar year. Contractor will
-          request PTO via email from Company ahead of time and, once approved,
-          Company will notify contractor with an updated PTO balance.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          PTO is not authorized during initial 3-month probationary period,
-          Contractor can accrue a maximum of 30 PTO days, PTO accrual will stop
-          once a Contractor reaches the 30-day balance limit.
-        </Text>
-
-        {/* <Text style={styles.paragraph}>
-          Agreed to this day, by and between,
-        </Text> */}
-
-        {/* Signature section */}
-        {/* <View style={styles.signatureSection}>
-          <View style={styles.signatureBlock}>
-            <Text style={styles.signatureLabel}>
-              _______Firma Miguel__________
-            </Text>
-            <View style={styles.signatureLine}></View>
-            <Text style={styles.signatureLabel}>Andes Workforce LLC</Text>
-          </View>
-          <View style={styles.signatureBlock}>
-            <View style={styles.signatureLine}></View>
-            <Text style={styles.signatureLabel}>
-              {data.nombreCompleto || "____________________________"}
-            </Text>
-          </View>
-        </View> */}
       </Page>
 
       {/* Página 2: Professional Services Agreement */}
@@ -655,7 +575,7 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
           third party, whether or not created by Contractor.
         </Text>
 
-        <Text style={styles.clauseTitle}>Consideration</Text>
+        <Text style={styles.clauseTitle}>Confidentiality</Text>
         <Text style={styles.paragraph}>
           In discussions and activities surrounding Contractor’s work, sales,
           products, technology, and models that Customer may use or develop,

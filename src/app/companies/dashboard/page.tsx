@@ -130,16 +130,6 @@ export default function CompanyDashboard() {
   }, [fetchAssignedOffers]);
 
   const openApplicantsModal = (offer: Offer) => {
-    console.log("🔍 [openApplicantsModal] Debugging offer data:", {
-      offerId: offer.id,
-      titulo: offer.titulo,
-      postulaciones: offer.postulaciones,
-      postulacionesLength: offer.postulaciones?.length,
-      _count: offer._count,
-      postulacionesCount: offer.postulacionesCount,
-      allOfferData: offer,
-    });
-
     if (offer.postulaciones && offer.postulaciones.length > 0) {
       console.log(
         "✅ [openApplicantsModal] Opening modal with applicants:",
@@ -190,8 +180,6 @@ export default function CompanyDashboard() {
   useEffect(() => {
     fetchAssignedOffers();
   }, []);
-
-  console.log("🔍 [CompanyDashboard] Offers:", offers);
 
   const LoadingIndicator = () => (
     <div className="flex justify-center py-4">
