@@ -12,18 +12,8 @@ export async function getAssignedOffers(
   try {
     const axios = await createServerAxios();
     const response = await axios.get(
-      `offers/assigned?page=${page}&limit=${limit}&search=${searchTerm}`
+      `offers/assigned?page=${page}&limit=${limit}&search=${searchTerm}&estado=publicado`
     );
-
-    console.log("🔍 [getAssignedOffers] Raw response:", {
-      status: response.status,
-      data: response.data,
-      dataKeys: Object.keys(response.data),
-      dataDataKeys: response.data.data
-        ? Object.keys(response.data.data)
-        : "No data.data",
-      firstOffer: response.data.data?.data?.[0],
-    });
 
     if (response.status !== 200) {
       return {
@@ -39,12 +29,6 @@ export async function getAssignedOffers(
       postulacionesCount:
         offer._count?.postulaciones || offer.postulaciones?.length || 0,
     }));
-
-    console.log("🔍 [getAssignedOffers] Processed offers:", {
-      offersCount: offers.length,
-      firstOffer: offers[0],
-      firstOfferPostulaciones: offers[0]?.postulaciones,
-    });
 
     revalidatePath("/companies/dashboard");
 

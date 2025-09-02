@@ -5,6 +5,7 @@ import {
   getContracts,
   getEvaluacionesMensuales,
   finalizarContrato,
+  uploadFinalContract,
 } from "./actions/contracts.actions";
 import {
   ProcesoContratacion,
@@ -580,18 +581,27 @@ export default function ContractsPage() {
 
       setLoading(true);
       try {
-        // Aquí iría la llamada a la API para subir el contrato
-        console.log(
-          "Uploading contract:",
-          contract.id,
-          "File:",
-          selectedFile.name,
-          "Notes:",
-          uploadNotes
-        );
-        await onUpload();
+        // Llamar a la API para subir el contrato
+        const result = await uploadFinalContract(contract.id, selectedFile);
+
+        if (result.success) {
+          addNotification(
+            `Contract uploaded successfully for ${contract.nombreCompleto}`,
+            "success"
+          );
+          await onUpload(); // Recargar los contratos
+        } else {
+          addNotification(
+            `Failed to upload contract: ${result.message}`,
+            "error"
+          );
+        }
       } catch (error) {
         console.error("Error uploading contract:", error);
+        addNotification(
+          "There was an error uploading the contract. Please try again.",
+          "error"
+        );
       } finally {
         setLoading(false);
       }
@@ -845,8 +855,28 @@ export default function ContractsPage() {
                             )}
                           </td>
                           <td className="py-4 px-4">
-                            {contract.estadoContratacion ===
-                            "CONTRATO_FINALIZADO" ? (
+                            {contract.contratoFinalUrl ? (
+                              // Ya se cargó el contrato final
+                              <div
+                                className="flex items-center space-x-2"
+                                title="Contract uploaded"
+                              >
+                                <CheckCircle
+                                  size={20}
+                                  className="text-green-500"
+                                />
+                                <a
+                                  href={contract.contratoFinalUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#0097B2] hover:underline text-sm font-medium"
+                                >
+                                  View Final Contract
+                                </a>
+                              </div>
+                            ) : contract.estadoContratacion ===
+                              "CONTRATO_FINALIZADO" ? (
+                              // Puede cargar el contrato
                               <button
                                 onClick={() =>
                                   handleUploadContract(contract.id)
@@ -858,6 +888,7 @@ export default function ContractsPage() {
                                 Upload Contract
                               </button>
                             ) : (
+                              // Esperando firma
                               <span className="text-gray-500 text-xs">
                                 Pending signature
                               </span>
@@ -1100,8 +1131,25 @@ export default function ContractsPage() {
 
                       <span className="text-gray-600 font-bold">Upload:</span>
                       <div>
-                        {contract.estadoContratacion ===
-                        "DOCUMENTOS_COMPLETADOS" ? (
+                        {contract.contratoFinalUrl ? (
+                          // Ya se cargó el contrato final
+                          <div
+                            className="flex items-center space-x-2"
+                            title="Contract uploaded"
+                          >
+                            <CheckCircle size={16} className="text-green-500" />
+                            <a
+                              href={contract.contratoFinalUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#0097B2] hover:underline text-xs font-medium"
+                            >
+                              View Final
+                            </a>
+                          </div>
+                        ) : contract.estadoContratacion ===
+                          "CONTRATO_FINALIZADO" ? (
+                          // Puede cargar el contrato
                           <button
                             onClick={() => handleUploadContract(contract.id)}
                             className="px-3 py-1 bg-[#0097B2] text-white text-xs rounded-md hover:bg-[#007B8F] transition-colors flex items-center"
@@ -1111,6 +1159,7 @@ export default function ContractsPage() {
                             Upload Contract
                           </button>
                         ) : (
+                          // Esperando firma
                           <span className="text-gray-500 text-xs">
                             Pending signature
                           </span>

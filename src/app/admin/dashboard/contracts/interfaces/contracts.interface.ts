@@ -106,6 +106,9 @@ export interface ProcesoContratacion {
   documentosLeidos: DocumentoLeido[];
   evaluacionesPago: EvaluacionPagoMensual[];
 
+  // URL del contrato final cargado al S3
+  contratoFinalUrl?: string | null;
+
   // Campos calculados para gestión de pagos mensuales
   documentoSubidoEsteMes: boolean;
   fechaUltimoDocumento: string | null;

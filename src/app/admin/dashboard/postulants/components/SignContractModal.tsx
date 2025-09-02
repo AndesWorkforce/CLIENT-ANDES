@@ -47,8 +47,6 @@ const getFieldLabel = (field: string): string => {
     monedaSalario: "Currency",
     fechaInicioLabores: "Start Date",
     fechaEjecucion: "Execution Date",
-    nombreBanco: "Bank Name",
-    numeroCuenta: "Account Number",
   };
 
   const requiredFields = [
@@ -77,8 +75,6 @@ const getFieldPlaceholder = (field: string): string => {
     ofertaSalarial: "1100",
     salarioProbatorio: "1000",
     monedaSalario: "USD",
-    nombreBanco: "e.g., Bank of America",
-    numeroCuenta: "e.g., 1234567890",
   };
   return placeholders[field] || `Enter ${field}`;
 };
@@ -250,7 +246,7 @@ export default function SignContractModal({
     // Agregar contrato en inglés como primera opción
     workingTemplates.push({
       id: "english-contract",
-      name: "English Contract (Statement of Work + Professional Services + Confidentiality)",
+      name: "English Contract - Standard Service Fee Structure (Update September 01, 2025)",
       description:
         "Complete English contract package including Statement of Work, Professional Services Agreement, and Confidentiality Agreement for international contractors.",
       subject:
@@ -271,15 +267,13 @@ export default function SignContractModal({
         "monedaSalario",
         "fechaInicioLabores",
         "fechaEjecucion",
-        "nombreBanco",
-        "numeroCuenta",
       ],
     });
 
     // Agregar nuevo contrato en inglés actualizado
     workingTemplates.push({
       id: "new-english-contract",
-      name: "New English Contract (Updated Service Fee Structure)",
+      name: "New English Contract - Service Fee Structure (Updated August 29, 2025)",
       description:
         "Updated English contract with new Service Fee structure ($300 minimum for 30 hours) and comprehensive confidentiality agreement.",
       subject:
@@ -294,10 +288,9 @@ export default function SignContractModal({
         "direccionCompleta",
         "puestoTrabajo",
         "descripcionServicios",
+        "salarioProbatorio",
         "fechaInicioLabores",
         "fechaEjecucion",
-        "nombreBanco",
-        "numeroCuenta",
       ],
     });
 
@@ -370,10 +363,6 @@ export default function SignContractModal({
       month: "long",
       day: "numeric",
     }),
-
-    // Campos adicionales para contratos en inglés
-    nombreBanco: "",
-    numeroCuenta: "",
   }));
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -472,8 +461,6 @@ export default function SignContractModal({
       ofertaSalarial: contractData.ofertaSalarial || "0",
       salarioProbatorio: contractData.salarioProbatorio || "0",
       monedaSalario: contractData.monedaSalario || "USD",
-      nombreBanco: contractData.nombreBanco || "Bank Name",
-      numeroCuenta: contractData.numeroCuenta || "Account Number",
       fechaEjecucion:
         contractData.fechaEjecucion ||
         new Date().toLocaleDateString("en-US", {
@@ -912,54 +899,6 @@ export default function SignContractModal({
                         )
                     )}
                   </div>
-
-                  {/* English Contract Specific Fields */}
-                  {(selectedTemplate.id === "english-contract" ||
-                    selectedTemplate.id === "new-english-contract") && (
-                    <div className="border-b border-[#0097B2] pb-3">
-                      <h5 className="text-sm font-semibold text-gray-600 mb-2">
-                        Banking Information (Required for English Contract)
-                      </h5>
-                      {["nombreBanco", "numeroCuenta", "direccionCompleta"].map(
-                        (field) => (
-                          <div key={field} className="mb-2">
-                            <label className="block text-xs font-medium text-gray-500 mb-1">
-                              {getFieldLabel(field)}
-                            </label>
-                            {field === "direccionCompleta" ? (
-                              <textarea
-                                value={
-                                  contractData[
-                                    field as keyof typeof contractData
-                                  ] || ""
-                                }
-                                onChange={(e) =>
-                                  handleInputChange(field, e.target.value)
-                                }
-                                rows={2}
-                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-                                placeholder={getFieldPlaceholder(field)}
-                              />
-                            ) : (
-                              <input
-                                type="text"
-                                value={
-                                  contractData[
-                                    field as keyof typeof contractData
-                                  ] || ""
-                                }
-                                onChange={(e) =>
-                                  handleInputChange(field, e.target.value)
-                                }
-                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-                                placeholder={getFieldPlaceholder(field)}
-                              />
-                            )}
-                          </div>
-                        )
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             )}

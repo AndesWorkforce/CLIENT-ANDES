@@ -178,3 +178,52 @@ export const finalizarContrato = async (
     );
   }
 };
+
+// Nueva función para cargar contrato final al S3
+export const uploadFinalContract = async (
+  procesoId: string,
+  file: File
+): Promise<{ success: boolean; message: string; contractUrl?: string }> => {
+  const axios = await createServerAxios();
+  try {
+    const formData = new FormData();
+    formData.append("contrato", file);
+
+    const response = await axios.post(
+      `/admin/contratacion/${procesoId}/upload-contrato-final`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    if (response.status === 200 || response.status === 201) {
+      return {
+        success: true,
+        message: "Contract uploaded successfully",
+        contractUrl:
+          response.data?.data?.contractUrl || response.data?.contractUrl,
+      };
+    } else {
+      throw new Error("Error uploading contract");
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error("❌ [uploadFinalContract] Error:", {
+      procesoId,
+      error: error.response?.data || error.message,
+      status: error.response?.status,
+    });
+
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        error.message ||
+        "Error uploading contract",
+    };
+  }
+};

@@ -132,6 +132,26 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
     }
   };
 
+  // Función para calcular el pago basado en horas trabajadas
+  const calculatePayment = (hours: number, baseSalary: number) => {
+    if (hours <= 30) {
+      return baseSalary;
+    }
+    const extraHours = hours - 30;
+    const hourlyRate = baseSalary / 30; // Calcular tarifa por hora basada en el salario base
+    const extraPay = extraHours * hourlyRate;
+    return baseSalary + extraPay;
+  };
+
+  // Obtener el salario base (valor por defecto $300 si no se especifica)
+  const baseSalary = parseFloat(data.salarioProbatorio) || 300;
+
+  // Calcular ejemplos dinámicamente
+  const payment24Hours = calculatePayment(24, baseSalary);
+  const payment30Hours = calculatePayment(30, baseSalary);
+  const payment35Hours = calculatePayment(35, baseSalary);
+  const extraPay35Hours = payment35Hours - baseSalary;
+
   return (
     <Document>
       {/* Página 1: Statement of Work */}
@@ -232,32 +252,30 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
         {/* Service Fee */}
         <Text style={styles.clauseTitle}>Service Fee</Text>
         <Text style={styles.paragraph}>
-          As of the Start Date, Contractor will be paid a fee of USD{" "}
-          <Text style={styles.underline}>
-            {data.salarioProbatorio || "_______"}
-          </Text>{" "}
-          fixed per month during a 3-month probationary period. Starting the
-          first day of the month following the probationary period, Contractor
-          will be paid a fee of USD{" "}
-          <Text style={styles.underline}>
-            {data.ofertaSalarial || "________"}
-          </Text>{" "}
+          The Contractor shall be required to work on weekends and public
+          holidays. Andes shall pay the Contractor a minimum monthly fee of $
+          <Text style={styles.underline}>{baseSalary.toFixed(0)}</Text> USD
           fixed per month, inclusive of all taxes (howsoever described)
-          (“Service Fee”). Payment of the Service Fee to Contractor will be
-          initiated on the last day of the month. This Service Fee will be
-          increased by 5% annually. Contractors will receive extra pay when
-          required to work during a local holiday according to their country of
-          residence regulation.
+          (“Service Fee”) for services rendered, provided the total hours worked
+          in a given month do not exceed 30 hours. Payment of the Service Fee to
+          the Contractor will be initiated on the last day of the month. This
+          Service Fee will be increased by 5% annually.
+        </Text>
+        <Text style={styles.clauseTitle}>Examples:</Text>
+        <Text style={styles.paragraph}>
+          24 hours worked = ${payment24Hours.toFixed(0)}
         </Text>
         <Text style={styles.paragraph}>
-          Additionally, Contractor will receive a 2-week holiday bonus at the
-          end of each calendar year. The holiday bonus will be prorated for
-          Contractors who have completed less than 6 months of work at the end
-          of the calendar year.
+          USD 30 hours worked = ${payment30Hours.toFixed(0)}
+        </Text>
+        <Text style={styles.paragraph}>
+          USD 35 hours worked = ${payment35Hours.toFixed(0)} USD ($
+          {baseSalary.toFixed(0)} base + ${extraPay35Hours.toFixed(0)} for 5
+          extra hours)
         </Text>
 
         <Text style={styles.paragraph}>
-          Contractor will receive payment via direct deposit to the account
+          The contractor will receive payment via direct deposit to the bank
           listed in the contractor’s profile.
         </Text>
 
