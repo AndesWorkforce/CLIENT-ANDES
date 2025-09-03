@@ -47,6 +47,15 @@ const getFieldLabel = (field: string): string => {
     monedaSalario: "Currency",
     fechaInicioLabores: "Start Date",
     fechaEjecucion: "Execution Date",
+    // Service Fee (New English Template)
+    fixedFee: "Fixed fee",
+    fixedHours: "Fixed hours",
+    example1Hours: "1st hour example",
+    example1Fee: "1st fee example",
+    example2Hours: "2nd hour example",
+    example2Fee: "2nd fee example",
+    example3Hours: "3rd hour example",
+    example3Fee: "3rd fee example",
   };
 
   const requiredFields = [
@@ -75,6 +84,15 @@ const getFieldPlaceholder = (field: string): string => {
     ofertaSalarial: "1100",
     salarioProbatorio: "1000",
     monedaSalario: "USD",
+    // Service Fee placeholders
+    fixedFee: "300",
+    fixedHours: "30",
+    example1Hours: "24",
+    example1Fee: "300",
+    example2Hours: "30",
+    example2Fee: "300",
+    example3Hours: "35",
+    example3Fee: "350",
   };
   return placeholders[field] || `Enter ${field}`;
 };
@@ -288,7 +306,15 @@ export default function SignContractModal({
         "direccionCompleta",
         "puestoTrabajo",
         "descripcionServicios",
-        "salarioProbatorio",
+        // Service Fee specific inputs
+        "fixedFee",
+        "fixedHours",
+        "example1Hours",
+        "example1Fee",
+        "example2Hours",
+        "example2Fee",
+        "example3Hours",
+        "example3Fee",
         "fechaInicioLabores",
         "fechaEjecucion",
       ],
@@ -351,6 +377,16 @@ export default function SignContractModal({
     ofertaSalarial: "1100",
     salarioProbatorio: "1000",
     monedaSalario: "USD",
+
+    // New English Template - Service Fee defaults
+    fixedFee: "300",
+    fixedHours: "30",
+    example1Hours: "24",
+    example1Fee: "300",
+    example2Hours: "30",
+    example2Fee: "300",
+    example3Hours: "35",
+    example3Fee: "350",
 
     // Fechas
     fechaInicioLabores: formatDateMMDDYY(
@@ -815,31 +851,33 @@ export default function SignContractModal({
                   {/* Salary Data */}
                   <div className="border-b border-[#0097B2] pb-3">
                     <h5 className="text-sm font-semibold text-gray-600 mb-2">
-                      Salary Information
+                      {selectedTemplate.id === "new-english-contract"
+                        ? "Service Fee"
+                        : "Salary Information"}
                     </h5>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        "salarioProbatorio",
-                        "ofertaSalarial",
-                        "monedaSalario",
-                      ].map(
-                        (field) =>
-                          selectedTemplate.variables.includes(field) && (
+                    {selectedTemplate.id === "new-english-contract" ? (
+                      <>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            "fixedFee",
+                            "fixedHours",
+                            "example1Hours",
+                            "example1Fee",
+                            "example2Hours",
+                            "example2Fee",
+                            "example3Hours",
+                            "example3Fee",
+                          ].map((field) => (
                             <div key={field} className="mb-2">
                               <label className="block text-xs font-medium text-gray-500 mb-1">
                                 {getFieldLabel(field)}
                               </label>
                               <input
-                                type={
-                                  field.includes("salario") ||
-                                  field.includes("Salarial")
-                                    ? "number"
-                                    : "text"
-                                }
+                                type="number"
                                 value={
-                                  contractData[
-                                    field as keyof typeof contractData
-                                  ] || ""
+                                  (contractData as any)[field] !== undefined
+                                    ? (contractData as any)[field]
+                                    : ""
                                 }
                                 onChange={(e) =>
                                   handleInputChange(field, e.target.value)
@@ -848,10 +886,52 @@ export default function SignContractModal({
                                 placeholder={getFieldPlaceholder(field)}
                               />
                             </div>
-                          )
-                      )}
-                    </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Order: Fixed fee, Fixed hours, 1st/2nd/3rd examples
+                          (hours and fees).
+                        </p>
+                      </>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          "salarioProbatorio",
+                          "ofertaSalarial",
+                          "monedaSalario",
+                        ].map(
+                          (field) =>
+                            selectedTemplate.variables.includes(field) && (
+                              <div key={field} className="mb-2">
+                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                  {getFieldLabel(field)}
+                                </label>
+                                <input
+                                  type={
+                                    field.includes("salario") ||
+                                    field.includes("Salarial")
+                                      ? "number"
+                                      : "text"
+                                  }
+                                  value={
+                                    contractData[
+                                      field as keyof typeof contractData
+                                    ] || ""
+                                  }
+                                  onChange={(e) =>
+                                    handleInputChange(field, e.target.value)
+                                  }
+                                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                                  placeholder={getFieldPlaceholder(field)}
+                                />
+                              </div>
+                            )
+                        )}
+                      </div>
+                    )}
                   </div>
+
+                  {/* Service Fee block removed: now included inside Salary section for new-english-contract */}
 
                   {/* Dates */}
                   <div className="border-b border-[#0097B2] pb-3">
