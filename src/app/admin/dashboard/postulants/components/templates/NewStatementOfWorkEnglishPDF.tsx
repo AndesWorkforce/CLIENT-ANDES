@@ -218,7 +218,7 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
           services as further detailed below (&quot;Services&quot;) to Company
           beginning on{" "}
           <Text style={styles.underline}>
-            {data.fechaInicioLabores || "_____________"}
+            {formatDate(data.fechaInicioLabores) || "_____________"}
           </Text>{" "}
           (&quot;Start Date&quot;) and continuing until it expires or is
           terminated by Company or Contractor.
