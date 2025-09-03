@@ -12,7 +12,7 @@ export async function getAssignedOffers(
   try {
     const axios = await createServerAxios();
     const response = await axios.get(
-      `offers/assigned?page=${page}&limit=${limit}&search=${searchTerm}&estado=publicado`
+      `offers/assigned?page=${page}&limit=${limit}&search=${searchTerm}`
     );
 
     if (response.status !== 200) {
