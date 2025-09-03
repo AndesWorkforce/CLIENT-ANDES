@@ -110,6 +110,15 @@ interface StatementOfWorkEnglishData {
   puestoTrabajo?: string;
   nombreBanco?: string;
   numeroCuenta?: string;
+  // New configurable Service Fee fields
+  fixedFee?: string; // Base monthly fee (defaults to 300)
+  fixedHours?: string; // Hours cap for base fee (defaults to 30)
+  example1Hours?: string; // e.g., 24
+  example1Fee?: string; // e.g., 300
+  example2Hours?: string; // e.g., 30
+  example2Fee?: string; // e.g., 300
+  example3Hours?: string; // e.g., 35
+  example3Fee?: string; // e.g., 350
 }
 
 interface StatementOfWorkEnglishPDFProps {
@@ -132,25 +141,41 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
     }
   };
 
-  // Función para calcular el pago basado en horas trabajadas
-  const calculatePayment = (hours: number, baseSalary: number) => {
-    if (hours <= 30) {
+  // Función para calcular el pago basado en horas trabajadas y el tope fijo
+  const calculatePayment = (
+    hours: number,
+    baseSalary: number,
+    capHours: number
+  ) => {
+    if (hours <= capHours) {
       return baseSalary;
     }
-    const extraHours = hours - 30;
-    const hourlyRate = baseSalary / 30; // Calcular tarifa por hora basada en el salario base
+    const extraHours = hours - capHours;
+    const hourlyRate = baseSalary / capHours; // Tarifa por hora basada en el salario base y tope
     const extraPay = extraHours * hourlyRate;
     return baseSalary + extraPay;
   };
 
-  // Obtener el salario base (valor por defecto $300 si no se especifica)
-  const baseSalary = parseFloat(data.salarioProbatorio) || 300;
+  // Obtener el salario base/tope/ejemplos desde data con valores por defecto
+  const baseSalary =
+    parseFloat((data.fixedFee as string) || data.salarioProbatorio) || 300;
+  const capHours = parseInt((data.fixedHours as string) || "30", 10) || 30;
 
-  // Calcular ejemplos dinámicamente
-  const payment24Hours = calculatePayment(24, baseSalary);
-  const payment30Hours = calculatePayment(30, baseSalary);
-  const payment35Hours = calculatePayment(35, baseSalary);
-  const extraPay35Hours = payment35Hours - baseSalary;
+  const ex1Hours = parseInt((data.example1Hours as string) || "24", 10) || 24;
+  const ex2Hours = parseInt((data.example2Hours as string) || "30", 10) || 30;
+  const ex3Hours = parseInt((data.example3Hours as string) || "35", 10) || 35;
+
+  // Calcular ejemplos dinámicamente (permitiendo override manual)
+  const payment24Hours =
+    parseFloat(data.example1Fee || "") ||
+    calculatePayment(ex1Hours, baseSalary, capHours);
+  const payment30Hours =
+    parseFloat(data.example2Fee || "") ||
+    calculatePayment(ex2Hours, baseSalary, capHours);
+  const payment35Hours =
+    parseFloat(data.example3Fee || "") ||
+    calculatePayment(ex3Hours, baseSalary, capHours);
+  const extraPay35Hours = Math.max(payment35Hours - baseSalary, 0);
 
   return (
     <Document>
@@ -257,21 +282,22 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
           <Text style={styles.underline}>{baseSalary.toFixed(0)}</Text> USD
           fixed per month, inclusive of all taxes (howsoever described)
           (“Service Fee”) for services rendered, provided the total hours worked
-          in a given month do not exceed 30 hours. Payment of the Service Fee to
-          the Contractor will be initiated on the last day of the month. This
-          Service Fee will be increased by 5% annually.
+          in a given month do not exceed{" "}
+          <Text style={styles.underline}>{capHours}</Text> hours. Payment of the
+          Service Fee to the Contractor will be initiated on the last day of the
+          month. This Service Fee will be increased by 5% annually.
         </Text>
         <Text style={styles.clauseTitle}>Examples:</Text>
         <Text style={styles.paragraph}>
-          24 hours worked = ${payment24Hours.toFixed(0)}
+          {ex1Hours} hours worked = ${payment24Hours.toFixed(0)} USD
         </Text>
         <Text style={styles.paragraph}>
-          USD 30 hours worked = ${payment30Hours.toFixed(0)}
+          {ex2Hours} hours worked = ${payment30Hours.toFixed(0)} USD
         </Text>
         <Text style={styles.paragraph}>
-          USD 35 hours worked = ${payment35Hours.toFixed(0)} USD ($
-          {baseSalary.toFixed(0)} base + ${extraPay35Hours.toFixed(0)} for 5
-          extra hours)
+          {ex3Hours} hours worked = ${payment35Hours.toFixed(0)} USD ($
+          {baseSalary.toFixed(0)} base + ${extraPay35Hours.toFixed(0)} for{" "}
+          {Math.max(ex3Hours - capHours, 0)} extra hours)
         </Text>
 
         <Text style={styles.paragraph}>
