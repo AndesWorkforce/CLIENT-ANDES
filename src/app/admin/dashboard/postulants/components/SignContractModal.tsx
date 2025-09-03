@@ -875,8 +875,10 @@ export default function SignContractModal({
                               <input
                                 type="number"
                                 value={
+                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                   (contractData as any)[field] !== undefined
-                                    ? (contractData as any)[field]
+                                    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                      (contractData as any)[field]
                                     : ""
                                 }
                                 onChange={(e) =>
