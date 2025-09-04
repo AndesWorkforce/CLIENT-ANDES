@@ -135,7 +135,14 @@ export default function TeamMembersPage() {
 
   async function getOffersWithCompanyId() {
     try {
-      const response = await getOffersWithAccepted(user?.empresaId || "");
+      let empresaId;
+      if (user?.rol === "EMPLEADO_EMPRESA") {
+        empresaId = user?.empleadoEmpresa?.empresa.id;
+      } else {
+        empresaId = user?.empresaId;
+      }
+
+      const response = await getOffersWithAccepted(empresaId!);
       console.log("Response:", response);
 
       if (response.success && Array.isArray(response.data)) {
@@ -196,10 +203,17 @@ export default function TeamMembersPage() {
   }
 
   useEffect(() => {
-    if (user?.empresaId) {
+    if (user && user?.empresaId) {
       getOffersWithCompanyId();
     }
-  }, [user?.empresaId]);
+    if (
+      user &&
+      user?.rol === "EMPLEADO_EMPRESA" &&
+      user?.empleadoEmpresa?.empresa.id
+    ) {
+      getOffersWithCompanyId();
+    }
+  }, [user]);
 
   return (
     <CandidateProfileProvider>
