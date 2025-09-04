@@ -156,6 +156,9 @@ export default function RegisterForm() {
               )}
             </button>
           </div>
+          <div className="text-gray-500 text-xs mt-1">
+            Example: Password123! (min. 8 characters, uppercase, lowercase, number)
+          </div>
           {errors.contrasena && (
             <span className="text-red-500 text-xs mt-1">
               {errors.contrasena.message}
