@@ -243,8 +243,8 @@ export async function cancelarContrato(
       motivo: cancelacionData.motivo,
     });
 
-    const response = await axios.post(
-      `/admin/contratos/${procesoId}/cancelar`,
+    const response = await axios.patch(
+      `/admin/contratacion/${procesoId}/cancelar`,
       cancelacionData
     );
 

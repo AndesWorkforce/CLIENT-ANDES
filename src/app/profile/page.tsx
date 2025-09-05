@@ -37,6 +37,7 @@ import {
 } from "./actions/experience.actions";
 import { addEducation, deleteEducation } from "./actions/education.actions";
 import IdentificationModal from "./components/IdentificationModal";
+import BankInfoModal from "./components/BankInfoModal";
 
 export default function ProfilePage() {
   const { profile } = useProfileContext();
@@ -89,6 +90,7 @@ export default function ProfilePage() {
   const [experienceData, setExperienceData] = useState<Experience | null>(null);
   const [showIdentificationModal, setShowIdentificationModal] =
     useState<boolean>(false);
+  const [showBankInfoModal, setShowBankInfoModal] = useState<boolean>(false);
 
   const handleSaveExperience = async (userId: string, data: Experience) => {
     const response = await addExperience(userId, data);
@@ -566,6 +568,70 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+
+        {/* Card 3: Bank Information (gated) */}
+        {(profile.gating?.hasActiveProcess ||
+          profile.gating?.hasFinalizedContract) && (
+          <div
+            className="flex items-start justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+            style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+          >
+            <div>
+              <span className="text-gray-800 font-medium">
+                Bank Information
+              </span>
+              <div className="mt-2 text-sm text-gray-700 space-y-1">
+                {profile.bankInfo?.usaDollarApp ? (
+                  <div>
+                    DollarApp: Yes
+                    {profile.bankInfo?.dollarTag
+                      ? ` (${profile.bankInfo.dollarTag})`
+                      : ""}
+                  </div>
+                ) : (
+                  <div>DollarApp: No</div>
+                )}
+                {profile.bankInfo?.bancoNombre && (
+                  <div>
+                    Bank: {profile.bankInfo.bancoNombre}
+                    {profile.bankInfo?.bancoPais
+                      ? `, ${profile.bankInfo.bancoPais}`
+                      : ""}
+                  </div>
+                )}
+                {profile.bankInfo?.numeroCuentaBancaria && (
+                  <div>Account: {profile.bankInfo.numeroCuentaBancaria}</div>
+                )}
+                {profile.bankInfo?.nombreTitularCuenta && (
+                  <div>
+                    Account holder: {profile.bankInfo.nombreTitularCuenta}
+                  </div>
+                )}
+                {profile.bankInfo?.direccionBanco && (
+                  <div>Bank address: {profile.bankInfo.direccionBanco}</div>
+                )}
+                {profile.bankInfo?.numeroRutaBancaria && (
+                  <div>
+                    Routing number: {profile.bankInfo.numeroRutaBancaria}
+                  </div>
+                )}
+                {!profile.bankInfo && (
+                  <div className="text-gray-500">
+                    No bank information provided yet.
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-4">
+              <button
+                className="text-[#0097B2] hover:text-[#007d8a] text-sm underline"
+                onClick={() => setShowBankInfoModal(true)}
+              >
+                {profile.bankInfo ? "Edit" : "Add"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Card 3: Video */}
         <div
@@ -1481,6 +1547,70 @@ export default function ProfilePage() {
                   </div>
                 </div>
               )}
+            {(profile.gating?.hasActiveProcess ||
+              profile.gating?.hasFinalizedContract) && (
+              <div
+                className="flex items-start justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+                style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+              >
+                <div>
+                  <span className="text-gray-800 font-medium">
+                    Bank Information
+                  </span>
+                  <div className="mt-2 text-sm text-gray-700 space-y-1">
+                    {profile.bankInfo?.usaDollarApp ? (
+                      <div>
+                        DollarApp: Yes
+                        {profile.bankInfo?.dollarTag
+                          ? ` (${profile.bankInfo.dollarTag})`
+                          : ""}
+                      </div>
+                    ) : (
+                      <div>DollarApp: No</div>
+                    )}
+                    {profile.bankInfo?.bancoNombre && (
+                      <div>
+                        Bank: {profile.bankInfo.bancoNombre}
+                        {profile.bankInfo?.bancoPais
+                          ? `, ${profile.bankInfo.bancoPais}`
+                          : ""}
+                      </div>
+                    )}
+                    {profile.bankInfo?.numeroCuentaBancaria && (
+                      <div>
+                        Account: {profile.bankInfo.numeroCuentaBancaria}
+                      </div>
+                    )}
+                    {profile.bankInfo?.nombreTitularCuenta && (
+                      <div>
+                        Account holder: {profile.bankInfo.nombreTitularCuenta}
+                      </div>
+                    )}
+                    {profile.bankInfo?.direccionBanco && (
+                      <div>Bank address: {profile.bankInfo.direccionBanco}</div>
+                    )}
+                    {profile.bankInfo?.numeroRutaBancaria && (
+                      <div>
+                        Routing number: {profile.bankInfo.numeroRutaBancaria}
+                      </div>
+                    )}
+                    {!profile.bankInfo && (
+                      <div className="text-gray-500">
+                        No bank information provided yet.
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-center gap-4">
+                  <button
+                    className="text-[#0097B2] hover:text-[#007d8a] text-sm underline"
+                    onClick={() => setShowBankInfoModal(true)}
+                  >
+                    {profile.bankInfo ? "Edit" : "Add"}
+                  </button>
+                </div>
+              </div>
+            )}
             {profile.archivos.videoPresentacion && (
               <div
                 className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
@@ -1967,6 +2097,10 @@ export default function ProfilePage() {
       <ContactoModal
         isOpen={showContactoModal}
         onClose={() => setShowContactoModal(false)}
+      />
+      <BankInfoModal
+        isOpen={showBankInfoModal}
+        onClose={() => setShowBankInfoModal(false)}
       />
 
       <ContactoModal

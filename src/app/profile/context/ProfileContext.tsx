@@ -69,6 +69,20 @@ interface ProfileData {
   experiencia: Experiencia[];
   estadoPerfil: EstadoPerfil;
   validacionExterna: boolean;
+  bankInfo?: {
+    usaDollarApp: boolean | null;
+    dollarTag: string | null;
+    bancoNombre: string | null;
+    bancoPais: string | null;
+    numeroCuentaBancaria: string | null;
+    direccionBanco: string | null;
+    nombreTitularCuenta: string | null;
+    numeroRutaBancaria: string | null;
+  };
+  gating?: {
+    hasActiveProcess: boolean;
+    hasFinalizedContract: boolean;
+  };
 }
 
 interface ProfileContextType {
