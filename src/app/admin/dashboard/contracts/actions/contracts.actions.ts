@@ -227,3 +227,60 @@ export const uploadFinalContract = async (
     };
   }
 };
+
+export async function cancelarContrato(
+  procesoId: string,
+  cancelacionData: {
+    motivo: string;
+    observaciones?: string;
+  }
+): Promise<{ success: boolean; message: string; data?: unknown }> {
+  try {
+    const axios = await createServerAxios();
+
+    console.log("🚫 [cancelarContrato] Starting cancellation:", {
+      procesoId,
+      motivo: cancelacionData.motivo,
+    });
+
+    const response = await axios.post(
+      `/admin/contratos/${procesoId}/cancelar`,
+      cancelacionData
+    );
+
+    console.log("✅ [cancelarContrato] Success:", {
+      status: response.status,
+      data: response.data,
+    });
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: response.data?.message || "Contract cancelled successfully",
+        data: response.data,
+      };
+    } else {
+      throw new Error(response.data?.message || "Error cancelling contract");
+    }
+  } catch (error: unknown) {
+    console.error("❌ [cancelarContrato] Error:", {
+      procesoId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      status:
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { status?: number } }).response?.status
+          : undefined,
+    });
+
+    throw new Error(
+      error && typeof error === "object" && "response" in error
+        ? (error as { response?: { data?: { message?: string } } }).response
+            ?.data?.message ||
+          (error instanceof Error ? error.message : "Unknown error") ||
+          "Error cancelling contract"
+        : error instanceof Error
+        ? error.message
+        : "Error cancelling contract"
+    );
+  }
+}
