@@ -90,6 +90,20 @@ export interface PerfilCompleto {
   validacionExterna: boolean;
   videoPresentacion: string;
   assessmentUrl?: string | null;
+  bankInfo?: {
+    usaDollarApp: boolean | null;
+    dollarTag: string | null;
+    bancoNombre: string | null;
+    bancoPais: string | null;
+    numeroCuentaBancaria: string | null;
+    direccionBanco: string | null;
+    nombreTitularCuenta: string | null;
+    numeroRutaBancaria: string | null;
+  };
+  gating?: {
+    hasActiveProcess: boolean;
+    hasFinalizedContract: boolean;
+  };
 }
 
 export interface ProfileResponse {

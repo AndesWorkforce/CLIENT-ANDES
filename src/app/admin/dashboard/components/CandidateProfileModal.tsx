@@ -894,6 +894,70 @@ export default function CandidateProfileModal({
                 </div>
               </div>
 
+              {/* Bank Information (visible for admins only) */}
+              {isAdminRole && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="p-4">
+                    <h2 className="font-medium text-gray-900 mb-2">
+                      Bank Information
+                    </h2>
+                    {profile.bankInfo ? (
+                      <div className="text-sm text-gray-700 space-y-1">
+                        {profile.bankInfo.usaDollarApp !== null && (
+                          <div>
+                            DollarApp:{" "}
+                            {profile.bankInfo.usaDollarApp ? "Yes" : "No"}
+                            {profile.bankInfo.usaDollarApp &&
+                            profile.bankInfo.dollarTag
+                              ? ` (${profile.bankInfo.dollarTag})`
+                              : ""}
+                          </div>
+                        )}
+                        {profile.bankInfo.bancoNombre && (
+                          <div>
+                            Bank: {profile.bankInfo.bancoNombre}
+                            {profile.bankInfo.bancoPais
+                              ? `, ${profile.bankInfo.bancoPais}`
+                              : ""}
+                          </div>
+                        )}
+                        {profile.bankInfo.numeroCuentaBancaria && (
+                          <div>
+                            Account: {profile.bankInfo.numeroCuentaBancaria}
+                          </div>
+                        )}
+                        {profile.bankInfo.nombreTitularCuenta && (
+                          <div>
+                            Account holder:{" "}
+                            {profile.bankInfo.nombreTitularCuenta}
+                          </div>
+                        )}
+                        {profile.bankInfo.direccionBanco && (
+                          <div>
+                            Bank address: {profile.bankInfo.direccionBanco}
+                          </div>
+                        )}
+                        {profile.bankInfo.numeroRutaBancaria && (
+                          <div>
+                            Routing number:{" "}
+                            {profile.bankInfo.numeroRutaBancaria}
+                          </div>
+                        )}
+                        {!profile.bankInfo && (
+                          <div className="text-gray-500">
+                            No bank information provided.
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-gray-500">
+                        No bank information provided.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Form - Solo mostrar si no es usuario empresa */}
               {profile.datosFormulario && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">

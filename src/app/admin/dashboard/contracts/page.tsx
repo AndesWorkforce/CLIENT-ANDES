@@ -6,6 +6,7 @@ import {
   getEvaluacionesMensuales,
   finalizarContrato,
   uploadFinalContract,
+  cancelarContrato,
 } from "./actions/contracts.actions";
 import {
   ProcesoContratacion,
@@ -22,8 +23,10 @@ import {
   DollarSign,
   XSquare,
   PenTool,
+  AlertTriangle,
 } from "lucide-react";
 import TableSkeleton from "../components/TableSkeleton";
+import CancelContractModal from "./components/CancelContractModal";
 
 import { useNotificationStore } from "@/store/notifications.store";
 import { sendProviderContractEmail } from "../actions/sendEmail.actions";
@@ -178,6 +181,8 @@ export default function ContractsPage() {
   >([]);
   const [loadingEvaluaciones, setLoadingEvaluaciones] = useState(false);
   const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isCancellingContract, setIsCancellingContract] = useState(false);
   const [isSigningContract, setIsSigningContract] = useState<string | null>(
     null
   );
@@ -447,6 +452,58 @@ export default function ContractsPage() {
 
       // En caso de error, no cerrar el modal para que el usuario pueda reintentar
       throw error;
+    }
+  };
+
+  const handleCancelContract = async (contractId: string) => {
+    const contract = contracts.find((c) => c.id === contractId);
+    if (!contract) return;
+
+    setSelectedContract(contract);
+    setIsCancelModalOpen(true);
+  };
+
+  const handleConfirmCancellation = async (data: {
+    motivo: string;
+    observaciones?: string;
+  }) => {
+    if (!selectedContract) return;
+
+    setIsCancellingContract(true);
+    try {
+      const result = await cancelarContrato(selectedContract.id, data);
+
+      addNotification(
+        result.message ||
+          `Contract for ${selectedContract.nombreCompleto} cancelled successfully. You can now send a corrected contract.`,
+        "success"
+      );
+
+      // Recargar contratos para ver los cambios
+      try {
+        await loadContracts();
+      } catch (loadError) {
+        console.error("Error reloading contracts:", loadError);
+        addNotification(
+          "Contract cancelled successfully but failed to reload the list. Please refresh the page.",
+          "warning"
+        );
+      }
+
+      // Cerrar modal y limpiar estado
+      setIsCancelModalOpen(false);
+      setSelectedContract(null);
+    } catch (error) {
+      console.error("Error cancelling contract:", error);
+
+      addNotification(
+        `Error cancelling contract for ${selectedContract.nombreCompleto}: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "error"
+      );
+    } finally {
+      setIsCancellingContract(false);
     }
   };
 
@@ -730,6 +787,23 @@ export default function ContractsPage() {
         </div>
       </div>
 
+      {/* Info banner: where and when you can cancel contracts */}
+      <div className="px-4 md:px-0 mb-4">
+        <div className="flex items-start gap-3 p-3 rounded-md border border-yellow-200 bg-yellow-50 text-yellow-800">
+          <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+          <div className="text-sm">
+            <p className="font-medium">How to cancel a contract</p>
+            <p>
+              Use the “Cancel” action in the Actions column for contracts that
+              are not fully signed or finalized. You can cancel when status is:
+              Pending Docs, Reading Docs, Docs Complete, Pending
+              Candidate/Provider, Signed (partial), not
+              Cancelled/Expired/Finalized.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Desktop View */}
       <div className="hidden lg:block">
         <div
@@ -923,6 +997,28 @@ export default function ContractsPage() {
                                   )}
                                 </button>
                               )}
+
+                              {/* Cancel Contract Button - for contracts that can be cancelled */}
+                              {contract.estadoContratacion !==
+                                EstadoContratacion.FIRMADO_COMPLETO &&
+                                contract.estadoContratacion !==
+                                  EstadoContratacion.CONTRATO_FINALIZADO &&
+                                contract.estadoContratacion !==
+                                  EstadoContratacion.CANCELADO &&
+                                contract.estadoContratacion !==
+                                  EstadoContratacion.EXPIRADO &&
+                                contract.activo && (
+                                  <button
+                                    onClick={() =>
+                                      handleCancelContract(contract.id)
+                                    }
+                                    className="px-3 py-2 bg-orange-600 text-white rounded-md text-sm font-medium hover:bg-orange-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
+                                    title="Cancel Contract (for corrections)"
+                                  >
+                                    <XCircle size={16} className="mr-2" />
+                                    Cancel
+                                  </button>
+                                )}
 
                               {contract.estadoContratacion ===
                                 EstadoContratacion.CONTRATO_FINALIZADO &&
@@ -1206,6 +1302,26 @@ export default function ContractsPage() {
                           </button>
                         )}
 
+                        {/* Cancel Contract Button - mobile view */}
+                        {contract.estadoContratacion !==
+                          EstadoContratacion.FIRMADO_COMPLETO &&
+                          contract.estadoContratacion !==
+                            EstadoContratacion.CONTRATO_FINALIZADO &&
+                          contract.estadoContratacion !==
+                            EstadoContratacion.CANCELADO &&
+                          contract.estadoContratacion !==
+                            EstadoContratacion.EXPIRADO &&
+                          contract.activo && (
+                            <button
+                              onClick={() => handleCancelContract(contract.id)}
+                              className="px-4 py-2 bg-orange-600 text-white rounded-md text-sm font-medium hover:bg-orange-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
+                              title="Cancel Contract (for corrections)"
+                            >
+                              <XCircle size={16} className="mr-2" />
+                              Cancel
+                            </button>
+                          )}
+
                         {contract.estadoContratacion ===
                           EstadoContratacion.CONTRATO_FINALIZADO &&
                           contract.activo && (
@@ -1330,6 +1446,20 @@ export default function ContractsPage() {
             setSelectedContract(null);
           }}
           onConfirm={handleConfirmTermination}
+        />
+      )}
+
+      {/* Cancel Contract Modal */}
+      {isCancelModalOpen && selectedContract && (
+        <CancelContractModal
+          isOpen={isCancelModalOpen}
+          contract={selectedContract}
+          onClose={() => {
+            setIsCancelModalOpen(false);
+            setSelectedContract(null);
+          }}
+          onConfirm={handleConfirmCancellation}
+          isSubmitting={isCancellingContract}
         />
       )}
     </div>
