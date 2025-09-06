@@ -119,17 +119,21 @@ interface StatementOfWorkEnglishPDFProps {
 const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
   data,
 }) => {
+  // Unified date format: MM/DD/YYYY (US numeric) to keep consistency across templates.
   const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      return dateString;
+    if (!dateString) return "";
+    let date: Date;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [y, m, d] = dateString.split("-").map(Number);
+      date = new Date(y, m - 1, d);
+    } else {
+      date = new Date(dateString);
     }
+    if (isNaN(date.getTime())) return dateString;
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
   };
 
   return (
