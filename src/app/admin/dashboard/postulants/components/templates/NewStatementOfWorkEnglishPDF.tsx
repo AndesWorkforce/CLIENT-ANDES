@@ -125,20 +125,26 @@ interface StatementOfWorkEnglishPDFProps {
   data: StatementOfWorkEnglishData;
 }
 
-const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
-  data,
-}) => {
+const NewStatementOfWorkenglishPDF: React.FC<
+  StatementOfWorkEnglishPDFProps
+> = ({ data }) => {
+  // Format date as MM/DD/YYYY (US numeric) to match latest requirement.
+  // NOTE: If a future locale change is needed, centralize this in a shared util.
   const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      return dateString;
+    if (!dateString) return "";
+    let date: Date;
+    // Prevent timezone shift when incoming string is plain YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [y, m, d] = dateString.split("-").map(Number);
+      date = new Date(y, m - 1, d);
+    } else {
+      date = new Date(dateString);
     }
+    if (isNaN(date.getTime())) return dateString;
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
   };
 
   // Función para calcular el pago basado en horas trabajadas y el tope fijo
@@ -864,4 +870,4 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
   );
 };
 
-export default StatementOfWorkEnglishPDF;
+export default NewStatementOfWorkenglishPDF;

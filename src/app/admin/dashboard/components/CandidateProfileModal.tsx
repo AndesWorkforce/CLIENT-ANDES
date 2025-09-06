@@ -33,6 +33,7 @@ import { addEducation } from "@/app/profile/actions/education.actions";
 import ContactoModal from "@/app/profile/components/ContactoModal";
 import { candidateValidationProfile } from "../actions/applicants.actions";
 import IdentificationModal from "@/app/profile/components/IdentificationModal";
+import BankInfoModal from "@/app/profile/components/BankInfoModal";
 import { useAuthStore } from "@/store/auth.store";
 import PDFDownloadButton from "./PDFDownloadButton";
 import AssessmentModal from "./AssessmentModal";
@@ -87,6 +88,7 @@ export default function CandidateProfileModal({
   const [showContactoModal, setShowContactoModal] = useState<boolean>(false);
   const [showIdentificationModal, setShowIdentificationModal] =
     useState<boolean>(false);
+  const [showBankInfoModal, setShowBankInfoModal] = useState<boolean>(false);
 
   // Usar useRef para evitar múltiples cargas
   const hasLoadedRef = useRef(false);
@@ -773,6 +775,18 @@ export default function CandidateProfileModal({
             }}
             candidateId={candidateId}
           />
+          {isAdminRole && (
+            <BankInfoModal
+              isOpen={showBankInfoModal}
+              onClose={() => {
+                setShowBankInfoModal(false);
+                // force reload to fetch updated bank info
+                hasLoadedRef.current = false;
+                setManualReload((prev) => prev + 1);
+              }}
+              targetUserId={candidateId}
+            />
+          )}
         </div>
       </ProfileContextProvider>
     );
@@ -894,65 +908,48 @@ export default function CandidateProfileModal({
                 </div>
               </div>
 
-              {/* Bank Information (visible for admins only) */}
+              {/* Bank Information (admins editable) */}
               {isAdminRole && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-4">
-                    <h2 className="font-medium text-gray-900 mb-2">
-                      Bank Information
-                    </h2>
+                    <div className="flex justify-between items-start mb-2">
+                      <h2 className="font-medium text-gray-900">Bank Information</h2>
+                      <button
+                        onClick={() => setShowBankInfoModal(true)}
+                        className="text-[#0097B2] text-sm hover:underline cursor-pointer"
+                      >
+                        {profile.bankInfo ? "Edit" : "Add"}
+                      </button>
+                    </div>
                     {profile.bankInfo ? (
                       <div className="text-sm text-gray-700 space-y-1">
                         {profile.bankInfo.usaDollarApp !== null && (
                           <div>
-                            DollarApp:{" "}
-                            {profile.bankInfo.usaDollarApp ? "Yes" : "No"}
-                            {profile.bankInfo.usaDollarApp &&
-                            profile.bankInfo.dollarTag
-                              ? ` (${profile.bankInfo.dollarTag})`
-                              : ""}
+                            DollarApp: {profile.bankInfo.usaDollarApp ? "Yes" : "No"}
+                            {profile.bankInfo.usaDollarApp && profile.bankInfo.dollarTag ? ` (${profile.bankInfo.dollarTag})` : ""}
                           </div>
                         )}
                         {profile.bankInfo.bancoNombre && (
                           <div>
                             Bank: {profile.bankInfo.bancoNombre}
-                            {profile.bankInfo.bancoPais
-                              ? `, ${profile.bankInfo.bancoPais}`
-                              : ""}
+                            {profile.bankInfo.bancoPais ? `, ${profile.bankInfo.bancoPais}` : ""}
                           </div>
                         )}
                         {profile.bankInfo.numeroCuentaBancaria && (
-                          <div>
-                            Account: {profile.bankInfo.numeroCuentaBancaria}
-                          </div>
+                          <div>Account: {profile.bankInfo.numeroCuentaBancaria}</div>
                         )}
                         {profile.bankInfo.nombreTitularCuenta && (
-                          <div>
-                            Account holder:{" "}
-                            {profile.bankInfo.nombreTitularCuenta}
-                          </div>
+                          <div>Account holder: {profile.bankInfo.nombreTitularCuenta}</div>
                         )}
                         {profile.bankInfo.direccionBanco && (
-                          <div>
-                            Bank address: {profile.bankInfo.direccionBanco}
-                          </div>
+                          <div>Bank address: {profile.bankInfo.direccionBanco}</div>
                         )}
                         {profile.bankInfo.numeroRutaBancaria && (
-                          <div>
-                            Routing number:{" "}
-                            {profile.bankInfo.numeroRutaBancaria}
-                          </div>
-                        )}
-                        {!profile.bankInfo && (
-                          <div className="text-gray-500">
-                            No bank information provided.
-                          </div>
+                          <div>Routing number: {profile.bankInfo.numeroRutaBancaria}</div>
                         )}
                       </div>
                     ) : (
-                      <div className="text-gray-500">
-                        No bank information provided.
-                      </div>
+                      <div className="text-gray-500">No bank information provided.</div>
                     )}
                   </div>
                 </div>

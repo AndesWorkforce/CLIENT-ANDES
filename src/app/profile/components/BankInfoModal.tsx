@@ -38,9 +38,11 @@ type BankInfoForm = z.infer<typeof bankInfoSchema>;
 export default function BankInfoModal({
   isOpen,
   onClose,
+  targetUserId, // when provided (admin context) we edit another user's bank info
 }: {
   isOpen: boolean;
   onClose: () => void;
+  targetUserId?: string;
 }) {
   const { user } = useAuthStore();
   const { addNotification } = useNotificationStore();
@@ -80,7 +82,9 @@ export default function BankInfoModal({
   const usaDollarApp = watch("usaDollarApp");
 
   const onSubmit = async (values: BankInfoForm) => {
-    if (!user?.id) {
+    // Decide which userId to use: admin override (targetUserId) or current user
+    const effectiveUserId = targetUserId || user?.id;
+    if (!effectiveUserId) {
       addNotification("User not authenticated", "error");
       return;
     }
@@ -95,7 +99,7 @@ export default function BankInfoModal({
       nombreTitularCuenta: values.nombreTitularCuenta || undefined,
       numeroRutaBancaria: values.numeroRutaBancaria || undefined,
     };
-    const res = await updateBankInfo(user.id, payload);
+  const res = await updateBankInfo(effectiveUserId, payload);
     if (res.success) {
       addNotification("Bank information saved", "success");
       onClose();
@@ -177,7 +181,7 @@ export default function BankInfoModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Account holder full name
+                  Your full name as registered with the bank
                 </label>
                 <input
                   type="text"
@@ -187,7 +191,7 @@ export default function BankInfoModal({
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Bank address
+                  Address you have registered with the bank:
                 </label>
                 <input
                   type="text"
