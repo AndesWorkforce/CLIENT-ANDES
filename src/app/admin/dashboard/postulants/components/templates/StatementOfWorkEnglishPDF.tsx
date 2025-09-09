@@ -122,18 +122,45 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
   // Unified date format: MM/DD/YYYY (US numeric) to keep consistency across templates.
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
-    let date: Date;
+    // Already canonical? (MM/DD/YYYY) - disambiguate
+    const canonical = dateString.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (canonical) {
+      const [, mm, dd, yyyy] = canonical;
+      if (parseInt(dd, 10) > 12 && parseInt(mm, 10) <= 12) {
+        // Looks like legacy DD/MM/YYYY actually (day > 12). We'll treat incoming as DD/MM/YYYY and convert.
+        return `${dd}/${mm}/${yyyy}`; // will get corrected by logic below if needed
+      }
+      return `${mm}/${dd}/${yyyy}`; // ensure padding
+    }
+    // Legacy DD/MM/YY
+    const ddmmyy = dateString.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+    if (ddmmyy) {
+      const [, dd, mm, yy] = ddmmyy;
+      return `${mm}/${dd}/20${yy}`;
+    }
+    // Legacy DD/MM/YYYY (only flip when day > 12)
+    const ddmmyyyy = dateString.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (ddmmyyyy) {
+      const [, dd, mm, yyyy] = ddmmyyyy;
+      if (parseInt(dd, 10) > 12) {
+        return `${mm}/${dd}/${yyyy}`;
+      }
+      // ambiguous (<=12) treat as already canonical order mm/dd
+      return `${dd}/${mm}/${yyyy}`;
+    }
+    // ISO
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
       const [y, m, d] = dateString.split("-").map(Number);
-      date = new Date(y, m - 1, d);
-    } else {
-      date = new Date(dateString);
+      return `${String(m).padStart(2, "0")}/${String(d).padStart(2, "0")}/${y}`;
     }
-    if (isNaN(date.getTime())) return dateString;
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${month}/${day}/${year}`;
+    const parsed = new Date(dateString);
+    if (!isNaN(parsed.getTime())) {
+      const m = String(parsed.getMonth() + 1).padStart(2, "0");
+      const d = String(parsed.getDate()).padStart(2, "0");
+      const y = parsed.getFullYear();
+      return `${m}/${d}/${y}`;
+    }
+    return dateString;
   };
 
   return (
@@ -177,7 +204,7 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
           services as further detailed below (&quot;Services&quot;) to Company
           beginning on{" "}
           <Text style={styles.underline}>
-            {formatDate(data.fechaInicioLabores) || "_____________"}
+            {data.fechaInicioLabores || "_____________"}
           </Text>{" "}
           (&quot;Start Date&quot;) and continuing until it expires or is
           terminated by Company or Contractor.
