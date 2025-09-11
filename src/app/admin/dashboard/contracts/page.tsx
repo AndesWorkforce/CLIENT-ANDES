@@ -841,31 +841,28 @@ export default function ContractsPage() {
                   <table className="w-full border-collapse">
                     <thead className="sticky top-0 bg-white z-20 shadow-sm">
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Candidate Name
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
-                          Email
-                        </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Client
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Position
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Contract Status
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Documents Read
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Signed Contract
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Upload Contract
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/9">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Actions
                         </th>
                       </tr>
@@ -878,9 +875,6 @@ export default function ContractsPage() {
                         >
                           <td className="py-4 px-4 text-gray-700">
                             {contract.nombreCompleto}
-                          </td>
-                          <td className="py-4 px-4 text-gray-700">
-                            {contract.correo}
                           </td>
                           <td className="py-4 px-4 text-gray-700">
                             <span className="px-2 py-1 text-blue-800 text-xs rounded-full">
@@ -1177,9 +1171,6 @@ export default function ContractsPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
-                      <span className="text-gray-600 font-bold">Email:</span>
-                      <span className="text-gray-700">{contract.correo}</span>
-
                       <span className="text-gray-600 font-bold">Client:</span>
                       <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full inline-block">
                         {contract.clienteNombre || "No specified"}
