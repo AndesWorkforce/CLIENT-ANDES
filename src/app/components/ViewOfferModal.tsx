@@ -268,65 +268,187 @@ export default function ViewOfferModal({
         </div>
 
         <div className="p-5">
-          {/* Fecha */}
-          <div className="flex items-center mb-4">
-            <Calendar className="flex-shrink-0 mr-1 h-4 w-4 text-[#0097B2]" />
-            <span className="text-sm text-gray-500">
-              {formatDate(offer.fechaCreacion)}
-            </span>
-          </div>
+          {!user ? (
+            // Usuario no autenticado - mostrar mensaje de autenticación mejorado
+            <div className="text-center py-8 px-2">
+              {/* Background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-cyan-50/50 rounded-lg"></div>
 
-          {/* Offer content */}
-          <div
-            ref={contentRef}
-            className="prose prose-sm max-w-none text-gray-600 description-content"
-          >
-            {/* The offer content will be inserted here */}
-          </div>
+              <div className="relative z-10">
+                {/* Icon with gradient background */}
+                <div className="mb-6 relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#0097B2] to-cyan-500 rounded-full opacity-20 animate-pulse mx-auto w-16 h-16"></div>
+                  <div className="relative bg-gradient-to-r from-[#0097B2] to-cyan-500 p-3 rounded-full mx-auto w-16 h-16 flex items-center justify-center">
+                    <svg
+                      className="h-8 w-8 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 7a2 2 0 012 2m0 0a2 2 0 012 2 2 2 0 11-4 0c0-1.1.9-2 2-2zM9 7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V9a2 2 0 00-2-2H9z"
+                      />
+                    </svg>
+                  </div>
+                </div>
 
-          {/* Apply button */}
-          {!user?.rol.includes("ADMIN") &&
-            !user?.rol.includes("EMPLEADO_ADMIN") && (
-              <button
-                className={`w-full py-3 rounded-md font-medium text-white ${
-                  hasApplied
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#0097B2] hover:bg-[#007A8F] cursor-pointer"
-                } mb-6`}
-                onClick={() => {
-                  if (!user) {
-                    addNotification("You must be logged in to apply", "info");
-                    router.push("/auth/login");
-                    return;
-                  }
-                  if (!hasApplied) {
-                    handleApplyToOffer(offer.id || "");
-                  }
-                }}
-                disabled={hasApplied}
+                {/* Title */}
+                <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
+                  Unlock This Opportunity
+                </h3>
+
+                {/* Subtitle */}
+                <p className="text-gray-600 mb-2 text-base font-medium">
+                  Join Andes Workforce
+                </p>
+
+                {/* Description */}
+                <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+                  Create your free account to view complete job details and
+                  apply instantly to this position.
+                </p>
+
+                {/* Quick benefits */}
+                <div className="mb-6 space-y-2">
+                  <div className="flex items-center justify-center text-xs text-gray-600">
+                    <svg
+                      className="h-3 w-3 text-green-500 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Free registration in under 2 minutes
+                  </div>
+                  <div className="flex items-center justify-center text-xs text-gray-600">
+                    <svg
+                      className="h-3 w-3 text-green-500 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Access to exclusive job opportunities
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      onClose();
+                      router.push("/auth/register");
+                    }}
+                    className="w-full bg-gradient-to-r from-[#0097B2] to-cyan-500 text-white py-3 px-4 rounded-xl font-semibold hover:from-[#007A8F] hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl text-sm"
+                  >
+                    Create Free Account
+                  </button>
+                  <button
+                    onClick={() => {
+                      onClose();
+                      router.push("/auth/login");
+                    }}
+                    className="w-full bg-white/80 backdrop-blur-sm text-gray-700 py-2.5 px-4 rounded-xl font-medium border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 text-sm"
+                  >
+                    Already registered? Sign In
+                  </button>
+                </div>
+
+                {/* Trust indicator */}
+                <div className="mt-4 text-xs text-gray-400 flex items-center justify-center">
+                  <svg
+                    className="h-3 w-3 mr-1"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Secure & private registration
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Usuario autenticado - mostrar contenido completo
+            <>
+              {/* Fecha */}
+              <div className="flex items-center mb-4">
+                <Calendar className="flex-shrink-0 mr-1 h-4 w-4 text-[#0097B2]" />
+                <span className="text-sm text-gray-500">
+                  {formatDate(offer.fechaCreacion)}
+                </span>
+              </div>
+
+              {/* Offer content */}
+              <div
+                ref={contentRef}
+                className="prose prose-sm max-w-none text-gray-600 description-content"
               >
-                {hasApplied ? "Applied" : "Apply"}
-              </button>
-            )}
+                {/* The offer content will be inserted here */}
+              </div>
 
-          {/* Offer status */}
-          <div className="mt-6 flex justify-between items-center">
-            <span
-              className={`px-3 py-1 text-xs rounded-full ${
-                offer.estado === "publicado"
-                  ? "bg-green-100 text-green-800"
-                  : "bg-yellow-100 text-yellow-800"
-              }`}
-            >
-              {offer.estado === "publicado" ? "Published" : "Draft"}
-            </span>
+              {/* Apply button */}
+              {!user?.rol.includes("ADMIN") &&
+                !user?.rol.includes("EMPLEADO_ADMIN") && (
+                  <button
+                    className={`w-full py-3 rounded-md font-medium text-white ${
+                      hasApplied
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-[#0097B2] hover:bg-[#007A8F] cursor-pointer"
+                    } mb-6`}
+                    onClick={() => {
+                      if (!user) {
+                        addNotification(
+                          "You must be logged in to apply",
+                          "info"
+                        );
+                        router.push("/auth/login");
+                        return;
+                      }
+                      if (!hasApplied) {
+                        handleApplyToOffer(offer.id || "");
+                      }
+                    }}
+                    disabled={hasApplied}
+                  >
+                    {hasApplied ? "Applied" : "Apply"}
+                  </button>
+                )}
 
-            <span className="text-xs text-gray-500">
-              {offer.fechaActualizacion
-                ? `Updated: ${formatDate(offer.fechaActualizacion)}`
-                : ""}
-            </span>
-          </div>
+              {/* Offer status */}
+              <div className="mt-6 flex justify-between items-center">
+                <span
+                  className={`px-3 py-1 text-xs rounded-full ${
+                    offer.estado === "publicado"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}
+                >
+                  {offer.estado === "publicado" ? "Published" : "Draft"}
+                </span>
+
+                <span className="text-xs text-gray-500">
+                  {offer.fechaActualizacion
+                    ? `Updated: ${formatDate(offer.fechaActualizacion)}`
+                    : ""}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

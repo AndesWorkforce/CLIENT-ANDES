@@ -99,7 +99,7 @@ export default function BankInfoModal({
       nombreTitularCuenta: values.nombreTitularCuenta || undefined,
       numeroRutaBancaria: values.numeroRutaBancaria || undefined,
     };
-  const res = await updateBankInfo(effectiveUserId, payload);
+    const res = await updateBankInfo(effectiveUserId, payload);
     if (res.success) {
       addNotification("Bank information saved", "success");
       onClose();

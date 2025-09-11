@@ -913,7 +913,9 @@ export default function CandidateProfileModal({
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <h2 className="font-medium text-gray-900">Bank Information</h2>
+                      <h2 className="font-medium text-gray-900">
+                        Bank Information
+                      </h2>
                       <button
                         onClick={() => setShowBankInfoModal(true)}
                         className="text-[#0097B2] text-sm hover:underline cursor-pointer"
@@ -925,31 +927,49 @@ export default function CandidateProfileModal({
                       <div className="text-sm text-gray-700 space-y-1">
                         {profile.bankInfo.usaDollarApp !== null && (
                           <div>
-                            DollarApp: {profile.bankInfo.usaDollarApp ? "Yes" : "No"}
-                            {profile.bankInfo.usaDollarApp && profile.bankInfo.dollarTag ? ` (${profile.bankInfo.dollarTag})` : ""}
+                            DollarApp:{" "}
+                            {profile.bankInfo.usaDollarApp ? "Yes" : "No"}
+                            {profile.bankInfo.usaDollarApp &&
+                            profile.bankInfo.dollarTag
+                              ? ` (${profile.bankInfo.dollarTag})`
+                              : ""}
                           </div>
                         )}
                         {profile.bankInfo.bancoNombre && (
                           <div>
                             Bank: {profile.bankInfo.bancoNombre}
-                            {profile.bankInfo.bancoPais ? `, ${profile.bankInfo.bancoPais}` : ""}
+                            {profile.bankInfo.bancoPais
+                              ? `, ${profile.bankInfo.bancoPais}`
+                              : ""}
                           </div>
                         )}
                         {profile.bankInfo.numeroCuentaBancaria && (
-                          <div>Account: {profile.bankInfo.numeroCuentaBancaria}</div>
+                          <div>
+                            Account: {profile.bankInfo.numeroCuentaBancaria}
+                          </div>
                         )}
                         {profile.bankInfo.nombreTitularCuenta && (
-                          <div>Account holder: {profile.bankInfo.nombreTitularCuenta}</div>
+                          <div>
+                            Account holder:{" "}
+                            {profile.bankInfo.nombreTitularCuenta}
+                          </div>
                         )}
                         {profile.bankInfo.direccionBanco && (
-                          <div>Bank address: {profile.bankInfo.direccionBanco}</div>
+                          <div>
+                            Bank address: {profile.bankInfo.direccionBanco}
+                          </div>
                         )}
                         {profile.bankInfo.numeroRutaBancaria && (
-                          <div>Routing number: {profile.bankInfo.numeroRutaBancaria}</div>
+                          <div>
+                            Routing number:{" "}
+                            {profile.bankInfo.numeroRutaBancaria}
+                          </div>
                         )}
                       </div>
                     ) : (
-                      <div className="text-gray-500">No bank information provided.</div>
+                      <div className="text-gray-500">
+                        No bank information provided.
+                      </div>
                     )}
                   </div>
                 </div>
