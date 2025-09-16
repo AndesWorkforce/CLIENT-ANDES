@@ -354,6 +354,9 @@ export default function SignContractModal({
     example3Hours: "35",
     example3Fee: "350",
 
+    // Párrafo editable para Service Fee
+    serviceFeeParagraph: `As of the Start Date, Contractor will be paid a fee of USD 1000 fixed per month during a 3-month probationary period. Starting the first day of the month following the probationary period, Contractor will be paid a fee of USD 1100 fixed per month, inclusive of all taxes (howsoever described) (“Service Fee”). Payment of the Service Fee to Contractor will be initiated on the last day of the month. This Service Fee will be increased by 5% annually. Contractors will receive extra pay when required to work during a local holiday according to their country of residence regulation.\n\nAdditionally, Contractor will receive a 2-week holiday bonus at the end of each calendar year. The holiday bonus will be prorated for Contractors who have completed less than 6 months of work at the end of the calendar year.`,
+
     // Fechas
     // Store start date in canonical MM/DD/YYYY (2 weeks from today)
     fechaInicioLabores: (() => {
@@ -902,6 +905,34 @@ export default function SignContractModal({
                   {/* Service Fee block removed: now included inside Salary section for new-english-contract */}
 
                   {/* Dates */}
+                  {/* Input para el párrafo editable del Service Fee solo si el template es el inglés, fuera de los bloques que se repiten */}
+                  {selectedTemplate.id === "english-contract" && (
+                    <div className="mt-4">
+                      <label
+                        className="block text-sm font-medium mb-1"
+                        htmlFor="serviceFeeParagraph"
+                      >
+                        Service Fee (editable paragraph)
+                      </label>
+                      <textarea
+                        id="serviceFeeParagraph"
+                        className="w-full border rounded p-2"
+                        rows={6}
+                        value={contractData.serviceFeeParagraph}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "serviceFeeParagraph",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter the Service Fee paragraph for this contract"
+                      />
+                      <small className="text-xs text-gray-500">
+                        This will appear in the Service Fee section of the
+                        contract PDF.
+                      </small>
+                    </div>
+                  )}
                   <div className="border-b border-[#0097B2] pb-3">
                     <h5 className="text-sm font-semibold text-gray-600 mb-2">
                       Dates
