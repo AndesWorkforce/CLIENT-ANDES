@@ -775,18 +775,6 @@ export default function CandidateProfileModal({
             }}
             candidateId={candidateId}
           />
-          {isAdminRole && (
-            <BankInfoModal
-              isOpen={showBankInfoModal}
-              onClose={() => {
-                setShowBankInfoModal(false);
-                // force reload to fetch updated bank info
-                hasLoadedRef.current = false;
-                setManualReload((prev) => prev + 1);
-              }}
-              targetUserId={candidateId}
-            />
-          )}
         </div>
       </ProfileContextProvider>
     );
@@ -814,28 +802,36 @@ export default function CandidateProfileModal({
               {!isCompanyUser && (
                 <>
                   {isProfileIncomplete && (
-                    <div className="flex justify-between bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-2 cursor-pointer">
-                      Incomplete profile: Missing data.
-                      <button
-                        onClick={() => setIsEditMode(true)}
-                        className="ml-2 flex items-center text-[#0097B2] hover:text-[#007d8a] px-2"
-                        title="Editar perfil"
-                      >
-                        <Edit size={16} className="mr-1" />
-                        <span className="text-sm">Edit</span>
-                      </button>
+                    <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-2">
+                      <div className="flex justify-between items-center">
+                        <span>Incomplete profile: Missing data.</span>
+                        <button
+                          onClick={() => setIsEditMode(true)}
+                          className="ml-2 flex items-center text-[#0097B2] hover:text-[#007d8a] px-2"
+                          title="Editar perfil"
+                        >
+                          <Edit size={16} className="mr-1" />
+                          <span className="text-sm">Edit</span>
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2 text-right">
+                        Edit general profile information
+                      </p>
                     </div>
                   )}
                   {!isProfileIncomplete && (
-                    <div className="flex items-center justify-end cursor-pointer">
+                    <div className="flex flex-col items-end">
                       <button
                         onClick={() => setIsEditMode(true)}
-                        className="ml-2 flex items-center text-[#0097B2] hover:text-[#007d8a] px-2"
+                        className="ml-2 flex items-center text-[#0097B2] hover:text-[#007d8a] px-2 cursor-pointer"
                         title="Editar perfil"
                       >
                         <Edit size={16} className="mr-1" />
                         <span className="text-sm">Edit</span>
                       </button>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Edit general profile information
+                      </p>
                     </div>
                   )}
                 </>
@@ -1465,6 +1461,37 @@ export default function CandidateProfileModal({
             </button>
           </div>
         </div>
+      )}
+
+      {/* BankInfoModal - Available outside edit mode */}
+      {isAdminRole && (
+        <BankInfoModal
+          isOpen={showBankInfoModal}
+          onClose={() => {
+            setShowBankInfoModal(false);
+            // force reload to fetch updated bank info
+            hasLoadedRef.current = false;
+            setManualReload((prev) => prev + 1);
+          }}
+          targetUserId={candidateId}
+          initialBankInfo={
+            profile.bankInfo
+              ? {
+                  usaDollarApp: profile.bankInfo.usaDollarApp ?? undefined,
+                  dollarTag: profile.bankInfo.dollarTag ?? undefined,
+                  bancoNombre: profile.bankInfo.bancoNombre ?? undefined,
+                  bancoPais: profile.bankInfo.bancoPais ?? undefined,
+                  numeroCuentaBancaria:
+                    profile.bankInfo.numeroCuentaBancaria ?? undefined,
+                  direccionBanco: profile.bankInfo.direccionBanco ?? undefined,
+                  nombreTitularCuenta:
+                    profile.bankInfo.nombreTitularCuenta ?? undefined,
+                  numeroRutaBancaria:
+                    profile.bankInfo.numeroRutaBancaria ?? undefined,
+                }
+              : null
+          }
+        />
       )}
     </>
   );
