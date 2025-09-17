@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notifications.store";
 import { updateBankInfo, BankInfo } from "../actions/bank-info.actions";
-import { useProfileContext } from "../context/ProfileContext";
+import { ProfileContext } from "../context/ProfileContext";
 
 const bankInfoSchema = z
   .object({
@@ -39,27 +39,39 @@ export default function BankInfoModal({
   isOpen,
   onClose,
   targetUserId, // when provided (admin context) we edit another user's bank info
+  initialBankInfo, // when provided, use this instead of profile.bankInfo
 }: {
   isOpen: boolean;
   onClose: () => void;
   targetUserId?: string;
+  initialBankInfo?: BankInfo | null;
 }) {
   const { user } = useAuthStore();
   const { addNotification } = useNotificationStore();
-  const { profile } = useProfileContext();
+
+  // Use useContext directly instead of useProfileContext to avoid throwing errors
+  const profileContext = useContext(ProfileContext);
+  const profile = profileContext?.profile || null;
+
+  // Use initialBankInfo if provided (admin context), otherwise use profile.bankInfo
+  const bankInfoToUse =
+    initialBankInfo !== undefined ? initialBankInfo : profile?.bankInfo;
 
   const defaultValues: BankInfoForm = useMemo(
     () => ({
-      usaDollarApp: profile.bankInfo?.usaDollarApp ?? undefined,
-      dollarTag: profile.bankInfo?.dollarTag ?? "",
-      bancoNombre: profile.bankInfo?.bancoNombre ?? "",
-      bancoPais: profile.bankInfo?.bancoPais ?? "",
-      numeroCuentaBancaria: profile.bankInfo?.numeroCuentaBancaria ?? "",
-      direccionBanco: profile.bankInfo?.direccionBanco ?? "",
-      nombreTitularCuenta: profile.bankInfo?.nombreTitularCuenta ?? "",
-      numeroRutaBancaria: profile.bankInfo?.numeroRutaBancaria ?? "",
+      usaDollarApp:
+        bankInfoToUse?.usaDollarApp === null
+          ? undefined
+          : bankInfoToUse?.usaDollarApp,
+      dollarTag: bankInfoToUse?.dollarTag || "",
+      bancoNombre: bankInfoToUse?.bancoNombre || "",
+      bancoPais: bankInfoToUse?.bancoPais || "",
+      numeroCuentaBancaria: bankInfoToUse?.numeroCuentaBancaria || "",
+      direccionBanco: bankInfoToUse?.direccionBanco || "",
+      nombreTitularCuenta: bankInfoToUse?.nombreTitularCuenta || "",
+      numeroRutaBancaria: bankInfoToUse?.numeroRutaBancaria || "",
     }),
-    [profile.bankInfo]
+    [bankInfoToUse]
   );
 
   const {
@@ -111,7 +123,7 @@ export default function BankInfoModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[rgba(0,0,0,0.5)] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[70] bg-[rgba(0,0,0,0.5)] flex items-center justify-center p-4">
       <div className="bg-white rounded-lg w-full max-w-xl max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <h2 className="text-xl font-semibold mb-4">Bank Information</h2>

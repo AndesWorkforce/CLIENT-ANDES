@@ -363,7 +363,7 @@ export default function TeamMembersPage() {
                   <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
                     <button
                       onClick={() => handleOpenProfile(member.candidateId)}
-                      className="text-[#0097B2] hover:underline font-medium"
+                      className="text-[#0097B2] hover:underline font-medium cursor-pointer"
                     >
                       View
                     </button>
