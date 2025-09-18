@@ -52,11 +52,19 @@ export async function createOffer(formData: FormData) {
   }
 }
 
-export async function getApplicants(page = 1, limit = 10, search = "") {
+export async function getApplicants(
+  page = 1, 
+  limit = 10, 
+  search = "", 
+  stageFilter = "all", 
+  applicantStatusFilter = "all"
+) {
   const axiosInstance = await createServerAxios();
   try {
     const params = new URLSearchParams();
     if (search && search.trim()) params.append("search", search.trim());
+    if (stageFilter && stageFilter !== "all") params.append("stageFilter", stageFilter);
+    if (applicantStatusFilter && applicantStatusFilter !== "all") params.append("applicantStatusFilter", applicantStatusFilter);
     params.append("page", String(page));
     params.append("limit", String(limit));
     const requestUrl = `users/postulantes?${params.toString()}`;
