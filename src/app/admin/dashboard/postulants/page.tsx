@@ -116,7 +116,9 @@ export default function PostulantsPage() {
       const response = await getApplicants(
         page,
         applicantsPerPage,
-        searchValue
+        searchValue,
+        stageFilter,
+        applicantStatusFilter
       );
       console.log(response);
       if (response.success) {
@@ -139,7 +141,13 @@ export default function PostulantsPage() {
   useEffect(() => {
     fetchApplicants(currentPage, search);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, search, applicantsPerPage]);
+  }, [
+    currentPage,
+    search,
+    applicantsPerPage,
+    stageFilter,
+    applicantStatusFilter,
+  ]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -150,6 +158,18 @@ export default function PostulantsPage() {
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     setApplicantsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
+  const handleStageFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStageFilter(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleApplicantStatusFilterChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setApplicantStatusFilter(e.target.value);
     setCurrentPage(1);
   };
 
@@ -784,7 +804,7 @@ export default function PostulantsPage() {
             {/* Stage Filter */}
             <select
               value={stageFilter}
-              onChange={(e) => setStageFilter(e.target.value)}
+              onChange={handleStageFilterChange}
               className="border border-gray-300 rounded-md px-3 py-2 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
             >
               <option value="all">All Stages</option>
@@ -812,7 +832,7 @@ export default function PostulantsPage() {
             {/* Applicant Status Filter */}
             <select
               value={applicantStatusFilter}
-              onChange={(e) => setApplicantStatusFilter(e.target.value)}
+              onChange={handleApplicantStatusFilterChange}
               className="border border-gray-300 rounded-md px-3 py-2 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
             >
               <option value="all">All Applicant Status</option>
@@ -881,187 +901,162 @@ export default function PostulantsPage() {
                   ))}
                 </div>
               ) : Array.isArray(applicants) && applicants.length > 0 ? (
-                applicants
-                  .filter((applicant) => {
-                    // Filtro por Stage
-                    if (stageFilter !== "all") {
-                      if (stageFilter === "favorites") {
-                        if (applicant.favorite !== true) return false;
-                      } else {
-                        const currentStage = renderStageStatus(applicant);
-                        if (currentStage !== stageFilter) return false;
-                      }
-                    }
-
-                    // Filtro por Applicant Status (activo/inactivo)
-                    if (applicantStatusFilter !== "all") {
-                      // Usar renderApplicantStatus que ahora usa clasificacionGlobal
-                      const currentApplicantStatus =
-                        renderApplicantStatus(applicant);
-                      if (currentApplicantStatus !== applicantStatusFilter)
-                        return false;
-                    }
-
-                    return true;
-                  })
-                  .map((applicant) => (
-                    <div
-                      key={applicant.id}
-                      className={`border-b border-[#E2E2E2] ${
-                        recentlyUpdated === applicant.id
-                          ? "bg-green-50 transition-colors"
-                          : ""
-                      }`}
-                    >
-                      {/* Header con nombre y favorito */}
-                      <div className="px-4 py-3 flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg font-medium">
-                            {`${applicant.nombre} ${applicant.apellido}`}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => handleToggleFavorite(applicant.id)}
-                          className={`cursor-pointer transition-transform ${
-                            favoriteLoading === applicant.id
-                              ? "opacity-50 cursor-not-allowed"
-                              : "hover:scale-110"
+                applicants.map((applicant) => (
+                  <div
+                    key={applicant.id}
+                    className={`border-b border-[#E2E2E2] ${
+                      recentlyUpdated === applicant.id
+                        ? "bg-green-50 transition-colors"
+                        : ""
+                    }`}
+                  >
+                    {/* Header con nombre y favorito */}
+                    <div className="px-4 py-3 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg font-medium">
+                          {`${applicant.nombre} ${applicant.apellido}`}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleToggleFavorite(applicant.id)}
+                        className={`cursor-pointer transition-transform ${
+                          favoriteLoading === applicant.id
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:scale-110"
+                        }`}
+                        disabled={favoriteLoading === applicant.id}
+                      >
+                        <Star
+                          size={20}
+                          className={`${
+                            applicant.favorite
+                              ? "text-yellow-500 fill-yellow-500"
+                              : "text-gray-400"
                           }`}
-                          disabled={favoriteLoading === applicant.id}
-                        >
-                          <Star
-                            size={20}
-                            className={`${
-                              applicant.favorite
-                                ? "text-yellow-500 fill-yellow-500"
-                                : "text-gray-400"
-                            }`}
-                          />
-                        </button>
-                      </div>
+                        />
+                      </button>
+                    </div>
 
-                      {/* Información principal - Email */}
-                      <div className="px-4 py-2 bg-gray-50">
-                        <div className="text-sm">
-                          <span className="text-gray-500">Email:</span>
-                          <div className="text-gray-700 truncate">
-                            {applicant.correo}
-                          </div>
+                    {/* Información principal - Email */}
+                    <div className="px-4 py-2 bg-gray-50">
+                      <div className="text-sm">
+                        <span className="text-gray-500">Email:</span>
+                        <div className="text-gray-700 truncate">
+                          {applicant.correo}
                         </div>
-                      </div>
-
-                      {/* Current Application */}
-                      <div className="px-4 py-2">
-                        <div className="text-sm mb-2">
-                          <span className="text-gray-500">
-                            Current Application:
-                          </span>
-                          <div className="mt-1">
-                            {applicant.lastRelevantPostulacion?.titulo ? (
-                              <span className="text-gray-700 text-sm truncate">
-                                {applicant.lastRelevantPostulacion.titulo}
-                              </span>
-                            ) : applicant.puestoTrabajo ? (
-                              <span className="text-gray-700 text-sm truncate">
-                                {applicant.puestoTrabajo}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">
-                                No active application
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Preliminary Interview */}
-                      <div className="px-4 py-2">
-                        <div className="text-sm mb-2">
-                          <span className="text-gray-500">
-                            Preliminary Interview:
-                          </span>
-                          <div className="mt-1">
-                            {renderPreliminaryInterviewStatus(applicant)}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Stage Status */}
-                      <div className="px-4 py-2">
-                        <div className="text-sm mb-2">
-                          <span className="text-gray-500">Stage:</span>
-                          <div className="mt-1">
-                            {renderClickableStageStatusBadge(
-                              renderStageStatus(applicant),
-                              applicant
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Applicant Status */}
-                      <div className="px-4 py-2">
-                        <div className="text-sm mb-2">
-                          <span className="text-gray-500">
-                            Applicant Status:
-                          </span>
-                          <div className="mt-1">
-                            {renderApplicantStatusBadge(
-                              renderApplicantStatus(applicant)
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Acciones principales en grid */}
-                      <div className="px-4 py-3 grid grid-cols-3 gap-2 border-t border-gray-200">
-                        {/* Profile */}
-                        <button
-                          onClick={() => handleOpenProfile(applicant.id)}
-                          className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
-                        >
-                          <Edit size={20} className="text-[#0097B2] mb-1" />
-                          <span className="text-xs text-gray-600">Profile</span>
-                        </button>
-
-                        {/* Email */}
-                        <button
-                          onClick={() => handleOpenSendEmailModal(applicant)}
-                          className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
-                        >
-                          <Mail size={20} className="text-[#0097B2] mb-1" />
-                          <span className="text-xs text-gray-600">Email</span>
-                        </button>
-
-                        {/* Assign */}
-                        <button
-                          onClick={() => handleAssignApplicant(applicant.id)}
-                          className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
-                        >
-                          <Bookmark size={20} className="text-[#0097B2] mb-1" />
-                          <span className="text-xs text-gray-600">Assign</span>
-                        </button>
-                      </div>
-
-                      {/* Logs y cambio de status */}
-                      <div className="px-4 py-4 flex justify-between items-center border-t border-gray-200">
-                        <button
-                          onClick={() => handleViewLogs(applicant.id)}
-                          className="flex items-center text-[#0097B2] hover:underline"
-                        >
-                          <FileText size={16} className="mr-1" />
-                          <span className="text-sm">View Logs</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleOpenStatusModal(applicant.id)}
-                          className="text-sm text-[#0097B2] hover:underline"
-                        >
-                          Change Status
-                        </button>
                       </div>
                     </div>
-                  ))
+
+                    {/* Current Application */}
+                    <div className="px-4 py-2">
+                      <div className="text-sm mb-2">
+                        <span className="text-gray-500">
+                          Current Application:
+                        </span>
+                        <div className="mt-1">
+                          {applicant.lastRelevantPostulacion?.titulo ? (
+                            <span className="text-gray-700 text-sm truncate">
+                              {applicant.lastRelevantPostulacion.titulo}
+                            </span>
+                          ) : applicant.puestoTrabajo ? (
+                            <span className="text-gray-700 text-sm truncate">
+                              {applicant.puestoTrabajo}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">
+                              No active application
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preliminary Interview */}
+                    <div className="px-4 py-2">
+                      <div className="text-sm mb-2">
+                        <span className="text-gray-500">
+                          Preliminary Interview:
+                        </span>
+                        <div className="mt-1">
+                          {renderPreliminaryInterviewStatus(applicant)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stage Status */}
+                    <div className="px-4 py-2">
+                      <div className="text-sm mb-2">
+                        <span className="text-gray-500">Stage:</span>
+                        <div className="mt-1">
+                          {renderClickableStageStatusBadge(
+                            renderStageStatus(applicant),
+                            applicant
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Applicant Status */}
+                    <div className="px-4 py-2">
+                      <div className="text-sm mb-2">
+                        <span className="text-gray-500">Applicant Status:</span>
+                        <div className="mt-1">
+                          {renderApplicantStatusBadge(
+                            renderApplicantStatus(applicant)
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Acciones principales en grid */}
+                    <div className="px-4 py-3 grid grid-cols-3 gap-2 border-t border-gray-200">
+                      {/* Profile */}
+                      <button
+                        onClick={() => handleOpenProfile(applicant.id)}
+                        className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
+                      >
+                        <Edit size={20} className="text-[#0097B2] mb-1" />
+                        <span className="text-xs text-gray-600">Profile</span>
+                      </button>
+
+                      {/* Email */}
+                      <button
+                        onClick={() => handleOpenSendEmailModal(applicant)}
+                        className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
+                      >
+                        <Mail size={20} className="text-[#0097B2] mb-1" />
+                        <span className="text-xs text-gray-600">Email</span>
+                      </button>
+
+                      {/* Assign */}
+                      <button
+                        onClick={() => handleAssignApplicant(applicant.id)}
+                        className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100"
+                      >
+                        <Bookmark size={20} className="text-[#0097B2] mb-1" />
+                        <span className="text-xs text-gray-600">Assign</span>
+                      </button>
+                    </div>
+
+                    {/* Logs y cambio de status */}
+                    <div className="px-4 py-4 flex justify-between items-center border-t border-gray-200">
+                      <button
+                        onClick={() => handleViewLogs(applicant.id)}
+                        className="flex items-center text-[#0097B2] hover:underline"
+                      >
+                        <FileText size={16} className="mr-1" />
+                        <span className="text-sm">View Logs</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenStatusModal(applicant.id)}
+                        className="text-sm text-[#0097B2] hover:underline"
+                      >
+                        Change Status
+                      </button>
+                    </div>
+                  </div>
+                ))
               ) : (
                 <div className="p-6 text-center text-gray-500">
                   No applicants found.
@@ -1241,210 +1236,182 @@ export default function PostulantsPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {applicants
-                          .filter((applicant) => {
-                            // Filtro por Stage
-                            if (stageFilter !== "all") {
-                              if (stageFilter === "favorites") {
-                                if (applicant.favorite !== true) return false;
-                              } else {
-                                const currentStage =
-                                  renderStageStatus(applicant);
-                                if (currentStage !== stageFilter) return false;
-                              }
-                            }
-
-                            // Filtro por Applicant Status (activo/inactivo)
-                            if (applicantStatusFilter !== "all") {
-                              // Usar renderApplicantStatus que ahora usa clasificacionGlobal
-                              const currentApplicantStatus =
-                                renderApplicantStatus(applicant);
-                              if (
-                                currentApplicantStatus !== applicantStatusFilter
-                              )
-                                return false;
-                            }
-
-                            return true;
-                          })
-                          .map((applicant) => (
-                            <tr
-                              key={applicant.id}
-                              className={`border-b border-gray-200 hover:bg-gray-50 ${
-                                recentlyUpdated === applicant.id
-                                  ? "bg-green-50 transition-colors"
-                                  : ""
-                              }`}
-                            >
-                              {/* Name */}
-                              <td className="py-4 px-4 text-gray-700 text-center align-middle">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium">
-                                    {`${applicant.nombre} ${applicant.apellido}`}
-                                  </span>
-                                  <button
-                                    onClick={() =>
-                                      handleToggleFavorite(applicant.id)
-                                    }
-                                    className={`cursor-pointer transition-transform ${
-                                      favoriteLoading === applicant.id
-                                        ? "opacity-50 cursor-not-allowed"
-                                        : "hover:scale-110"
-                                    }`}
-                                    disabled={favoriteLoading === applicant.id}
-                                  >
-                                    <Star
-                                      size={16}
-                                      className={`${
-                                        applicant.favorite
-                                          ? "text-yellow-500 fill-yellow-500"
-                                          : "text-gray-400"
-                                      }`}
-                                    />
-                                  </button>
-                                </div>
-                              </td>
-
-                              {/* Email */}
-                              <td className="py-4 px-4 text-gray-700 text-center align-middle">
-                                {applicant.correo}
-                              </td>
-
-                              {/* Current Application */}
-                              <td className="py-4 px-4 text-gray-700 text-center align-middle">
-                                {applicant.lastRelevantPostulacion?.titulo
-                                  ? applicant.lastRelevantPostulacion.titulo
-                                  : applicant.puestoTrabajo
-                                  ? applicant.puestoTrabajo
-                                  : "Sin aplicación"}
-                              </td>
-                              <td className="py-4 px-4 text-center align-middle">
-                                {applicant.entrevistaPreliminar ? (
-                                  <div className="flex flex-col items-center">
-                                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full mb-1">
-                                      ✓ Sent
-                                    </span>
-                                    {applicant.fechaEntrevistaPreliminar && (
-                                      <span className="text-xs text-gray-500">
-                                        {new Date(
-                                          applicant.fechaEntrevistaPreliminar
-                                        ).toLocaleDateString()}
-                                      </span>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <button
-                                    className="px-3 py-1 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
-                                    onClick={() =>
-                                      handlePreliminaryInterview(
-                                        applicant.id,
-                                        `${applicant.nombre} ${applicant.apellido}`,
-                                        applicant.correo
-                                      )
-                                    }
-                                  >
-                                    Send Invitation
-                                  </button>
-                                )}
-                              </td>
-
-                              {/* Stage */}
-                              <td className="py-4 px-4 text-center align-middle">
-                                {renderClickableStageStatusBadge(
-                                  renderStageStatus(applicant),
-                                  applicant
-                                )}
-                              </td>
-
-                              {/* Applicant Status */}
-                              <td className="py-4 px-4 text-center align-middle">
-                                <div className="flex items-center gap-2">
-                                  {renderApplicantStatusBadge(
-                                    renderApplicantStatus(applicant)
-                                  )}
-                                  <button
-                                    onClick={() =>
-                                      handleOpenStatusModal(applicant.id)
-                                    }
-                                    className="text-[#0097B2] hover:underline text-xs"
-                                  >
-                                    Edit
-                                  </button>
-                                </div>
-                              </td>
-
-                              {/* Logs */}
-                              <td className="py-4 px-4 text-center align-middle">
+                        {applicants.map((applicant) => (
+                          <tr
+                            key={applicant.id}
+                            className={`border-b border-gray-200 hover:bg-gray-50 ${
+                              recentlyUpdated === applicant.id
+                                ? "bg-green-50 transition-colors"
+                                : ""
+                            }`}
+                          >
+                            {/* Name */}
+                            <td className="py-4 px-4 text-gray-700 text-center align-middle">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">
+                                  {`${applicant.nombre} ${applicant.apellido}`}
+                                </span>
                                 <button
-                                  onClick={() => handleViewLogs(applicant.id)}
-                                  className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
+                                  onClick={() =>
+                                    handleToggleFavorite(applicant.id)
+                                  }
+                                  className={`cursor-pointer transition-transform ${
+                                    favoriteLoading === applicant.id
+                                      ? "opacity-50 cursor-not-allowed"
+                                      : "hover:scale-110"
+                                  }`}
+                                  disabled={favoriteLoading === applicant.id}
                                 >
-                                  <FileText size={16} className="mr-1" />
-                                  View
+                                  <Star
+                                    size={16}
+                                    className={`${
+                                      applicant.favorite
+                                        ? "text-yellow-500 fill-yellow-500"
+                                        : "text-gray-400"
+                                    }`}
+                                  />
                                 </button>
-                              </td>
+                              </div>
+                            </td>
 
-                              {/* Actions */}
-                              <td className="py-4 px-4 text-center align-middle">
-                                <div className="flex space-x-2">
-                                  <div className="relative group">
-                                    <button
-                                      className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
-                                      title="View profile"
-                                      onClick={() =>
-                                        handleOpenProfile(applicant.id)
-                                      }
-                                    >
-                                      <Edit size={18} />
-                                    </button>
-                                  </div>
+                            {/* Email */}
+                            <td className="py-4 px-4 text-gray-700 text-center align-middle">
+                              {applicant.correo}
+                            </td>
 
-                                  <div className="relative group">
-                                    <button
-                                      className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
-                                      title="Send email"
-                                      onClick={() =>
-                                        handleOpenSendEmailModal(applicant)
-                                      }
-                                    >
-                                      <Mail size={18} />
-                                    </button>
-                                  </div>
-
-                                  <div className="relative group">
-                                    <button
-                                      className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
-                                      title="Assign to job"
-                                      onClick={() =>
-                                        handleAssignApplicant(applicant.id)
-                                      }
-                                    >
-                                      <Bookmark size={18} />
-                                    </button>
-                                  </div>
-
-                                  {/* Send contract button - only if hired */}
-                                  {applicant.lastRelevantPostulacion &&
-                                    applicant.lastRelevantPostulacion.estado ===
-                                      "ACEPTADA" && (
-                                      <div className="relative group">
-                                        <button
-                                          className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
-                                          title="Send contract"
-                                          onClick={() =>
-                                            handleOpenSignContractModal(
-                                              applicant
-                                            )
-                                          }
-                                        >
-                                          <FileText size={18} />
-                                        </button>
-                                      </div>
-                                    )}
+                            {/* Current Application */}
+                            <td className="py-4 px-4 text-gray-700 text-center align-middle">
+                              {applicant.lastRelevantPostulacion?.titulo
+                                ? applicant.lastRelevantPostulacion.titulo
+                                : applicant.puestoTrabajo
+                                ? applicant.puestoTrabajo
+                                : "Sin aplicación"}
+                            </td>
+                            <td className="py-4 px-4 text-center align-middle">
+                              {applicant.entrevistaPreliminar ? (
+                                <div className="flex flex-col items-center">
+                                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full mb-1">
+                                    ✓ Sent
+                                  </span>
+                                  {applicant.fechaEntrevistaPreliminar && (
+                                    <span className="text-xs text-gray-500">
+                                      {new Date(
+                                        applicant.fechaEntrevistaPreliminar
+                                      ).toLocaleDateString()}
+                                    </span>
+                                  )}
                                 </div>
-                              </td>
-                            </tr>
-                          ))}
+                              ) : (
+                                <button
+                                  className="px-3 py-1 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
+                                  onClick={() =>
+                                    handlePreliminaryInterview(
+                                      applicant.id,
+                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      applicant.correo
+                                    )
+                                  }
+                                >
+                                  Send Invitation
+                                </button>
+                              )}
+                            </td>
+
+                            {/* Stage */}
+                            <td className="py-4 px-4 text-center align-middle">
+                              {renderClickableStageStatusBadge(
+                                renderStageStatus(applicant),
+                                applicant
+                              )}
+                            </td>
+
+                            {/* Applicant Status */}
+                            <td className="py-4 px-4 text-center align-middle">
+                              <div className="flex items-center gap-2">
+                                {renderApplicantStatusBadge(
+                                  renderApplicantStatus(applicant)
+                                )}
+                                <button
+                                  onClick={() =>
+                                    handleOpenStatusModal(applicant.id)
+                                  }
+                                  className="text-[#0097B2] hover:underline text-xs"
+                                >
+                                  Edit
+                                </button>
+                              </div>
+                            </td>
+
+                            {/* Logs */}
+                            <td className="py-4 px-4 text-center align-middle">
+                              <button
+                                onClick={() => handleViewLogs(applicant.id)}
+                                className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
+                              >
+                                <FileText size={16} className="mr-1" />
+                                View
+                              </button>
+                            </td>
+
+                            {/* Actions */}
+                            <td className="py-4 px-4 text-center align-middle">
+                              <div className="flex space-x-2">
+                                <div className="relative group">
+                                  <button
+                                    className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
+                                    title="View profile"
+                                    onClick={() =>
+                                      handleOpenProfile(applicant.id)
+                                    }
+                                  >
+                                    <Edit size={18} />
+                                  </button>
+                                </div>
+
+                                <div className="relative group">
+                                  <button
+                                    className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
+                                    title="Send email"
+                                    onClick={() =>
+                                      handleOpenSendEmailModal(applicant)
+                                    }
+                                  >
+                                    <Mail size={18} />
+                                  </button>
+                                </div>
+
+                                <div className="relative group">
+                                  <button
+                                    className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
+                                    title="Assign to job"
+                                    onClick={() =>
+                                      handleAssignApplicant(applicant.id)
+                                    }
+                                  >
+                                    <Bookmark size={18} />
+                                  </button>
+                                </div>
+
+                                {/* Send contract button - only if hired */}
+                                {applicant.lastRelevantPostulacion &&
+                                  applicant.lastRelevantPostulacion.estado ===
+                                    "ACEPTADA" && (
+                                    <div className="relative group">
+                                      <button
+                                        className="p-1 text-[#0097B2] rounded hover:bg-[#0097B2]/10 cursor-pointer"
+                                        title="Send contract"
+                                        onClick={() =>
+                                          handleOpenSignContractModal(applicant)
+                                        }
+                                      >
+                                        <FileText size={18} />
+                                      </button>
+                                    </div>
+                                  )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
