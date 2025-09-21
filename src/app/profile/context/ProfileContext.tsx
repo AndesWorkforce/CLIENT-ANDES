@@ -69,6 +69,7 @@ interface ProfileData {
   experiencia: Experiencia[];
   estadoPerfil: EstadoPerfil;
   validacionExterna: boolean;
+  aceptaPoliticaDatos: boolean;
   bankInfo?: {
     usaDollarApp: boolean | null;
     dollarTag: string | null;

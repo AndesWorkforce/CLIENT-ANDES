@@ -89,7 +89,7 @@ export default function Navbar() {
     if (!user?.id) return;
 
     try {
-      const response = await getCurrentContract(user.id);
+      const response = await getCurrentContract(user?.id);
 
       // Solo logear si realmente hay datos válidos
       if (response?.success && response?.data) {
@@ -556,7 +556,8 @@ export default function Navbar() {
                   </>
                 ) : (
                   <>
-                    {user?.rol === "EMPRESA" ? (
+                    {user?.rol === "EMPRESA" ||
+                    user?.rol === "EMPLEADO_EMPRESA" ? (
                       <>
                         <Link
                           href="/companies/dashboard"

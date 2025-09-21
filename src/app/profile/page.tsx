@@ -38,6 +38,7 @@ import {
 import { addEducation, deleteEducation } from "./actions/education.actions";
 import IdentificationModal from "./components/IdentificationModal";
 import BankInfoModal from "./components/BankInfoModal";
+import { aceptarPoliticaDatos } from "./actions/politica-actions";
 
 export default function ProfilePage() {
   const { profile } = useProfileContext();
@@ -356,7 +357,8 @@ export default function ProfilePage() {
     profile.datosPersonales.telefono &&
     profile.datosPersonales.residencia &&
     profile.archivos.fotoCedulaFrente &&
-    profile.archivos.fotoCedulaDorso;
+    profile.archivos.fotoCedulaDorso &&
+    profile.aceptaPoliticaDatos;
 
   const isVisibleNotification2 =
     !profile.archivos.imagenRequerimientosPC ||
@@ -386,7 +388,8 @@ export default function ProfilePage() {
     !profile.datosPersonales.telefono ||
     !profile.datosPersonales.residencia ||
     !profile.archivos.fotoCedulaFrente ||
-    !profile.archivos.fotoCedulaDorso;
+    !profile.archivos.fotoCedulaDorso ||
+    !profile.aceptaPoliticaDatos;
 
   // Función para volver a la página principal con una actualización forzada
   const handleGoBack = () => {
@@ -394,7 +397,25 @@ export default function ProfilePage() {
     window.location.href = "/";
   };
 
-  console.log("\n\n\n profile", profile, "\n\n\n");
+  // Función para aceptar la política de datos
+  const handleAceptarPolitica = async () => {
+    try {
+      const result = await aceptarPoliticaDatos({
+        userId: user?.id || "",
+      });
+
+      if (result.success) {
+        addNotification("Data policy accepted successfully", "success");
+        // Recargar la página para actualizar el estado del perfil
+        window.location.reload();
+      } else {
+        addNotification(`Error accepting policy: ${result.error}`, "error");
+      }
+    } catch (error) {
+      console.error("[ProfilePage] Error accepting policy:", error);
+      addNotification("An unexpected error occurred", "error");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -433,6 +454,38 @@ export default function ProfilePage() {
             </Link>{" "}
             page
           </p>
+        </div>
+      )}
+
+      {/* Notificación para política de datos */}
+      {!profile.aceptaPoliticaDatos && (
+        <div className="md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8 bg-yellow-50 p-4 my-4 rounded-lg border-l-4 border-yellow-400">
+          <div className="flex items-center mb-2">
+            <Info className="text-yellow-600 mr-2" size={18} />
+            <h3 className="font-medium text-yellow-800">
+              Action Required: Data Policy Acceptance
+            </h3>
+          </div>
+          <p className="text-sm text-yellow-700 mb-3">
+            To continue using our platform and apply to job offers, you must
+            accept our data privacy policy.
+          </p>
+          <div className="flex items-center space-x-3">
+            <Link
+              href="/politica-datos"
+              className="text-[#0097B2] font-semibold hover:underline cursor-pointer transition-colors"
+              target="_blank"
+            >
+              Read Data Privacy Policy
+            </Link>
+            <span className="text-yellow-600">•</span>
+            <button
+              onClick={handleAceptarPolitica}
+              className="bg-[#0097B2] text-white px-4 py-2 rounded-lg hover:bg-[#007a91] transition-colors text-sm cursor-pointer"
+            >
+              Accept Policy
+            </button>
+          </div>
         </div>
       )}
 

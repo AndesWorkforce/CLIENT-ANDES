@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import RegisterForm from "./components/RegisterForm";
 import Logo from "@/components/ui/Logo";
+import "./register-scroll.css";
 
 export default function RegisterPage() {
   return (
@@ -54,9 +55,9 @@ export default function RegisterPage() {
           </div>
 
           {/* Contenedor responsive */}
-          <div className="w-full max-w-md mx-auto md:w-auto md:my-6 lg:flex lg:items-stretch lg:h-[80%] lg:max-w-6xl lg:w-full lg:mx-auto lg:shadow-xl lg:rounded-3xl lg:overflow-hidden relative">
+          <div className="w-full max-w-md mx-auto md:w-auto md:my-6 lg:flex lg:items-stretch lg:h-[600px] lg:max-w-6xl lg:w-full lg:mx-auto lg:shadow-xl lg:rounded-3xl lg:overflow-hidden relative">
             {/* Panel izquierdo (formulario) */}
-            <div className="flex flex-col justify-between bg-[#FCFEFF] shadow-lg w-full min-h-[500px] p-[36px] rounded-lg my-4 lg:my-0 lg:shadow-none lg:w-[60%] lg:rounded-none">
+            <div className="flex flex-col bg-[#FCFEFF] shadow-lg w-full min-h-[500px] lg:h-full p-[36px] rounded-lg my-4 lg:my-0 lg:shadow-none lg:w-[60%] lg:rounded-none lg:overflow-hidden">
               {/* Estructura del header - versión móvil */}
               <div className="mb-6 lg:hidden">
                 <div className="flex items-center">
@@ -82,7 +83,7 @@ export default function RegisterPage() {
               </div>
 
               {/* Estructura del header - versión desktop */}
-              <div className="hidden lg:flex lg:flex-col">
+              <div className="hidden lg:flex lg:flex-col flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-[600] text-[18px] text-black">
                     Create a new account
@@ -91,8 +92,11 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Formulario */}
-              <RegisterForm />
+              {/* Contenedor del formulario con scroll */}
+              <div className="flex-1 lg:overflow-y-auto lg:pr-2 scroll-container">
+                {/* Formulario */}
+                <RegisterForm />
+              </div>
             </div>
 
             {/* Panel derecho (imagen) - solo visible en lg y superiores */}

@@ -148,7 +148,7 @@ export default function CurrentApplication() {
   const currentContract = async () => {
     if (!user?.id) return;
     try {
-      const response = await getCurrentContract(user.id);
+      const response = await getCurrentContract(user?.id);
       if (response.success && response.data) {
         setCurrentJob(response.data);
         setMonthlyProofs(response.data.monthlyProofs || []);
@@ -196,7 +196,7 @@ export default function CurrentApplication() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && user?.id) {
       currentContract();
     }
   }, [user]);

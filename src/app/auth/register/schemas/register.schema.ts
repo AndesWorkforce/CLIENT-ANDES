@@ -20,6 +20,9 @@ export const registerSchema = z
         "Password must contain at least one uppercase letter, one lowercase letter and one number"
       ),
     confirmContrasena: z.string(),
+    aceptaPoliticaDatos: z.boolean().refine((val) => val === true, {
+      message: "You must accept the Data Processing Policy to continue",
+    }),
   })
   .refine((data) => data.contrasena === data.confirmContrasena, {
     message: "Passwords do not match",

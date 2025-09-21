@@ -372,6 +372,7 @@ export default function CandidateProfileModal({
         })),
         estadoPerfil: profile.estadoPerfil || "INCOMPLETO",
         validacionExterna: profile.validacionExterna || false,
+        aceptaPoliticaDatos: profile.aceptaPoliticaDatos ?? false,
       },
     };
 

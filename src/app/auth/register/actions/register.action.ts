@@ -8,13 +8,14 @@ export async function registerAction(data: RegisterFormValues) {
   try {
     console.log("DATA TO SEND", data);
 
-    const { nombre, apellido, correo, contrasena } = data;
+    const { nombre, apellido, correo, contrasena, aceptaPoliticaDatos } = data;
 
     const response = await axios.post(`auth/register`, {
       nombre,
       apellido,
       correo,
       contrasena,
+      aceptaPoliticaDatos,
     });
 
     if (response.status !== 201) {

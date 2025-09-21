@@ -72,7 +72,7 @@ export default function RegisterForm() {
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col space-y-8 mt-2"
+        className="flex flex-col space-y-8 mt-2 lg:pb-6"
       >
         {/* Nombre input */}
         <div>
@@ -198,6 +198,38 @@ export default function RegisterForm() {
           {errors.confirmContrasena && (
             <span className="text-red-500 text-xs mt-1">
               {errors.confirmContrasena.message}
+            </span>
+          )}
+        </div>
+
+        {/* Aceptación de política de datos */}
+        <div>
+          <div className="flex items-start space-x-3">
+            <input
+              type="checkbox"
+              id="aceptaPoliticaDatos"
+              className="mt-1 h-4 w-4 text-[#0097B2] border-gray-300 rounded focus:ring-[#0097B2] focus:ring-2"
+              {...register("aceptaPoliticaDatos")}
+            />
+            <label
+              htmlFor="aceptaPoliticaDatos"
+              className="text-sm text-gray-700"
+            >
+              I accept the{" "}
+              <Link
+                href="/politica-datos"
+                target="_blank"
+                className="text-[#0097B2] hover:underline font-medium"
+              >
+                Data Processing Policy
+              </Link>{" "}
+              and authorize the use of my personal data according to the terms
+              described.
+            </label>
+          </div>
+          {errors.aceptaPoliticaDatos && (
+            <span className="text-red-500 text-xs mt-1">
+              {errors.aceptaPoliticaDatos.message}
             </span>
           )}
         </div>

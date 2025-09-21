@@ -12,6 +12,7 @@ const navigation = [
   { name: "About", href: "/pages/about" },
   { name: "Contact", href: "/pages/contact" },
   { name: "Privacy Policy", href: "/pages/privacy-policy" },
+  { name: "Data Privacy Policy", href: "/politica-datos" },
 ];
 
 export default function Footer() {
