@@ -88,6 +88,7 @@ export interface PerfilCompleto {
   experiencia: Experiencia[];
   estadoPerfil: "COMPLETO" | "INCOMPLETO";
   validacionExterna: boolean;
+  aceptaPoliticaDatos: boolean;
   videoPresentacion: string;
   assessmentUrl?: string | null;
   bankInfo?: {

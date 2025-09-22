@@ -1,0 +1,23 @@
+/* Estilos personalizados para el scroll del formulario de registro */
+.scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #0097b2 #f7fafc;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 3px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}

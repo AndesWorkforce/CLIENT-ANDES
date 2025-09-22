@@ -25,9 +25,15 @@ export default async function ProfileLayout({
 
   const profile = await response.json();
 
+  // Asegurar que aceptaPoliticaDatos esté presente
+  const profileWithPolicy = {
+    ...profile.data,
+    aceptaPoliticaDatos: profile.data.aceptaPoliticaDatos ?? false,
+  };
+
   return (
     <main className="container mx-auto bg-white">
-      <ProfileContextProvider initialValue={{ profile: profile.data }}>
+      <ProfileContextProvider initialValue={{ profile: profileWithPolicy }}>
         {children}
       </ProfileContextProvider>
     </main>
