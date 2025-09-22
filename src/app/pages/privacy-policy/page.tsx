@@ -364,9 +364,9 @@ export default function PrivacyPolicyPage() {
               <br />
               Andes Workforce LLC
               <br />
-              18750 Southwest 16th Street
+              1032 E Brandon Blvd #3524
               <br />
-              Pembroke Pines, Florida 33029
+              Brandon, FL 33511
             </p>
           </div>
         </div>
