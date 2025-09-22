@@ -68,6 +68,7 @@ const publicRoutes = [
   "/",
   "/api/auth/logout",
   "/api/health",
+  "/health",
   // Otras rutas públicas o APIs que deberían estar disponibles para todos
 ];
 
