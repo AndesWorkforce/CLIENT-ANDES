@@ -603,7 +603,7 @@ export default function CandidateProfileModal({
                               </p>
                               <p className="text-sm text-gray-500">
                                 {exp.fechaInicio || "?"} -{" "}
-                                {exp.fechaFin || "Presente"}
+                                {exp.fechaFin || "Present"}
                               </p>
                             </div>
                             <button
@@ -684,7 +684,7 @@ export default function CandidateProfileModal({
                               </p>
                               <p className="text-sm text-gray-500">
                                 {edu.añoInicio || "?"} -{" "}
-                                {edu.añoFin || "Presente"}
+                                {edu.añoFin || "Present"}
                               </p>
                             </div>
                             <button
@@ -1340,7 +1340,7 @@ export default function CandidateProfileModal({
                               </p>
                               <p className="text-sm text-gray-500 mt-0.5">
                                 {exp.fechaInicio || "?"} -{" "}
-                                {exp.fechaFin || "Presente"}
+                                {exp.fechaFin || "Present"}
                               </p>
                               <p className="text-sm text-gray-700 mt-3">
                                 {exp.descripcion || (
@@ -1379,7 +1379,7 @@ export default function CandidateProfileModal({
                               </p>
                               <p className="text-sm text-gray-500 mt-0.5">
                                 {edu.añoInicio || "?"} -{" "}
-                                {edu.añoFin || "Presente"}
+                                {edu.añoFin || "Present"}
                               </p>
                             </div>
                           ))

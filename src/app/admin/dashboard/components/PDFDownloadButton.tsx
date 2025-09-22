@@ -176,7 +176,7 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
                 {exp?.empresa || "No company specified"}
               </Text>
               <Text style={styles.text}>
-                {exp?.fechaInicio || ""} - {exp?.fechaFin || "Presente"}
+                {exp?.fechaInicio || ""} - {exp?.fechaFin || "Present"}
               </Text>
               {exp?.descripcion && (
                 <Text style={styles.text}>{exp.descripcion}</Text>
@@ -201,7 +201,7 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
                 {edu?.institucion || "No institution specified"}
               </Text>
               <Text style={styles.text}>
-                {edu?.añoInicio || ""} - {edu?.añoFin || "Presente"}
+                {edu?.añoInicio || ""} - {edu?.añoFin || "Present"}
               </Text>
             </View>
           ))}

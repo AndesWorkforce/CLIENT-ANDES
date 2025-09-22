@@ -133,7 +133,7 @@ export default function ProfileModal({
                         className="flex items-center justify-center px-3 py-1.5 bg-[#0097B2] text-white rounded-md hover:bg-[#007a8f] transition-colors"
                       >
                         <Edit size={16} className="mr-1.5" />
-                        <span>Administrar perfil</span>
+                        <span>Edit profile</span>
                       </Link>
 
                       {!isProfileIncomplete && (
@@ -147,7 +147,7 @@ export default function ProfileModal({
                       <Phone size={18} className="text-[#0097B2] mr-2 mt-0.5" />
                       <span className="text-gray-700">
                         {profile.datosPersonales.telefono || (
-                          <span className="text-gray-400">Sin teléfono</span>
+                          <span className="text-gray-400">No phone</span>
                         )}
                       </span>
                     </div>
@@ -155,7 +155,7 @@ export default function ProfileModal({
                       <Mail size={18} className="text-[#0097B2] mr-2 mt-0.5" />
                       <span className="text-gray-700">
                         {profile.datosPersonales.correo || (
-                          <span className="text-gray-400">Sin correo</span>
+                          <span className="text-gray-400">No email</span>
                         )}
                       </span>
                     </div>
@@ -226,7 +226,7 @@ export default function ProfileModal({
                         </li>
                       ))
                     ) : (
-                      <li className="text-gray-400">Sin habilidades</li>
+                      <li className="text-gray-400">No skills</li>
                     )}
                   </ul>
                 </div>
@@ -312,32 +312,32 @@ export default function ProfileModal({
                               <h3 className="font-medium text-gray-800 text-lg">
                                 {exp.cargo || (
                                   <span className="text-gray-400">
-                                    Sin cargo
+                                    No position
                                   </span>
                                 )}
                               </h3>
                               <p className="text-sm text-gray-600 mt-1">
                                 {exp.empresa || (
                                   <span className="text-gray-400">
-                                    Sin empresa
+                                    No company
                                   </span>
                                 )}
                               </p>
                               <p className="text-sm text-gray-500 mt-0.5">
                                 {exp.fechaInicio || "?"} -{" "}
-                                {exp.fechaFin || "Presente"}
+                                {exp.fechaFin || "Present"}
                               </p>
                               <p className="text-sm text-gray-700 mt-3">
                                 {exp.descripcion || (
                                   <span className="text-gray-400">
-                                    Sin descripción
+                                    No description
                                   </span>
                                 )}
                               </p>
                             </div>
                           ))
                         ) : (
-                          <div className="text-gray-400">Sin experiencia</div>
+                          <div className="text-gray-400">No experience</div>
                         )}
                       </div>
                     ) : (
@@ -351,25 +351,25 @@ export default function ProfileModal({
                               <h3 className="font-medium text-gray-800 text-lg">
                                 {edu.titulo || (
                                   <span className="text-gray-400">
-                                    Sin título
+                                    No title
                                   </span>
                                 )}
                               </h3>
                               <p className="text-sm text-gray-600 mt-1">
                                 {edu.institucion || (
                                   <span className="text-gray-400">
-                                    Sin institución
+                                    No institution
                                   </span>
                                 )}
                               </p>
                               <p className="text-sm text-gray-500 mt-0.5">
                                 {edu.añoInicio || "?"} -{" "}
-                                {edu.añoFin || "Presente"}
+                                {edu.añoFin || "Present"}
                               </p>
                             </div>
                           ))
                         ) : (
-                          <div className="text-gray-400">Sin educación</div>
+                          <div className="text-gray-400">No education</div>
                         )}
                       </div>
                     )}
@@ -404,7 +404,7 @@ export default function ProfileModal({
             </button>
             <div className="p-6">
               <h2 className="text-xl font-medium text-[#0097B2] mb-4">
-                Gestionar Experiencia
+                Manage Experience
               </h2>
               <AdminExperienceManager candidateId={candidateId} />
             </div>

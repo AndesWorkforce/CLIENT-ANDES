@@ -102,7 +102,7 @@ const ProfileDocument = ({ profile }: ProfileDocumentProps) => (
             </Text>
             <Text style={styles.text}>{exp.empresa}</Text>
             <Text style={styles.text}>
-              {exp.fechaInicio} - {exp.fechaFin || "Presente"}
+              {exp.fechaInicio} - {exp.fechaFin || "Present"}
             </Text>
             <Text style={styles.text}>{exp.descripcion}</Text>
           </View>
@@ -121,7 +121,7 @@ const ProfileDocument = ({ profile }: ProfileDocumentProps) => (
             </Text>
             <Text style={styles.text}>{edu.institucion}</Text>
             <Text style={styles.text}>
-              {edu.añoInicio} - {edu.añoFin || "Presente"}
+              {edu.añoInicio} - {edu.añoFin || "Present"}
             </Text>
           </View>
         ))}

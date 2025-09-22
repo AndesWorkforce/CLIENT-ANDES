@@ -112,26 +112,24 @@ export default function AdminExperienceManager({
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
       <div className="p-4 flex justify-between items-center border-b border-gray-200">
-        <h2 className="font-medium text-lg text-gray-900">
-          Experiencia Laboral
-        </h2>
+        <h2 className="font-medium text-lg text-gray-900">Work Experience</h2>
         <button
           onClick={() => handleOpenModal()}
           className="flex items-center text-sm font-medium text-[#0097B2] hover:text-[#007d8a]"
         >
           <Plus size={16} className="mr-1" />
-          Agregar experiencia
+          Add Experience
         </button>
       </div>
 
       <div className="p-4">
         {isLoading ? (
           <div className="flex justify-center py-6">
-            <div className="animate-pulse">Cargando experiencias...</div>
+            <div className="animate-pulse">Loading experiences...</div>
           </div>
         ) : experiences.length === 0 ? (
           <div className="text-center py-6 text-gray-500">
-            No hay experiencias registradas para este candidato
+            No experiences registered for this candidate
           </div>
         ) : (
           <div className="space-y-4">
@@ -169,7 +167,7 @@ export default function AdminExperienceManager({
                 </p>
                 <p className="text-sm text-gray-500 mt-0.5">
                   {experience.fechaInicio} -{" "}
-                  {experience.esActual ? "Presente" : experience.fechaFin}
+                  {experience.esActual ? "Present" : experience.fechaFin}
                 </p>
                 <p className="text-sm text-gray-700 mt-3">
                   {experience.descripcion}

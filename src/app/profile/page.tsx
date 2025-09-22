@@ -932,7 +932,7 @@ export default function ProfilePage() {
                             </p>
                             <p className="text-gray-500 text-xs mt-1">
                               {exp.fechaInicio} -{" "}
-                              {exp.esActual ? "Presente" : exp.fechaFin}
+                              {exp.esActual ? "Present" : exp.fechaFin}
                             </p>
                             <p className="text-gray-700 text-sm mt-2 line-clamp-3">
                               {exp.descripcion}
@@ -1078,7 +1078,7 @@ export default function ProfilePage() {
                             </p>
                             <p className="text-gray-500 text-xs mt-1">
                               {edu.añoInicio} -{" "}
-                              {edu.esActual ? "Presente" : edu.añoFin}
+                              {edu.esActual ? "Present" : edu.añoFin}
                             </p>
                           </div>
                           <div className="flex space-x-2">
@@ -1764,7 +1764,7 @@ export default function ProfilePage() {
                             </p>
                             <p className="text-gray-500 text-xs mt-1">
                               {exp.fechaInicio} -{" "}
-                              {exp.esActual ? "Presente" : exp.fechaFin}
+                              {exp.esActual ? "Present" : exp.fechaFin}
                             </p>
                           </div>
                           <div className="flex space-x-2">
@@ -1947,7 +1947,7 @@ export default function ProfilePage() {
                             </p>
                             <p className="text-gray-500 text-xs mt-1">
                               {edu.añoInicio} -{" "}
-                              {edu.esActual ? "Presente" : edu.añoFin}
+                              {edu.esActual ? "Present" : edu.añoFin}
                             </p>
                           </div>
                           <div className="flex space-x-2">
