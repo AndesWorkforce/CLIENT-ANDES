@@ -115,7 +115,7 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
             src={profile.archivos.videoPresentacion}
             style={styles.linkText}
           >
-            Ver video de presentación
+            View presentation video
           </Link>
         </View>
       )}
@@ -145,7 +145,7 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
                 src={profile.archivos.imagenTestVelocidad}
                 style={styles.linkText}
               >
-                Ver imagen del test de velocidad
+                View speed test image
               </Link>
             </View>
           )}
@@ -156,7 +156,7 @@ const ProfilePDF = ({ profile }: PDFDownloadButtonProps) => (
                 src={profile.archivos.imagenRequerimientosPC}
                 style={styles.linkText}
               >
-                Ver imagen de requerimientos de PC
+                View PC requirements image
               </Link>
             </View>
           )}
