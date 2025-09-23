@@ -120,7 +120,7 @@ export default function PostulantsPage() {
         stageFilter,
         applicantStatusFilter
       );
-      console.log(response);
+
       if (response.success) {
         setApplicants(response.data?.resultados || []);
         setTotalPages(response.totalPages || 1);
@@ -206,20 +206,6 @@ export default function PostulantsPage() {
   };
 
   const handleOpenStatusModal = (candidateId: string) => {
-    const candidate = applicants.find((a) => a.id === candidateId);
-    console.log("🔄 Opening status modal for candidate:", {
-      candidateId,
-      currentStatus: candidate?.clasificacionGlobal,
-      candidateName: candidate?.nombre,
-      fullCandidate: candidate,
-    });
-
-    // Verificar el estado actual de TODOS los candidatos
-    console.log("📊 Estado actual de todos los candidatos:");
-    applicants.forEach((app) => {
-      console.log(`👤 ${app.nombre}: ${app.clasificacionGlobal}`);
-    });
-
     setSelectedCandidateId(candidateId);
     setIsStatusModalOpen(true);
   };
@@ -238,13 +224,6 @@ export default function PostulantsPage() {
 
     const candidateName = candidate.nombre || "Candidate";
 
-    console.log("🔄 Iniciando cambio de estado:", {
-      candidateId,
-      currentStatus: candidate.clasificacionGlobal,
-      newStatus: status,
-      notes,
-    });
-
     try {
       // Actualización optimista del estado local
       setApplicants((prev) =>
@@ -262,21 +241,13 @@ export default function PostulantsPage() {
 
       const response = await updateCandidateStatus(candidateId, status, notes);
 
-      console.log("� Respuesta del servidor:", response);
-
       if (response.success) {
-        console.log("✅ Estado actualizado exitosamente");
-
         addNotification(
           `Status of ${candidateName} updated to ${status}`,
           "success"
         );
         return { success: true };
       } else {
-        console.error(
-          "❌ Error en la respuesta del servidor:",
-          response.message
-        );
         // Revertir cambio optimista si hay error
         setApplicants((prev) =>
           prev.map((applicant) =>
@@ -653,11 +624,6 @@ export default function PostulantsPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleOpenSignContractModal = (applicant: any) => {
-    console.log(
-      "\n\n [handleOpenSignContractModal] applicant",
-      applicant,
-      "\n\n"
-    );
     setSelectedApplicant(applicant);
     setIsSignContractModalOpen(true);
   };
@@ -784,8 +750,6 @@ export default function PostulantsPage() {
       );
     }
   };
-
-  console.log("\n\n [POSTULANTS] Error maps id:", applicants, "\n\n");
 
   return (
     <CandidateProfileProvider>
