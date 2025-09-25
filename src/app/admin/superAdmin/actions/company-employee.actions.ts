@@ -69,13 +69,16 @@ export async function createCompanyEmployee(
       success: false,
       message: response.data.message || "Error creating company employee",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[createCompanyEmployee] Error:", error);
 
-    if (error.response?.data?.message) {
+    const errorResponse = error as {
+      response?: { data?: { message?: string } };
+    };
+    if (errorResponse.response?.data?.message) {
       return {
         success: false,
-        message: error.response.data.message,
+        message: errorResponse.response.data.message,
       };
     }
 
@@ -116,13 +119,16 @@ export async function createNewUserForCompany(
       success: false,
       message: response.data.message || "Error creating employee",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[createNewUserForCompany] Error:", error);
 
-    if (error.response?.data?.message) {
+    const errorResponse = error as {
+      response?: { data?: { message?: string } };
+    };
+    if (errorResponse.response?.data?.message) {
       return {
         success: false,
-        message: error.response.data.message,
+        message: errorResponse.response.data.message,
       };
     }
 
@@ -157,7 +163,8 @@ export async function getAvailableUsers(): Promise<{
       // Filtrar usuarios que no sean empleados de empresa o admins
       const users = response.data.data || [];
       const availableUsers = users.filter(
-        (user: any) => user.rol === "CLIENTE" || user.rol === "POSTULANTE"
+        (user: { rol: string }) =>
+          user.rol === "CLIENTE" || user.rol === "POSTULANTE"
       );
 
       return {
@@ -170,7 +177,7 @@ export async function getAvailableUsers(): Promise<{
       success: false,
       message: "Error fetching available users",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[getAvailableUsers] Error:", error);
 
     return {
