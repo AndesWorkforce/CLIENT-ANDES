@@ -7,6 +7,7 @@ import CreateCompanyForm from "./CreateCompanyForm";
 import ConfirmStatusModal from "./ConfirmStatusModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { useNotificationStore } from "@/store/notifications.store";
+import { UserPlus } from "lucide-react";
 // import { formatDate } from "@/utils/dates";
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  onCreateEmployee?: (company: Company) => void;
 }
 
 export default function CompaniesTable({
@@ -23,6 +25,7 @@ export default function CompaniesTable({
   currentPage,
   totalPages,
   onPageChange,
+  onCreateEmployee,
 }: Props) {
   const { addNotification } = useNotificationStore();
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -171,12 +174,22 @@ export default function CompaniesTable({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex space-x-2">
+                        {onCreateEmployee && (
+                          <button
+                            onClick={() => onCreateEmployee(company)}
+                            className="text-[#0097B2] hover:text-[#007B8E] cursor-pointer"
+                            title="Create Employee"
+                          >
+                            <UserPlus size={18} />
+                          </button>
+                        )}
                         <button
                           onClick={() => {
                             setSelectedCompany(company);
                             setShowEditModal(true);
                           }}
                           className="text-[#0097B2] hover:text-[#007B8E] cursor-pointer"
+                          title="Edit Company"
                         >
                           <svg
                             width="22"
@@ -207,6 +220,7 @@ export default function CompaniesTable({
                             setShowDeleteModal(true);
                           }}
                           className="text-[#0097B2] hover:text-[#007B8E] cursor-pointer"
+                          title="Delete Company"
                         >
                           <svg
                             width="22"

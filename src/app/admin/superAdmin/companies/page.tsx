@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { Company } from "../schemas/company.schema";
 import { PlusIcon, Search } from "lucide-react";
 import { getCompaniesAdmin } from "../actions/company.actions";
-import CompaniesTable from "../components/CompaniesTable";
 import CreateCompanyForm from "../components/CreateCompanyForm";
+import CompaniesTable from "../components/CompaniesTable";
+import CreateCompanyEmployeeModal from "../components/CreateCompanyEmployeeModal";
 import TableSkeleton from "../../dashboard/components/TableSkeleton";
 
 export default function CompaniesPage() {
@@ -14,6 +15,10 @@ export default function CompaniesPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [showCreateCompanyModal, setShowCreateCompanyModal] =
     useState<boolean>(false);
+  const [showCreateEmployeeModal, setShowCreateEmployeeModal] =
+    useState<boolean>(false);
+  const [selectedCompanyForEmployee, setSelectedCompanyForEmployee] =
+    useState<Company | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
@@ -73,6 +78,11 @@ export default function CompaniesPage() {
     }
   };
 
+  const handleCreateEmployee = (company: Company) => {
+    setSelectedCompanyForEmployee(company);
+    setShowCreateEmployeeModal(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-4">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -111,6 +121,7 @@ export default function CompaniesPage() {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
+            onCreateEmployee={handleCreateEmployee}
           />
         )}
       </div>
@@ -124,6 +135,19 @@ export default function CompaniesPage() {
             }}
           />
         </div>
+      )}
+
+      {showCreateEmployeeModal && selectedCompanyForEmployee && (
+        <CreateCompanyEmployeeModal
+          company={selectedCompanyForEmployee}
+          onClose={() => {
+            setShowCreateEmployeeModal(false);
+            setSelectedCompanyForEmployee(null);
+          }}
+          onSuccess={() => {
+            fetchCompanies(currentPage, search);
+          }}
+        />
       )}
     </div>
   );
