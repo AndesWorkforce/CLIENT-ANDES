@@ -17,12 +17,12 @@ export default function PartnersSection() {
   }, []);
 
   const partners = [
-    {
-      name: "Ardon Health Group",
-      logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/bernheim-kelley-battista-injury-lawyers-logo-home.png",
-      width: 80,
-      height: 40,
-    },
+    // {
+    //   name: "Ardon Health Group",
+    //   logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/bernheim-kelley-battista-injury-lawyers-logo-home.png",
+    //   width: 80,
+    //   height: 40,
+    // },
     {
       name: "Port Law",
       logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/Port-Law.jpg",
@@ -35,24 +35,30 @@ export default function PartnersSection() {
       width: 80,
       height: 40,
     },
-    {
-      name: "Vels",
-      logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/VELS-Main-Logo.png",
-      width: 110,
-      height: 40,
-    },
-    {
-      name: "VetLaw",
-      logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/VetLaw.jpg",
-      width: 110,
-      height: 40,
-    },
+    // {
+    //   name: "Vels",
+    //   logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/VELS-Main-Logo.png",
+    //   width: 110,
+    //   height: 40,
+    // },
+    // {
+    //   name: "VetLaw",
+    //   logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/VetLaw.jpg",
+    //   width: 110,
+    //   height: 40,
+    // },
     {
       name: "WHG",
       logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/WHG.jpg",
       width: 110,
       height: 40,
     },
+    // {
+    //   name: "CaseScribe",
+    //   logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/casescribe.png",
+    //   width: 110,
+    //   height: 40,
+    // },
   ];
 
   return (
