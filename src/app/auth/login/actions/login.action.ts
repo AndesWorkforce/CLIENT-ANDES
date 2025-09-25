@@ -41,8 +41,6 @@ export async function loginAction(values: LoginFormValues) {
       if (data && data.data) {
         const userData = data.data.usuario || data.data;
         const token = data.data.accessToken || "default-token-placeholder";
-        console.log("Datos de usuario:", userData);
-        console.log("Token de acceso:", token);
         try {
           // Establecer cookie para el token (HTTP-only para seguridad)
           const cookieStore = cookies();
