@@ -172,3 +172,40 @@ export async function getProposal(propuestaId: string) {
     };
   }
 }
+
+export async function toggleClientVisibility(
+  offerId: string,
+  companyId: string,
+  visible: boolean
+) {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.put(
+      `offers/${offerId}/company/${companyId}/visibility`,
+      { visible }
+    );
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: `Server error: ${response.status} ${response.statusText}. ${
+          response.data.message || ""
+        }`,
+      };
+    }
+
+    revalidatePath("/admin/dashboard");
+
+    return {
+      success: true,
+      message: response.data.message || "Client visibility toggled successfully",
+      data: response.data,
+    };
+  } catch (error: unknown) {
+    console.error("[Offers] Error in toggleClientVisibility:", error);
+    return {
+      success: false,
+      message: (error as Error)?.message || "Error toggling client visibility",
+    };
+  }
+}

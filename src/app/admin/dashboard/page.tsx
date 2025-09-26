@@ -11,6 +11,8 @@ import {
   Loader2,
   Trash2,
   Bookmark,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 import ApplicantsModal from "@/app/admin/dashboard/components/ApplicantsModal";
@@ -18,6 +20,7 @@ import {
   getPublishedOffers,
   toggleOfferStatus,
   deleteOffer,
+  toggleClientVisibility,
 } from "./actions/offers.actions";
 import { Offer } from "@/app/types/offers";
 import ViewOfferModal from "@/app/components/ViewOfferModal";
@@ -52,6 +55,7 @@ export default function AdminDashboardPage() {
   const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState<boolean>(false);
   const [offerToAssign, setOfferToAssign] = useState<Offer | null>(null);
+
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
@@ -328,6 +332,35 @@ export default function AdminDashboardPage() {
   const handleAssignOffer = (offer: Offer) => {
     setOfferToAssign(offer);
     setIsAssignModalOpen(true);
+  };
+
+  const handleToggleClientVisibility = async (offer: Offer) => {
+    if (!offer.empresasAsociadas?.length) {
+      addNotification("No companies assigned to this offer", "error");
+      return;
+    }
+
+    try {
+      // Por ahora trabajamos con la primera empresa asignada
+      // En una implementación más completa, mostraríamos un modal para seleccionar la empresa
+      const firstCompany = offer.empresasAsociadas[0];
+      const currentVisibility = firstCompany.visibleToClient || false;
+
+      const response = await toggleClientVisibility(
+        offer.id!,
+        firstCompany.empresa.id,
+        !currentVisibility
+      );
+
+      if (response.success) {
+        addNotification(response.message, "success");
+        await fetchPublishedOffers();
+      } else {
+        addNotification(response.message, "error");
+      }
+    } catch {
+      addNotification("Error toggling client visibility", "error");
+    }
   };
 
   useEffect(() => {
@@ -747,6 +780,30 @@ export default function AdminDashboardPage() {
                                 size={22}
                                 className="text-amber-600"
                               />
+                            )}
+                          </button>
+
+                          {/* Botón de visibilidad para cliente */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleClientVisibility(job);
+                            }}
+                            className="cursor-pointer"
+                            title={
+                              job.empresasAsociadas?.some(
+                                (ea) => ea.visibleToClient
+                              )
+                                ? "Hide from clients"
+                                : "Make visible to clients"
+                            }
+                          >
+                            {job.empresasAsociadas?.some(
+                              (ea) => ea.visibleToClient
+                            ) ? (
+                              <EyeOff size={20} className="text-orange-600" />
+                            ) : (
+                              <Eye size={20} className="text-blue-600" />
                             )}
                           </button>
 
