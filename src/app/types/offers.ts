@@ -87,9 +87,13 @@ export interface Offer {
           id: string;
           nombre: string;
         };
+        visibleToClient?: boolean; // Indica si la oferta está visible para esta empresa
       }[]
     | null
     | undefined; // Lista de empresas asociadas a la oferta
+
+  // Para facilitar el manejo en la interfaz de admin
+  visibleToClient?: boolean; // Para casos donde se maneja una sola empresa
 }
 
 // Estados posibles de una oferta
