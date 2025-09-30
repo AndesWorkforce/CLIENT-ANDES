@@ -71,6 +71,7 @@ interface ApplicantsModalProps {
 // Tabla para usuarios Admin
 const AdminApplicantsTable = ({
   applicants,
+  totalCount,
   selectedCandidates,
   handleSelectAll,
   handleCandidateSelection,
@@ -90,6 +91,7 @@ const AdminApplicantsTable = ({
   totalPages,
 }: {
   applicants: ExtendedApplicant[];
+  totalCount: number;
   selectedCandidates: Set<string>;
   handleSelectAll: (checked: boolean) => void;
   handleCandidateSelection: (id: string, checked: boolean) => void;
@@ -147,7 +149,7 @@ const AdminApplicantsTable = ({
 }) => (
   <>
     <div className="mb-4 text-gray-500 text-sm">
-      Total: {applicants.length} applicants | Showing page {currentPage} of{" "}
+      Total: {totalCount} applicants | Showing page {currentPage} of{" "}
       {totalPages}
     </div>
     <table className="w-full border-collapse">
@@ -156,10 +158,7 @@ const AdminApplicantsTable = ({
           <th className="text-left py-3 px-4 font-medium text-gray-700">
             <input
               type="checkbox"
-              checked={
-                selectedCandidates.size === applicants.length &&
-                applicants.length > 0
-              }
+              checked={selectedCandidates.size === totalCount && totalCount > 0}
               onChange={(e) => handleSelectAll(e.target.checked)}
               className="rounded border-gray-300 text-[#0097B2] focus:ring-[#0097B2]"
             />
@@ -472,6 +471,7 @@ const AdminApplicantsTable = ({
 // Tabla para usuarios Company
 const CompanyApplicantsTable = ({
   applicants,
+  totalCount,
   setSelectedCandidateId,
   setIsCandidateProfileModalOpen,
   renderClickableStageStatusBadge,
@@ -485,6 +485,7 @@ const CompanyApplicantsTable = ({
   totalPages,
 }: {
   applicants: ExtendedApplicant[];
+  totalCount: number;
   setSelectedCandidateId: (id: string) => void;
   setIsCandidateProfileModalOpen: (open: boolean) => void;
   renderClickableStageStatusBadge: (
@@ -542,7 +543,7 @@ const CompanyApplicantsTable = ({
 }) => (
   <>
     <div className="mb-4 text-gray-500 text-sm">
-      Total: {applicants.length} applicants | Showing page {currentPage} of{" "}
+      Total: {totalCount} applicants | Showing page {currentPage} of{" "}
       {totalPages}
     </div>
     <table className="w-full border-collapse">
@@ -1034,8 +1035,14 @@ export default function ApplicantsModal({
 
   // Update pagination when applicants or page changes
   useEffect(() => {
-    const totalPages = Math.ceil(applicants.length / APPLICANTS_PER_PAGE);
-    setTotalPages(totalPages || 1);
+    const newTotalPages =
+      Math.ceil(applicants.length / APPLICANTS_PER_PAGE) || 1;
+    setTotalPages(newTotalPages);
+    // Clamp current page if it exceeds newTotalPages
+    if (currentPage > newTotalPages) {
+      setCurrentPage(newTotalPages);
+      return; // next effect run will set the slice
+    }
     setPaginatedApplicants(paginateApplicants(applicants, currentPage));
   }, [applicants, currentPage]);
 
@@ -2028,7 +2035,7 @@ export default function ApplicantsModal({
 
           {/* Applicants list with scroll */}
           <div
-            className="flex-1 overflow-y-auto rounded-b-lg"
+            className="flex-1 overflow-y-auto rounded-b-lg custom-scrollbar"
             style={{
               scrollbarWidth: "thin",
               scrollbarColor: "#0097B2 #f3f4f6",
@@ -2595,7 +2602,7 @@ export default function ApplicantsModal({
 
             {/* Tabla de postulantes */}
             <div
-              className="flex-1 overflow-y-auto p-6"
+              className="flex-1 overflow-y-auto px-6 pb-6 pt-0 custom-scrollbar"
               style={{
                 scrollbarWidth: "thin",
                 scrollbarColor: "#0097B2 #f3f4f6",
@@ -2607,7 +2614,8 @@ export default function ApplicantsModal({
                 <>
                   {isCompanyUser ? (
                     <CompanyApplicantsTable
-                      applicants={applicants}
+                      applicants={paginatedApplicants}
+                      totalCount={applicants.length}
                       setSelectedCandidateId={setSelectedCandidateId}
                       setIsCandidateProfileModalOpen={
                         setIsCandidateProfileModalOpen
@@ -2632,7 +2640,8 @@ export default function ApplicantsModal({
                     />
                   ) : (
                     <AdminApplicantsTable
-                      applicants={applicants}
+                      applicants={paginatedApplicants}
+                      totalCount={applicants.length}
                       selectedCandidates={selectedCandidates}
                       handleSelectAll={handleSelectAll}
                       handleCandidateSelection={handleCandidateSelection}
@@ -2665,8 +2674,8 @@ export default function ApplicantsModal({
               )}
             </div>
 
-            {/* Pagination - only show if there are applicants */}
-            {applicants.length > 0 && (
+            {/* Pagination - only show if more than one page */}
+            {applicants.length > 0 && totalPages > 1 && (
               <div className="border-t border-gray-200 p-4 flex justify-center">
                 <div className="inline-flex border border-gray-300 rounded-md">
                   <button
