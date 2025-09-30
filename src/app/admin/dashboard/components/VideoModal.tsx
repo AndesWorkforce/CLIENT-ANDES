@@ -32,10 +32,17 @@ export default function VideoModal({
           </h3>
         </div>
 
-        <div className="p-4 aspect-video">
-          <video src={videoUrl} controls className="w-full h-full rounded-lg">
-            Your browser does not support the video playback.
-          </video>
+        <div className="p-4">
+          <div className="w-full max-h-[75vh] bg-black rounded-lg overflow-hidden flex items-center justify-center">
+            <video
+              src={videoUrl}
+              controls
+              playsInline
+              className="max-h-[75vh] max-w-full w-auto h-auto object-contain rounded-lg"
+            >
+              Your browser does not support the video playback.
+            </video>
+          </div>
         </div>
       </div>
     </div>
