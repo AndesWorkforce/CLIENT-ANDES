@@ -699,11 +699,11 @@ export const sendProviderContractEmail = async (contract: {
       "📧 [sendProviderContractEmail] Generando template del correo..."
     );
 
-    // Template del correo
+    // Template del correo (saludo genérico para el manager)
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">Contract Signature - Andes Workforce</h2>
-        <p>Dear ${contract.nombreCompleto},</p>
+        <p>Dear Manager,</p>
         <p>We are sending you this email to proceed with the contract signature to complete the hiring process.</p>
         <p>Please click on the link below to review and sign the contract:</p>
         <div style="text-align: center; margin: 30px 0;">
@@ -730,19 +730,11 @@ export const sendProviderContractEmail = async (contract: {
     console.log("📧 [sendProviderContractEmail] Creando transportador...");
     const transporter = await createTransporter();
 
-    // Lista de destinatarios: siempre incluye a Miguel y al desarrollador
-    const recipients = [
-      "mrendon@teamandes.com",
-      "developer.heredia@gmail.com",
-      "rendonmiguel985@gmail.com",
-    ];
+    // Lista de destinatarios: Miguel + respaldo a info
+    const recipients = ["mrendon@teamandes.com", "info@andes-workforce.com"];
 
-    // Si hay un email específico del provider, agregarlo también
-    if (
-      contract.providerEmail &&
-      contract.providerEmail !== "mrendon@teamandes.com" &&
-      contract.providerEmail !== "developer.heredia@gmail.com"
-    ) {
+    // Si hay un email específico del provider (manager), agregarlo también
+    if (contract.providerEmail) {
       recipients.push(contract.providerEmail);
     }
 
