@@ -747,7 +747,7 @@ export const sendProviderContractEmail = async (contract: {
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: recipients,
-      subject: "Contract Signature - Andes Workforce",
+      subject: `Contract Signature - ${contract.nombreCompleto.toUpperCase()}`,
       html: emailHtml,
     });
 
