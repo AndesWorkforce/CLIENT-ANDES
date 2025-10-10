@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { getCompaniesAdmin } from "../../superAdmin/actions/company.actions";
 import { assignOfferToCompanies } from "../offers/actions/offers.actions";
 import { useNotificationStore } from "@/store/notifications.store";
@@ -35,22 +35,51 @@ export default function AssignOfferModal({
   offerTitle,
 }: AssignOfferModalProps) {
   const [clients, setClients] = useState<Client[]>([]);
-  const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const { addNotification } = useNotificationStore();
+  const observer = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const response = await getCompaniesAdmin(1, 10, "", true);
-        if (response.success) {
-          const activeClients =
-            response.data?.companies.filter(
-              (client: Client) => client.activo
-            ) || [];
+  const lastClientElementRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (loadingMore) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setCurrentPage((prevPage) => prevPage + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loadingMore, hasMore]
+  );
 
+  const fetchClients = async (reset = true) => {
+    if (reset) {
+      setIsLoading(true);
+      setCurrentPage(1);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      const response = await getCompaniesAdmin(
+        reset ? 1 : currentPage,
+        10,
+        searchTerm,
+        true
+      );
+
+      if (response.success) {
+        const activeClients =
+          response.data?.companies.filter((client: Client) => client.activo) ||
+          [];
+
+        if (reset) {
           // Preseleccionar clientes que ya tienen la oferta asignada
           const preselectedClients = activeClients
             .filter((client) =>
@@ -61,34 +90,51 @@ export default function AssignOfferModal({
             .map((client) => client.id);
 
           setClients(activeClients);
-          setFilteredClients(activeClients);
           setSelectedClients(preselectedClients);
+        } else {
+          setClients((prevClients) => [...prevClients, ...activeClients]);
         }
-      } catch (error) {
-        console.error("Error fetching clients:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
+        setHasMore(activeClients.length === 10); // Si vienen menos de 10, no hay más
+      }
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    } finally {
+      if (reset) {
+        setIsLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
+    }
+  };
+
+  useEffect(() => {
     if (isOpen) {
       fetchClients();
     } else {
       setSearchTerm("");
       setSelectedClients([]);
+      setClients([]);
+      setCurrentPage(1);
+      setHasMore(true);
     }
   }, [isOpen, offerId]);
 
   useEffect(() => {
-    const filtered = clients.filter(
-      (client) =>
-        client.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.usuarioResponsable.correo
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-    );
-    setFilteredClients(filtered);
-  }, [searchTerm, clients]);
+    const delayDebounceFn = setTimeout(() => {
+      if (searchTerm) {
+        fetchClients(true);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (currentPage > 1) {
+      fetchClients(false);
+    }
+  }, [currentPage]);
 
   const handleClientSelection = (clientId: string) => {
     setSelectedClients((prev) =>
@@ -155,10 +201,13 @@ export default function AssignOfferModal({
             </div>
           ) : (
             <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-              {filteredClients.length > 0 ? (
-                filteredClients.map((client) => (
+              {clients.length > 0 ? (
+                clients.map((client, index) => (
                   <div
                     key={client.id}
+                    ref={
+                      index === clients.length - 1 ? lastClientElementRef : null
+                    }
                     onClick={() => handleClientSelection(client.id)}
                     style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
                     className={`transform transition-all duration-200 cursor-pointer rounded-lg ${
@@ -215,6 +264,11 @@ export default function AssignOfferModal({
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   No clients found matching your search
+                </div>
+              )}
+              {loadingMore && (
+                <div className="py-2 flex justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#0097B2]"></div>
                 </div>
               )}
             </div>
