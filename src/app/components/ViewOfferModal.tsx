@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { X, Calendar } from "lucide-react";
+import { X, Calendar, FileText } from "lucide-react";
 import { Offer } from "@/app/types/offers";
 import { useAuthStore } from "@/store/auth.store";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,8 @@ interface ViewOfferModalProps {
   isOpen: boolean;
   onClose: () => void;
   offer?: Offer;
+  // When provided, shows an admin-only history button in the header
+  onOpenHistory?: () => void;
 }
 
 const descriptionStyles = `
@@ -95,6 +97,7 @@ export default function ViewOfferModal({
   isOpen,
   onClose,
   offer,
+  onOpenHistory,
 }: ViewOfferModalProps) {
   const { user } = useAuthStore();
   const router = useRouter();
@@ -258,6 +261,16 @@ export default function ViewOfferModal({
             {offer.titulo}
           </h2>
           <div className="flex items-center gap-2">
+            {onOpenHistory && (
+              <button
+                title="Applicants history"
+                onClick={onOpenHistory}
+                className="text-[#0097B2] hover:bg-[#E6F7FA] border border-gray-200 rounded-md p-1 cursor-pointer"
+                aria-label="Open applicants history"
+              >
+                <FileText size={18} />
+              </button>
+            )}
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 ml-2"

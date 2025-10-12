@@ -14,6 +14,12 @@ interface FormularioModalProps {
   candidateId?: string;
 }
 
+// Claves canónicas para preguntas con variantes
+const Q_UNIQUE_QUALITIES =
+  "What unique qualities make your services stand out?";
+const Q_ENGLISH_CALLS =
+  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers? Please explain your answer.";
+
 export default function FormularioModal({
   isOpen,
   onClose,
@@ -43,9 +49,9 @@ export default function FormularioModal({
       "Have you been referred by someone?",
       "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
       "What 3 words best describe you and why?",
-      "What unique qualities make your services stand out?",
+      Q_UNIQUE_QUALITIES,
       "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
-      "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
+      Q_ENGLISH_CALLS,
       "What type of computer do you use?",
       "How much RAM is available on your computer?",
       "How many monitors do you currently have/use for work?",
@@ -101,15 +107,21 @@ export default function FormularioModal({
       const formDataCleaned = { ...formData };
 
       // Mapear los nombres antiguos de campos a los nuevos si es necesario
+      // 1) Algunas cuentas antiguas tenían esta pregunta mal mapeada al texto de "headset want"
+      const legacyQualitiesKey =
+        "What type of headset do you currently want? How does it connect with your computer?";
+      if (datosFormulario[legacyQualitiesKey]) {
+        formDataCleaned[Q_UNIQUE_QUALITIES] =
+          datosFormulario[legacyQualitiesKey];
+      }
+      // 2) Variantes con doble espacio antes de "Please" u otras pequeñas diferencias
+      const englishScaleVariant =
+        "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer."; // doble espacio
       if (
-        datosFormulario[
-          "What type of headset do you currently want? How does it connect with your computer?"
-        ]
+        datosFormulario[englishScaleVariant] &&
+        !datosFormulario[Q_ENGLISH_CALLS]
       ) {
-        formDataCleaned["What unique qualities make your services stand out?"] =
-          datosFormulario[
-            "What type of headset do you currently want? How does it connect with your computer?"
-          ];
+        formDataCleaned[Q_ENGLISH_CALLS] = datosFormulario[englishScaleVariant];
       }
 
       // Combinar con el resto de datos existentes
@@ -438,7 +450,7 @@ export default function FormularioModal({
           {/* Cualidades únicas */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              What unique qualities make your services stand out?
+              {Q_UNIQUE_QUALITIES}
               <span className="text-red-500">*</span>
               <br />
               <span className="text-gray-400">
@@ -451,16 +463,9 @@ export default function FormularioModal({
               rows={2}
               required
               disabled={readOnly}
-              value={
-                formData[
-                  "What unique qualities make your services stand out?"
-                ] || ""
-              }
+              value={formData[Q_UNIQUE_QUALITIES] || ""}
               onChange={(e) =>
-                handleInputChange(
-                  "What unique qualities make your services stand out?",
-                  e.target.value
-                )
+                handleInputChange(Q_UNIQUE_QUALITIES, e.target.value)
               }
             ></textarea>
           </div>
@@ -495,9 +500,7 @@ export default function FormularioModal({
           {/* Nivel de inglés */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              On a scale of 1-10, how comfortable are you with making and/or
-              taking calls with native English speakers? Please explain your
-              answer.
+              {Q_ENGLISH_CALLS}
               <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -505,16 +508,9 @@ export default function FormularioModal({
               rows={3}
               required
               disabled={readOnly}
-              value={
-                formData[
-                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer."
-                ] || ""
-              }
+              value={formData[Q_ENGLISH_CALLS] || ""}
               onChange={(e) =>
-                handleInputChange(
-                  "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer.",
-                  e.target.value
-                )
+                handleInputChange(Q_ENGLISH_CALLS, e.target.value)
               }
             ></textarea>
           </div>
