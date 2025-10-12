@@ -284,9 +284,32 @@ export default function JobOffersPage() {
       setIsLoading(true);
       const response = await getOffers();
       if (response.success) {
-        setFilteredJobs(response.data.data);
-        if (response.data.data.length > 0) {
-          setSelectedJob(response.data.data[0]);
+        const offers: Offer[] = response.data.data || [];
+
+        // Priorizar activas/en proceso arriba: publicado/pausado primero
+        const statusPriority: Record<string, number> = {
+          publicado: 0,
+          publicada: 0, // por compatibilidad
+          pausado: 1,
+          pausada: 1,
+          borrador: 2,
+          cerrada: 3,
+          cerrado: 3,
+        };
+
+        const sorted = [...offers].sort((a, b) => {
+          const pa = statusPriority[(a.estado || "").toLowerCase()] ?? 99;
+          const pb = statusPriority[(b.estado || "").toLowerCase()] ?? 99;
+          if (pa !== pb) return pa - pb;
+          // Secundario: fecha publicación/creación más reciente primero
+          const fa = a.fechaPublicacion || a.fechaCreacion || "";
+          const fb = b.fechaPublicacion || b.fechaCreacion || "";
+          return (new Date(fb).getTime() || 0) - (new Date(fa).getTime() || 0);
+        });
+
+        setFilteredJobs(sorted);
+        if (sorted.length > 0) {
+          setSelectedJob(sorted[0]);
         }
       }
       setIsLoading(false);

@@ -753,9 +753,9 @@ export default function PostulantsPage() {
 
   return (
     <CandidateProfileProvider>
-      <div className="w-full max-w-7xl mx-auto mt-8 flex flex-col h-screen">
+      <div className="w-screen max-w-none mx-0 px-2 md:px-4 mt-6 flex flex-col min-h-screen">
         {/* Search and Create Button */}
-        <div className="mb-6 px-4 flex flex-col md:flex-row gap-3 md:px-0 md:justify-between md:items-center">
+        <div className="mb-6 px-4 flex flex-col md:flex-row gap-3 md:justify-between md:items-center">
           <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
             <input
               type="text"
@@ -1140,7 +1140,7 @@ export default function PostulantsPage() {
         {/* View Desktop */}
         <div className="hidden md:block">
           <div
-            className="bg-white mb-10 rounded-lg shadow-lg w-full max-w-7xl mx-auto"
+            className="bg-white mb-10 rounded-lg shadow-lg w-screen max-w-none mx-0"
             style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
           >
             {/* Header with title and close button */}
@@ -1153,7 +1153,7 @@ export default function PostulantsPage() {
             </div>
 
             {/* Container of the table with relative position for the sticky header */}
-            <div className="relative p-6">
+            <div className="relative p-4 md:p-6">
               {isLoading ? (
                 <div className="p-6">
                   <TableSkeleton />
@@ -1167,34 +1167,34 @@ export default function PostulantsPage() {
 
                   {/* Container of the table with overflow */}
                   <div
-                    className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 border-b border-gray-200"
+                    className="overflow-x-auto w-full max-w-full scrollbar-thumb-gray-400 scrollbar-track-gray-200 border-b border-gray-200 pr-3 md:pr-6"
                     style={{ WebkitOverflowScrolling: "touch" }}
                   >
-                    <table className="w-full border-collapse bg-white">
+                    <table className="w-full min-w-[1000px] md:min-w-[1100px] border-collapse bg-white">
                       <thead className="sticky top-0 bg-white z-20 shadow-sm">
                         <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[140px]">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[200px]">
                             Name
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[200px]">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[180px]">
                             Email
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[180px]">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[200px]">
                             Current Application
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[150px]">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[140px]">
                             Preliminary Interview
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[180px]">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[150px]">
                             Stage
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[120px]">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[110px]">
                             Applicant Status
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[80px]">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[70px]">
                             Logs
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[120px]">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700 min-w-[100px]">
                             Actions
                           </th>
                         </tr>
@@ -1212,7 +1212,7 @@ export default function PostulantsPage() {
                             {/* Name */}
                             <td className="py-4 px-4 text-gray-700 text-center align-middle">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">
+                                <span className="font-medium truncate max-w-[200px] inline-block">
                                   {`${applicant.nombre} ${applicant.apellido}`}
                                 </span>
                                 <button
@@ -1240,16 +1240,20 @@ export default function PostulantsPage() {
 
                             {/* Email */}
                             <td className="py-4 px-4 text-gray-700 text-center align-middle">
-                              {applicant.correo}
+                              <div className="truncate max-w-[200px] inline-block">
+                                {applicant.correo}
+                              </div>
                             </td>
 
                             {/* Current Application */}
                             <td className="py-4 px-4 text-gray-700 text-center align-middle">
-                              {applicant.lastRelevantPostulacion?.titulo
-                                ? applicant.lastRelevantPostulacion.titulo
-                                : applicant.puestoTrabajo
-                                ? applicant.puestoTrabajo
-                                : "Sin aplicación"}
+                              <div className="truncate max-w-[200px] inline-block">
+                                {applicant.lastRelevantPostulacion?.titulo
+                                  ? applicant.lastRelevantPostulacion.titulo
+                                  : applicant.puestoTrabajo
+                                  ? applicant.puestoTrabajo
+                                  : "Sin aplicación"}
+                              </div>
                             </td>
                             <td className="py-4 px-4 text-center align-middle">
                               {applicant.entrevistaPreliminar ? (

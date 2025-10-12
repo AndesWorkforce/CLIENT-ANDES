@@ -13,6 +13,7 @@ import {
   Bookmark,
   Eye,
   EyeOff,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import ApplicantsModal from "@/app/admin/dashboard/components/ApplicantsModal";
@@ -24,6 +25,7 @@ import {
 } from "./actions/offers.actions";
 import { Offer } from "@/app/types/offers";
 import ViewOfferModal from "@/app/components/ViewOfferModal";
+import ApplicantsHistoryModal from "./components/ApplicantsHistoryModal";
 import EditOfferModal from "@/app/components/EditOfferModal";
 import ConfirmPauseModal from "@/app/components/ConfirmPauseModal";
 import { useNotificationStore } from "@/store/notifications.store";
@@ -55,6 +57,12 @@ export default function AdminDashboardPage() {
   const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState<boolean>(false);
   const [offerToAssign, setOfferToAssign] = useState<Offer | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
+
+  const isAdminRole = useCallback((rol?: string) => {
+    const r = (rol || "").toUpperCase();
+    return ["ADMIN", "EMPLEADO_ADMIN", "ADMIN_RECLUTAMIENTO"].includes(r);
+  }, []);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -62,6 +70,7 @@ export default function AdminDashboardPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const clearTimerRef = useRef<NodeJS.Timeout | null>(null);
   const didMountRef = useRef<boolean>(false);
+  const scrollTickingRef = useRef<boolean>(false);
 
   // Fallback client-side sort to ensure: published first, then paused; within group, more applicants first; then newest
   const sortOffers = useCallback((a: Offer, b: Offer) => {
@@ -103,6 +112,46 @@ export default function AdminDashboardPage() {
     },
     [isLoading, loadingMore, hasMore]
   );
+
+  // Fallback for mobile: trigger loadMore when window scroll nears bottom
+  const checkShouldLoadMore = useCallback(() => {
+    if (isLoading || loadingMore || !hasMore) return;
+    if (typeof window === "undefined") return;
+    const scrollY = window.scrollY || window.pageYOffset;
+    const viewport = window.innerHeight || 0;
+    const full = document.documentElement.scrollHeight || 0;
+    const threshold = 200; // px from bottom
+    if (scrollY + viewport >= full - threshold) {
+      loadMoreOffers();
+    }
+  }, [isLoading, loadingMore, hasMore]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (scrollTickingRef.current) return;
+      scrollTickingRef.current = true;
+      requestAnimationFrame(() => {
+        scrollTickingRef.current = false;
+        checkShouldLoadMore();
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [checkShouldLoadMore]);
+
+  // Auto-fill viewport on initial load (useful in mobile when list is short)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const full = document.documentElement.scrollHeight || 0;
+    const viewport = window.innerHeight || 0;
+    if (!isLoading && !loadingMore && hasMore && full <= viewport + 100) {
+      loadMoreOffers();
+    }
+  }, [offers.length, isLoading, loadingMore, hasMore]);
 
   const handleSelectJob = (job: Offer) => {
     setSelectedJob(job);
@@ -459,11 +508,13 @@ export default function AdminDashboardPage() {
               {offers.map((offer) => (
                 <div
                   key={offer.id}
-                  className="bg-white rounded-lg shadow-sm border border-[#B6B4B4] overflow-hidden"
+                  className="bg-white rounded-lg shadow-sm border border-[#B6B4B4] overflow-hidden cursor-pointer"
                   style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+                  onClick={() => handleViewOffer(offer)}
                 >
-                  <div className="p-4">
-                    <div className="flex justify-between items-center">
+                  <div className="p-4 flex flex-col gap-2">
+                    {/* Row 1: Title + Paused badge + Bookmark */}
+                    <div className="flex items-center justify-between w-full">
                       <div className="flex items-center">
                         <h3 className="text-base font-medium text-gray-900">
                           {offer.titulo}
@@ -492,17 +543,19 @@ export default function AdminDashboardPage() {
                         </button>
                       </div>
                     </div>
-                    <hr className="my-2 border-[#E2E2E2]" />
-                    <div className="mt-2 flex justify-between items-center">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center text-xs text-gray-500">
-                          <Calendar className="flex-shrink-0 mr-1 h-4 w-4 text-[#0097B2]" />
-                          <span>{offer.fechaCreacion?.split("T")[0]}</span>
-                        </div>
+                    <div className="border-t border-[#E2E2E2] my-2" />
+                    {/* Row 2: Date + Applicants + Actions */}
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center text-xs text-gray-500">
+                        <Calendar className="flex-shrink-0 mr-1 h-4 w-4 text-[#0097B2]" />
+                        <span>{offer.fechaCreacion?.split("T")[0]}</span>
                       </div>
                       <div
                         className="flex items-center text-xs text-gray-500 gap-1 cursor-pointer"
-                        onClick={() => openApplicantsModal(offer)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openApplicantsModal(offer);
+                        }}
                       >
                         <svg
                           width="14"
@@ -534,7 +587,7 @@ export default function AdminDashboardPage() {
                         <span>{offer.postulacionesCount || 0} applicants</span>
                         <ChevronRight size={24} className="text-[#6D6D6D]" />
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-2 place-items-center shrink-0">
                         {/* Botón de eliminar */}
                         <button
                           onClick={(e) => {
@@ -558,6 +611,30 @@ export default function AdminDashboardPage() {
                             <PlayCircle size={22} className="text-green-600" />
                           ) : (
                             <PauseCircle size={22} className="text-amber-600" />
+                          )}
+                        </button>
+
+                        {/* Botón de visibilidad para cliente (ojo) */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleClientVisibility(offer);
+                          }}
+                          className="cursor-pointer"
+                          title={
+                            offer.empresasAsociadas?.some(
+                              (ea) => ea.visibleToClient
+                            )
+                              ? "Hide from clients"
+                              : "Make visible to clients"
+                          }
+                        >
+                          {offer.empresasAsociadas?.some(
+                            (ea) => ea.visibleToClient
+                          ) ? (
+                            <EyeOff size={20} className="text-orange-600" />
+                          ) : (
+                            <Eye size={20} className="text-blue-600" />
                           )}
                         </button>
 
@@ -597,7 +674,8 @@ export default function AdminDashboardPage() {
                         </svg>
                       </div>
                     </div>
-                    <div className="mt-2 text-xs text-gray-600 flex flex-wrap gap-1">
+                    {/* Row 3: Clients */}
+                    <div className="text-xs text-gray-600 flex flex-wrap gap-1">
                       {offer.empresasAsociadas &&
                         offer.empresasAsociadas.length > 0 && (
                           <>
@@ -881,8 +959,18 @@ export default function AdminDashboardPage() {
             <div className="w-2/3 border border-[#B6B4B4] rounded-[10px] overflow-hidden shadow-sm p-6">
               {selectedJob && (
                 <div>
-                  <div className="mb-6">
-                    <h2 className="text-2xl font-semibold text-[#08252A]">
+                  <div className="mb-6 relative">
+                    {isAdminRole(user?.rol) && (
+                      <button
+                        title="Applicants history"
+                        onClick={() => setIsHistoryOpen(true)}
+                        className="absolute top-0 right-0 p-2 rounded-md border border-gray-200 text-[#0097B2] hover:bg-[#E6F7FA] cursor-pointer"
+                        aria-label="Open applicants history"
+                      >
+                        <FileText className="w-5 h-5" />
+                      </button>
+                    )}
+                    <h2 className="text-2xl font-semibold text-[#08252A] pr-10">
                       {selectedJob.titulo}
                     </h2>
                     <p className="text-gray-600 mt-1">{/* Andes */}</p>
@@ -917,25 +1005,7 @@ export default function AdminDashboardPage() {
                     />
                   </div>
 
-                  <div className="mt-6">
-                    {!user?.rol.includes("ADMIN") &&
-                      !user?.rol.includes("EMPLEADO_ADMIN") && (
-                        <button
-                          className="bg-gradient-to-b from-[#0097B2] via-[#0092AC] to-[#00404C] text-white px-6 py-3 rounded-md text-[16px] font-[600] transition-all hover:shadow-lg w-full cursor-pointer"
-                          onClick={() => {
-                            if (!user) {
-                              addNotification(
-                                "You must be logged in to apply",
-                                "info"
-                              );
-                              return;
-                            }
-                          }}
-                        >
-                          Apply
-                        </button>
-                      )}
-                  </div>
+                  <div className="mt-6" />
                 </div>
               )}
             </div>
@@ -1010,6 +1080,25 @@ export default function AdminDashboardPage() {
           isOpen={isViewModalOpen}
           onClose={() => setIsViewModalOpen(false)}
           offer={offerToView}
+          onOpenHistory={
+            isAdminRole(user?.rol)
+              ? () => {
+                  // Abrir historial desde el modal de descripción, para la oferta actual
+                  setSelectedJob(offerToView);
+                  setIsHistoryOpen(true);
+                }
+              : undefined
+          }
+        />
+      )}
+
+      {/* Modal - Applicants History (admin only) */}
+      {selectedJob?.id && isHistoryOpen && (
+        <ApplicantsHistoryModal
+          isOpen={isHistoryOpen}
+          onClose={() => setIsHistoryOpen(false)}
+          offerId={selectedJob.id as string}
+          serviceTitle={selectedJob.titulo}
         />
       )}
 
