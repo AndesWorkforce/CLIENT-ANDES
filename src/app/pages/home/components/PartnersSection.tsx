@@ -53,6 +53,24 @@ export default function PartnersSection() {
       width: 110,
       height: 40,
     },
+    {
+      name: "Schomburg Insurance",
+      logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/Schomburg_Insurance.jpg",
+      width: 110,
+      height: 40,
+    },
+    {
+      name: "Veteran Esquire",
+      logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/Veteran_Esquire.jpg",
+      width: 110,
+      height: 40,
+    },
+    {
+      name: "Jelks Veteran Services",
+      logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/Jelks.jpg",
+      width: 110,
+      height: 40,
+    },
     // {
     //   name: "CaseScribe",
     //   logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/casescribe.png",

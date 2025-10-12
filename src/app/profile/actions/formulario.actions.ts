@@ -20,19 +20,27 @@ export async function guardarDatosFormulario(
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const apiUrl = `${baseUrl}users/${userId}/datos-formulario`;
+    // Endpoint correcto en el API Nest: /usuarios/:id/formulario (PATCH)
+    const apiUrl = `${baseUrl}usuarios/${userId}/formulario`;
 
     if (!datosFormulario || typeof datosFormulario !== "object") {
       throw new Error("Formato de datos inválido");
     }
 
+    // El API espera el DTO ActualizarFormularioDto; cuando solo enviamos
+    // los datos adicionales del formulario, debemos anidarlos en
+    // { datosFormulario: { datosAdicionales: { ... } } }
     const response = await fetch(apiUrl, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(datosFormulario),
+      body: JSON.stringify({
+        datosFormulario: {
+          datosAdicionales: datosFormulario,
+        },
+      }),
     });
 
     if (!response.ok) {
