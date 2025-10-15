@@ -1,4 +1,8 @@
 import React from "react";
+/**
+ * UNUSED TEMPLATE (2025-10-15)
+ * Currently referenced only by deprecated PDFPreviewSSG.
+ */
 import {
   Document,
   Page,

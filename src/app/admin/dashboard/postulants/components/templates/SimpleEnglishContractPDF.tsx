@@ -1,4 +1,8 @@
 import React from "react";
+/**
+ * UNUSED TEMPLATE (2025-10-15)
+ * Not referenced by current flows; superseded by StatementOfWorkEnglishPDF/NewStatementOfWorkEnglishPDF.
+ */
 import {
   Document,
   Page,

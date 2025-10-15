@@ -1,4 +1,8 @@
 import React from "react";
+/**
+ * UNUSED TEMPLATE (2025-10-15)
+ * Current flows use English variants. Keep for potential future Spanish contracts.
+ */
 import {
   Document,
   Page,

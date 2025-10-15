@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import DatePicker from "@/app/components/ui/date-picker/date-picker";
 import { X, FileText, Send, Eye } from "lucide-react";
-import { PDFViewer } from "@react-pdf/renderer";
 import { SERVICIOS_DISPONIBLES, CATEGORIAS_SERVICIOS } from "./templates";
 import {
   sendContractToSignWell,
@@ -15,6 +14,12 @@ import StatementOfWorkEnglishPDF from "./templates/StatementOfWorkEnglishPDF";
 import NewStatementOfWorkEnglishPDF from "./templates/NewStatementOfWorkEnglishPDF";
 import { Applicant } from "../../../../types/applicant";
 import { useNotificationStore } from "@/store/notifications.store";
+import { DocumentProps } from "@react-pdf/renderer";
+
+// Temporary feature flag to only display the primary template
+const SHOW_ONLY_PRIMARY_ENGLISH_TEMPLATE = true;
+// Temporary flag to hide Salary Information section in the form
+const SHOW_SALARY_SECTION = false;
 
 interface ContractTemplate {
   id: string;
@@ -104,10 +109,39 @@ const PDFPreview: React.FC<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   contractData: any;
 }> = ({ selectedTemplate, contractData }) => {
+  // 1) Hooks/state always declared first (to respect Hooks rules)
   const [pdfKey, setPdfKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showPDF, setShowPDF] = useState(false);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [renderErr, setRenderErr] = useState<string | null>(null);
 
+  // 2) Data requirements calculation
+  const requiredFields: string[] = selectedTemplate?.variables || [];
+  const missingFields = requiredFields.filter(
+    (field: string) =>
+      contractData[field] === undefined ||
+      contractData[field] === null ||
+      contractData[field] === ""
+  );
+
+  // 3) Template memoized (pure value)
+  const pdfDocument = useMemo<React.ReactElement<DocumentProps>>(() => {
+    try {
+      if (selectedTemplate.id === "english-contract") {
+        return <StatementOfWorkEnglishPDF data={contractData} />;
+      }
+      if (selectedTemplate.id === "new-english-contract") {
+        return <NewStatementOfWorkEnglishPDF data={contractData} />;
+      }
+      return <StatementOfWorkPDF data={contractData} />;
+    } catch (e) {
+      console.error("Error creating PDF document element:", e);
+      return <StatementOfWorkPDF data={contractData} />;
+    }
+  }, [selectedTemplate.id, contractData]);
+
+  // 4) Debounced preview refresh on data/template changes
   useEffect(() => {
     setIsLoading(true);
     setShowPDF(false);
@@ -119,15 +153,34 @@ const PDFPreview: React.FC<{
     return () => clearTimeout(timer);
   }, [selectedTemplate.id, contractData]);
 
-  // Validar que todos los campos requeridos existen y no son nulos/undefined
-  const requiredFields = selectedTemplate?.variables || [];
-  const missingFields = requiredFields.filter(
-    (field) =>
-      contractData[field] === undefined ||
-      contractData[field] === null ||
-      contractData[field] === ""
-  );
+  // 5) Generate blob URL when ready and data is valid
+  useEffect(() => {
+    let cancelled = false;
+    let revokeUrl: string | null = null;
+    setRenderErr(null);
+    setBlobUrl(null);
+    const run = async () => {
+      try {
+        if (!showPDF || isLoading || missingFields.length > 0) return;
+        const { pdf } = await import("@react-pdf/renderer");
+        await new Promise((r) => setTimeout(r, 60));
+        const blob = await pdf(pdfDocument).toBlob();
+        if (cancelled) return;
+        revokeUrl = URL.createObjectURL(blob);
+        setBlobUrl(revokeUrl);
+      } catch (e) {
+        console.error("PDF render error:", e);
+        if (!cancelled) setRenderErr("Unable to render preview");
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+      if (revokeUrl) URL.revokeObjectURL(revokeUrl);
+    };
+  }, [pdfKey, showPDF, isLoading, missingFields.length, pdfDocument]);
 
+  // 6) UI states (after hooks)
   if (isLoading || !showPDF) {
     return (
       <div className="h-full flex items-center justify-center text-gray-500">
@@ -148,7 +201,7 @@ const PDFPreview: React.FC<{
             Faltan datos para el contrato:
           </p>
           <ul className="text-xs text-red-500 mb-2">
-            {missingFields.map((field) => (
+            {missingFields.map((field: string) => (
               <li key={field}>{field}</li>
             ))}
           </ul>
@@ -160,54 +213,38 @@ const PDFPreview: React.FC<{
     );
   }
 
-  if (!showPDF) {
-    // fallback extra por seguridad
+  if (renderErr) {
     return (
       <div className="h-full flex items-center justify-center text-gray-500">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0097B2] mx-auto mb-2"></div>
-          <p className="text-sm text-gray-600">Loading PDF preview...</p>
+          <FileText size={48} className="mx-auto mb-4" />
+          <p className="text-sm text-gray-600 mb-2">{renderErr}</p>
+          <p className="text-xs text-gray-400">
+            Try editing the content or reopen the modal.
+          </p>
         </div>
       </div>
     );
   }
 
-  let pdfTemplate = undefined;
-  try {
-    if (selectedTemplate.id === "english-contract") {
-      pdfTemplate = <StatementOfWorkEnglishPDF data={contractData} />;
-    } else if (selectedTemplate.id === "new-english-contract") {
-      pdfTemplate = <NewStatementOfWorkEnglishPDF data={contractData} />;
-    } else {
-      pdfTemplate = <StatementOfWorkPDF data={contractData} />;
-    }
-  } catch (error) {
-    console.error("Error rendering PDF template:", error);
+  if (!blobUrl) {
     return (
       <div className="h-full flex items-center justify-center text-gray-500">
         <div className="text-center">
-          <FileText size={48} className="mx-auto mb-4" />
-          <p className="text-sm text-gray-600 mb-2">
-            Error al renderizar el PDF.
-          </p>
-          <p className="text-xs text-gray-400">
-            Intenta revisar los datos o selecciona otro contrato.
-          </p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0097B2] mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Rendering PDF…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <PDFViewer
+    <iframe
       key={pdfKey}
-      width="100%"
-      height="100%"
-      showToolbar={false}
-      className="border-0"
-    >
-      {pdfTemplate}
-    </PDFViewer>
+      src={blobUrl}
+      title="Contract Preview"
+      style={{ width: "100%", height: "100%", border: 0 }}
+    />
   );
 };
 
@@ -253,6 +290,11 @@ export default function SignContractModal({
         "fechaEjecucion",
       ],
     });
+
+    // Mostrar únicamente el primer template por ahora
+    if (SHOW_ONLY_PRIMARY_ENGLISH_TEMPLATE) {
+      return workingTemplates;
+    }
 
     // Agregar nuevo contrato en inglés actualizado
     workingTemplates.push({
@@ -443,6 +485,16 @@ export default function SignContractModal({
       descripcionServicios:
         contractData.descripcionServicios ||
         "Professional services to be provided",
+      // Asegurar que el párrafo editable del Service Fee nunca sea undefined
+      // Si el usuario borra todo, usar "" (string vacío) para evitar errores en el template
+      serviceFeeParagraph:
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (contractData as any).serviceFeeParagraph !== undefined &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (contractData as any).serviceFeeParagraph !== null
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            String((contractData as any).serviceFeeParagraph)
+          : "",
       ofertaSalarial: contractData.ofertaSalarial || "0",
       salarioProbatorio: contractData.salarioProbatorio || "0",
       monedaSalario: contractData.monedaSalario || "USD",
@@ -817,77 +869,39 @@ export default function SignContractModal({
                     )}
                   </div>
 
-                  {/* Salary Data */}
-                  <div className="border-b border-[#0097B2] pb-3">
-                    <h5 className="text-sm font-semibold text-gray-600 mb-2">
-                      {selectedTemplate.id === "new-english-contract"
-                        ? "Service Fee"
-                        : "Salary Information"}
-                    </h5>
-                    {selectedTemplate.id === "new-english-contract" ? (
-                      <>
-                        <div className="grid grid-cols-2 gap-2">
-                          {[
-                            "fixedFee",
-                            "fixedHours",
-                            "example1Hours",
-                            "example1Fee",
-                            "example2Hours",
-                            "example2Fee",
-                            "example3Hours",
-                            "example3Fee",
-                          ].map((field) => (
-                            <div key={field} className="mb-2">
-                              <label className="block text-xs font-medium text-gray-500 mb-1">
-                                {getFieldLabel(field)}
-                              </label>
-                              <input
-                                type="number"
-                                value={
-                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                  (contractData as any)[field] !== undefined
-                                    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                      (contractData as any)[field]
-                                    : ""
-                                }
-                                onChange={(e) =>
-                                  handleInputChange(field, e.target.value)
-                                }
-                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-                                placeholder={getFieldPlaceholder(field)}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Order: Fixed fee, Fixed hours, 1st/2nd/3rd examples
-                          (hours and fees).
-                        </p>
-                      </>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          "salarioProbatorio",
-                          "ofertaSalarial",
-                          "monedaSalario",
-                        ].map(
-                          (field) =>
-                            selectedTemplate.variables.includes(field) && (
+                  {/* Salary Data (temporarily hidden) */}
+                  {SHOW_SALARY_SECTION && (
+                    <div className="border-b border-[#0097B2] pb-3">
+                      <h5 className="text-sm font-semibold text-gray-600 mb-2">
+                        {selectedTemplate.id === "new-english-contract"
+                          ? "Service Fee"
+                          : "Salary Information"}
+                      </h5>
+                      {selectedTemplate.id === "new-english-contract" ? (
+                        <>
+                          <div className="grid grid-cols-2 gap-2">
+                            {[
+                              "fixedFee",
+                              "fixedHours",
+                              "example1Hours",
+                              "example1Fee",
+                              "example2Hours",
+                              "example2Fee",
+                              "example3Hours",
+                              "example3Fee",
+                            ].map((field) => (
                               <div key={field} className="mb-2">
                                 <label className="block text-xs font-medium text-gray-500 mb-1">
                                   {getFieldLabel(field)}
                                 </label>
                                 <input
-                                  type={
-                                    field.includes("salario") ||
-                                    field.includes("Salarial")
-                                      ? "number"
-                                      : "text"
-                                  }
+                                  type="number"
                                   value={
-                                    contractData[
-                                      field as keyof typeof contractData
-                                    ] || ""
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    (contractData as any)[field] !== undefined
+                                      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        (contractData as any)[field]
+                                      : ""
                                   }
                                   onChange={(e) =>
                                     handleInputChange(field, e.target.value)
@@ -896,11 +910,51 @@ export default function SignContractModal({
                                   placeholder={getFieldPlaceholder(field)}
                                 />
                               </div>
-                            )
-                        )}
-                      </div>
-                    )}
-                  </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Order: Fixed fee, Fixed hours, 1st/2nd/3rd examples
+                            (hours and fees).
+                          </p>
+                        </>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            "salarioProbatorio",
+                            "ofertaSalarial",
+                            "monedaSalario",
+                          ].map(
+                            (field) =>
+                              selectedTemplate.variables.includes(field) && (
+                                <div key={field} className="mb-2">
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                                    {getFieldLabel(field)}
+                                  </label>
+                                  <input
+                                    type={
+                                      field.includes("salario") ||
+                                      field.includes("Salarial")
+                                        ? "number"
+                                        : "text"
+                                    }
+                                    value={
+                                      contractData[
+                                        field as keyof typeof contractData
+                                      ] || ""
+                                    }
+                                    onChange={(e) =>
+                                      handleInputChange(field, e.target.value)
+                                    }
+                                    className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                                    placeholder={getFieldPlaceholder(field)}
+                                  />
+                                </div>
+                              )
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Service Fee block removed: now included inside Salary section for new-english-contract */}
 

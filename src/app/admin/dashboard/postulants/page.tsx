@@ -753,7 +753,7 @@ export default function PostulantsPage() {
 
   return (
     <CandidateProfileProvider>
-      <div className="w-screen max-w-none mx-0 px-2 md:px-4 mt-6 flex flex-col min-h-screen">
+      <div className="container mx-auto px-2 md:px-4 mt-6 flex flex-col min-h-screen">
         {/* Search and Create Button */}
         <div className="mb-6 px-4 flex flex-col md:flex-row gap-3 md:justify-between md:items-center">
           <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
@@ -1140,7 +1140,7 @@ export default function PostulantsPage() {
         {/* View Desktop */}
         <div className="hidden md:block">
           <div
-            className="bg-white mb-10 rounded-lg shadow-lg w-screen max-w-none mx-0"
+            className="bg-white mb-10 rounded-lg shadow-lg w-full"
             style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
           >
             {/* Header with title and close button */}

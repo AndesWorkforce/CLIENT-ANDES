@@ -1,4 +1,8 @@
 import React from "react";
+/**
+ * UNUSED TEMPLATE (2025-10-15)
+ * Currently not used by the active SignContractModal flow; referenced by deprecated PDFPreviewSSG only.
+ */
 import {
   Document,
   Page,

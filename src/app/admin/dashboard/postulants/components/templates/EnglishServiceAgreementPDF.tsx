@@ -1,4 +1,9 @@
 import React from "react";
+/**
+ * UNUSED TEMPLATE (2025-10-15)
+ * Not referenced by SignContractModal or Contracts page flows.
+ * Retained temporarily for reference; consider deleting if not needed.
+ */
 import {
   Document,
   Page,

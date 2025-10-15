@@ -120,6 +120,21 @@ interface StatementOfWorkEnglishPDFProps {
 const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
   data,
 }) => {
+  // Defensive: sanitize Service Fee paragraphs to avoid runtime errors when empty/invalid
+  const getServiceFeeParagraphs = (input?: string) => {
+    if (typeof input !== "string") return null;
+    // Normalize newlines and trim
+    const normalized = input
+      .replace(/\r/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    if (!normalized) return null;
+    const parts = normalized
+      .split(/\n+/)
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+    return parts.length > 0 ? parts : null;
+  };
   // Unified date format: MM/DD/YYYY (US numeric) to keep consistency across templates.
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -263,42 +278,25 @@ const StatementOfWorkEnglishPDF: React.FC<StatementOfWorkEnglishPDFProps> = ({
 
         {/* Service Fee */}
         <Text style={styles.clauseTitle}>Service Fee</Text>
-        {data.serviceFeeParagraph ? (
-          data.serviceFeeParagraph
-            .split(/\n+/)
-            .map((p: string, idx: number) => (
+        {(() => {
+          const feeParas = getServiceFeeParagraphs(data.serviceFeeParagraph);
+          if (feeParas) {
+            return feeParas.map((p: string, idx: number) => (
               <Text style={styles.paragraph} key={idx}>
                 {p}
               </Text>
-            ))
-        ) : (
-          <>
+            ));
+          }
+          // Strong fallback: render a single safe line prompting completion instead of complex block
+          return (
             <Text style={styles.paragraph}>
-              As of the Start Date, Contractor will be paid a fee of USD{" "}
-              <Text style={styles.underline}>
-                {data.salarioProbatorio || "_______"}
-              </Text>{" "}
-              fixed per month during a 3-month probationary period. Starting the
-              first day of the month following the probationary period,
-              Contractor will be paid a fee of USD{" "}
-              <Text style={styles.underline}>
-                {data.ofertaSalarial || "________"}
-              </Text>{" "}
-              fixed per month, inclusive of all taxes (howsoever described)
-              (“Service Fee”). Payment of the Service Fee to Contractor will be
-              initiated on the last day of the month. This Service Fee will be
-              increased by 5% annually. Contractors will receive extra pay when
-              required to work during a local holiday according to their country
-              of residence regulation.
+              Please provide the Service Fee terms for this contract (e.g.,
+              probationary monthly fee, post-probation monthly fee, payment
+              date, and annual increase). If left blank, this section will
+              remain pending completion.
             </Text>
-            <Text style={styles.paragraph}>
-              Additionally, Contractor will receive a 2-week holiday bonus at
-              the end of each calendar year. The holiday bonus will be prorated
-              for Contractors who have completed less than 6 months of work at
-              the end of the calendar year.
-            </Text>
-          </>
-        )}
+          );
+        })()}
 
         <Text style={styles.paragraph}>
           Contractor will receive payment via direct deposit to the account
