@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * DEPRECATED / UNUSED (2025-10-15)
+ * This preview component is not referenced by the current UI.
+ * Contract rendering is handled inside `SignContractModal` using `PDFViewer`.
+ * Keep temporarily for history; safe to remove once verified there is no external usage.
+ */
+
 import React, { useState, useEffect, useCallback } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { FileText, AlertCircle, Loader2 } from "lucide-react";

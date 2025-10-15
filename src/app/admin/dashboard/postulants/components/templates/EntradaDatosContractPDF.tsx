@@ -1,4 +1,8 @@
 import React from "react";
+/**
+ * UNUSED TEMPLATE (2025-10-15)
+ * Only used by deprecated PDFPreviewSSG; not used in SignContractModal.
+ */
 import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
 import { createBaseStyles } from "./styles";
 

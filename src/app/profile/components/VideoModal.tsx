@@ -503,8 +503,7 @@ export default function VideoModal({
                   Thank you for taking the time to apply with us, we hope that
                   you&apos;ll become part of our growing team very soon. As part
                   of our recruitment process, we recommend that you record a 1
-                  to 2-minute video introducing yourself. We recommend using
-                  www.loom.com, but it is not required.
+                  to 2-minute video introducing yourself.
                 </p>
 
                 <p className="text-gray-700 text-sm">
