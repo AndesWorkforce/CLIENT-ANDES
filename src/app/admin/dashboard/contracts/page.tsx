@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   getContracts,
-  getEvaluacionesMensuales,
   finalizarContrato,
   uploadFinalContract,
   cancelarContrato,
@@ -13,7 +12,6 @@ import {
 import {
   ProcesoContratacion,
   EstadoContratacion,
-  EvaluacionPagoMensual,
 } from "./interfaces/contracts.interface";
 import {
   Download,
@@ -22,7 +20,6 @@ import {
   XCircle,
   Upload,
   Eye,
-  DollarSign,
   XSquare,
   PenTool,
   AlertTriangle,
@@ -178,11 +175,6 @@ export default function ContractsPage() {
     useState<ProcesoContratacion | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [isEvaluacionesModalOpen, setIsEvaluacionesModalOpen] = useState(false);
-  const [evaluacionesMensuales, setEvaluacionesMensuales] = useState<
-    EvaluacionPagoMensual[]
-  >([]);
-  const [loadingEvaluaciones, setLoadingEvaluaciones] = useState(false);
   const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancellingContract, setIsCancellingContract] = useState(false);
@@ -191,10 +183,6 @@ export default function ContractsPage() {
   );
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
-
-  console.log(
-    `${isEvaluacionesModalOpen}, ${evaluacionesMensuales}, ${loadingEvaluaciones}`
-  );
 
   const loadContracts = async () => {
     setIsLoading(true);
@@ -297,10 +285,14 @@ export default function ContractsPage() {
 
     const arr = [...filteredContracts];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     arr.sort((a: any, b: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const aVal = (a as any)[sortKey];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const bVal = (b as any)[sortKey];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const normalize = (v: any) => {
         if (v == null) return "";
         if (typeof v === "string") return v.toLowerCase();
@@ -648,26 +640,6 @@ export default function ContractsPage() {
 
   const handleViewDocument = (documentUrl: string) => {
     window.open(documentUrl, "_blank");
-  };
-
-  const handleViewEvaluaciones = async (contract: ProcesoContratacion) => {
-    setSelectedContract(contract);
-    setLoadingEvaluaciones(true);
-    setIsEvaluacionesModalOpen(true);
-
-    try {
-      const response = await getEvaluacionesMensuales(contract.id);
-      if (response.success && response.data) {
-        setEvaluacionesMensuales(response.data.data || []);
-      } else {
-        setEvaluacionesMensuales([]);
-      }
-    } catch (error) {
-      console.error("Error loading evaluaciones:", error);
-      setEvaluacionesMensuales([]);
-    } finally {
-      setLoadingEvaluaciones(false);
-    }
   };
 
   const handleFinalizarContrato = async (procesoId: string) => {

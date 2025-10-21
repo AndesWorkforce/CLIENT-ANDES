@@ -2070,7 +2070,8 @@ export default function ProfilePage() {
         datosFormulario={
           typeof profile.datosFormulario === "object" &&
           profile.datosFormulario !== null
-            ? (profile.datosFormulario as Record<string, any>)
+            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (profile.datosFormulario as Record<string, any>)
             : null
         }
       />

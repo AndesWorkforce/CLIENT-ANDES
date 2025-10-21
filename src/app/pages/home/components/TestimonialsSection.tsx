@@ -114,7 +114,7 @@ export default function TestimonialsSection() {
 
             {/* Quote */}
             <blockquote className="text-xl text-gray-700 italic leading-relaxed mb-8 min-h-[120px] flex items-center justify-center">
-              <div>"{testimonials[currentIndex].content}"</div>
+              <div>&quot;{testimonials[currentIndex].content}&quot;</div>
             </blockquote>
 
             {/* Name and Company */}

@@ -43,6 +43,7 @@ export async function createEmployee(employeeData: CreateEmployeeData) {
     const axios = await createServerAxios();
 
     // Preparar los datos para enviar
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const requestData: any = {
       fullName: `${employeeData.nombre} ${employeeData.apellido}`,
       email: employeeData.correo,
