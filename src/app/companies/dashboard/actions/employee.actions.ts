@@ -11,6 +11,7 @@ interface CreateEmployeeData {
   contrasena: string;
   telefono?: string;
   residencia?: string;
+  empresaId?: string; // Opcional, puede ser proporcionado o inferido del token
 }
 
 interface UpdateEmployeeData {
@@ -40,12 +41,28 @@ export interface Employee {
 export async function createEmployee(employeeData: CreateEmployeeData) {
   try {
     const axios = await createServerAxios();
-    const response = await axios.post(`usuarios/company/employees`, {
+
+    // Preparar los datos para enviar
+    const requestData: any = {
       fullName: `${employeeData.nombre} ${employeeData.apellido}`,
       email: employeeData.correo,
       password: employeeData.contrasena,
       position: "Empleado", // Posición por defecto
-    });
+    };
+
+    // Agregar empresaId si se proporciona (para admins) o dejarlo vacío (el backend lo inferirá del token para empresas)
+    if (employeeData.empresaId) {
+      requestData.empresaId = employeeData.empresaId;
+    } else {
+      // Para usuarios empresa, el backend tomará empresaId del token JWT
+      // Pero el DTO requiere el campo, así que enviamos string vacío
+      requestData.empresaId = "";
+    }
+
+    const response = await axios.post(
+      `usuarios/company/employees`,
+      requestData
+    );
 
     if (response.status === 201) {
       // Enviar email de bienvenida con las credenciales

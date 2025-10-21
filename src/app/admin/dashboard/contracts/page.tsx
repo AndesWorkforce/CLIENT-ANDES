@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getContracts,
   getEvaluacionesMensuales,
   finalizarContrato,
   uploadFinalContract,
   cancelarContrato,
+  marcarEnviadoAlProveedor,
+  reenviarContratoAlProveedor,
 } from "./actions/contracts.actions";
 import {
   ProcesoContratacion,
@@ -27,6 +29,7 @@ import {
 } from "lucide-react";
 import TableSkeleton from "../components/TableSkeleton";
 import CancelContractModal from "./components/CancelContractModal";
+import * as XLSX from "xlsx";
 
 import { useNotificationStore } from "@/store/notifications.store";
 import { sendProviderContractEmail } from "../actions/sendEmail.actions";
@@ -186,6 +189,8 @@ export default function ContractsPage() {
   const [isSigningContract, setIsSigningContract] = useState<string | null>(
     null
   );
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
 
   console.log(
     `${isEvaluacionesModalOpen}, ${evaluacionesMensuales}, ${loadingEvaluaciones}`
@@ -199,7 +204,6 @@ export default function ContractsPage() {
         rowsPerPage,
         searchQuery
       );
-
       if (response.success && response.data) {
         setContracts(response.data.resultados);
         setTotalPages(response.totalPages || 1);
@@ -250,6 +254,193 @@ export default function ContractsPage() {
   const filteredContracts = selectedClient
     ? contracts.filter((contract) => contract.clienteNombre === selectedClient)
     : contracts;
+
+  // Sorting state
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const getStatusText = (status: EstadoContratacion | string) => {
+    switch (status) {
+      case EstadoContratacion.PENDIENTE_DOCUMENTOS:
+        return "Pending Docs";
+      case EstadoContratacion.DOCUMENTOS_EN_LECTURA:
+        return "Reading Docs";
+      case EstadoContratacion.DOCUMENTOS_COMPLETADOS:
+        return "Docs Complete";
+      case EstadoContratacion.LECTURA_DOCS_COMPLETA:
+        return "Reading Complete";
+      case EstadoContratacion.PENDIENTE_FIRMA:
+        return "Pending Signature";
+      case EstadoContratacion.PENDIENTE_FIRMA_CANDIDATO:
+        return "Pending Candidate";
+      case EstadoContratacion.PENDIENTE_FIRMA_PROVEEDOR:
+        return "Pending Provider";
+      case EstadoContratacion.FIRMADO:
+        return "Signed";
+      case EstadoContratacion.FIRMADO_CANDIDATO:
+        return "Candidate Signed";
+      case EstadoContratacion.FIRMADO_COMPLETO:
+        return "Complete Signed";
+      case EstadoContratacion.CONTRATO_FINALIZADO:
+        return "Contract Finalized";
+      case EstadoContratacion.CANCELADO:
+        return "Cancelled";
+      case EstadoContratacion.EXPIRADO:
+        return "Expired";
+      default:
+        return String(status || "Unknown");
+    }
+  };
+
+  const sortedContracts = useMemo(() => {
+    if (!sortKey) return filteredContracts;
+
+    const arr = [...filteredContracts];
+
+    arr.sort((a: any, b: any) => {
+      const aVal = (a as any)[sortKey];
+      const bVal = (b as any)[sortKey];
+
+      const normalize = (v: any) => {
+        if (v == null) return "";
+        if (typeof v === "string") return v.toLowerCase();
+        if (v instanceof Date) return v.getTime();
+        return v;
+      };
+
+      let va = normalize(aVal);
+      let vb = normalize(bVal);
+
+      if (sortKey === "estadoContratacion") {
+        va = getStatusText(aVal).toLowerCase();
+        vb = getStatusText(bVal).toLowerCase();
+      }
+
+      if (va < vb) return sortDirection === "asc" ? -1 : 1;
+      if (va > vb) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return arr;
+  }, [filteredContracts, sortKey, sortDirection]);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDirection("asc");
+    }
+  };
+
+  // Export ALL contracts from all pages to Excel
+  const exportToExcel = async () => {
+    if (isExporting) return;
+
+    setIsExporting(true);
+    setExportProgress(0);
+
+    try {
+      addNotification(
+        "🔄 Preparing export... Loading all contracts from all pages",
+        "info"
+      );
+
+      // Primero obtener el total de contratos para calcular páginas
+      const firstPage = await getContracts(1, 50, searchQuery);
+      if (!firstPage.success) {
+        throw new Error("Failed to fetch contracts");
+      }
+
+      const totalContracts = firstPage.data.total;
+      const totalPages = Math.ceil(totalContracts / 50); // Usar 50 por página para optimizar
+
+      let allContracts: ProcesoContratacion[] = [];
+
+      // Cargar todas las páginas
+      for (let page = 1; page <= totalPages; page++) {
+        setExportProgress(Math.round((page / totalPages) * 80)); // 80% para carga
+
+        const pageData = await getContracts(page, 50, searchQuery);
+        if (pageData.success && pageData.data) {
+          allContracts = [...allContracts, ...pageData.data.resultados];
+        }
+
+        // Pequeña pausa para no sobrecargar el servidor
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      // Aplicar filtros de cliente si existe
+      const filteredAllContracts = selectedClient
+        ? allContracts.filter(
+            (contract) => contract.clienteNombre === selectedClient
+          )
+        : allContracts;
+
+      setExportProgress(90);
+      addNotification(
+        `📊 Processing ${filteredAllContracts.length} contracts for export...`,
+        "info"
+      );
+
+      // Convertir a formato Excel
+      const rows = filteredAllContracts.map((c) => ({
+        "Candidate Name": c.nombreCompleto,
+        Client: c.clienteNombre || "",
+        Position: c.puestoTrabajo || "",
+        "Contract Status": getStatusText(c.estadoContratacion),
+        "Documents Read": c.readCompleted
+          ? "Yes"
+          : `${c.documentReadPercentage || 0}%`,
+        "Signed Contract": c.signWellDownloadUrl ? "Yes" : "No",
+        "Sent to Provider": c.enviadoAlProveedor ? "Yes" : "No",
+        "Sent Date": c.fechaEnvioAlProveedor
+          ? new Date(c.fechaEnvioAlProveedor).toLocaleString()
+          : "",
+        "Start Date": c.fechaInicio
+          ? new Date(c.fechaInicio).toLocaleDateString()
+          : "",
+        "Salary Offer": c.ofertaSalarial || "",
+        Currency: c.monedaSalario || "",
+        "Start Work Date": c.fechaInicioLabores
+          ? new Date(c.fechaInicioLabores).toLocaleDateString()
+          : "",
+        "Signature Date": c.fechaFirma
+          ? new Date(c.fechaFirma).toLocaleDateString()
+          : "",
+      }));
+
+      setExportProgress(95);
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "All Contracts");
+
+      const fileName = `contracts-complete-export-${new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/[:T]/g, "-")}.xlsx`;
+
+      setExportProgress(100);
+      XLSX.writeFile(workbook, fileName);
+
+      addNotification(
+        `✅ Export completed successfully! Downloaded ${filteredAllContracts.length} contracts from ${totalPages} pages`,
+        "success"
+      );
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      addNotification(
+        `❌ Error exporting contracts to Excel: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "error"
+      );
+    } finally {
+      setIsExporting(false);
+      setExportProgress(0);
+    }
+  };
 
   const goToPreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -338,6 +529,23 @@ export default function ContractsPage() {
     const contract = filteredContracts.find((c) => c.id === contractId);
     if (!contract) return;
 
+    // Verificar si ya se envió al provider usando el campo de la base de datos
+    if (contract.enviadoAlProveedor) {
+      addNotification(
+        `Contract for ${
+          contract.nombreCompleto
+        } has already been sent to the provider${
+          contract.fechaEnvioAlProveedor
+            ? ` on ${new Date(
+                contract.fechaEnvioAlProveedor
+              ).toLocaleDateString()}`
+            : ""
+        }.`,
+        "info"
+      );
+      return;
+    }
+
     setIsSigningContract(contractId);
     try {
       // Send email to provider
@@ -352,22 +560,78 @@ export default function ContractsPage() {
       });
 
       if (emailResult.success) {
-        addNotification(
-          "Contract documents have been sent to the provider successfully.",
-          "success"
-        );
-        // Reload contracts to update status
-        await loadContracts();
+        // Marcar como enviado en la base de datos
+        try {
+          await marcarEnviadoAlProveedor(contractId);
+
+          addNotification(
+            `✅ Contract successfully sent to ${contract.nombreCompleto}'s provider! The provider will receive an email with the signing link.`,
+            "success"
+          );
+
+          // Reload contracts to update status
+          await loadContracts();
+        } catch (markError) {
+          console.error("Error marking contract as sent:", markError);
+          addNotification(
+            `✅ Email sent successfully but failed to update database. Contract for ${contract.nombreCompleto} was sent to provider.`,
+            "warning"
+          );
+        }
       } else {
         addNotification(
-          `Failed to send documents: ${emailResult.message}`,
+          `❌ Failed to send contract to provider: ${emailResult.message}`,
           "error"
         );
       }
     } catch (error) {
       console.error("Error in handleSignContract:", error);
       addNotification(
-        "There was an error sending the documents to the provider.",
+        `❌ There was an error sending the contract to ${contract.nombreCompleto}'s provider. Please try again.`,
+        "error"
+      );
+    } finally {
+      setIsSigningContract(null);
+    }
+  };
+
+  const handleResendContract = async (contractId: string) => {
+    const contract = filteredContracts.find((c) => c.id === contractId);
+    if (!contract) return;
+
+    const motivo = prompt(
+      `¿Cuál es el motivo del reenvío para ${contract.nombreCompleto}?`,
+      "El proveedor reportó no haber recibido el email original"
+    );
+
+    if (!motivo) return; // Usuario canceló
+
+    setIsSigningContract(contractId);
+    try {
+      // Reenviar contrato al proveedor
+      const resendResult = await reenviarContratoAlProveedor(
+        contractId,
+        motivo
+      );
+
+      if (resendResult.success) {
+        addNotification(
+          `🔄 Contract successfully resent to ${contract.nombreCompleto}'s provider! ${resendResult.message}`,
+          "success"
+        );
+
+        // Reload contracts to update status
+        await loadContracts();
+      } else {
+        addNotification(
+          `❌ Failed to resend contract: ${resendResult.message}`,
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error in handleResendContract:", error);
+      addNotification(
+        `❌ There was an error resending the contract to ${contract.nombreCompleto}'s provider. Please try again.`,
         "error"
       );
     } finally {
@@ -825,10 +1089,37 @@ export default function ContractsPage() {
               </div>
             ) : contracts.length > 0 ? (
               <>
-                <div className="mb-4 text-gray-500 text-sm">
-                  Total: {filteredContracts.length} contracts
-                  {selectedClient ? ` (${contracts.length} total)` : ""} | Page{" "}
-                  {currentPage} of {totalPages}
+                <div className="mb-4 text-gray-500 text-sm flex items-center justify-between">
+                  <div>
+                    Total: {filteredContracts.length} contracts
+                    {selectedClient ? ` (${contracts.length} total)` : ""} |
+                    Page {currentPage} of {totalPages}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={exportToExcel}
+                      disabled={isExporting}
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
+                        isExporting
+                          ? "bg-blue-100 text-blue-700 cursor-not-allowed"
+                          : "bg-[#0097B2] text-white hover:bg-[#007B8F]"
+                      }`}
+                      title={
+                        isExporting
+                          ? `Exporting... ${exportProgress}%`
+                          : "Export ALL contracts to Excel (from all pages)"
+                      }
+                    >
+                      {isExporting ? (
+                        <>
+                          <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full mr-2"></div>
+                          Exporting {exportProgress}%
+                        </>
+                      ) : (
+                        <>📊 Export All to Excel</>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 <div
@@ -841,17 +1132,81 @@ export default function ContractsPage() {
                   <table className="w-full border-collapse">
                     <thead className="sticky top-0 bg-white z-20 shadow-sm">
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                          Candidate Name
+                        <th
+                          className="text-left py-3 px-4 font-medium text-gray-700 w-1/8 cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                          onClick={() => handleSort("nombreCompleto")}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Candidate Name</span>
+                            <div className="flex flex-col text-xs text-gray-400">
+                              {sortKey === "nombreCompleto" &&
+                              sortDirection === "asc" ? (
+                                <span className="text-blue-600">▲</span>
+                              ) : sortKey === "nombreCompleto" &&
+                                sortDirection === "desc" ? (
+                                <span className="text-blue-600">▼</span>
+                              ) : (
+                                <span className="opacity-50">⇅</span>
+                              )}
+                            </div>
+                          </div>
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                          Client
+                        <th
+                          className="text-left py-3 px-4 font-medium text-gray-700 w-1/8 cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                          onClick={() => handleSort("clienteNombre")}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Client</span>
+                            <div className="flex flex-col text-xs text-gray-400">
+                              {sortKey === "clienteNombre" &&
+                              sortDirection === "asc" ? (
+                                <span className="text-blue-600">▲</span>
+                              ) : sortKey === "clienteNombre" &&
+                                sortDirection === "desc" ? (
+                                <span className="text-blue-600">▼</span>
+                              ) : (
+                                <span className="opacity-50">⇅</span>
+                              )}
+                            </div>
+                          </div>
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                          Position
+                        <th
+                          className="text-left py-3 px-4 font-medium text-gray-700 w-1/8 cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                          onClick={() => handleSort("puestoTrabajo")}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Position</span>
+                            <div className="flex flex-col text-xs text-gray-400">
+                              {sortKey === "puestoTrabajo" &&
+                              sortDirection === "asc" ? (
+                                <span className="text-blue-600">▲</span>
+                              ) : sortKey === "puestoTrabajo" &&
+                                sortDirection === "desc" ? (
+                                <span className="text-blue-600">▼</span>
+                              ) : (
+                                <span className="opacity-50">⇅</span>
+                              )}
+                            </div>
+                          </div>
                         </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                          Contract Status
+                        <th
+                          className="text-left py-3 px-4 font-medium text-gray-700 w-1/8 cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                          onClick={() => handleSort("estadoContratacion")}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Contract Status</span>
+                            <div className="flex flex-col text-xs text-gray-400">
+                              {sortKey === "estadoContratacion" &&
+                              sortDirection === "asc" ? (
+                                <span className="text-blue-600">▲</span>
+                              ) : sortKey === "estadoContratacion" &&
+                                sortDirection === "desc" ? (
+                                <span className="text-blue-600">▼</span>
+                              ) : (
+                                <span className="opacity-50">⇅</span>
+                              )}
+                            </div>
+                          </div>
                         </th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Documents Read
@@ -862,13 +1217,16 @@ export default function ContractsPage() {
                         <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Upload Contract
                         </th>
+                        {/* <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
+                          Evaluations
+                        </th> */}
                         <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Actions
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredContracts.map((contract) => (
+                      {sortedContracts.map((contract) => (
                         <tr
                           key={contract.id}
                           className="border-b border-gray-200 hover:bg-gray-50"
@@ -962,34 +1320,100 @@ export default function ContractsPage() {
                               </span>
                             )}
                           </td>
+                          {/* Evaluations Column - Comentado hasta enero */}
+                          {/* <td className="py-4 px-4">
+                            <button
+                              onClick={() => handleViewEvaluaciones(contract)}
+                              className="px-3 py-1 bg-green-600 text-white text-xs rounded-md hover:bg-green-700 transition-colors flex items-center"
+                              title="View monthly evaluations"
+                            >
+                              <DollarSign size={14} className="mr-1" />
+                              {contract.evaluacionesPago?.length || 0} Evaluations
+                            </button>
+                          </td> */}
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex items-center space-x-2">
                               {contract.estadoContratacion ===
                                 EstadoContratacion.DOCUMENTOS_COMPLETADOS && (
-                                <button
-                                  onClick={() =>
-                                    handleSignContract(contract.id)
-                                  }
-                                  disabled={isSigningContract === contract.id}
-                                  className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${
-                                    isSigningContract === contract.id
-                                      ? "bg-gray-400 text-white cursor-not-allowed"
-                                      : "bg-[#0097B2] text-white hover:bg-[#007A8C] hover:shadow-md active:scale-95"
-                                  }`}
-                                  title="Send contract to provider for signature"
-                                >
-                                  {isSigningContract === contract.id ? (
-                                    <>
-                                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                                      Sending...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <PenTool size={16} className="mr-2" />
-                                      Send to Provider
-                                    </>
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      handleSignContract(contract.id)
+                                    }
+                                    disabled={
+                                      isSigningContract === contract.id ||
+                                      contract.enviadoAlProveedor
+                                    }
+                                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all duration-200 flex items-center ${
+                                      contract.enviadoAlProveedor
+                                        ? "bg-green-500 text-white cursor-default"
+                                        : isSigningContract === contract.id
+                                        ? "bg-gray-400 text-white cursor-not-allowed"
+                                        : "bg-[#0097B2] text-white hover:bg-[#007A8C] hover:shadow-md active:scale-95"
+                                    }`}
+                                    title={
+                                      contract.enviadoAlProveedor
+                                        ? `Contract already sent to provider${
+                                            contract.fechaEnvioAlProveedor
+                                              ? ` on ${new Date(
+                                                  contract.fechaEnvioAlProveedor
+                                                ).toLocaleDateString()}`
+                                              : ""
+                                          }`
+                                        : "Send contract to provider for signature"
+                                    }
+                                  >
+                                    {contract.enviadoAlProveedor ? (
+                                      <>
+                                        <CheckCircle
+                                          size={12}
+                                          className="mr-1"
+                                        />
+                                        Sent to Provider
+                                      </>
+                                    ) : isSigningContract === contract.id ? (
+                                      <>
+                                        <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full mr-1"></div>
+                                        Sending...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <PenTool size={12} className="mr-1" />
+                                        Send to Provider
+                                      </>
+                                    )}
+                                  </button>
+
+                                  {/* Botón de Reenviar - solo si ya se envió */}
+                                  {contract.enviadoAlProveedor && (
+                                    <button
+                                      onClick={() =>
+                                        handleResendContract(contract.id)
+                                      }
+                                      disabled={
+                                        isSigningContract === contract.id
+                                      }
+                                      className={`px-2 py-1 rounded-md text-xs font-medium transition-all duration-200 flex items-center ${
+                                        isSigningContract === contract.id
+                                          ? "bg-gray-400 text-white cursor-not-allowed"
+                                          : "bg-orange-500 text-white hover:bg-orange-600 hover:shadow-md active:scale-95"
+                                      }`}
+                                      title="Resend contract to provider (if they didn't receive it)"
+                                    >
+                                      {isSigningContract === contract.id ? (
+                                        <>
+                                          <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full mr-1"></div>
+                                          Resending...
+                                        </>
+                                      ) : (
+                                        <>
+                                          🔄
+                                          <span className="ml-1">Resend</span>
+                                        </>
+                                      )}
+                                    </button>
                                   )}
-                                </button>
+                                </>
                               )}
 
                               {/* Cancel Contract Button - for contracts that can be cancelled */}
@@ -1006,10 +1430,10 @@ export default function ContractsPage() {
                                     onClick={() =>
                                       handleCancelContract(contract.id)
                                     }
-                                    className="px-3 py-2 bg-orange-600 text-white rounded-md text-sm font-medium hover:bg-orange-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
+                                    className="px-2 py-1 bg-orange-600 text-white rounded-md text-xs font-medium hover:bg-orange-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
                                     title="Cancel Contract (for corrections)"
                                   >
-                                    <XCircle size={16} className="mr-2" />
+                                    <XCircle size={12} className="mr-1" />
                                     Cancel
                                   </button>
                                 )}
@@ -1021,10 +1445,10 @@ export default function ContractsPage() {
                                     onClick={() =>
                                       handleFinalizarContrato(contract.id)
                                     }
-                                    className="px-3 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
+                                    className="px-2 py-1 bg-red-600 text-white rounded-md text-xs font-medium hover:bg-red-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
                                     title="Terminate Contract"
                                   >
-                                    <XSquare size={16} className="mr-2" />
+                                    <XSquare size={12} className="mr-1" />
                                     Terminate
                                   </button>
                                 )}
@@ -1151,14 +1575,41 @@ export default function ContractsPage() {
             </div>
           ) : contracts.length > 0 ? (
             <>
-              <div className="mb-4 text-gray-500 text-sm">
-                Total: {filteredContracts.length} contracts
-                {selectedClient ? ` (${contracts.length} total)` : ""} | Page{" "}
-                {currentPage} of {totalPages}
+              <div className="mb-4 text-gray-500 text-sm flex items-center justify-between">
+                <div>
+                  Total: {filteredContracts.length} contracts
+                  {selectedClient ? ` (${contracts.length} total)` : ""} | Page{" "}
+                  {currentPage} of {totalPages}
+                </div>
+                <div>
+                  <button
+                    onClick={exportToExcel}
+                    disabled={isExporting}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
+                      isExporting
+                        ? "bg-blue-100 text-blue-700 cursor-not-allowed"
+                        : "bg-[#0097B2] text-white hover:bg-[#007B8F]"
+                    }`}
+                    title={
+                      isExporting
+                        ? `Exporting... ${exportProgress}%`
+                        : "Export ALL contracts"
+                    }
+                  >
+                    {isExporting ? (
+                      <>
+                        <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full mr-2"></div>
+                        {exportProgress}%
+                      </>
+                    ) : (
+                      <>📊 Export All</>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-4">
-                {filteredContracts.map((contract) => (
+                {sortedContracts.map((contract) => (
                   <div
                     key={contract.id}
                     className="bg-white rounded-lg shadow-md p-4 space-y-3"
@@ -1253,7 +1704,8 @@ export default function ContractsPage() {
                         )}
                       </div>
 
-                      <span className="text-gray-600 font-bold">
+                      {/* Evaluations - Comentado hasta enero */}
+                      {/* <span className="text-gray-600 font-bold">
                         Evaluations:
                       </span>
                       <button
@@ -1263,34 +1715,84 @@ export default function ContractsPage() {
                       >
                         <DollarSign size={14} className="mr-1" />
                         {contract.evaluacionesPago?.length || 0} Evaluations
-                      </button>
+                      </button> */}
 
                       <span className="text-gray-600 font-bold">Actions:</span>
                       <div className="mt-4 flex flex-wrap gap-2">
                         {contract.estadoContratacion ===
                           EstadoContratacion.DOCUMENTOS_COMPLETADOS && (
-                          <button
-                            onClick={() => handleSignContract(contract.id)}
-                            disabled={isSigningContract === contract.id}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${
-                              isSigningContract === contract.id
-                                ? "bg-gray-400 text-white cursor-not-allowed"
-                                : "bg-[#0097B2] text-white hover:bg-[#007A8C] hover:shadow-md active:scale-95"
-                            }`}
-                            title="Send contract to provider for signature"
-                          >
-                            {isSigningContract === contract.id ? (
-                              <>
-                                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                                Sending...
-                              </>
-                            ) : (
-                              <>
-                                <PenTool size={16} className="mr-2" />
-                                Send to Provider
-                              </>
+                          <>
+                            <button
+                              onClick={() => handleSignContract(contract.id)}
+                              disabled={
+                                isSigningContract === contract.id ||
+                                contract.enviadoAlProveedor
+                              }
+                              className={`px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 flex items-center ${
+                                contract.enviadoAlProveedor
+                                  ? "bg-green-500 text-white cursor-default"
+                                  : isSigningContract === contract.id
+                                  ? "bg-gray-400 text-white cursor-not-allowed"
+                                  : "bg-[#0097B2] text-white hover:bg-[#007A8C] hover:shadow-md active:scale-95"
+                              }`}
+                              title={
+                                contract.enviadoAlProveedor
+                                  ? `Contract already sent to provider${
+                                      contract.fechaEnvioAlProveedor
+                                        ? ` on ${new Date(
+                                            contract.fechaEnvioAlProveedor
+                                          ).toLocaleDateString()}`
+                                        : ""
+                                    }`
+                                  : "Send contract to provider for signature"
+                              }
+                            >
+                              {contract.enviadoAlProveedor ? (
+                                <>
+                                  <CheckCircle size={14} className="mr-1" />
+                                  Sent to Provider
+                                </>
+                              ) : isSigningContract === contract.id ? (
+                                <>
+                                  <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full mr-1"></div>
+                                  Sending...
+                                </>
+                              ) : (
+                                <>
+                                  <PenTool size={14} className="mr-1" />
+                                  Send to Provider
+                                </>
+                              )}
+                            </button>
+
+                            {/* Botón de Reenviar - móvil */}
+                            {contract.enviadoAlProveedor && (
+                              <button
+                                onClick={() =>
+                                  handleResendContract(contract.id)
+                                }
+                                disabled={isSigningContract === contract.id}
+                                className={`px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 flex items-center ${
+                                  isSigningContract === contract.id
+                                    ? "bg-gray-400 text-white cursor-not-allowed"
+                                    : "bg-orange-500 text-white hover:bg-orange-600 hover:shadow-md active:scale-95"
+                                }`}
+                                title="Resend contract to provider"
+                              >
+                                {isSigningContract === contract.id ? (
+                                  <>
+                                    <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full mr-1"></div>
+                                    Resending...
+                                  </>
+                                ) : (
+                                  <>
+                                    🔄
+                                    <span className="ml-1">Resend</span>
+                                  </>
+                                )}
+                              </button>
                             )}
-                          </button>
+                          </>
                         )}
 
                         {/* Cancel Contract Button - mobile view */}
@@ -1305,10 +1807,10 @@ export default function ContractsPage() {
                           contract.activo && (
                             <button
                               onClick={() => handleCancelContract(contract.id)}
-                              className="px-4 py-2 bg-orange-600 text-white rounded-md text-sm font-medium hover:bg-orange-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
+                              className="px-3 py-1 bg-orange-600 text-white rounded-md text-xs font-medium hover:bg-orange-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
                               title="Cancel Contract (for corrections)"
                             >
-                              <XCircle size={16} className="mr-2" />
+                              <XCircle size={14} className="mr-1" />
                               Cancel
                             </button>
                           )}
@@ -1320,9 +1822,9 @@ export default function ContractsPage() {
                               onClick={() =>
                                 handleFinalizarContrato(contract.id)
                               }
-                              className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
+                              className="px-3 py-1 bg-red-600 text-white rounded-md text-xs font-medium hover:bg-red-700 transition-all duration-200 flex items-center hover:shadow-md active:scale-95"
                             >
-                              <XSquare size={16} className="mr-2" />
+                              <XSquare size={14} className="mr-1" />
                               Terminate
                             </button>
                           )}

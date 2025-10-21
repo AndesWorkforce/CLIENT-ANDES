@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import * as XLSX from "xlsx";
 import {
   Search,
   FileCheck,
@@ -65,6 +66,13 @@ export default function PaymentsPage() {
     new Set()
   );
 
+  // Estados para sorting
+  const [sortKey, setSortKey] = useState<keyof UserContract | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  // Estados para exportación
+  const [isExporting, setIsExporting] = useState(false);
+
   console.log(!!actionLogs);
 
   // Modal states
@@ -84,6 +92,106 @@ export default function PaymentsPage() {
 
   // Estado para resetear a pending
   const [resettingUser, setResettingUser] = useState<string | null>(null);
+
+  // Función para manejar el sorting
+  const handleSort = (key: keyof UserContract) => {
+    if (sortKey === key) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDirection("asc");
+    }
+  };
+
+  // Función para exportar a Excel
+  const exportToExcel = async () => {
+    setIsExporting(true);
+    try {
+      // Usar todos los usuarios (no solo los filtrados)
+      const dataToExport = users.map((user) => ({
+        "Full Name": `${user.firstName} ${user.lastName}`,
+        Email: user.email,
+        "Document This Month": user.documentUploadedThisMonth ? "Yes" : "No",
+        "Last Document Date": user.lastDocumentDate || "N/A",
+        "Payment Enabled": user.paymentEnabled ? "Yes" : "No",
+        "Payment Enabled Date": user.paymentEnabledDate || "N/A",
+        Observations: user.observacionesRevision || "None",
+        "Document Reviewed": user.documentoRevisado ? "Yes" : "No",
+        "Previous Month Approved": user.mesAnteriorAprobado ? "Yes" : "No",
+        "Has Evaluation ID": user.evaluacionMensualId ? "Yes" : "No",
+        "Has Previous Month Evaluation": user.evaluacionMesAnteriorId
+          ? "Yes"
+          : "No",
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Payments");
+
+      // Ajustar ancho de columnas
+      const columnWidths = [
+        { wch: 25 }, // Full Name
+        { wch: 30 }, // Email
+        { wch: 20 }, // Document This Month
+        { wch: 18 }, // Last Document Date
+        { wch: 15 }, // Payment Enabled
+        { wch: 18 }, // Payment Enabled Date
+        { wch: 40 }, // Observations
+        { wch: 18 }, // Document Reviewed
+        { wch: 22 }, // Previous Month Approved
+        { wch: 18 }, // Has Evaluation ID
+        { wch: 25 }, // Has Previous Month Evaluation
+      ];
+      worksheet["!cols"] = columnWidths;
+
+      const fileName = `monthly-payments-${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      addNotification(
+        `Excel file exported successfully: ${fileName}`,
+        "success"
+      );
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      addNotification("Error exporting to Excel", "error");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Función para usuarios ordenados
+  const sortedUsers = useMemo(() => {
+    if (!sortKey) return filteredUsers;
+
+    return [...filteredUsers].sort((a, b) => {
+      const aValue = a[sortKey];
+      const bValue = b[sortKey];
+
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortDirection === "asc" ? 1 : -1;
+      if (bValue == null) return sortDirection === "asc" ? -1 : 1;
+
+      // Handle different types
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue
+          .toLowerCase()
+          .localeCompare(bValue.toLowerCase());
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
+
+      if (typeof aValue === "boolean" && typeof bValue === "boolean") {
+        const comparison = aValue === bValue ? 0 : aValue ? 1 : -1;
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
+
+      // Default comparison
+      const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  }, [filteredUsers, sortKey, sortDirection]);
 
   useEffect(() => {
     const loadActiveContracts = async () => {
@@ -483,6 +591,25 @@ export default function PaymentsPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Monthly Payments</h1>
         <div className="flex items-center space-x-4">
+          <button
+            onClick={exportToExcel}
+            disabled={isExporting}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
+              isExporting
+                ? "bg-blue-100 text-blue-700 cursor-not-allowed"
+                : "bg-[#0097B2] text-white hover:bg-[#007B8F]"
+            }`}
+            title="Export all users to Excel"
+          >
+            {isExporting ? (
+              <>
+                <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full mr-2"></div>
+                Exporting...
+              </>
+            ) : (
+              <>📊 Export to Excel</>
+            )}
+          </button>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -574,20 +701,79 @@ export default function PaymentsPage() {
                   className="h-4 w-4 text-[#0097B2] focus:ring-[#0097B2] border-gray-300 rounded"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                User (Active Contract)
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("firstName")}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>User (Active Contract)</span>
+                  <div className="flex flex-col text-xs text-gray-400">
+                    {sortKey === "firstName" && sortDirection === "asc" ? (
+                      <span className="text-blue-600">▲</span>
+                    ) : sortKey === "firstName" && sortDirection === "desc" ? (
+                      <span className="text-blue-600">▼</span>
+                    ) : (
+                      <span className="opacity-50">⇅</span>
+                    )}
+                  </div>
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                Email
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("email")}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Email</span>
+                  <div className="flex flex-col text-xs text-gray-400">
+                    {sortKey === "email" && sortDirection === "asc" ? (
+                      <span className="text-blue-600">▲</span>
+                    ) : sortKey === "email" && sortDirection === "desc" ? (
+                      <span className="text-blue-600">▼</span>
+                    ) : (
+                      <span className="opacity-50">⇅</span>
+                    )}
+                  </div>
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                Document This Month
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("documentUploadedThisMonth")}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Document This Month</span>
+                  <div className="flex flex-col text-xs text-gray-400">
+                    {sortKey === "documentUploadedThisMonth" &&
+                    sortDirection === "asc" ? (
+                      <span className="text-blue-600">▲</span>
+                    ) : sortKey === "documentUploadedThisMonth" &&
+                      sortDirection === "desc" ? (
+                      <span className="text-blue-600">▼</span>
+                    ) : (
+                      <span className="opacity-50">⇅</span>
+                    )}
+                  </div>
+                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
                 Observations
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                Payment Status
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("paymentEnabled")}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Payment Status</span>
+                  <div className="flex flex-col text-xs text-gray-400">
+                    {sortKey === "paymentEnabled" && sortDirection === "asc" ? (
+                      <span className="text-blue-600">▲</span>
+                    ) : sortKey === "paymentEnabled" &&
+                      sortDirection === "desc" ? (
+                      <span className="text-blue-600">▼</span>
+                    ) : (
+                      <span className="opacity-50">⇅</span>
+                    )}
+                  </div>
+                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
                 Actions
@@ -595,8 +781,8 @@ export default function PaymentsPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
+            {sortedUsers.length > 0 ? (
+              sortedUsers.map((user) => (
                 <tr
                   key={user.id}
                   className={`transition-colors duration-300 ${

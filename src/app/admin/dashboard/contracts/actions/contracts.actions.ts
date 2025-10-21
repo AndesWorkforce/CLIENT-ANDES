@@ -284,3 +284,114 @@ export async function cancelarContrato(
     );
   }
 }
+
+// Nueva función para marcar contrato como enviado al provider
+export async function marcarEnviadoAlProveedor(
+  procesoId: string
+): Promise<{ success: boolean; message: string; data?: unknown }> {
+  try {
+    const axios = await createServerAxios();
+
+    console.log("📧 [marcarEnviadoAlProveedor] Marking as sent to provider:", {
+      procesoId,
+    });
+
+    const response = await axios.patch(
+      `/admin/contratacion/${procesoId}/marcar-enviado-proveedor`
+    );
+
+    console.log("✅ [marcarEnviadoAlProveedor] Success:", {
+      status: response.status,
+      data: response.data,
+    });
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message:
+          response.data?.message || "Contract marked as sent to provider",
+        data: response.data,
+      };
+    } else {
+      throw new Error(
+        response.data?.message || "Error marking contract as sent"
+      );
+    }
+  } catch (error: unknown) {
+    console.error("❌ [marcarEnviadoAlProveedor] Error:", {
+      procesoId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      status:
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { status?: number } }).response?.status
+          : undefined,
+    });
+
+    throw new Error(
+      error && typeof error === "object" && "response" in error
+        ? (error as { response?: { data?: { message?: string } } }).response
+            ?.data?.message ||
+          (error instanceof Error ? error.message : "Unknown error") ||
+          "Error marking contract as sent"
+        : error instanceof Error
+        ? error.message
+        : "Error marking contract as sent"
+    );
+  }
+}
+
+// Nueva función para reenviar contrato al proveedor
+export async function reenviarContratoAlProveedor(
+  procesoId: string,
+  motivo?: string
+): Promise<{ success: boolean; message: string; data?: unknown }> {
+  try {
+    const axios = await createServerAxios();
+
+    console.log("🔄 [reenviarContratoAlProveedor] Resending to provider:", {
+      procesoId,
+      motivo,
+    });
+
+    const response = await axios.post(
+      `/admin/contratacion/${procesoId}/reenviar-proveedor`,
+      { motivo }
+    );
+
+    console.log("✅ [reenviarContratoAlProveedor] Success:", {
+      status: response.status,
+      data: response.data,
+    });
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message:
+          response.data?.message || "Contract resent to provider successfully",
+        data: response.data,
+      };
+    } else {
+      throw new Error(response.data?.message || "Error resending contract");
+    }
+  } catch (error: unknown) {
+    console.error("❌ [reenviarContratoAlProveedor] Error:", {
+      procesoId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      status:
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { status?: number } }).response?.status
+          : undefined,
+    });
+
+    throw new Error(
+      error && typeof error === "object" && "response" in error
+        ? (error as { response?: { data?: { message?: string } } }).response
+            ?.data?.message ||
+          (error instanceof Error ? error.message : "Unknown error") ||
+          "Error resending contract"
+        : error instanceof Error
+        ? error.message
+        : "Error resending contract"
+    );
+  }
+}

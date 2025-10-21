@@ -1,90 +1,108 @@
-import Image from "next/image";
+import { Scale, BarChart, Building2 } from "lucide-react";
 
-const personnelTypes = [
+const serviceCategories = [
   {
-    title: "Administrative Assistants",
-    color: "#FFC857", // Color amarillo para el ícono de carpeta
-    src: "https://appwiseinnovations.dev/Andes/types-1.png",
+    title: "Legal & Compliance",
+    icon: Scale,
+    color: "border-t-teal-500",
+    iconColor: "text-teal-500",
+    services: [
+      "Legal assistants",
+      "Case managers",
+      "Intake specialists",
+      "Document processing",
+    ],
   },
   {
-    title: "Customer Service",
-    color: "#8A7FEF", // Color morado para el ícono de micrófono
-    src: "https://appwiseinnovations.dev/Andes/types-2.png",
+    title: "Data & Administration",
+    icon: BarChart,
+    color: "border-t-blue-500",
+    iconColor: "text-blue-500",
+    services: [
+      "Database administrators",
+      "Mail sorting specialists",
+      "Data entry and processing",
+      "Records management",
+    ],
   },
   {
-    title: "Call Center Agents",
-    color: "#333333", // Color negro para el ícono de auriculares
-    src: "https://appwiseinnovations.dev/Andes/types-3.png",
+    title: "Business Operations",
+    icon: Building2,
+    color: "border-t-purple-500",
+    iconColor: "text-purple-500",
+    services: [
+      "Virtual assistants",
+      "Customer support",
+      "Data analysts",
+      "Project management",
+    ],
   },
 ];
 
 export default function PersonnelTypes() {
   return (
-    <section className="py-16 bg-[#FCFEFF]">
-      {/* Contenido */}
+    <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-[#17323A] mb-8">
-          Our Personnel
-        </h2>
+        {/* Header with gradient background */}
+        <div className="bg-gradient-to-r from-[#0097B2] to-[#4A90E2] rounded-lg text-center mb-12 py-8 px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            Our Services
+          </h2>
+          <p className="text-lg text-gray-100 max-w-3xl mx-auto">
+            Comprehensive workforce solutions tailored to your business needs
+          </p>
+        </div>
 
-        {/* Contenedor de tarjetas con fondo de gradiente */}
-        <div className="relative">
-          {/* Fondo con gradiente radial para ambas versiones */}
-          <div className="absolute inset-0 rounded-3xl overflow-hidden">
-            <div className="absolute inset-0"></div>
-          </div>
-
-          {/* Versión Móvil - Scroll Horizontal */}
-          <div className="md:hidden overflow-x-auto pb-4 scrollbar-hide relative z-10">
-            <div className="flex space-x-4 min-w-max px-2 pb-2">
-              {personnelTypes.map((type, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col items-center text-center bg-[#FCFEFF] rounded-lg border border-[#B6B4B4] p-6 w-[175px]"
-                  style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
-                >
-                  <div className="w-12 h-12 mb-4 flex items-center justify-center">
-                    <div className="rounded-md p-2">
-                      <Image
-                        src={type.src}
-                        alt={type.title}
-                        width={32}
-                        height={32}
-                      />
-                    </div>
-                  </div>
-                  <h3 className="text-sm font-medium text-gray-800">
-                    {type.title}
-                  </h3>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Versión Desktop - Grid */}
-          <div className="hidden md:grid md:grid-cols-3 gap-8 max-w-5xl mx-auto relative z-10">
-            {personnelTypes.map((type, index) => (
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {serviceCategories.map((category, index) => {
+            const IconComponent = category.icon;
+            return (
               <div
                 key={index}
-                className="flex flex-col items-center text-center bg-[#FCFEFF] rounded-lg border border-[#B6B4B4] p-8"
-                style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
+                className={`bg-white rounded-lg shadow-lg overflow-hidden border-t-4 ${category.color}`}
               >
-                <div className="w-16 h-16 mb-6 flex items-center justify-center">
-                  <div className="rounded-md p-3">
-                    <Image
-                      src={type.src}
-                      alt={type.title}
-                      width={48}
-                      height={48}
+                {/* Card Header */}
+                <div className="p-6 text-center">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <IconComponent
+                      className={`w-8 h-8 ${category.iconColor}`}
                     />
                   </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {category.title}
+                  </h3>
                 </div>
-                <h3 className="text-lg font-medium text-gray-800">
-                  {type.title}
-                </h3>
+
+                {/* Services List */}
+                <div className="px-6 pb-6">
+                  <ul className="space-y-2">
+                    {category.services.map((service, serviceIndex) => (
+                      <li key={serviceIndex} className="flex items-start">
+                        <span className="text-gray-400 mr-2">•</span>
+                        <span className="text-gray-700 text-sm">{service}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom Call to Action */}
+        <div className="text-center mt-12 max-w-4xl mx-auto">
+          <p className="text-gray-700 text-lg">
+            🔍{" "}
+            <span className="font-semibold">
+              Looking for something specific?
+            </span>{" "}
+            We can find talent for any special requirement you have!{" "}
+            <span className="font-semibold text-[#0097B2]">
+              Just let us know what you need.
+            </span>{" "}
+            ✨
+          </p>
         </div>
       </div>
     </section>
