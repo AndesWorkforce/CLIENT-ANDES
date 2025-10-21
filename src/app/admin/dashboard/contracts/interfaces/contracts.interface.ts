@@ -109,6 +109,11 @@ export interface ProcesoContratacion {
   // URL del contrato final cargado al S3
   contratoFinalUrl?: string | null;
 
+  // Campo para rastrear si ya se envió el contrato al provider
+  enviadoAlProveedor: boolean;
+  fechaEnvioAlProveedor?: Date | null;
+  enviadoPorUsuarioId?: string | null; // ID del admin que lo envió
+
   // Campos calculados para gestión de pagos mensuales
   documentoSubidoEsteMes: boolean;
   fechaUltimoDocumento: string | null;

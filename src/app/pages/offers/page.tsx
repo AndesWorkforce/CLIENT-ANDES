@@ -499,75 +499,187 @@ export default function JobOffersPage() {
 
   return (
     <OffersAccessGuard>
-      <div className="container mx-auto bg-white min-h-screen">
-        {!isValidProfileUserState && showInfoMessage && (
-          <div className="bg-blue-50 m-4 rounded-lg p-4">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-start gap-2">
-                <div>
+      {/* Pantalla completa para usuarios no logueados */}
+      {!user ? (
+        <div
+          className="min-h-screen flex items-center justify-center text-white relative"
+          style={{
+            backgroundImage: "url('/images/teamwork.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center top",
+            backgroundRepeat: "no-repeat",
+          }}
+        >
+          {/* Overlay para dar transparencia y mejorar legibilidad */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0097B2]/80 to-[#4A90E2]/80"></div>
+
+          {/* Contenido centrado */}
+          <div className="container mx-auto px-4 py-8 relative z-10">
+            <div className="text-center max-w-4xl mx-auto">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 leading-tight">
+                Why Top Companies Choose Andes Workforce
+              </h1>
+
+              <div className="space-y-6 mb-10 text-center">
+                <div className="flex items-center justify-center">
                   <svg
-                    width="20"
-                    height="20"
+                    className="w-6 h-6 mr-4 text-white flex-shrink-0"
+                    fill="currentColor"
                     viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <g clipPath="url(#clip0_616_13239)">
-                      <path
-                        d="M10.0001 18.3333C14.6025 18.3333 18.3334 14.6024 18.3334 10C18.3334 5.39763 14.6025 1.66667 10.0001 1.66667C5.39771 1.66667 1.66675 5.39763 1.66675 10C1.66675 14.6024 5.39771 18.3333 10.0001 18.3333Z"
-                        stroke="#2563EB"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M10 13.3333V10"
-                        stroke="#2563EB"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M10 6.66667H10.0083"
-                        stroke="#2563EB"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_616_13239">
-                        <rect width="20" height="20" fill="white" />
-                      </clipPath>
-                    </defs>
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
                   </svg>
+                  <span className="text-base md:text-lg">
+                    Save 40-60% on operational costs without compromising
+                    quality
+                  </span>
                 </div>
-                <div>
-                  <h2 className="text-blue-800 font-medium text-sm">
-                    Important information
-                  </h2>
-                  <p className="text-blue-600 text-xs">
-                    Register or login to complete your application
-                  </p>
+
+                <div className="flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 mr-4 text-white flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="text-base md:text-lg">
+                    Access to bilingual professionals with U.S. work experience
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 mr-4 text-white flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="text-base md:text-lg">
+                    Cultural bridge ensuring smooth communication and
+                    integration
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 mr-4 text-white flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="text-base md:text-lg">
+                    Flexible engagement models: full-time, part-time, or
+                    project-based
+                  </span>
                 </div>
               </div>
-              <button
-                onClick={() => setShowInfoMessage(false)}
-                className="text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
-              >
-                <X size={20} />
-              </button>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={() => router.push("/auth/register")}
+                  className="bg-white text-[#0097B2] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors cursor-pointer shadow-lg"
+                >
+                  Join Now
+                </button>
+                <button
+                  onClick={() => router.push("/auth/login")}
+                  className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-[#0097B2] transition-colors cursor-pointer"
+                >
+                  Login
+                </button>
+              </div>
             </div>
           </div>
-        )}
+        </div>
+      ) : (
+        <div className="container mx-auto bg-white min-h-screen">
+          {!isValidProfileUserState && showInfoMessage && (
+            <div className="bg-blue-50 m-4 rounded-lg p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2">
+                  <div>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g clipPath="url(#clip0_616_13239)">
+                        <path
+                          d="M10.0001 18.3333C14.6025 18.3333 18.3334 14.6024 18.3334 10C18.3334 5.39763 14.6025 1.66667 10.0001 1.66667C5.39771 1.66667 1.66675 5.39763 1.66675 10C1.66675 14.6024 5.39771 18.3333 10.0001 18.3333Z"
+                          stroke="#2563EB"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M10 13.3333V10"
+                          stroke="#2563EB"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M10 6.66667H10.0083"
+                          stroke="#2563EB"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_616_13239">
+                          <rect width="20" height="20" fill="white" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-blue-800 font-medium text-sm">
+                      Important information
+                    </h2>
+                    <p className="text-blue-600 text-xs">
+                      Register or login to complete your application
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowInfoMessage(false)}
+                  className="text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+          )}
 
-        {/* Servicios Requeridos y Filtros */}
-        <div className="mt-2 px-4 py-2 flex justify-between items-center">
-          <h1 className="text-lg font-semibold text-[#08252A]">
-            Required Services
-          </h1>
-          {/* OCULTAMOS EL BOTON DE FILTROS POR AHORA */}
-          {/* <button
+          {/* Servicios Requeridos y Filtros */}
+          <div className="mt-2 px-4 py-2 flex justify-between items-center">
+            {/* <h1 className="text-lg font-semibold text-[#08252A]">
+              Required Services
+            </h1> */}
+            {/* OCULTAMOS EL BOTON DE FILTROS POR AHORA */}
+            {/* <button
           className="flex items-center bg-white border-[#B6B4B4] border rounded-[10px] px-3 py-1 text-sm font-[500] cursor-pointer"
           onClick={() => setShowFilters(true)}
         >
@@ -656,242 +768,194 @@ export default function JobOffersPage() {
             </defs>
           </svg>
         </button> */}
-        </div>
+          </div>
 
-        {/* Modales */}
-        <FilterModal
-          isOpen={showFilters}
-          onClose={() => setShowFilters(false)}
-          onApplyFilters={handleApplyFilters}
-          onClearFilters={handleClearFilters}
-          selectedDepartments={selectedDepartments}
-          setSelectedDepartments={setSelectedDepartments}
-          selectedDates={selectedDates}
-          setSelectedDates={setSelectedDates}
-          selectedSeniority={selectedSeniority}
-          setSelectedSeniority={setSelectedSeniority}
-          selectedLocation={selectedLocation}
-          setSelectedLocation={setSelectedLocation}
-        />
+          {/* Modales */}
+          <FilterModal
+            isOpen={showFilters}
+            onClose={() => setShowFilters(false)}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+            selectedDepartments={selectedDepartments}
+            setSelectedDepartments={setSelectedDepartments}
+            selectedDates={selectedDates}
+            setSelectedDates={setSelectedDates}
+            selectedSeniority={selectedSeniority}
+            setSelectedSeniority={setSelectedSeniority}
+            selectedLocation={selectedLocation}
+            setSelectedLocation={setSelectedLocation}
+          />
 
-        {/* Vista móvil - Lista de servicios */}
-        <div className="md:hidden px-4 space-y-3 pb-20">
-          {isLoading ? (
-            // Skeleton para móvil
-            <>
-              <MobileSkeletonItem />
-              <MobileSkeletonItem />
-              <MobileSkeletonItem />
-            </>
-          ) : (
-            filteredJobs.map((job) => (
-              <div
-                key={job.id}
-                className="bg-white border-[#B6B4B4] border rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
-                onClick={() => handleSelectJob(job)}
-              >
-                <div className="p-4 pb-2">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium text-[#08252A]">
-                        {job.titulo}
-                      </h3>
-                      <p className="text-gray-500 text-sm">
-                        {/* {job.datosExtra.empresa} */}
-                      </p>
-                    </div>
-                    <div
-                      className="text-[#0097B2] cursor-pointer"
-                      onClick={() => handleViewOffer(job)}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-                <div className="px-4 pb-4">
-                  <div className="border-t border-gray-200" />
-                </div>
-                <div className="px-4 pt-0 pb-4 flex items-center text-xs text-[#0097B2]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-1 text-[#0097B2]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <span>{job.fechaCreacion?.split("T")[0]}</span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+          {/* Nueva vista de tarjetas para usuarios logueados */}
+          <div className="px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                Current Open Positions
+              </h2>
+              <p className="text-gray-600">
+                Browse our latest opportunities and apply directly
+              </p>
+            </div>
 
-        {/* Vista desktop - Layout de dos columnas */}
-        <div className="hidden md:flex mt-4 px-4 gap-6">
-          {/* Columna izquierda - Listado de ofertas */}
-          <div className="w-1/3 overflow-y-auto custom-scrollbar max-h-[calc(100vh-150px)]">
-            <div className="space-y-3 pr-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
               {isLoading ? (
-                // Skeleton para lista desktop
+                // Skeleton para tarjetas
                 <>
-                  <DesktopListSkeletonItem />
-                  <DesktopListSkeletonItem />
-                  <DesktopListSkeletonItem />
-                  <DesktopListSkeletonItem />
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className={`bg-white border-l-4 border-gray-200 rounded-lg p-6 shadow-sm ${
+                        index % 2 === 0
+                          ? "border-l-[#0097B2]"
+                          : "border-l-blue-500"
+                      }`}
+                    >
+                      {/* Header con título y badge */}
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="h-6 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                        </div>
+                        <div className="h-6 bg-gray-200 rounded-full w-16 ml-2 animate-pulse"></div>
+                      </div>
+
+                      {/* Descripción */}
+                      <div className="mb-4">
+                        <div className="h-4 bg-gray-200 rounded w-full mb-2 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-5/6 mb-2 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                      </div>
+
+                      {/* Tags */}
+                      <div className="mb-6">
+                        <div className="flex flex-wrap gap-2">
+                          <div className="h-6 bg-gray-200 rounded w-16 animate-pulse"></div>
+                          <div className="h-6 bg-gray-200 rounded w-20 animate-pulse"></div>
+                          <div className="h-6 bg-gray-200 rounded w-18 animate-pulse"></div>
+                        </div>
+                      </div>
+
+                      {/* Salary y botón */}
+                      <div className="flex justify-between items-center">
+                        <div className="h-5 bg-gray-200 rounded w-32 animate-pulse"></div>
+                        <div className="h-8 bg-gray-200 rounded w-16 animate-pulse"></div>
+                      </div>
+                    </div>
+                  ))}
                 </>
               ) : (
-                filteredJobs.map((job) => {
-                  const isSelected = selectedJob?.id === job.id;
+                filteredJobs.map((job, index) => {
+                  const buttonState = getButtonState(job.id || "");
+
+                  // Extraer información de ubicación de la descripción
+                  const descripcionText =
+                    job.descripcion?.replace(/<[^>]*>/g, "").toLowerCase() ||
+                    "";
+                  const isRemote =
+                    descripcionText.includes("remote") ||
+                    descripcionText.includes("remot") ||
+                    job.modalidad?.toLowerCase().includes("remot") ||
+                    job.ubicacion?.toLowerCase().includes("remot");
+
+                  // Extraer ubicación específica si está mencionada
+                  const locationMatch = descripcionText.match(
+                    /(?:remote\s*[-–—]\s*|location:\s*)([a-z\s]+(?:america|states|canada|mexico|chile|argentina|colombia|peru|ecuador|bolivia|uruguay|paraguay|venezuela|brazil))/i
+                  );
+                  const extractedLocation = locationMatch
+                    ? locationMatch[1].trim()
+                    : null;
+
+                  // Colores del borde lateral rotando
+                  const borderColors = [
+                    "border-l-[#0097B2]", // Teal (principal)
+                    "border-l-blue-500", // Azul
+                    "border-l-[#0097B2]", // Teal (principal)
+                  ];
+                  const borderColor = borderColors[index % borderColors.length];
 
                   return (
                     <div
                       key={job.id}
-                      className={`bg-white border rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] cursor-pointer transition-all ${
-                        isSelected
-                          ? "border-[#0097B2] border-l-8 bg-blue-50"
-                          : "border-[#B6B4B4] border hover:border-[#0097B2]"
-                      }`}
-                      onClick={() => handleSelectJob(job)}
+                      className={`bg-white border-l-4 ${borderColor} shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer`}
+                      onClick={() => handleViewOffer(job)}
                     >
-                      <div className="p-4">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center">
-                            {isSelected && (
-                              <div className="w-2 h-2 rounded-full bg-[#0097B2] mr-2"></div>
+                      <div className="p-6">
+                        {/* Header */}
+                        <div className="mb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-semibold text-lg text-gray-900">
+                              {job.titulo}
+                            </h3>
+                            <span className="bg-[#0097B2] text-white text-xs px-2 py-1 rounded-full">
+                              {isRemote ? "Remote" : "On-site"}
+                            </span>
+                          </div>
+                          <p className="text-gray-600 text-sm">
+                            {extractedLocation ||
+                              (isRemote ? "Remote" : job.ubicacion || "Remote")}
+                          </p>
+                        </div>
+
+                        {/* Descripción */}
+                        <div className="mb-4">
+                          <p
+                            className="text-gray-700 text-sm leading-relaxed"
+                            style={{
+                              display: "-webkit-box",
+                              WebkitLineClamp: 3,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {job.descripcion
+                              ? job.descripcion
+                                  .replace(/<[^>]*>/g, "")
+                                  .substring(0, 140)
+                              : "Join our team and contribute to meaningful projects with our experienced team."}
+                          </p>
+                        </div>
+
+                        {/* Skills/Tags */}
+                        <div className="mb-6">
+                          <div className="flex flex-wrap gap-2">
+                            {job.modalidad && (
+                              <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                {job.modalidad}
+                              </span>
                             )}
-                            <div>
-                              <h3 className="font-medium text-[#08252A]">
-                                {job.titulo}
-                              </h3>
-                              <p className="text-gray-500 text-sm mt-1">
-                                {/* Andes */}
-                              </p>
-                            </div>
+                            {job.seniority && (
+                              <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                {job.seniority}
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                              Full-Time
+                            </span>
                           </div>
                         </div>
-                        <div className="pb-4">
-                          <div className="border-t border-gray-200" />
-                        </div>
-                        <div className="flex items-center text-xs text-[#0097B2]">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1 text-[#0097B2]"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                          <span>{job.fechaCreacion?.split("T")[0]}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
 
-          {/* Columna derecha - Detalle de la oferta seleccionada */}
-          <div className="w-2/3 border border-[#B6B4B4] rounded-[10px] overflow-hidden shadow-sm p-6">
-            {isLoading ? (
-              // Skeleton para detalle desktop
-              <DetailSkeleton />
-            ) : selectedJob ? (
-              <OfferDetailGuard>
-                <div>
-                  <div className="mb-6">
-                    <h2 className="text-2xl font-semibold text-[#08252A]">
-                      {selectedJob.titulo}
-                    </h2>
-                    <p className="text-gray-600 mt-1">{/* Andes */}</p>
-                    <div className="flex items-center text-xs text-[#0097B2] mt-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1 text-[#0097B2]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      <span>{selectedJob.fechaCreacion?.split("T")[0]}</span>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <h3 className="text-lg font-medium text-[#08252A] mb-2">
-                      About the job
-                    </h3>
-                    <div
-                      className="text-gray-700"
-                      dangerouslySetInnerHTML={{
-                        __html: selectedJob.descripcion,
-                      }}
-                    />
-                  </div>
-
-                  {/* <div className="mb-4">
-                  <h3 className="text-lg font-medium text-[#08252A] mb-2">
-                    Requirements
-                  </h3>
-                  <div
-                    className="text-gray-700"
-                    dangerouslySetInnerHTML={{
-                      __html:
-                        selectedJob.requerimientos ||
-                        "<p>No specific requirements listed.</p>",
-                    }}
-                  />
-                </div> */}
-
-                  <div className="mt-6">
-                    {!user?.rol.includes("ADMIN") &&
-                      !user?.rol.includes("EMPLEADO_ADMIN") &&
-                      selectedJob?.id &&
-                      (() => {
-                        const buttonState = getButtonState(selectedJob.id);
-                        return (
+                        {/* Salary y Apply Button */}
+                        <div className="flex justify-between items-center">
+                          <span className="text-[#0097B2] font-semibold text-sm">
+                            $2,500 - $4,500 USD
+                          </span>
                           <button
-                            className={`${buttonState.className} text-white px-6 py-3 rounded-md text-[16px] font-[600] transition-all w-full flex items-center justify-center`}
-                            onClick={() => {
-                              if (!buttonState.disabled && selectedJob?.id) {
-                                handleInitiateApplication(selectedJob.id);
+                            className={`px-4 py-2 rounded text-sm font-medium transition-all ${
+                              buttonState.disabled
+                                ? "bg-gray-400 cursor-not-allowed text-white"
+                                : "bg-[#0097B2] hover:bg-[#007A8F] text-white"
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!buttonState.disabled && job?.id) {
+                                handleInitiateApplication(job.id);
                               }
                             }}
                             disabled={buttonState.disabled}
                           >
                             {buttonState.showSpinner && (
                               <svg
-                                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline"
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -907,151 +971,149 @@ export default function JobOffersPage() {
                                 <path
                                   className="opacity-75"
                                   fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                 ></path>
                               </svg>
                             )}
                             {buttonState.text}
                           </button>
-                        );
-                      })()}
-                  </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {offerToView && (
+            <ViewOfferModal
+              isOpen={isViewModalOpen}
+              onClose={() => setIsViewModalOpen(false)}
+              offer={offerToView}
+            />
+          )}
+
+          {showWarningModal && currentApplicationHistory && (
+            <ApplicationWarningModal
+              isOpen={showWarningModal}
+              onClose={() => {
+                setShowWarningModal(false);
+                setCurrentApplicationHistory(null);
+                // Clear loading state when modal is closed
+                if (offerToApply) {
+                  setLoadingApplications((prev) => {
+                    const newSet = new Set(prev);
+                    newSet.delete(offerToApply);
+                    return newSet;
+                  });
+                  setOfferToApply(null);
+                }
+              }}
+              onConfirm={() => {
+                if (offerToApply) {
+                  handleApplyToOffer(offerToApply);
+                }
+              }}
+              historyStatus={currentApplicationHistory}
+              isLoading={false}
+            />
+          )}
+
+          {showWarningModal && !currentApplicationHistory && (
+            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60">
+              <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-yellow-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
                 </div>
-              </OfferDetailGuard>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Select a job to view details
+                <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">
+                  Important Notice
+                </h3>
+                <p className="text-gray-600 text-center mb-6">
+                  You can only apply to one offer at a time. Once this
+                  application is completed, you&apos;ll be able to apply to
+                  another offer. Are you sure this is the offer you want to
+                  apply to?
+                </p>
+                <div className="flex justify-center gap-4">
+                  <button
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300 transition-colors"
+                    onClick={() => {
+                      setShowWarningModal(false);
+                      // Clear loading state when modal is closed
+                      if (offerToApply) {
+                        setLoadingApplications((prev) => {
+                          const newSet = new Set(prev);
+                          newSet.delete(offerToApply);
+                          return newSet;
+                        });
+                        setOfferToApply(null);
+                      }
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-[#0097B2] text-white rounded-md font-medium hover:bg-[#007A8F] transition-colors cursor-pointer"
+                    onClick={() => {
+                      if (offerToApply) {
+                        handleApplyToOffer(offerToApply);
+                      }
+                    }}
+                  >
+                    Confirm Application
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {showCentralNotification && (
+            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60">
+              <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4 text-center">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-10 w-10 text-green-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Your application has been submitted
+                </h3>
+                <button
+                  className="mt-6 bg-[#0097B2] text-white px-5 py-2 rounded-md font-medium cursor-pointer"
+                  onClick={() => setShowCentralNotification(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-
-        {offerToView && (
-          <ViewOfferModal
-            isOpen={isViewModalOpen}
-            onClose={() => setIsViewModalOpen(false)}
-            offer={offerToView}
-          />
-        )}
-
-        {showWarningModal && currentApplicationHistory && (
-          <ApplicationWarningModal
-            isOpen={showWarningModal}
-            onClose={() => {
-              setShowWarningModal(false);
-              setCurrentApplicationHistory(null);
-              // Clear loading state when modal is closed
-              if (offerToApply) {
-                setLoadingApplications((prev) => {
-                  const newSet = new Set(prev);
-                  newSet.delete(offerToApply);
-                  return newSet;
-                });
-                setOfferToApply(null);
-              }
-            }}
-            onConfirm={() => {
-              if (offerToApply) {
-                handleApplyToOffer(offerToApply);
-              }
-            }}
-            historyStatus={currentApplicationHistory}
-            isLoading={false}
-          />
-        )}
-
-        {showWarningModal && !currentApplicationHistory && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60">
-            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-              <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-yellow-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">
-                Important Notice
-              </h3>
-              <p className="text-gray-600 text-center mb-6">
-                You can only apply to one offer at a time. Once this application
-                is completed, you&apos;ll be able to apply to another offer. Are
-                you sure this is the offer you want to apply to?
-              </p>
-              <div className="flex justify-center gap-4">
-                <button
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300 transition-colors"
-                  onClick={() => {
-                    setShowWarningModal(false);
-                    // Clear loading state when modal is closed
-                    if (offerToApply) {
-                      setLoadingApplications((prev) => {
-                        const newSet = new Set(prev);
-                        newSet.delete(offerToApply);
-                        return newSet;
-                      });
-                      setOfferToApply(null);
-                    }
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="px-4 py-2 bg-[#0097B2] text-white rounded-md font-medium hover:bg-[#007A8F] transition-colors cursor-pointer"
-                  onClick={() => {
-                    if (offerToApply) {
-                      handleApplyToOffer(offerToApply);
-                    }
-                  }}
-                >
-                  Confirm Application
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showCentralNotification && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60">
-            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4 text-center">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-10 w-10 text-green-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Your application has been submitted
-              </h3>
-              <button
-                className="mt-6 bg-[#0097B2] text-white px-5 py-2 rounded-md font-medium cursor-pointer"
-                onClick={() => setShowCentralNotification(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </OffersAccessGuard>
   );
 }
