@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import FilterModal from "./components/FilterModal";
 import OffersAccessGuard from "./components/OffersAccessGuard";
-import OfferDetailGuard from "./components/OfferDetailGuard";
 
 import type { FilterValues } from "./components/FilterModal";
 import {
@@ -51,6 +50,8 @@ export default function JobOffersPage() {
     new Set()
   );
 
+  console.log(selectedJob);
+
   const isValidProfileUser = async () => {
     try {
       const response = await userIsAppliedToOffer(user?.id || "");
@@ -68,10 +69,6 @@ export default function JobOffersPage() {
         error
       );
     }
-  };
-
-  const handleSelectJob = (job: Offer) => {
-    setSelectedJob(job);
   };
 
   const handleApplyFilters = (filterData: FilterValues) => {
@@ -378,74 +375,6 @@ export default function JobOffersPage() {
 
     loadApplicationHistory();
   }, [user?.id, filteredJobs]);
-
-  // Skeleton para la vista móvil
-  const MobileSkeletonItem = () => (
-    <div className="bg-white border-[#B6B4B4] border rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]">
-      <div className="p-4 pb-2">
-        <div className="flex justify-between items-center">
-          <div>
-            <div className="h-5 bg-gray-200 rounded-md w-40 mb-2 animate-pulse"></div>
-            <div className="h-4 bg-gray-200 rounded-md w-20 animate-pulse"></div>
-          </div>
-          <div className="w-6 h-6 bg-gray-200 rounded-full animate-pulse"></div>
-        </div>
-      </div>
-      <div className="px-4 pb-4">
-        <div className="border-t border-gray-200" />
-      </div>
-      <div className="px-4 pt-0 pb-4 flex items-center">
-        <div className="w-24 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-      </div>
-    </div>
-  );
-
-  // Skeleton para la vista desktop - Lista de ofertas
-  const DesktopListSkeletonItem = () => (
-    <div className="bg-white border border-[#B6B4B4] rounded-[10px] overflow-hidden shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]">
-      <div className="p-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <div>
-              <div className="h-5 bg-gray-200 rounded-md w-40 mb-2 animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded-md w-20 animate-pulse"></div>
-            </div>
-          </div>
-        </div>
-        <div className="pb-4">
-          <div className="border-t border-gray-200" />
-        </div>
-        <div className="flex items-center">
-          <div className="w-24 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Skeleton para la vista de detalle
-  const DetailSkeleton = () => (
-    <div>
-      <div className="mb-6">
-        <div className="h-8 bg-gray-200 rounded-md w-3/4 mb-2 animate-pulse"></div>
-        <div className="h-4 bg-gray-200 rounded-md w-1/4 mt-1 mb-2 animate-pulse"></div>
-        <div className="flex items-center mt-2">
-          <div className="w-24 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <div className="h-6 bg-gray-200 rounded-md w-1/4 mb-2 animate-pulse"></div>
-        <div className="h-4 bg-gray-200 rounded-md w-full mb-2 animate-pulse"></div>
-        <div className="h-4 bg-gray-200 rounded-md w-full mb-2 animate-pulse"></div>
-        <div className="h-4 bg-gray-200 rounded-md w-3/4 mb-2 animate-pulse"></div>
-        <div className="h-4 bg-gray-200 rounded-md w-5/6 mb-2 animate-pulse"></div>
-      </div>
-
-      <div className="mt-6">
-        <div className="h-12 bg-gray-200 rounded-md w-full animate-pulse"></div>
-      </div>
-    </div>
-  );
 
   // Helper function to get button state for a specific offer
   const getButtonState = (offerId: string) => {
