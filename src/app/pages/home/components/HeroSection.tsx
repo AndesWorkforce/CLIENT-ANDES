@@ -48,6 +48,15 @@ export default function HeroSection() {
               </Link>
             </div>
 
+            {/* Mobile Logo - stacked under buttons */}
+            <div className="md:hidden flex justify-center mt-2">
+              <img
+                src="/logo-andes.png"
+                alt="Andes Workforce"
+                className="h-12"
+              />
+            </div>
+
             {/* Logo - bottom right on mobile, right aligned on desktop */}
             <div className="hidden md:block rounded-lg p-4 ml-8">
               <div className="flex items-center">
@@ -58,13 +67,6 @@ export default function HeroSection() {
                 />
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Mobile Logo - positioned inside hero section, bottom right */}
-        <div className="absolute bottom-[-4] right-4 md:hidden rounded-lg p-3 z-20">
-          <div className="flex items-center">
-            <img src="/logo-andes.png" alt="Andes Workforce" className="h-12" />
           </div>
         </div>
       </div>
