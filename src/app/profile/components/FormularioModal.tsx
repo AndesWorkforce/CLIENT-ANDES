@@ -114,6 +114,15 @@ export default function FormularioModal({
         formDataCleaned[Q_UNIQUE_QUALITIES] =
           datosFormulario[legacyQualitiesKey];
       }
+      // 1b) Variantes donde la etiqueta incluía el ejemplo y/o asterisco dentro del label
+      // Buscar cualquier key que comience con el texto canónico de la pregunta
+      const possibleVariantKey = Object.keys(datosFormulario).find((k) =>
+        k.trim().startsWith(Q_UNIQUE_QUALITIES)
+      );
+      if (possibleVariantKey && !formDataCleaned[Q_UNIQUE_QUALITIES]) {
+        formDataCleaned[Q_UNIQUE_QUALITIES] =
+          datosFormulario[possibleVariantKey];
+      }
       // 2) Variantes con doble espacio antes de "Please" u otras pequeñas diferencias
       const englishScaleVariant =
         "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers?  Please explain your answer."; // doble espacio
@@ -202,8 +211,16 @@ export default function FormularioModal({
           ?.querySelector("label");
 
         if (labelElement) {
-          const question =
-            labelElement.textContent?.replace(/\*$/, "").trim() || "";
+          // Normalizar el texto del label para obtener la clave canónica
+          const rawLabel = labelElement.textContent || "";
+          const cleanedLabel = rawLabel.replace(/\*/g, "").trim();
+          let question = cleanedLabel;
+
+          // Caso especial: la etiqueta incluye el ejemplo para "unique qualities"
+          if (cleanedLabel.startsWith(Q_UNIQUE_QUALITIES)) {
+            question = Q_UNIQUE_QUALITIES;
+          }
+
           if (question && element.value) {
             completeFormData[question] = element.value;
           }

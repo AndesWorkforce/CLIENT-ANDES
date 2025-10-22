@@ -28,7 +28,7 @@ export const teamMembers: TeamMember[] = [
     role: "Founder",
     group: "Leadership",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/miguel_rendon.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/miguel_rendon_resolution.jpg",
     summary: "Business Administrator",
     bullets: [
       "Proudly served in the U.S. Navy for 22 years, building a distinguished career marked by discipline, leadership, and a deep commitment to service.",
