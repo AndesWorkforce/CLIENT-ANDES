@@ -240,40 +240,40 @@ export const teamMembers: TeamMember[] = [
   {
     id: "toby",
     name: "Toby",
-    role: "Meowketing Assistant",
+    role: "Junior Meowketing Specialist",
     group: "Pet Family",
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/toby.jpg",
     bullets: [
-      "Provides daily inspiration through unexpected Zoom appearances.",
-      "Expert in brand purr‑sonality and snack‑time negotiations.",
+      "Youngest team member with the biggest paws and the biggest heart.",
+      "Large, lovable, and always ready to play.",
       "Passionate about chasing imaginary bugs and supervising from high places.",
     ],
   },
   {
     id: "emilia",
     name: "Emilia",
-    role: "Meowketing Assistant",
+    role: "Executive Cuddle Consultant",
     group: "Pet Family",
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/emilia.jpg",
     bullets: [
       "Provides daily inspiration through unexpected Zoom appearances.",
-      "Expert in brand purr‑sonality and snack‑time negotiations.",
-      "Passionate about chasing imaginary bugs and supervising from high places.",
+      "The tiniest diva with the loudest demands.",
+      "Delivers daily doses of sass and sweetness.",
     ],
   },
   {
     id: "kira",
     name: "Kira",
-    role: "Meowketing Assistant",
+    role: "Senior Nap Strategist",
     group: "Pet Family",
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/kira.jpg",
     bullets: [
-      "Provides daily inspiration through unexpected Zoom appearances.",
-      "Expert in brand purr‑sonality and snack‑time negotiations.",
-      "Passionate about chasing imaginary bugs and supervising from high places.",
+      "The wise veteran with a majestic fluff and a love for lounging.",
+      "Supervises from comfy spots with minimal movement.",
+      "Proudly plus-size, deeply experienced, and always snack-ready.",
     ],
   },
   {
