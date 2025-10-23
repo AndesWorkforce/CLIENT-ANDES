@@ -94,6 +94,7 @@ export default function ProfilePage() {
   const [showBankInfoModal, setShowBankInfoModal] = useState<boolean>(false);
 
   // Helpers robustos para validar el estado del formulario (puede venir como string JSON, objeto o null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const parseFormulario = (value: unknown): Record<string, any> | null => {
     try {
       if (!value) return null;
@@ -104,6 +105,7 @@ export default function ProfilePage() {
         return parsed && typeof parsed === "object" ? parsed : null;
       }
       if (typeof value === "object") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return value as Record<string, any>;
       }
       return null;
@@ -112,6 +114,7 @@ export default function ProfilePage() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formularioData = parseFormulario((profile as any).datosFormulario);
 
   const hasMeaningfulValue = (val: unknown): boolean => {
