@@ -29,6 +29,8 @@ const navigation = [
   { name: "Available Contracts", href: "/pages/offers" },
   { name: "Services", href: "/pages/services" },
   { name: "About", href: "/pages/about" },
+  // Disabled view for now
+  // { name: "Team", href: "/pages/team" },
   { name: "Contact", href: "/pages/contact" },
   { name: "Privacy Policy", href: "/pages/privacy-policy" },
 ];
@@ -246,30 +248,33 @@ export default function Navbar() {
   return (
     <header className="w-full bg-[#FCFEFF] shadow-sm z-10">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
-          <div className="flex-7 flex items-center">
+        <div className="grid grid-cols-2 md:grid-cols-3 items-center h-20">
+          {/* Left: Logo */}
+          <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
               <Logo />
             </Link>
-
-            <div className="hidden md:flex items-center space-x-8 ml-8">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`text-[16px] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors relative ${
-                    isActive(item.href)
-                      ? "text-[#0097B2] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#0097B2]"
-                      : "text-[#08252A]"
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
           </div>
 
-          <div className="flex-3 md:flex-2 flex flex-col items-center justify-center space-x-4">
+          {/* Center: Navigation */}
+          <div className="hidden md:flex items-center justify-center space-x-8">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`text-[16px] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors relative ${
+                  isActive(item.href)
+                    ? "text-[#0097B2] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#0097B2]"
+                    : "text-[#08252A]"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+
+          {/* Right: Auth area */}
+          <div className="flex flex-col justify-center items-end text-right">
             {!isAuthenticated ? (
               <>
                 <button
@@ -280,7 +285,7 @@ export default function Navbar() {
                   Login
                 </button>
 
-                <div className="text-center">
+                <div className="w-full md:w-auto text-right">
                   <p className="flex flex-col text-[10px] text-[#B6B4B4] m-0 mt-1">
                     Don&apos;t have an account?{" "}
                     <Link

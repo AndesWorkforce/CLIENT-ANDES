@@ -93,6 +93,43 @@ export default function ProfilePage() {
     useState<boolean>(false);
   const [showBankInfoModal, setShowBankInfoModal] = useState<boolean>(false);
 
+  // Helpers robustos para validar el estado del formulario (puede venir como string JSON, objeto o null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parseFormulario = (value: unknown): Record<string, any> | null => {
+    try {
+      if (!value) return null;
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (trimmed.length === 0) return null;
+        const parsed = JSON.parse(trimmed);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      }
+      if (typeof value === "object") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return value as Record<string, any>;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const formularioData = parseFormulario((profile as any).datosFormulario);
+
+  const hasMeaningfulValue = (val: unknown): boolean => {
+    if (val === null || val === undefined) return false;
+    if (typeof val === "string") return val.trim().length > 0;
+    if (Array.isArray(val)) return val.length > 0;
+    if (typeof val === "object") return Object.keys(val as object).length > 0;
+    return true; // números, booleanos true, etc. cuentan como valor
+  };
+
+  const formularioHasContent = !!(
+    formularioData &&
+    Object.values(formularioData).some((v) => hasMeaningfulValue(v))
+  );
+
   const handleSaveExperience = async (userId: string, data: Experience) => {
     const response = await addExperience(userId, data);
     if (response.success) {
@@ -351,7 +388,7 @@ export default function ProfilePage() {
   };
 
   const isVisibleNotification =
-    profile.datosFormulario &&
+    formularioHasContent &&
     Boolean(profile.archivos.videoPresentacion) &&
     profile.experiencia.length > 0 &&
     profile.educacion.length > 0 &&
@@ -361,7 +398,8 @@ export default function ProfilePage() {
     profile.datosPersonales.residencia &&
     profile.archivos.fotoCedulaFrente &&
     profile.archivos.fotoCedulaDorso &&
-    profile.aceptaPoliticaDatos;
+    profile.aceptaPoliticaDatos &&
+    profile.estadoPerfil === "COMPLETO";
 
   const isVisibleNotification2 =
     !profile.archivos.imagenRequerimientosPC ||
@@ -382,7 +420,7 @@ export default function ProfilePage() {
   //   profile.datosPersonales.residencia;
 
   const hasPendingCards =
-    !profile.datosFormulario ||
+    !formularioHasContent ||
     profile.habilidades.length === 0 ||
     !profile.archivos.videoPresentacion ||
     isVisibleNotification2 ||
@@ -514,8 +552,7 @@ export default function ProfilePage() {
         >
           <span className="text-gray-800 font-medium">Complete Form</span>
           <div className="flex items-center justify-center gap-4">
-            {profile.datosFormulario &&
-            Object.keys(profile.datosFormulario).length > 0 ? (
+            {formularioHasContent ? (
               <div className="flex items-center gap-2">
                 <Dump
                   className="cursor-pointer"
@@ -1232,7 +1269,7 @@ export default function ProfilePage() {
             {/* Tarjetas */}
             <div className="grid grid-cols-2 gap-6 mb-20">
               {/* Primera fila */}
-              {!profile.datosFormulario && (
+              {!formularioHasContent && (
                 <div
                   className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl shadow-md relative"
                   style={{ boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)" }}
@@ -1567,8 +1604,7 @@ export default function ProfilePage() {
             >
               <span className="text-gray-800 font-medium">Questionnaire</span>
               <div className="flex items-center justify-center gap-4">
-                {profile.datosFormulario &&
-                Object.keys(profile.datosFormulario).length > 0 ? (
+                {formularioHasContent ? (
                   <div className="flex items-center gap-2">
                     <Dump
                       className="cursor-pointer"
@@ -2067,13 +2103,7 @@ export default function ProfilePage() {
       <FormularioModal
         isOpen={showFormularioModal}
         onClose={() => setShowFormularioModal(false)}
-        datosFormulario={
-          typeof profile.datosFormulario === "object" &&
-          profile.datosFormulario !== null
-            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (profile.datosFormulario as Record<string, any>)
-            : null
-        }
+        datosFormulario={formularioData}
       />
 
       <VideoModal

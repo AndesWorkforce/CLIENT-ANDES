@@ -49,6 +49,15 @@ const testimonials: Testimonial[] = [
       "Our partnership with Andes Workforce has been pivotal to our firm’s recent explosive growth. Their team consistently delivers accurate, timely work and approaches every task with professionalism and care. Carlos and Marco go above and beyond expectations on a daily basis and have led the Andes team to success.  Their ability to take a project and run with it with minimal oversight has lifted a significant burden from my plate, allowing me to focus my time on strategic business initiatives. It’s clear that they are deeply dedicated and take genuine pride in the quality of their work. We consider Andes an essential extension of the Tabak Law team and highly recommend their services.  Kudos to Miguel and Nicole for paving the way, I look forward to our continued partnership!",
     avatarColor: "bg-indigo-600",
   },
+  {
+    id: 5,
+    name: "Jonathan H. Davis, Esq.",
+    company: "Veteran Esquire Legal Solutions, PLLC",
+    position: "Founder and Managing Member",
+    content:
+      "I’ve had an outstanding experience working with your team. You’ve been excellent at helping me quickly find the right talent and meet my staffing needs efficiently. Communication with your office is top-notch. It's always prompt, clear, and responsive. What I appreciate most is how flexible and mission-focused your team is. You take the time to understand our specific goals so you can provide the right assistant and talent to support our work. You’re also great at matching personalities, which makes collaboration seamless. This is something that not every staffing company gets right. From onboarding to cybersecurity and ongoing support, everything has been handled with professionalism and speed. I couldn’t be happier with the partnership",
+    avatarColor: "bg-indigo-600",
+  },
 ];
 
 export default function TestimonialsSection() {
