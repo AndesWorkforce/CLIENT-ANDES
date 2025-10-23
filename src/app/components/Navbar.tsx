@@ -29,7 +29,8 @@ const navigation = [
   { name: "Available Contracts", href: "/pages/offers" },
   { name: "Services", href: "/pages/services" },
   { name: "About", href: "/pages/about" },
-  { name: "Team", href: "/pages/team" },
+  // Disabled view for now
+  // { name: "Team", href: "/pages/team" },
   { name: "Contact", href: "/pages/contact" },
   { name: "Privacy Policy", href: "/pages/privacy-policy" },
 ];
