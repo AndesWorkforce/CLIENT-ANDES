@@ -20,6 +20,22 @@ const Q_UNIQUE_QUALITIES =
 const Q_ENGLISH_CALLS =
   "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers? Please explain your answer.";
 
+// Claves canónicas adicionales (para evitar depender del texto del label)
+const Q_NAME = "What is your preferred first and last name?";
+const Q_WHATSAPP = "What phone number do you use for WhatsApp?";
+const Q_CITY_COUNTRY = "In which city and country do you live?";
+const Q_GMAIL =
+  "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)";
+const Q_THREE_WORDS = "What 3 words best describe you and why?";
+const Q_PREV_EXPERIENCE =
+  "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance";
+const Q_RAM = "How much RAM is available on your computer?";
+const Q_MONITORS = "How many monitors do you currently have/use for work?";
+const Q_HEADSET_HAVE =
+  "What type of headset do you currently have? How does it connect with your computer?";
+const Q_ISP = "What Internet provider do you use?";
+const Q_PROVIDER_URL = "What is the URL for their website?";
+
 export default function FormularioModal({
   isOpen,
   onClose,
@@ -43,21 +59,21 @@ export default function FormularioModal({
 
   const validateForm = () => {
     const requiredQuestions = [
-      "What is your preferred first and last name?",
-      "What phone number do you use for WhatsApp?",
-      "In which city and country do you live?",
+      Q_NAME,
+      Q_WHATSAPP,
+      Q_CITY_COUNTRY,
       "Have you been referred by someone?",
-      "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
-      "What 3 words best describe you and why?",
+      Q_GMAIL,
+      Q_THREE_WORDS,
       Q_UNIQUE_QUALITIES,
-      "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
+      Q_PREV_EXPERIENCE,
       Q_ENGLISH_CALLS,
       "What type of computer do you use?",
-      "How much RAM is available on your computer?",
-      "How many monitors do you currently have/use for work?",
-      "What type of headset do you currently have? How does it connect with your computer?",
-      "What Internet provider do you use?",
-      "What is the URL for their website?",
+      Q_RAM,
+      Q_MONITORS,
+      Q_HEADSET_HAVE,
+      Q_ISP,
+      Q_PROVIDER_URL,
       "Do you use a wired internet connection?",
     ];
 
@@ -105,6 +121,46 @@ export default function FormularioModal({
     if (datosFormulario) {
       // Crear una versión limpia de los datos para asegurar que coincidan con las claves exactas
       const formDataCleaned = { ...formData };
+
+      // Mapeo de español -> clave canónica (detección simple y tolerante)
+      const SPANISH_TO_CANONICAL: Record<string, string> = {
+        "¿Cuál es tu nombre y apellido preferido?": Q_NAME,
+        "¿Qué número de teléfono usas para WhatsApp?": Q_WHATSAPP,
+        "¿En qué ciudad y país vives?": Q_CITY_COUNTRY,
+        "¿Cuál es la URL de su sitio web?": Q_PROVIDER_URL,
+        "¿Qué proveedor de Internet utilizas?": Q_ISP,
+        "¿Cuánta RAM hay disponible en tu computadora?": Q_RAM,
+        "¿Cuanta RAM hay disponible en tu computadora?": Q_RAM,
+        "¿Cuántos monitores tienes/utilizas actualmente para trabajar?":
+          Q_MONITORS,
+        "¿Que tipo de auriculares tienes actualmente? ¿Cómo se conectan a tu ordenador?":
+          Q_HEADSET_HAVE,
+        "¿Qué tipo de auriculares tienes actualmente? ¿Cómo se conectan a tu ordenador?":
+          Q_HEADSET_HAVE,
+        "¿Cuáles son las 3 palabras que mejor te describen y por qué?":
+          Q_THREE_WORDS,
+      };
+
+      const normalize = (s: string) =>
+        s
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+
+      // Intentar remapear todas las claves en español a su canónica
+      Object.keys(datosFormulario).forEach((key) => {
+        const normKey = normalize(key);
+        for (const [es, canon] of Object.entries(SPANISH_TO_CANONICAL)) {
+          const normEs = normalize(es);
+          if (normKey === normEs || normKey.startsWith(normEs)) {
+            if (!formDataCleaned[canon]) {
+              formDataCleaned[canon] = datosFormulario[key];
+            }
+          }
+        }
+      });
 
       // Mapear los nombres antiguos de campos a los nuevos si es necesario
       // 1) Algunas cuentas antiguas tenían esta pregunta mal mapeada al texto de "headset want"
@@ -197,6 +253,27 @@ export default function FormularioModal({
     try {
       setIsSubmitting(true);
 
+      // Whitelist de preguntas permitidas en el cuestionario para evitar que se cuelen campos ajenos (p.ej. notas)
+      const ALLOWED_QUESTIONS = new Set<string>([
+        Q_NAME,
+        Q_WHATSAPP,
+        Q_CITY_COUNTRY,
+        "Have you been referred by someone?",
+        "Referrer Name",
+        Q_GMAIL,
+        Q_THREE_WORDS,
+        Q_UNIQUE_QUALITIES,
+        Q_PREV_EXPERIENCE,
+        Q_ENGLISH_CALLS,
+        "What type of computer do you use?",
+        Q_RAM,
+        Q_MONITORS,
+        Q_HEADSET_HAVE,
+        Q_ISP,
+        Q_PROVIDER_URL,
+        "Do you use a wired internet connection?",
+      ]);
+
       const formFields = e.target as HTMLFormElement;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const completeFormData: Record<string, any> = {};
@@ -214,7 +291,12 @@ export default function FormularioModal({
           // Normalizar el texto del label para obtener la clave canónica
           const rawLabel = labelElement.textContent || "";
           const cleanedLabel = rawLabel.replace(/\*/g, "").trim();
-          let question = cleanedLabel;
+          // Preferir data-question si está presente para evitar depender del texto visible
+          const dataQuestion = (labelElement as HTMLElement).dataset?.question;
+          let question =
+            dataQuestion && dataQuestion.length > 0
+              ? dataQuestion
+              : cleanedLabel;
 
           // Caso especial: la etiqueta incluye el ejemplo para "unique qualities"
           if (cleanedLabel.startsWith(Q_UNIQUE_QUALITIES)) {
@@ -250,10 +332,32 @@ export default function FormularioModal({
         }
       }
 
-      // Llamar a la acción del servidor
+      // Mezclar con los datos existentes para evitar perder claves no editadas
+      const mergedFormData: Record<string, unknown> = {
+        ...(datosFormulario || {}),
+        ...completeFormData,
+      };
+
+      // Filtrar: solo enviar las claves del cuestionario permitidas
+      const sanitizedFormData = Object.fromEntries(
+        Object.entries(mergedFormData).filter(([key, value]) => {
+          if (!ALLOWED_QUESTIONS.has(key)) {
+            // Ignorar cualquier campo "desconocido" como notas u otras estructuras ajenas
+            return false;
+          }
+          // Aceptar valores que tengan contenido
+          if (typeof value === "string") return value.trim().length > 0;
+          if (Array.isArray(value)) return value.length > 0;
+          if (value && typeof value === "object")
+            return Object.keys(value).length > 0;
+          return value !== undefined && value !== null;
+        })
+      );
+
+      // Llamar a la acción del servidor con el objeto completo
       const result = await guardarDatosFormulario(
         candidateId || user?.id || "",
-        completeFormData
+        sanitizedFormData
       );
       if (result.success) {
         // Llamar a onSave para actualizar la UI
@@ -273,12 +377,6 @@ export default function FormularioModal({
     }
   };
 
-  console.log(
-    "\n\n [FormularioModal] datosFormulario",
-    datosFormulario,
-    "\n\n"
-  );
-
   if (!isOpen) return null;
 
   return (
@@ -297,7 +395,10 @@ export default function FormularioModal({
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           {/* Nombre */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_NAME}
+              className="block text-sm font-medium text-gray-700"
+            >
               What is your preferred first and last name?
               <span className="text-red-500">*</span>
             </label>
@@ -306,21 +407,17 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               required
               disabled={readOnly}
-              value={
-                formData["What is your preferred first and last name?"] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "What is your preferred first and last name?",
-                  e.target.value
-                )
-              }
+              value={formData[Q_NAME] || ""}
+              onChange={(e) => handleInputChange(Q_NAME, e.target.value)}
             />
           </div>
 
           {/* WhatsApp */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_WHATSAPP}
+              className="block text-sm font-medium text-gray-700"
+            >
               What phone number do you use for WhatsApp?
               <span className="text-red-500">*</span>
             </label>
@@ -329,21 +426,17 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               required
               disabled={readOnly}
-              value={
-                formData["What phone number do you use for WhatsApp?"] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "What phone number do you use for WhatsApp?",
-                  e.target.value
-                )
-              }
+              value={formData[Q_WHATSAPP] || ""}
+              onChange={(e) => handleInputChange(Q_WHATSAPP, e.target.value)}
             />
           </div>
 
           {/* Ciudad y País */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_CITY_COUNTRY}
+              className="block text-sm font-medium text-gray-700"
+            >
               In which city and country do you live?
               <span className="text-red-500">*</span>
             </label>
@@ -352,12 +445,9 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               required
               disabled={readOnly}
-              value={formData["In which city and country do you live?"] || ""}
+              value={formData[Q_CITY_COUNTRY] || ""}
               onChange={(e) =>
-                handleInputChange(
-                  "In which city and country do you live?",
-                  e.target.value
-                )
+                handleInputChange(Q_CITY_COUNTRY, e.target.value)
               }
             />
           </div>
@@ -418,7 +508,10 @@ export default function FormularioModal({
 
           {/* Gmail */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_GMAIL}
+              className="block text-sm font-medium text-gray-700"
+            >
               If you have a Gmail email address, what is it? <br />
               (Some training documents are most easily shared with google
               accounts.)
@@ -429,23 +522,17 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               required
               disabled={readOnly}
-              value={
-                formData[
-                  "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)"
-                ] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)",
-                  e.target.value
-                )
-              }
+              value={formData[Q_GMAIL] || ""}
+              onChange={(e) => handleInputChange(Q_GMAIL, e.target.value)}
             />
           </div>
 
           {/* 3 palabras */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_THREE_WORDS}
+              className="block text-sm font-medium text-gray-700"
+            >
               What 3 words best describe you and why?
               <span className="text-red-500">*</span>
             </label>
@@ -454,19 +541,17 @@ export default function FormularioModal({
               rows={3}
               required
               disabled={readOnly}
-              value={formData["What 3 words best describe you and why?"] || ""}
-              onChange={(e) =>
-                handleInputChange(
-                  "What 3 words best describe you and why?",
-                  e.target.value
-                )
-              }
+              value={formData[Q_THREE_WORDS] || ""}
+              onChange={(e) => handleInputChange(Q_THREE_WORDS, e.target.value)}
             ></textarea>
           </div>
 
           {/* Cualidades únicas */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_UNIQUE_QUALITIES}
+              className="block text-sm font-medium text-gray-700"
+            >
               {Q_UNIQUE_QUALITIES}
               <span className="text-red-500">*</span>
               <br />
@@ -489,7 +574,10 @@ export default function FormularioModal({
 
           {/* Experiencia previa */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_PREV_EXPERIENCE}
+              className="block text-sm font-medium text-gray-700"
+            >
               Please write a few sentences about any previous experiences you
               have had doing services like Customer Service, Call Center, or
               Administrative Assistance
@@ -500,23 +588,19 @@ export default function FormularioModal({
               rows={3}
               required
               disabled={readOnly}
-              value={
-                formData[
-                  "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance"
-                ] || ""
-              }
+              value={formData[Q_PREV_EXPERIENCE] || ""}
               onChange={(e) =>
-                handleInputChange(
-                  "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance",
-                  e.target.value
-                )
+                handleInputChange(Q_PREV_EXPERIENCE, e.target.value)
               }
             ></textarea>
           </div>
 
           {/* Nivel de inglés */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_ENGLISH_CALLS}
+              className="block text-sm font-medium text-gray-700"
+            >
               {Q_ENGLISH_CALLS}
               <span className="text-red-500">*</span>
             </label>
@@ -617,7 +701,10 @@ export default function FormularioModal({
 
           {/* RAM */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_RAM}
+              className="block text-sm font-medium text-gray-700"
+            >
               How much RAM is available on your computer?
               <span className="text-red-500">*</span>
             </label>
@@ -626,21 +713,17 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               required
               disabled={readOnly}
-              value={
-                formData["How much RAM is available on your computer?"] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "How much RAM is available on your computer?",
-                  e.target.value
-                )
-              }
+              value={formData[Q_RAM] || ""}
+              onChange={(e) => handleInputChange(Q_RAM, e.target.value)}
             />
           </div>
 
           {/* Monitores */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_MONITORS}
+              className="block text-sm font-medium text-gray-700"
+            >
               How many monitors do you currently have/use for work?
               <span className="text-red-500">*</span>
             </label>
@@ -649,23 +732,17 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               required
               disabled={readOnly}
-              value={
-                formData[
-                  "How many monitors do you currently have/use for work?"
-                ] || ""
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "How many monitors do you currently have/use for work?",
-                  e.target.value
-                )
-              }
+              value={formData[Q_MONITORS] || ""}
+              onChange={(e) => handleInputChange(Q_MONITORS, e.target.value)}
             />
           </div>
 
           {/* Headset */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_HEADSET_HAVE}
+              className="block text-sm font-medium text-gray-700"
+            >
               What type of headset do you currently have? How does it connect
               with your computer?
               <span className="text-red-500">*</span>
@@ -675,23 +752,19 @@ export default function FormularioModal({
               rows={2}
               required
               disabled={readOnly}
-              value={
-                formData[
-                  "What type of headset do you currently have? How does it connect with your computer?"
-                ] || ""
-              }
+              value={formData[Q_HEADSET_HAVE] || ""}
               onChange={(e) =>
-                handleInputChange(
-                  "What type of headset do you currently have? How does it connect with your computer?",
-                  e.target.value
-                )
+                handleInputChange(Q_HEADSET_HAVE, e.target.value)
               }
             ></textarea>
           </div>
 
           {/* Proveedor de Internet */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_ISP}
+              className="block text-sm font-medium text-gray-700"
+            >
               What Internet provider do you use?
               <span className="text-red-500">*</span>
             </label>
@@ -700,19 +773,17 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               required
               disabled={readOnly}
-              value={formData["What Internet provider do you use?"] || ""}
-              onChange={(e) =>
-                handleInputChange(
-                  "What Internet provider do you use?",
-                  e.target.value
-                )
-              }
+              value={formData[Q_ISP] || ""}
+              onChange={(e) => handleInputChange(Q_ISP, e.target.value)}
             />
           </div>
 
           {/* URL del proveedor */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              data-question={Q_PROVIDER_URL}
+              className="block text-sm font-medium text-gray-700"
+            >
               What is the URL for their website?
               <span className="text-red-500">*</span>
             </label>
@@ -721,12 +792,9 @@ export default function FormularioModal({
               className="w-full p-2 border border-gray-300 rounded-md"
               required
               disabled={readOnly}
-              value={formData["What is the URL for their website?"] || ""}
+              value={formData[Q_PROVIDER_URL] || ""}
               onChange={(e) =>
-                handleInputChange(
-                  "What is the URL for their website?",
-                  e.target.value
-                )
+                handleInputChange(Q_PROVIDER_URL, e.target.value)
               }
             />
           </div>

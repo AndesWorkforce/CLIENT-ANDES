@@ -64,7 +64,7 @@ export default function ActivityLogModal({
     setIsLoading(true);
     try {
       const response = await getCandidateActivityLogs(candidateId);
-      console.log("response", response);
+
       if (!response.success) {
         addNotification(
           "Error loading activity logs: " + response.message,
@@ -73,9 +73,29 @@ export default function ActivityLogModal({
         return;
       }
 
-      setLogs(response.data?.data?.registrosBitacora || []);
-      setPostulante(response.data?.data?.postulante || null);
-      setTotalRegistros(response.data?.data?.totalRegistros || 0);
+      // La API debería retornar directamente { postulante, registrosBitacora, totalRegistros }
+      // pero dejamos soporte para respuestas envueltas en { data: { ... } } por compatibilidad.
+      const payload =
+        response?.data?.registrosBitacora !== undefined
+          ? response.data
+          : response?.data?.data?.registrosBitacora !== undefined
+          ? response.data.data
+          : null;
+
+      if (!payload) {
+        // Si no pudimos determinar la forma, asumimos vacío pero sin romper la UI
+        setLogs([]);
+        setPostulante(null);
+        setTotalRegistros(0);
+      } else {
+        setLogs(
+          Array.isArray(payload.registrosBitacora)
+            ? payload.registrosBitacora
+            : []
+        );
+        setPostulante(payload.postulante || null);
+        setTotalRegistros(payload.totalRegistros || 0);
+      }
     } catch (error) {
       console.error("[Dashboard] Error getting candidate logs:", error);
       addNotification("Error loading activity logs", "error");

@@ -125,6 +125,93 @@ export default function ProfilePage() {
     return true; // números, booleanos true, etc. cuentan como valor
   };
 
+  // Lista estricta de preguntas requeridas del cuestionario (claves canónicas)
+  const Q_NAME = "What is your preferred first and last name?";
+  const Q_WHATSAPP = "What phone number do you use for WhatsApp?";
+  const Q_CITY_COUNTRY = "In which city and country do you live?";
+  const Q_GMAIL =
+    "If you have a Gmail email address, what is it? (Some training documents are most easily shared with google accounts.)";
+  const Q_THREE_WORDS = "What 3 words best describe you and why?";
+  const Q_UNIQUE_QUALITIES =
+    "What unique qualities make your services stand out?";
+  const Q_PREV_EXPERIENCE =
+    "Please write a few sentences about any previous experiences you have had doing services like Customer Service, Call Center, or Administrative Assistance";
+  const Q_ENGLISH_CALLS =
+    "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers? Please explain your answer.";
+  const Q_COMPUTER_TYPE = "What type of computer do you use?";
+  const Q_RAM = "How much RAM is available on your computer?";
+  const Q_MONITORS = "How many monitors do you currently have/use for work?";
+  const Q_HEADSET_HAVE =
+    "What type of headset do you currently have? How does it connect with your computer?";
+  const Q_ISP = "What Internet provider do you use?";
+  const Q_PROVIDER_URL = "What is the URL for their website?";
+  const Q_WIRED = "Do you use a wired internet connection?";
+  const Q_REFERRED = "Have you been referred by someone?";
+  const Q_REFERRER_NAME = "Referrer Name";
+
+  const REQUIRED_QUESTIONS = [
+    Q_NAME,
+    Q_WHATSAPP,
+    Q_CITY_COUNTRY,
+    Q_REFERRED,
+    Q_GMAIL,
+    Q_THREE_WORDS,
+    Q_UNIQUE_QUALITIES,
+    Q_PREV_EXPERIENCE,
+    Q_ENGLISH_CALLS,
+    Q_COMPUTER_TYPE,
+    Q_RAM,
+    Q_MONITORS,
+    Q_HEADSET_HAVE,
+    Q_ISP,
+    Q_PROVIDER_URL,
+    Q_WIRED,
+  ];
+
+  // Valida que TODAS las preguntas requeridas estén respondidas (no solo que exista un objeto)
+  const formularioIsComplete = (() => {
+    if (!formularioData || typeof formularioData !== "object") return false;
+
+    // Helper para obtener valor string no vacío
+    const hasText = (v: unknown) =>
+      typeof v === "string" && v.trim().length > 0;
+
+    // Validar preguntas estándar
+    for (const key of REQUIRED_QUESTIONS) {
+      if (
+        !hasMeaningfulValue((formularioData as Record<string, unknown>)[key])
+      ) {
+        return false;
+      }
+    }
+
+    // Validaciones especiales
+    // 1) Tipo de computadora: si es "Other:" debe tener texto adicional
+    const comp = (formularioData as Record<string, unknown>)[Q_COMPUTER_TYPE];
+    if (typeof comp === "string" && comp.toLowerCase().startsWith("other")) {
+      const rest = comp.split(":")[1]?.trim() || "";
+      if (rest.length === 0) return false;
+    }
+
+    // 2) Referidos: si es Yes, debe existir Referrer Name
+    const referred = (formularioData as Record<string, unknown>)[Q_REFERRED];
+    if (
+      referred === "Yes" &&
+      !hasText((formularioData as Record<string, unknown>)[Q_REFERRER_NAME])
+    ) {
+      return false;
+    }
+
+    // 3) Conexión cableada: debe ser uno de Yes/No/Sometimes
+    const wired = (formularioData as Record<string, unknown>)[Q_WIRED];
+    if (!(wired === "Yes" || wired === "No" || wired === "Sometimes")) {
+      return false;
+    }
+
+    return true;
+  })();
+
+  // También detectamos si hay algún contenido (para decidir si mostrar Edit vs Add en la tarjeta)
   const formularioHasContent = !!(
     formularioData &&
     Object.values(formularioData).some((v) => hasMeaningfulValue(v))
@@ -388,7 +475,7 @@ export default function ProfilePage() {
   };
 
   const isVisibleNotification =
-    formularioHasContent &&
+    formularioIsComplete &&
     Boolean(profile.archivos.videoPresentacion) &&
     profile.experiencia.length > 0 &&
     profile.educacion.length > 0 &&
@@ -420,7 +507,7 @@ export default function ProfilePage() {
   //   profile.datosPersonales.residencia;
 
   const hasPendingCards =
-    !formularioHasContent ||
+    !formularioIsComplete ||
     profile.habilidades.length === 0 ||
     !profile.archivos.videoPresentacion ||
     isVisibleNotification2 ||
