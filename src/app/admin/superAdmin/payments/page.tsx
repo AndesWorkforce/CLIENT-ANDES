@@ -41,6 +41,8 @@ type UserContract = {
   // Agregar campos para el mes anterior
   mesAnteriorAprobado?: boolean;
   evaluacionMesAnteriorId?: string | null;
+  // Información de la empresa/cliente
+  companyName?: string | null;
 };
 
 interface ActionLog {
@@ -111,6 +113,7 @@ export default function PaymentsPage() {
       const dataToExport = users.map((user) => ({
         "Full Name": `${user.firstName} ${user.lastName}`,
         Email: user.email,
+        Company: user.companyName || "N/A",
         "Document This Month": user.documentUploadedThisMonth ? "Yes" : "No",
         "Last Document Date": user.lastDocumentDate || "N/A",
         "Payment Enabled": user.paymentEnabled ? "Yes" : "No",
@@ -132,6 +135,7 @@ export default function PaymentsPage() {
       const columnWidths = [
         { wch: 25 }, // Full Name
         { wch: 30 }, // Email
+        { wch: 25 }, // Company
         { wch: 20 }, // Document This Month
         { wch: 18 }, // Last Document Date
         { wch: 15 }, // Payment Enabled
@@ -226,6 +230,8 @@ export default function PaymentsPage() {
               // Agregar campos para el mes anterior
               mesAnteriorAprobado: contrato.mesAnteriorAprobado || false,
               evaluacionMesAnteriorId: contrato.evaluacionMesAnteriorId || null,
+              // Información de la empresa/cliente
+              companyName: contrato.clienteNombre || null,
             }));
 
           setUsers(transformedUsers);
@@ -737,6 +743,24 @@ export default function PaymentsPage() {
               </th>
               <th
                 className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("companyName")}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Company</span>
+                  <div className="flex flex-col text-xs text-gray-400">
+                    {sortKey === "companyName" && sortDirection === "asc" ? (
+                      <span className="text-blue-600">▲</span>
+                    ) : sortKey === "companyName" &&
+                      sortDirection === "desc" ? (
+                      <span className="text-blue-600">▼</span>
+                    ) : (
+                      <span className="opacity-50">⇅</span>
+                    )}
+                  </div>
+                </div>
+              </th>
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
                 onClick={() => handleSort("documentUploadedThisMonth")}
               >
                 <div className="flex items-center space-x-1">
@@ -809,6 +833,11 @@ export default function PaymentsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-[#17323A]">{user.email}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-[#17323A]">
+                      {user.companyName || "N/A"}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -921,7 +950,7 @@ export default function PaymentsPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center">
+                <td colSpan={8} className="px-6 py-12 text-center">
                   <div className="text-gray-500">
                     {search
                       ? "No users found for this search"

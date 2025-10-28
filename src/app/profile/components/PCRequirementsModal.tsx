@@ -107,7 +107,11 @@ export default function PCRequirementsModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!pcScreenshot || !internetScreenshot) {
+    // Verificar que al menos tengamos una imagen para PC y una para internet (ya sea nueva o existente)
+    if (
+      (!pcScreenshot && !pcPreviewUrl) ||
+      (!internetScreenshot && !internetPreviewUrl)
+    ) {
       addNotification("Please select both screenshots", "error");
       return;
     }
@@ -121,20 +125,27 @@ export default function PCRequirementsModal({
     setUploadProgress(10);
     console.log("[PCRequirements] Iniciando el proceso de subida de imágenes");
     try {
-      const pcImageUrl = await uploadImage(pcScreenshot, "PC specs");
+      // Subir imagen de PC solo si hay un archivo nuevo
+      let pcImageUrl = pcPreviewUrl || "";
+      if (pcScreenshot) {
+        pcImageUrl = await uploadImage(pcScreenshot, "PC specs");
+        console.log("[PCRequirements] URL de la imagen de PC:", pcImageUrl);
+      }
       setUploadProgress(50);
 
-      console.log("[PCRequirements] URL de la imagen de PC:", pcImageUrl);
-      const internetImageUrl = await uploadImage(
-        internetScreenshot,
-        "Internet speed"
-      );
+      // Subir imagen de internet solo si hay un archivo nuevo
+      let internetImageUrl = internetPreviewUrl || "";
+      if (internetScreenshot) {
+        internetImageUrl = await uploadImage(
+          internetScreenshot,
+          "Internet speed"
+        );
+        console.log(
+          "[PCRequirements] URL de la imagen de internet:",
+          internetImageUrl
+        );
+      }
       setUploadProgress(80);
-
-      console.log(
-        "[PCRequirements] URL de la imagen de internet:",
-        internetImageUrl
-      );
 
       const result = await savePCRequirementsImages(
         candidateId || user.id,
@@ -336,9 +347,15 @@ export default function PCRequirementsModal({
           <div className="flex flex-col space-y-2">
             <button
               onClick={handleSubmit}
-              disabled={!pcScreenshot || !internetScreenshot || isUploading}
+              disabled={
+                (!pcScreenshot && !pcPreviewUrl) ||
+                (!internetScreenshot && !internetPreviewUrl) ||
+                isUploading
+              }
               className={`w-full py-2.5 px-6 rounded-md font-medium cursor-pointer ${
-                !pcScreenshot || !internetScreenshot || isUploading
+                (!pcScreenshot && !pcPreviewUrl) ||
+                (!internetScreenshot && !internetPreviewUrl) ||
+                isUploading
                   ? "bg-[#B6B4B4] text-gray-700 cursor-not-allowed"
                   : "bg-[#0097B2] text-white"
               }`}
