@@ -152,9 +152,11 @@ export default function TestimonialsSection() {
                           <div
                             className="mb-6 flex items-center justify-center h-[var(--logo-wrap)] md:h-[var(--logo-wrap-md)]"
                             style={{
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
                               ["--logo-wrap" as any]: `${
                                 (testimonial.logoMaxHeight ?? 64) as number
                               }px`,
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
                               ["--logo-wrap-md" as any]: `${
                                 (testimonial.logoMaxHeightMd ??
                                   testimonial.logoMaxHeight ??

@@ -86,8 +86,8 @@ export default function AboutPage() {
           </p>
 
           <blockquote className="text-lg md:text-xl text-gray-700 italic border-l-4 border-[#0097B2] pl-4 my-8">
-            "Become the owner of your time, it is a currency that cannot be
-            replaced" Miguel Rendon
+            &quot;Become the owner of your time, it is a currency that cannot be
+            replaced&quot; Miguel Rendon
           </blockquote>
 
           {/* Información de contacto */}
