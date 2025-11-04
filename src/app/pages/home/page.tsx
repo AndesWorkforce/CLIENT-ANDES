@@ -15,6 +15,9 @@ export default function HomePage() {
       {/* Partners Section */}
       <PartnersSection />
 
+      {/* Personnel Types Section */}
+      <PersonnelTypes />
+
       {/* Services Section */}
       <ServicesSection />
 
@@ -23,9 +26,6 @@ export default function HomePage() {
 
       {/* Contact CTA Section */}
       <ContactCTA />
-
-      {/* Personnel Types Section */}
-      <PersonnelTypes />
 
       {/* About Section */}
       <AboutSection />
