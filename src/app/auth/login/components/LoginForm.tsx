@@ -10,11 +10,13 @@ import { loginAction } from "../actions/login.action";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useAuthStore } from "@/store/auth.store";
 import CryptoJS from "crypto-js";
+import { useRouter } from "next/navigation";
 
 const REMEMBER_KEY = "andes_remembered_email";
 const SECRET = process.env.NEXT_PUBLIC_CRYPTO_KEY || "default-secret-key";
 
 export default function LoginForm() {
+  const router = useRouter();
   const { setUser, setAuthenticated, setToken } = useAuthStore();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,6 +88,31 @@ export default function LoginForm() {
         const result = await loginAction(data);
 
         if (result.success) {
+          const roles =
+            (result.data?.usuario?.roles as string[] | undefined) || [];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const selectedWasProvided = Boolean((data as any).selectedRole);
+
+          // Si el usuario tiene múltiples roles y aún no seleccionó uno, abrir selector y no redirigir aún
+          if (roles.length > 1 && !selectedWasProvided) {
+            try {
+              const payload = JSON.stringify({
+                correo: data.correo,
+                contrasena: data.contrasena,
+                roles,
+              });
+              const encrypted = CryptoJS.AES.encrypt(
+                payload,
+                SECRET
+              ).toString();
+              sessionStorage.setItem("andes_pending_login", encrypted);
+            } catch (e) {
+              console.error("Error preparing pending login payload", e);
+            }
+            router.push("/auth/login/select-role");
+            return;
+          }
+
           addNotification("Successfully logged in", "success");
           setUser(result.data?.usuario);
           setAuthenticated(true);
@@ -138,6 +165,8 @@ export default function LoginForm() {
       setIsSubmitting(false);
     }
   };
+
+  // onSelectRole fue movido a la vista dedicada /auth/login/select-role
 
   return (
     <div className="flex-1 text-black h-full flex flex-col">
@@ -246,6 +275,7 @@ export default function LoginForm() {
           </p>
         </div>
       </form>
+      {/* El selector de rol ahora es una vista dedicada en /auth/login/select-role */}
     </div>
   );
 }

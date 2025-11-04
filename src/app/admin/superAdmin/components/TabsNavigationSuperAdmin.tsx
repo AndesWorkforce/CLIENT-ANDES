@@ -1,5 +1,6 @@
 "use client";
 
+import { UserCog } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -302,6 +303,17 @@ export default function TabsNavigationSuperAdmin() {
                 />
               </svg>
               Manage Payments
+            </Link>
+            <Link
+              href="/admin/superAdmin/users-roles"
+              className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
+                pathname === "/admin/superAdmin/users-roles"
+                  ? "bg-[#B6B4B4] text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <UserCog size={15} />
+              Multiple functions
             </Link>
           </div>
         </div>
