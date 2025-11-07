@@ -14,6 +14,7 @@ import {
   removeUsuarioCompanyEmployee,
   type CompanyAssociation,
   moveCompanyResponsible,
+  clearCompanyResponsible,
 } from "./actions/users-roles.actions";
 import { useNotificationStore } from "@/store/notifications.store";
 import { Search, Pencil, Shield, Building2, User, Info } from "lucide-react";
@@ -59,6 +60,11 @@ export default function SuperAdminUsersRolesPage() {
   const [assocLoading, setAssocLoading] = useState(false);
   const [companyAssociation, setCompanyAssociation] =
     useState<CompanyAssociation | null>(null);
+  // Pending multi-add lists
+  const [pendingResponsible, setPendingResponsible] = useState<CompanyItem[]>(
+    []
+  );
+  const [pendingEmployees, setPendingEmployees] = useState<CompanyItem[]>([]);
 
   const debouncedQuery = useDebounce(query, 300);
   const MIN_SEARCH_LEN = 3;
@@ -141,17 +147,11 @@ export default function SuperAdminUsersRolesPage() {
       const res = await getUsuarioCompanyAssociation(editingUserId);
       if (res.success && res.data) {
         setCompanyAssociation(res.data as CompanyAssociation);
-        // Pre-fill selectedCompany if any association exists to provide context
-        if (res.data.responsibleCompany) {
-          setSelectedCompany(res.data.responsibleCompany);
-          setCompanyQuery(res.data.responsibleCompany.nombre);
-        } else if (res.data.employeeCompany) {
-          setSelectedCompany(res.data.employeeCompany.empresa);
-          setCompanyQuery(res.data.employeeCompany.empresa.nombre);
-        } else {
-          setSelectedCompany(null);
-          setCompanyQuery("");
-        }
+        // Do not auto-select a company; user can pick one to add/assign
+        setSelectedCompany(null);
+        setCompanyQuery("");
+        setPendingResponsible([]);
+        setPendingEmployees([]);
       } else {
         setCompanyAssociation(null);
       }
@@ -185,57 +185,61 @@ export default function SuperAdminUsersRolesPage() {
       return;
     }
 
-    // If EMPLEADO_EMPRESA is selected, require a company to be chosen
     const isCompanyEmployee = roles.includes("EMPLEADO_EMPRESA");
-    if (isCompanyEmployee && !selectedCompany) {
-      addNotification(
-        "Select a company for the Company Employee role",
-        "warning"
-      );
-      return;
-    }
+    const isCompanyResponsible = roles.includes("EMPRESA");
 
     // No cross-side restriction: any combination is allowed. Keep only minimum one role validation.
     const res = await updateUsuarioRoles(user.id, roles);
     if (res.success) {
-      // If the user is set as company employee, link to selected company now
-      if (isCompanyEmployee && selectedCompany) {
-        const assign = await assignUsuarioToCompanyEmployee(
-          user.id,
-          selectedCompany.id,
-          "employee"
-        );
-        if (!assign.success) {
-          addNotification(
-            assign.message || "Error assigning to company",
-            "error"
-          );
-          return;
-        }
-      }
-
-      // Assign/change responsible:
-      if (selectedCompany) {
-        const currentResp = companyAssociation?.responsibleCompany;
-        if (currentResp && selectedCompany.id !== currentResp.id) {
-          // Move in one server-side operation: clears previous and assigns new
-          const moved = await moveCompanyResponsible(
-            selectedCompany.id,
-            user.id
-          );
-          if (!moved.success) {
+      // If Company role was removed, automatically clear existing responsible associations
+      if (
+        !isCompanyResponsible &&
+        companyAssociation?.responsibleCompanies?.length
+      ) {
+        for (const c of companyAssociation.responsibleCompanies) {
+          const cleared = await clearCompanyResponsible(c.id, user.id);
+          if (!cleared.success) {
             addNotification(
-              moved.message || "Error moving company responsible",
+              cleared.message || `Error removing responsible from ${c.nombre}`,
               "error"
             );
             return;
           }
-        } else {
-          // No current responsible or same company: simple assign
-          const resp = await setCompanyResponsible(selectedCompany.id, user.id);
+        }
+      }
+      // Add multiple employee associations
+      if (isCompanyEmployee && pendingEmployees.length > 0) {
+        const existingEmpIds = new Set(
+          (companyAssociation?.employeeCompanies || []).map((e) => e.empresa.id)
+        );
+        for (const c of pendingEmployees) {
+          if (existingEmpIds.has(c.id)) continue;
+          const assign = await assignUsuarioToCompanyEmployee(
+            user.id,
+            c.id,
+            "employee"
+          );
+          if (!assign.success) {
+            addNotification(
+              assign.message || `Error assigning ${c.nombre}`,
+              "error"
+            );
+            return;
+          }
+        }
+      }
+
+      // Add multiple responsible associations
+      if (pendingResponsible.length > 0) {
+        const currentRespIds = new Set(
+          companyAssociation?.responsibleCompanies?.map((c) => c.id) || []
+        );
+        for (const c of pendingResponsible) {
+          if (currentRespIds.has(c.id)) continue;
+          const resp = await setCompanyResponsible(c.id, user.id);
           if (!resp.success) {
             addNotification(
-              resp.message || "Error assigning as company responsible",
+              resp.message || `Error assigning as responsible: ${c.nombre}`,
               "error"
             );
             return;
@@ -249,6 +253,8 @@ export default function SuperAdminUsersRolesPage() {
       setCompanyResults([]);
       setSelectedCompany(null);
       setCompanyAssociation(null);
+      setPendingResponsible([]);
+      setPendingEmployees([]);
       // refresh list after save
       const refreshed = await searchUsuarios(debouncedQuery, 1, 20);
       if (refreshed.success && refreshed.data) setUsers(refreshed.data.items);
@@ -257,18 +263,48 @@ export default function SuperAdminUsersRolesPage() {
     }
   };
 
-  const onRemoveEmployeeFromCompany = async () => {
-    if (!companyAssociation?.employeeCompany) return;
-    const empleadoId = companyAssociation.employeeCompany.empleadoId;
+  const onRemoveEmployeeFromCompany = async (empleadoId: string) => {
     const res = await removeUsuarioCompanyEmployee(empleadoId);
     if (res.success) {
       addNotification("Employee unassigned from company", "success");
       setCompanyAssociation((prev) =>
-        prev ? { ...prev, employeeCompany: null } : prev
+        prev
+          ? {
+              ...prev,
+              employeeCompanies: prev.employeeCompanies.filter(
+                (e) => e.empleadoId !== empleadoId
+              ),
+            }
+          : prev
       );
     } else {
       addNotification(
         res.message || "Error removing employee from company",
+        "error"
+      );
+    }
+  };
+
+  const onRemoveResponsibleFromCompany = async (
+    companyId: string,
+    userId: string
+  ) => {
+    const res = await clearCompanyResponsible(companyId, userId);
+    if (res.success) {
+      addNotification("Responsible removed from company", "success");
+      setCompanyAssociation((prev) =>
+        prev
+          ? {
+              ...prev,
+              responsibleCompanies: prev.responsibleCompanies.filter(
+                (c) => c.id !== companyId
+              ),
+            }
+          : prev
+      );
+    } else {
+      addNotification(
+        res.message || "Error removing responsible from company",
         "error"
       );
     }
@@ -391,110 +427,229 @@ export default function SuperAdminUsersRolesPage() {
                     <div className="h-px bg-gray-100" />
 
                     {/* Company association */}
-                    <div className="w-full">
-                      <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-                        Company association
-                      </h3>
+                    {(() => {
+                      const hasCompany = !!selectedRoles[u.id]?.has("EMPRESA");
+                      const hasCompanyEmployee =
+                        !!selectedRoles[u.id]?.has("EMPLEADO_EMPRESA");
+                      if (!hasCompany && !hasCompanyEmployee) return null;
+                      return (
+                        <div className="w-full">
+                          <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                            Company association
+                          </h3>
 
-                      {/* Current association summary */}
-                      <div className="text-xs text-gray-700 mb-2 flex flex-wrap gap-2">
-                        {assocLoading ? (
-                          <span>Loading current associations…</span>
-                        ) : companyAssociation ? (
-                          <>
-                            {companyAssociation.responsibleCompany && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E6F7FB] text-[#007B8E]">
-                                <Building2 size={14} /> Responsible:{" "}
-                                {companyAssociation.responsibleCompany.nombre}
-                              </span>
-                            )}
-                            {companyAssociation.employeeCompany && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#17323A]">
-                                <User size={14} /> Employee at:{" "}
-                                {
-                                  companyAssociation.employeeCompany.empresa
-                                    .nombre
-                                }
+                          {/* Current association summary */}
+                          <div className="text-xs text-gray-700 mb-2 flex flex-wrap gap-2">
+                            {assocLoading ? (
+                              <span>Loading current associations…</span>
+                            ) : companyAssociation ? (
+                              <>
+                                {(
+                                  companyAssociation.responsibleCompanies || []
+                                ).map((c) => (
+                                  <span
+                                    key={`resp-${c.id}`}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E6F7FB] text-[#007B8E]"
+                                  >
+                                    <Building2 size={14} /> Responsible:{" "}
+                                    {c.nombre}
+                                    <button
+                                      type="button"
+                                      className="ml-2 text-[#B20000] hover:underline cursor-pointer"
+                                      onClick={() =>
+                                        onRemoveResponsibleFromCompany(
+                                          c.id,
+                                          editingUserId!
+                                        )
+                                      }
+                                    >
+                                      Remove
+                                    </button>
+                                  </span>
+                                ))}
+                                {(
+                                  companyAssociation.employeeCompanies || []
+                                ).map((e) => (
+                                  <span
+                                    key={`emp-${e.empleadoId}`}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#17323A]"
+                                  >
+                                    <User size={14} /> Employee at:{" "}
+                                    {e.empresa.nombre}
+                                    <button
+                                      type="button"
+                                      className="ml-2 text-[#B20000] hover:underline"
+                                      onClick={() =>
+                                        onRemoveEmployeeFromCompany(
+                                          e.empleadoId
+                                        )
+                                      }
+                                    >
+                                      Remove
+                                    </button>
+                                  </span>
+                                ))}
+                                {(!companyAssociation.responsibleCompanies ||
+                                  companyAssociation.responsibleCompanies
+                                    .length === 0) &&
+                                  (!companyAssociation.employeeCompanies ||
+                                    companyAssociation.employeeCompanies
+                                      .length === 0) && (
+                                    <span className="text-gray-500">
+                                      No current company association
+                                    </span>
+                                  )}
+                              </>
+                            ) : null}
+                          </div>
+
+                          {/* Helper note */}
+                          <div className="flex items-start gap-2 text-[11px] text-gray-500 mb-2">
+                            <Info
+                              size={14}
+                              className="mt-[2px] text-gray-400"
+                            />
+                            <span>
+                              A user can be associated with multiple companies
+                              as responsible and/or employee. Use the selector
+                              below to add associations.
+                            </span>
+                          </div>
+
+                          {/* Company search */}
+                          <div className="relative max-w-md">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Building2 size={16} className="text-gray-400" />
+                            </div>
+                            <input
+                              className="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#0097B2] focus:border-[#0097B2]"
+                              placeholder="Search company by name..."
+                              value={companyQuery}
+                              onChange={(e) => setCompanyQuery(e.target.value)}
+                              ref={companyInputRef}
+                            />
+                          </div>
+                          {companyLoading ? (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Searching companies...
+                            </div>
+                          ) : companyResults.length > 0 ? (
+                            <div className="mt-1 border rounded-lg max-w-md bg-white shadow-sm max-h-40 overflow-auto">
+                              {companyResults.map((c) => (
                                 <button
+                                  key={c.id}
                                   type="button"
-                                  className="ml-2 text-[#B20000] hover:underline"
-                                  onClick={onRemoveEmployeeFromCompany}
+                                  className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${
+                                    selectedCompany?.id === c.id
+                                      ? "bg-[#EBFFF9]"
+                                      : ""
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedCompany(c);
+                                    setCompanyQuery(c.nombre);
+                                    setCompanyResults([]);
+                                    companyInputRef.current?.blur();
+                                  }}
                                 >
-                                  Remove
+                                  {c.nombre}
                                 </button>
-                              </span>
-                            )}
-                            {!companyAssociation.responsibleCompany &&
-                              !companyAssociation.employeeCompany && (
-                                <span className="text-gray-500">
-                                  No current company association
-                                </span>
-                              )}
-                          </>
-                        ) : null}
-                      </div>
+                              ))}
+                            </div>
+                          ) : debouncedCompany && companyQuery.length >= 2 ? (
+                            <div className="text-xs text-gray-500 mt-1">
+                              No companies found
+                            </div>
+                          ) : null}
+                          {selectedCompany && (
+                            <div className="text-xs text-[#0097B2] mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#EBFFF9]">
+                              <Building2 size={14} /> Selected:{" "}
+                              {selectedCompany.nombre}
+                            </div>
+                          )}
 
-                      {/* Helper note */}
-                      <div className="flex items-start gap-2 text-[11px] text-gray-500 mb-2">
-                        <Info size={14} className="mt-[2px] text-gray-400" />
-                        <span>
-                          A user can be responsible for only one company. To
-                          move responsibility, change the current company&apos;s
-                          responsible in Companies admin first.
-                        </span>
-                      </div>
-
-                      {/* Company search */}
-                      <div className="relative max-w-md">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Building2 size={16} className="text-gray-400" />
-                        </div>
-                        <input
-                          className="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#0097B2] focus:border-[#0097B2]"
-                          placeholder="Search company by name..."
-                          value={companyQuery}
-                          onChange={(e) => setCompanyQuery(e.target.value)}
-                          ref={companyInputRef}
-                        />
-                      </div>
-                      {companyLoading ? (
-                        <div className="text-xs text-gray-500 mt-1">
-                          Searching companies...
-                        </div>
-                      ) : companyResults.length > 0 ? (
-                        <div className="mt-1 border rounded-lg max-w-md bg-white shadow-sm max-h-40 overflow-auto">
-                          {companyResults.map((c) => (
+                          {/* Staging buttons for multi-add */}
+                          <div className="mt-3 flex flex-wrap gap-2">
                             <button
-                              key={c.id}
                               type="button"
-                              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${
-                                selectedCompany?.id === c.id
-                                  ? "bg-[#EBFFF9]"
-                                  : ""
-                              }`}
+                              disabled={!selectedCompany}
+                              className="px-3 py-1 text-xs rounded bg-[#E6F7FB] text-[#007B8E] disabled:opacity-50 cursor-pointer"
                               onClick={() => {
-                                setSelectedCompany(c);
-                                setCompanyQuery(c.nombre);
-                                setCompanyResults([]);
-                                companyInputRef.current?.blur();
+                                if (!selectedCompany) return;
+                                setPendingResponsible((prev) =>
+                                  prev.find((c) => c.id === selectedCompany.id)
+                                    ? prev
+                                    : [...prev, selectedCompany]
+                                );
                               }}
                             >
-                              {c.nombre}
+                              Add as Responsible
                             </button>
-                          ))}
+                            <button
+                              type="button"
+                              disabled={!selectedCompany}
+                              className="px-3 py-1 text-xs rounded bg-[#EBFFF9] text-[#0097B2] disabled:opacity-50 cursor-pointer"
+                              onClick={() => {
+                                if (!selectedCompany) return;
+                                setPendingEmployees((prev) =>
+                                  prev.find((c) => c.id === selectedCompany.id)
+                                    ? prev
+                                    : [...prev, selectedCompany]
+                                );
+                              }}
+                            >
+                              Add as Employee
+                            </button>
+                          </div>
+
+                          {/* Pending chips */}
+                          {(pendingResponsible.length > 0 ||
+                            pendingEmployees.length > 0) && (
+                            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                              {pendingResponsible.map((c) => (
+                                <span
+                                  key={`pr-${c.id}`}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E6F7FB] text-[#007B8E]"
+                                >
+                                  <Building2 size={14} /> To add (Responsible):{" "}
+                                  {c.nombre}
+                                  <button
+                                    type="button"
+                                    className="ml-2 text-[#B20000] hover:underline cursor-pointer"
+                                    onClick={() =>
+                                      setPendingResponsible((prev) =>
+                                        prev.filter((x) => x.id !== c.id)
+                                      )
+                                    }
+                                  >
+                                    Remove
+                                  </button>
+                                </span>
+                              ))}
+                              {pendingEmployees.map((c) => (
+                                <span
+                                  key={`pe-${c.id}`}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#17323A]"
+                                >
+                                  <User size={14} /> To add (Employee):{" "}
+                                  {c.nombre}
+                                  <button
+                                    type="button"
+                                    className="ml-2 text-[#B20000] hover:underline cursor-pointer"
+                                    onClick={() =>
+                                      setPendingEmployees((prev) =>
+                                        prev.filter((x) => x.id !== c.id)
+                                      )
+                                    }
+                                  >
+                                    Remove
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      ) : debouncedCompany && companyQuery.length >= 2 ? (
-                        <div className="text-xs text-gray-500 mt-1">
-                          No companies found
-                        </div>
-                      ) : null}
-                      {selectedCompany && (
-                        <div className="text-xs text-[#0097B2] mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#EBFFF9]">
-                          <Building2 size={14} /> Selected:{" "}
-                          {selectedCompany.nombre}
-                        </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                     {/* Actions footer */}
                     <div className="mt-6">
                       <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
@@ -536,22 +691,34 @@ export default function SuperAdminUsersRolesPage() {
                         </span>
                       ))}
                     </div>
-                    <div className="text-xs text-gray-600">
-                      {u.responsibleCompany ? (
-                        <span>
-                          Responsible:{" "}
-                          <span className="text-[#17323A]">
-                            {u.responsibleCompany.nombre}
-                          </span>
+                    <div className="text-xs text-gray-600 flex flex-wrap gap-2">
+                      {(u.responsibleCompanies || []).map((c) => (
+                        <span
+                          key={`r-${c.id}`}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E6F7FB] text-[#007B8E]"
+                        >
+                          <Building2 size={14} /> {c.nombre}
+                          {editingUserId === u.id && (
+                            <button
+                              type="button"
+                              className="ml-2 text-[#B20000] hover:underline cursor-pointer"
+                              onClick={() =>
+                                onRemoveResponsibleFromCompany(c.id, u.id)
+                              }
+                            >
+                              Remove
+                            </button>
+                          )}
                         </span>
-                      ) : u.employeeCompany ? (
-                        <span>
-                          Employee at:{" "}
-                          <span className="text-[#17323A]">
-                            {u.employeeCompany.empresa.nombre}
-                          </span>
+                      ))}
+                      {(u.employeeCompanies || []).map((e) => (
+                        <span
+                          key={`e-${e.empleadoId}`}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#17323A]"
+                        >
+                          <User size={14} /> {e.empresa.nombre}
                         </span>
-                      ) : null}
+                      ))}
                     </div>
                   </div>
                 )}

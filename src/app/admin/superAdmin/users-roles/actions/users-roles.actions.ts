@@ -20,8 +20,8 @@ export interface UsuarioListItem {
   rol?: Rol; // rol principal legacy
   roles?: Rol[]; // multi-roles
   // Optional association info returned inline by backend list endpoint
-  responsibleCompany?: CompanyItem | null;
-  employeeCompany?: { empleadoId: string; empresa: CompanyItem } | null;
+  responsibleCompanies?: CompanyItem[];
+  employeeCompanies?: { empleadoId: string; empresa: CompanyItem }[];
 }
 
 // Simple company item used for selectors in admin tools
@@ -31,8 +31,8 @@ export interface CompanyItem {
 }
 
 export interface CompanyAssociation {
-  responsibleCompany: CompanyItem | null;
-  employeeCompany: { empleadoId: string; empresa: CompanyItem } | null;
+  responsibleCompanies: CompanyItem[];
+  employeeCompanies: { empleadoId: string; empresa: CompanyItem }[];
 }
 
 interface UsuariosSearchResponse extends ApiResponse {
@@ -73,18 +73,18 @@ export async function searchUsuarios(
       correo: u.correo,
       rol: u.rol,
       roles: u.roles ?? (u.rol ? [u.rol] : []),
-      responsibleCompany: u.empresa
-        ? { id: u.empresa.id, nombre: u.empresa.nombre }
-        : null,
-      employeeCompany: u.empleadoEmpresa
-        ? {
-            empleadoId: u.empleadoEmpresa.id,
-            empresa: {
-              id: u.empleadoEmpresa.empresa?.id,
-              nombre: u.empleadoEmpresa.empresa?.nombre,
-            },
-          }
-        : null,
+      responsibleCompanies: Array.isArray(u.empresasResponsable)
+        ? u.empresasResponsable.map((c: any) => ({
+            id: c.id,
+            nombre: c.nombre,
+          }))
+        : [],
+      employeeCompanies: Array.isArray(u.empleadoEmpresa)
+        ? u.empleadoEmpresa.map((e: any) => ({
+            empleadoId: e.id,
+            empresa: { id: e.empresa?.id, nombre: e.empresa?.nombre },
+          }))
+        : [],
     }));
 
     return {
@@ -296,6 +296,27 @@ export async function removeUsuarioCompanyEmployee(empleadoId: string) {
       error?.response?.data?.message ||
       error.message ||
       "Error removing employee from company";
+    return { success: false, message } as ApiResponse;
+  }
+}
+
+export async function clearCompanyResponsible(
+  empresaId: string,
+  usuarioId?: string
+) {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.patch(
+      `companies/${empresaId}/responsible/clear`,
+      usuarioId ? { usuarioId } : {}
+    );
+    return { success: true, data: response.data } as ApiResponse;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error.message ||
+      "Error clearing company responsible";
     return { success: false, message } as ApiResponse;
   }
 }

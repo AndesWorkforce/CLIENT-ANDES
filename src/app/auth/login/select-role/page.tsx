@@ -23,6 +23,11 @@ export default function SelectRolePage() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [companyStep, setCompanyStep] = useState<null | {
+    role: "EMPRESA" | "EMPLEADO_EMPRESA";
+    companies: { id: string; nombre: string; empleadoId?: string }[];
+  }>(null);
+  const [pickedRole, setPickedRole] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -57,6 +62,7 @@ export default function SelectRolePage() {
     if (!pending) return;
     try {
       setSubmitting(true);
+      setPickedRole(role);
       const result = await loginAction({
         correo: pending.correo,
         contrasena: pending.contrasena,
@@ -65,26 +71,65 @@ export default function SelectRolePage() {
       } as any);
 
       if (result.success) {
-        addNotification("Role selected. Session started.", "success");
-        setUser(result.data?.usuario);
-        setAuthenticated(true);
-        setToken(result.data?.accessToken);
-        sessionStorage.removeItem("andes_pending_login");
+        // Debug extra para validar qué devuelve el backend
+        try {
+          console.log("[SelectRole] loginAction result", result);
+        } catch {}
+        const companyOptions = result.data?.usuario?.companyOptions;
+        const needsCompanySelection = companyOptions?.needsCompanySelection;
+        const companiesCount = Array.isArray(companyOptions?.companies)
+          ? companyOptions.companies.length
+          : 0;
 
-        const activeRole = result.data?.usuario?.rol;
-        if (activeRole === "EMPRESA" || activeRole === "EMPLEADO_EMPRESA") {
-          router.replace("/companies/dashboard");
-        } else if (
-          activeRole === "ADMIN" ||
-          activeRole === "EMPLEADO_ADMIN" ||
-          activeRole === "ADMIN_RECLUTAMIENTO"
+        // Estrategia defensiva: si el rol es de compañía y hay >1 empresas, forzar selector
+        const shouldForcePick =
+          (role === "EMPRESA" || role === "EMPLEADO_EMPRESA") &&
+          companiesCount > 1;
+
+        if (
+          (role === "EMPRESA" || role === "EMPLEADO_EMPRESA") &&
+          (needsCompanySelection || shouldForcePick)
         ) {
-          router.replace("/admin/dashboard");
+          // Paso 2: elige empresa, no cerrar aún la sesión/redirect
+          setCompanyStep({
+            role: (companyOptions?.role as any) || (role as any),
+            companies: companyOptions?.companies || [],
+          });
+          // No limpiamos el pending ni seteamos user/token todavía.
+        } else if (
+          (role === "EMPRESA" || role === "EMPLEADO_EMPRESA") &&
+          companiesCount === 0
+        ) {
+          // Sin empresas asociadas, no podemos continuar con rol de compañía
+          console.warn("[SelectRole] No company associations for company role");
+          addNotification(
+            "No tienes empresas asociadas para este rol.",
+            "error"
+          );
+          setSubmitting(false);
+          return;
         } else {
-          if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
-            router.replace("/profile");
+          addNotification("Role selected. Session started.", "success");
+          setUser(result.data?.usuario);
+          setAuthenticated(true);
+          setToken(result.data?.accessToken);
+          sessionStorage.removeItem("andes_pending_login");
+
+          const activeRole = result.data?.usuario?.rol;
+          if (activeRole === "EMPRESA" || activeRole === "EMPLEADO_EMPRESA") {
+            router.replace("/companies/dashboard");
+          } else if (
+            activeRole === "ADMIN" ||
+            activeRole === "EMPLEADO_ADMIN" ||
+            activeRole === "ADMIN_RECLUTAMIENTO"
+          ) {
+            router.replace("/admin/dashboard");
           } else {
-            router.replace("/pages/offers");
+            if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
+              router.replace("/profile");
+            } else {
+              router.replace("/pages/offers");
+            }
           }
         }
       } else {
@@ -97,6 +142,81 @@ export default function SelectRolePage() {
       setSubmitting(false);
     }
   };
+
+  const onPickCompany = async (companyId: string) => {
+    if (!pending) return;
+    console.log("[DENTRO DE LA FUNCION", companyId);
+    setSubmitting(true);
+    const roleToSend = pickedRole || (companyStep?.role as string) || "EMPRESA";
+    try {
+      // Cookie temporal para que el server action la lea si el arg se pierde
+      document.cookie = `selected_company_id=${companyId}; path=/; max-age=300; samesite=strict`;
+    } catch {}
+    console.log("[SelectRole] onPickCompany payload", {
+      companyId,
+      roleToSend,
+    });
+    // Use API route to avoid server action serialization issues
+    const resp = await fetch("/api/auth/login/with-company", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        correo: pending.correo,
+        contrasena: pending.contrasena,
+        selectedRole: roleToSend,
+        selectedCompanyId: companyId,
+      }),
+    }).catch((e) => {
+      console.warn("[SelectRole] fetch error:", e);
+      return null;
+    });
+
+    if (!resp) {
+      addNotification(
+        "No se pudo contactar al servidor de autenticación.",
+        "error"
+      );
+      setSubmitting(false);
+      return;
+    }
+
+    let result: any = null;
+    try {
+      result = await resp.json();
+    } catch (e) {
+      console.warn("[SelectRole] Invalid JSON response", e);
+    }
+    console.log("[RESULT]", result);
+
+    if (resp.ok && result && result.success) {
+      const res: any = result as any;
+      addNotification("Company selected. Session started.", "success");
+      setUser(res.data?.usuario);
+      setAuthenticated(true);
+      setToken(res.data?.accessToken);
+      sessionStorage.removeItem("andes_pending_login");
+      const activeRole = res.data?.usuario?.rol;
+      if (activeRole === "EMPRESA" || activeRole === "EMPLEADO_EMPRESA") {
+        router.replace("/companies/dashboard");
+      } else {
+        router.replace("/");
+      }
+    } else {
+      const status = resp.status;
+      const msg =
+        (result as any)?.error ||
+        (status >= 500
+          ? "Error del servidor al seleccionar la empresa"
+          : status >= 400
+          ? "Datos inválidos al seleccionar la empresa"
+          : "Error selecting company");
+      console.warn("[SelectRole] Error selecting company:", msg);
+      addNotification(msg, "error");
+    }
+    setSubmitting(false);
+  };
+
+  console.log("[COMPANIES]", companyStep);
 
   if (loading) {
     return (
@@ -136,42 +256,78 @@ export default function SelectRolePage() {
           </div>
           <div>
             <h1 className="text-2xl font-semibold text-[#17323A]">
-              Select a role
+              {companyStep ? "Select a company" : "Select a role"}
             </h1>
             <p className="text-sm text-gray-600">
-              Choose the role you want to use for this session.
+              {companyStep
+                ? "Choose the company you want to use for this session."
+                : "Choose the role you want to use for this session."}
             </p>
           </div>
         </div>
 
-        {/* Grid of role cards */}
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"
-          aria-label="Available roles"
-        >
-          {roles.map((r) => {
-            const LABELS: Record<string, string> = {
-              ADMIN: "Admin",
-              EMPRESA: "Company",
-              CANDIDATO: "Candidate",
-              EMPLEADO_ADMIN: "Admin Employee",
-              EMPLEADO_EMPRESA: "Company Employee",
-              ADMIN_RECLUTAMIENTO: "Recruitment Admin",
-            };
-            const label = LABELS[r] || r;
-            const bgImage = "/images/logo-andes.png"; // default background image
-            return (
+        {/* Grid of role cards OR company cards */}
+        {!companyStep ? (
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"
+            aria-label="Available roles"
+          >
+            {roles.map((r) => {
+              const LABELS: Record<string, string> = {
+                ADMIN: "Admin",
+                EMPRESA: "Company",
+                CANDIDATO: "Candidate",
+                EMPLEADO_ADMIN: "Admin Employee",
+                EMPLEADO_EMPRESA: "Company Employee",
+                ADMIN_RECLUTAMIENTO: "Recruitment Admin",
+              };
+              const label = LABELS[r] || r;
+              const bgImage = "/images/logo-andes.png"; // default background image
+              return (
+                <button
+                  key={r}
+                  onClick={() => onPick(r)}
+                  disabled={submitting}
+                  aria-label={`Use role ${label}`}
+                  className="group relative h-36 sm:h-40 w-full rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md focus:shadow-md transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:ring-offset-2 overflow-hidden cursor-pointer"
+                >
+                  <div className="absolute inset-0">
+                    <img
+                      src={bgImage}
+                      alt=""
+                      className="w-full h-full object-contain opacity-60 scale-110 group-hover:scale-105 transition-transform"
+                      aria-hidden="true"
+                    />
+                    <div
+                      className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-white/60"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div className="relative z-10 flex h-full items-center justify-center">
+                    <span className="text-xl sm:text-2xl font-extrabold tracking-wide text-[#17323A] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
+                      {label}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"
+            aria-label="Available companies"
+          >
+            {companyStep.companies.map((c) => (
               <button
-                key={r}
-                onClick={() => onPick(r)}
+                key={c.id}
+                onClick={() => onPickCompany(c.id)}
                 disabled={submitting}
-                aria-label={`Use role ${label}`}
+                aria-label={`Use company ${c.nombre}`}
                 className="group relative h-36 sm:h-40 w-full rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md focus:shadow-md transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:ring-offset-2 overflow-hidden cursor-pointer"
               >
-                {/* Background image with 60% opacity */}
                 <div className="absolute inset-0">
                   <img
-                    src={bgImage}
+                    src="/images/logo-andes.png"
                     alt=""
                     className="w-full h-full object-contain opacity-60 scale-110 group-hover:scale-105 transition-transform"
                     aria-hidden="true"
@@ -181,21 +337,21 @@ export default function SelectRolePage() {
                     aria-hidden="true"
                   />
                 </div>
-                {/* Centered label */}
                 <div className="relative z-10 flex h-full items-center justify-center">
-                  <span className="text-xl sm:text-2xl font-extrabold tracking-wide text-[#17323A] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-                    {label}
+                  <span className="text-lg sm:text-xl font-extrabold tracking-wide text-[#17323A] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
+                    {c.nombre}
                   </span>
                 </div>
               </button>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Footer hint */}
         <div className="mt-4 text-xs text-gray-500">
-          Tip: you can change your active role any time by logging out and back
-          in.
+          {!companyStep
+            ? "Tip: you can change your active role any time by logging out and back in."
+            : "Tip: you can change your active company later by logging out and repeating the selection."}
         </div>
       </div>
 
