@@ -87,52 +87,41 @@ export default function PartnersSection() {
           Trusted By
         </h2>
 
-        {/* Versión móvil: 3 arriba, 2 abajo */}
-        <div className="md:hidden">
-          {/* Primera fila: 3 primeros logos */}
-          <div className="flex justify-center gap-2 mb-6">
-            {partners.slice(0, 3).map((partner, index) => (
-              <div key={index} className="flex justify-center">
+        {/* Carrusel infinito auto-scroll */}
+        <div className="relative overflow-hidden">
+          {/* Contenedor con animación */}
+          <div className="flex animate-scroll-infinite">
+            {/* Primera copia de los logos */}
+            {partners.map((partner, index) => (
+              <div
+                key={`original-${index}`}
+                className="flex-shrink-0 mx-6 md:mx-10 flex items-center justify-center"
+              >
                 <Image
                   src={partner.logo}
                   alt={partner.name}
-                  width={partner.width}
-                  height={partner.height}
+                  width={partner.width * 1.2}
+                  height={partner.height * 1.2}
+                  className="object-contain"
+                />
+              </div>
+            ))}
+            {/* Segunda copia para efecto infinito */}
+            {partners.map((partner, index) => (
+              <div
+                key={`duplicate-${index}`}
+                className="flex-shrink-0 mx-6 md:mx-10 flex items-center justify-center"
+              >
+                <Image
+                  src={partner.logo}
+                  alt={partner.name}
+                  width={partner.width * 1.2}
+                  height={partner.height * 1.2}
                   className="object-contain"
                 />
               </div>
             ))}
           </div>
-
-          {/* Segunda fila: 2 últimos logos */}
-          <div className="flex justify-center gap-4">
-            {partners.slice(3, 5).map((partner, index) => (
-              <div key={index} className="flex justify-center">
-                <Image
-                  src={partner.logo}
-                  alt={partner.name}
-                  width={partner.width}
-                  height={partner.height}
-                  className="object-contain"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Versión desktop: todos los logos en una fila */}
-        <div className="hidden md:flex justify-center items-center gap-10 flex-wrap">
-          {partners.map((partner, index) => (
-            <div key={index} className="relative">
-              <Image
-                src={partner.logo}
-                alt={partner.name}
-                width={partner.width * 1.5}
-                height={partner.height * 1.5}
-                className="object-contain"
-              />
-            </div>
-          ))}
         </div>
 
         {/* Video de presentación */}
