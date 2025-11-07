@@ -62,7 +62,7 @@ export const teamMembers: TeamMember[] = [
     role: " Director, Marketing and Client Relations",
     group: "Marketing & Client Relations",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/nicole_chica.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/Nicole.jpg",
     summary: "Business Administrator",
     bullets: [
       "Has worked in sales, research interviewing, banking, U.S. Diplomacy, and marketing, a dynamic career shaped by adaptability and global perspective as a military spouse.",
@@ -91,7 +91,7 @@ export const teamMembers: TeamMember[] = [
     role: "Administrative Coordinator",
     group: "Administration",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/violeta_quintero.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alejandra.png",
     summary: "Business Administrator",
     bullets: [
       "The heart behind our operations at Andes.",

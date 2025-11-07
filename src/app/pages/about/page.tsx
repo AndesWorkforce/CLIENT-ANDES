@@ -131,7 +131,7 @@ export default function AboutPage() {
                 </svg>
               </div>
               <span className="text-gray-800 text-base md:text-lg">
-                +1 7572373612
+                +1 7572373612 - +1 3057030023
               </span>
             </div>
           </div>
