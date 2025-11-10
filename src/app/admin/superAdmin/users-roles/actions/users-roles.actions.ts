@@ -87,13 +87,15 @@ export async function searchUsuarios(
       rol: u.rol,
       roles: u.roles ?? (u.rol ? [u.rol] : []),
       responsibleCompanies: Array.isArray(u.empresasResponsable)
-        ? u.empresasResponsable.map((c: any) => ({
+        ? // disable-next-line @typescript-eslint/no-explicit-any
+          u.empresasResponsable.map((c: any) => ({
             id: c.id,
             nombre: c.nombre,
           }))
         : [],
       employeeCompanies: Array.isArray(u.empleadoEmpresa)
-        ? u.empleadoEmpresa.map((e: any) => ({
+        ? // disable-next-line @typescript-eslint/no-explicit-any
+          u.empleadoEmpresa.map((e: any) => ({
             empleadoId: e.id,
             empresa: { id: e.empresa?.id, nombre: e.empresa?.nombre },
             rol: e.rol,

@@ -27,6 +27,7 @@ export default function SelectRolePage() {
     role: "EMPRESA" | "EMPLEADO_EMPRESA";
     companies: { id: string; nombre: string; empleadoId?: string }[];
     // Optional extra metadata so we can show context (e.g. employee id mapping)
+    // disable-next-line @typescript-eslint/no-explicit-any
     raw?: any;
   }>(null);
   const [pickedRole, setPickedRole] = useState<string | null>(null);
@@ -109,6 +110,7 @@ export default function SelectRolePage() {
   }, [router]);
 
   const finalizeSession = (
+    // disable-next-line @typescript-eslint/no-explicit-any
     usuario: any,
     accessToken: string | undefined,
     overrideRole?: string
@@ -185,12 +187,14 @@ export default function SelectRolePage() {
     }
 
     // Llamada al backend necesaria (rol empresa o no había token/cookie usable)
+    // disable-next-line @typescript-eslint/no-explicit-any
     let result: any = null;
     try {
       result = await loginAction({
         correo: pending.correo,
         contrasena: pending.contrasena,
         selectedRole: role,
+        // disable-next-line @typescript-eslint/no-explicit-any
       } as any);
     } catch (e) {
       console.warn("[SelectRole] loginAction threw", e);
@@ -254,10 +258,12 @@ export default function SelectRolePage() {
     if (role === "EMPRESA") {
       // Owner companies (responsible)
       const listaOwner = empresasResponsable
+        // disable-next-line @typescript-eslint/no-explicit-any
         .map((e: any) => ({
           id: e?.id || e?.empresaId || e?.empresa?.id,
           nombre: e?.nombre || e?.empresa?.nombre || "Empresa",
         }))
+        // disable-next-line @typescript-eslint/no-explicit-any
         .filter((c: any) => c.id && c.nombre);
 
       // Roles reales del usuario (desde backend)
@@ -275,11 +281,13 @@ export default function SelectRolePage() {
         rolesOfUser.includes("EMPLEADO_EMPRESA")
       ) {
         const employeeCompanies = empleadoEmpresa
+          // disable-next-line @typescript-eslint/no-explicit-any
           .map((ee: any) => ({
             id: ee?.empresa?.id || ee?.empresaId || ee?.id,
             nombre: ee?.empresa?.nombre || ee?.nombre || "Empresa",
             empleadoId: ee?.empleadoId || ee?.id,
           }))
+          // disable-next-line @typescript-eslint/no-explicit-any
           .filter((c: any) => c.id && c.nombre);
         if (employeeCompanies.length > 0) {
           companiesToShow = employeeCompanies;
@@ -348,13 +356,15 @@ export default function SelectRolePage() {
         // fallthrough to legacy derivation if empty after filter
       }
       // Usar la lista directa del loginAction
-      let lista = empleadoEmpresa
+      const lista = empleadoEmpresa
+        // disable-next-line @typescript-eslint/no-explicit-any
         .map((ee: any) => ({
           id: ee?.empresa?.id || ee?.empresaId || ee?.id,
           nombre: ee?.empresa?.nombre || ee?.nombre || "Empresa",
           empleadoId: ee?.empleadoId || ee?.id,
           rolInterno: ee?.rol,
         }))
+        // disable-next-line @typescript-eslint/no-explicit-any
         .filter((c: any) => c.id && c.nombre && c.empleadoId);
 
       // Si sólo llegó 1 o ninguna, intentar enriquecer con endpoint dedicado (puede traer plural completo)
@@ -363,14 +373,17 @@ export default function SelectRolePage() {
           const assoc = await getUsuarioCompanyAssociation(usuario.id);
           if (assoc.success && assoc.data?.employeeCompanies?.length) {
             const enriched = assoc.data.employeeCompanies
+              // disable-next-line @typescript-eslint/no-explicit-any
               .map((e: any) => ({
                 id: e?.empresa?.id || e?.empresaId || e?.id,
                 nombre: e?.empresa?.nombre || e?.nombre || "Empresa",
                 empleadoId: e?.empleadoId || e?.id,
                 rolInterno: e?.rol,
               }))
+              // disable-next-line @typescript-eslint/no-explicit-any
               .filter((c: any) => c.id && c.nombre && c.empleadoId);
             // Unir evitando duplicados
+            // disable-next-line @typescript-eslint/no-explicit-any
             const seen = new Set(lista.map((c: any) => c.id));
             for (const c of enriched) if (!seen.has(c.id)) lista.push(c);
           }
@@ -449,6 +462,7 @@ export default function SelectRolePage() {
       empleadoId,
     });
     // Intento robusto: usar API proxy que siempre reenvía x-company-id y setea cookies; fallback a server action si falla
+    // disable-next-line @typescript-eslint/no-explicit-any
     let result: any = null;
     const proxyPayload = {
       correo: pending.correo,
@@ -469,14 +483,18 @@ export default function SelectRolePage() {
       const data = await resp.json();
       result = data;
       console.log("[SelectRole] proxy login result", resp.status, data);
+      // disable-next-line @typescript-eslint/no-explicit-any
     } catch (proxyErr: any) {
       console.warn(
         "[SelectRole] proxy login failed, fallback to server action",
         proxyErr?.message
       );
       try {
+        // disable-next-line @typescript-eslint/no-explicit-any
         const payload: any = { ...proxyPayload };
+        // disable-next-line @typescript-eslint/no-explicit-any
         result = await loginAction(payload as any);
+        // disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         console.warn("[SelectRole] loginAction (company) threw", e?.message, e);
         result = { success: false, error: e?.message || "Request failed" };

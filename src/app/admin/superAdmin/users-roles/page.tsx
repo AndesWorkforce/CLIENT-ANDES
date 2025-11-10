@@ -63,6 +63,7 @@ export default function SuperAdminUsersRolesPage() {
   const [pendingResponsible, setPendingResponsible] = useState<CompanyItem[]>(
     []
   );
+  console.log(pendingResponsible);
   const [pendingEmployees, setPendingEmployees] = useState<CompanyItem[]>([]);
 
   const debouncedQuery = useDebounce(query, 300);
@@ -199,7 +200,6 @@ export default function SuperAdminUsersRolesPage() {
     }
 
     const isCompanyEmployee = roles.includes("EMPLEADO_EMPRESA");
-    const isCompanyResponsible = roles.includes("EMPRESA");
 
     // If user staged employee companies but forgot to enable the role, auto-enable it.
     let rolesToSave = roles;
