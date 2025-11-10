@@ -8,12 +8,10 @@ import {
   type UsuarioListItem,
   searchCompanies,
   assignUsuarioToCompanyEmployee,
-  setCompanyResponsible,
   type CompanyItem,
   getUsuarioCompanyAssociation,
   removeUsuarioCompanyEmployee,
   type CompanyAssociation,
-  moveCompanyResponsible,
   clearCompanyResponsible,
 } from "./actions/users-roles.actions";
 import { useNotificationStore } from "@/store/notifications.store";
@@ -61,6 +59,7 @@ export default function SuperAdminUsersRolesPage() {
   const [companyAssociation, setCompanyAssociation] =
     useState<CompanyAssociation | null>(null);
   // Pending multi-add lists
+  // Deprecated: pendingResponsible ("manager access"). We'll phase it out from UI/logic.
   const [pendingResponsible, setPendingResponsible] = useState<CompanyItem[]>(
     []
   );
@@ -101,6 +100,7 @@ export default function SuperAdminUsersRolesPage() {
       const res = await searchUsuarios(q, 1, 20);
       if (!active) return;
       if (res.success && res.data) {
+        console.log("[UI] searchUsuarios result count=", res.data.items.length);
         setUsers(res.data.items);
         const init: Record<string, Set<Rol>> = {};
         res.data.items.forEach((u) => {
@@ -145,6 +145,7 @@ export default function SuperAdminUsersRolesPage() {
       }
       setAssocLoading(true);
       const res = await getUsuarioCompanyAssociation(editingUserId);
+      console.log("[UI] getUsuarioCompanyAssociation", editingUserId, res);
       if (res.success && res.data) {
         setCompanyAssociation(res.data as CompanyAssociation);
         // Do not auto-select a company; user can pick one to add/assign
@@ -163,15 +164,27 @@ export default function SuperAdminUsersRolesPage() {
   const onToggleRole = (userId: string, role: Rol) => {
     setSelectedRoles((prev) => {
       const current = new Set(prev[userId] || []);
-      if (current.has(role)) {
-        // Enforce at least one role selected
+      const isRemoving = current.has(role);
+      // Regla: si intenta quitar EMPRESA y el usuario es responsable de >=1 empresas, bloquear.
+      if (
+        isRemoving &&
+        role === "EMPRESA" &&
+        editingUserId === userId &&
+        companyAssociation?.responsibleCompanies?.length
+      ) {
+        addNotification(
+          "No puedes quitar el rol 'Company' mientras el usuario es responsable de empresas. Transfiere primero.",
+          "warning"
+        );
+        return prev; // Abort removal
+      }
+      if (isRemoving) {
         if (current.size === 1) {
           addNotification("A user must have at least one role", "info");
-          return prev; // do not remove the last role
+          return prev;
         }
         current.delete(role);
       } else {
-        // Allow combining any roles freely; just add to the set
         current.add(role);
       }
       return { ...prev, [userId]: current };
@@ -188,27 +201,64 @@ export default function SuperAdminUsersRolesPage() {
     const isCompanyEmployee = roles.includes("EMPLEADO_EMPRESA");
     const isCompanyResponsible = roles.includes("EMPRESA");
 
-    // No cross-side restriction: any combination is allowed. Keep only minimum one role validation.
-    const res = await updateUsuarioRoles(user.id, roles);
-    if (res.success) {
-      // If Company role was removed, automatically clear existing responsible associations
-      if (
-        !isCompanyResponsible &&
-        companyAssociation?.responsibleCompanies?.length
-      ) {
-        for (const c of companyAssociation.responsibleCompanies) {
-          const cleared = await clearCompanyResponsible(c.id, user.id);
-          if (!cleared.success) {
-            addNotification(
-              cleared.message || `Error removing responsible from ${c.nombre}`,
-              "error"
-            );
-            return;
-          }
-        }
+    // If user staged employee companies but forgot to enable the role, auto-enable it.
+    let rolesToSave = roles;
+    if (!isCompanyEmployee && pendingEmployees.length > 0) {
+      rolesToSave = Array.from(new Set([...roles, "EMPLEADO_EMPRESA" as Rol]));
+      addNotification(
+        "Added role 'Company Employee' automatically to allow the new company associations",
+        "info"
+      );
+    }
+
+    // Business rule: cannot save Company/Company Employee without an associated company
+    // EMPRESA requires at least one responsible company already linked (we don't stage this in this UI)
+    if (
+      rolesToSave.includes("EMPRESA") &&
+      !(companyAssociation?.responsibleCompanies?.length || 0)
+    ) {
+      const otherRoles = rolesToSave.filter((r) => r !== "EMPRESA");
+      // Si sólo tiene EMPRESA no podemos guardarlo (no tendría ninguna función utilizable)
+      if (otherRoles.length === 0) {
+        addNotification(
+          "Cannot keep only the 'Company' role without a responsible company. Assign a company as responsible first or add another role.",
+          "warning"
+        );
+        return;
       }
-      // Add multiple employee associations
-      if (isCompanyEmployee && pendingEmployees.length > 0) {
+      // UX: auto-remover EMPRESA si hay al menos otra función y estamos agregando como empleado
+      addNotification(
+        "Removed 'Company' role automatically because there is no responsible company assigned.",
+        "info"
+      );
+      rolesToSave = otherRoles;
+    }
+
+    // EMPLEADO_EMPRESA requires an existing employee association OR a pending one to be added now
+    const existingEmployeeCount =
+      companyAssociation?.employeeCompanies?.length || 0;
+    const pendingEmployeeCount = pendingEmployees.length;
+    if (
+      rolesToSave.includes("EMPLEADO_EMPRESA") &&
+      existingEmployeeCount + pendingEmployeeCount === 0
+    ) {
+      addNotification(
+        "To enable the 'Company Employee' role you must add at least one company using 'Add as Employee' before saving.",
+        "warning"
+      );
+      return;
+    }
+
+    // No cross-side restriction: any combination is allowed. Keep only minimum one role validation.
+    const res = await updateUsuarioRoles(user.id, rolesToSave);
+    if (res.success) {
+      // No destructivo: ya no limpiamos responsables automáticamente.
+      // Si el usuario sigue marcado como EMPRESA se permiten adiciones; si lo desmarcó y tenía responsables, la lógica anterior en onToggleRole impidió quitar el rol.
+      // Add multiple employee associations (now also works if we auto-added the role above)
+      if (
+        (rolesToSave.includes("EMPLEADO_EMPRESA") as boolean) &&
+        pendingEmployees.length > 0
+      ) {
         const existingEmpIds = new Set(
           (companyAssociation?.employeeCompanies || []).map((e) => e.empresa.id)
         );
@@ -220,42 +270,31 @@ export default function SuperAdminUsersRolesPage() {
             "employee"
           );
           if (!assign.success) {
+            const statusHint = assign.status ? ` (HTTP ${assign.status})` : "";
             addNotification(
-              assign.message || `Error assigning ${c.nombre}`,
+              (assign.message || `Error assigning ${c.nombre}`) + statusHint,
               "error"
             );
             return;
           }
+          addNotification(`Added employee at ${c.nombre}`, "success");
         }
       }
 
-      // Add multiple responsible associations
-      if (pendingResponsible.length > 0) {
-        const currentRespIds = new Set(
-          companyAssociation?.responsibleCompanies?.map((c) => c.id) || []
-        );
-        for (const c of pendingResponsible) {
-          if (currentRespIds.has(c.id)) continue;
-          const resp = await setCompanyResponsible(c.id, user.id);
-          if (!resp.success) {
-            addNotification(
-              resp.message || `Error assigning as responsible: ${c.nombre}`,
-              "error"
-            );
-            return;
-          }
-        }
-      }
+      // Manager access deprecated: do nothing for pendingResponsible
 
-      addNotification("Roles updated", "success");
-      setEditingUserId(null);
+      // Refresh association and keep in edit mode so changes are visible immediately
+      const assoc = await getUsuarioCompanyAssociation(user.id);
+      if (assoc.success && assoc.data) {
+        setCompanyAssociation(assoc.data as CompanyAssociation);
+      }
+      addNotification("Roles and associations updated", "success");
       setCompanyQuery("");
       setCompanyResults([]);
       setSelectedCompany(null);
-      setCompanyAssociation(null);
       setPendingResponsible([]);
       setPendingEmployees([]);
-      // refresh list after save
+      // Refresh list in background without closing edit
       const refreshed = await searchUsuarios(debouncedQuery, 1, 20);
       if (refreshed.success && refreshed.data) setUsers(refreshed.data.items);
     } else {
@@ -310,7 +349,7 @@ export default function SuperAdminUsersRolesPage() {
     }
   };
 
-  console.log("[USER]", users);
+  console.log("[UI] users (render)", users);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-4">
@@ -444,51 +483,58 @@ export default function SuperAdminUsersRolesPage() {
                               <span>Loading current associations…</span>
                             ) : companyAssociation ? (
                               <>
-                                {(
-                                  companyAssociation.responsibleCompanies || []
-                                ).map((c) => (
-                                  <span
-                                    key={`resp-${c.id}`}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E6F7FB] text-[#007B8E]"
-                                  >
-                                    <Building2 size={14} /> Responsible:{" "}
-                                    {c.nombre}
-                                    <button
-                                      type="button"
-                                      className="ml-2 text-[#B20000] hover:underline cursor-pointer"
-                                      onClick={() =>
-                                        onRemoveResponsibleFromCompany(
-                                          c.id,
-                                          editingUserId!
-                                        )
-                                      }
+                                {(companyAssociation.responsibleCompanies || [])
+                                  .filter((c) => c && c.id && c.nombre)
+                                  .map((c) => (
+                                    <span
+                                      key={`resp-${c.id}`}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E6F7FB] text-[#007B8E]"
                                     >
-                                      Remove
-                                    </button>
-                                  </span>
-                                ))}
-                                {(
-                                  companyAssociation.employeeCompanies || []
-                                ).map((e) => (
-                                  <span
-                                    key={`emp-${e.empleadoId}`}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#17323A]"
-                                  >
-                                    <User size={14} /> Employee at:{" "}
-                                    {e.empresa.nombre}
-                                    <button
-                                      type="button"
-                                      className="ml-2 text-[#B20000] hover:underline"
-                                      onClick={() =>
-                                        onRemoveEmployeeFromCompany(
-                                          e.empleadoId
-                                        )
-                                      }
+                                      <Building2 size={14} /> Responsible:{" "}
+                                      {c.nombre}
+                                      <button
+                                        type="button"
+                                        className="ml-2 text-[#B20000] hover:underline cursor-pointer"
+                                        onClick={() =>
+                                          onRemoveResponsibleFromCompany(
+                                            c.id,
+                                            editingUserId!
+                                          )
+                                        }
+                                      >
+                                        Remove
+                                      </button>
+                                    </span>
+                                  ))}
+                                {(companyAssociation.employeeCompanies || [])
+                                  .filter(
+                                    (e) =>
+                                      e &&
+                                      e.empleadoId &&
+                                      e.empresa?.id &&
+                                      e.empresa?.nombre
+                                  )
+                                  .map((e) => (
+                                    <span
+                                      key={`emp-${e.empleadoId}`}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#17323A]"
                                     >
-                                      Remove
-                                    </button>
-                                  </span>
-                                ))}
+                                      <User size={14} /> Employee at:{" "}
+                                      {e.empresa.nombre}
+                                      {/* manager tag removido para simplificar asociaciones */}
+                                      <button
+                                        type="button"
+                                        className="ml-2 text-[#B20000] hover:underline"
+                                        onClick={() =>
+                                          onRemoveEmployeeFromCompany(
+                                            e.empleadoId
+                                          )
+                                        }
+                                      >
+                                        Remove
+                                      </button>
+                                    </span>
+                                  ))}
                                 {(!companyAssociation.responsibleCompanies ||
                                   companyAssociation.responsibleCompanies
                                     .length === 0) &&
@@ -572,21 +618,6 @@ export default function SuperAdminUsersRolesPage() {
                             <button
                               type="button"
                               disabled={!selectedCompany}
-                              className="px-3 py-1 text-xs rounded bg-[#E6F7FB] text-[#007B8E] disabled:opacity-50 cursor-pointer"
-                              onClick={() => {
-                                if (!selectedCompany) return;
-                                setPendingResponsible((prev) =>
-                                  prev.find((c) => c.id === selectedCompany.id)
-                                    ? prev
-                                    : [...prev, selectedCompany]
-                                );
-                              }}
-                            >
-                              Add as Responsible
-                            </button>
-                            <button
-                              type="button"
-                              disabled={!selectedCompany}
                               className="px-3 py-1 text-xs rounded bg-[#EBFFF9] text-[#0097B2] disabled:opacity-50 cursor-pointer"
                               onClick={() => {
                                 if (!selectedCompany) return;
@@ -602,29 +633,8 @@ export default function SuperAdminUsersRolesPage() {
                           </div>
 
                           {/* Pending chips */}
-                          {(pendingResponsible.length > 0 ||
-                            pendingEmployees.length > 0) && (
+                          {pendingEmployees.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                              {pendingResponsible.map((c) => (
-                                <span
-                                  key={`pr-${c.id}`}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E6F7FB] text-[#007B8E]"
-                                >
-                                  <Building2 size={14} /> To add (Responsible):{" "}
-                                  {c.nombre}
-                                  <button
-                                    type="button"
-                                    className="ml-2 text-[#B20000] hover:underline cursor-pointer"
-                                    onClick={() =>
-                                      setPendingResponsible((prev) =>
-                                        prev.filter((x) => x.id !== c.id)
-                                      )
-                                    }
-                                  >
-                                    Remove
-                                  </button>
-                                </span>
-                              ))}
                               {pendingEmployees.map((c) => (
                                 <span
                                   key={`pe-${c.id}`}
@@ -652,26 +662,71 @@ export default function SuperAdminUsersRolesPage() {
                     })()}
                     {/* Actions footer */}
                     <div className="mt-6">
-                      <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
-                        <button
-                          onClick={() => onSave(u)}
-                          className="w-full sm:w-auto bg-[#0097B2] text-white px-4 py-2 rounded-lg hover:bg-[#007B8E] cursor-pointer text-sm"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingUserId(null);
-                            setCompanyQuery("");
-                            setCompanyResults([]);
-                            setSelectedCompany(null);
-                            setCompanyAssociation(null);
-                          }}
-                          className="w-full sm:w-auto text-[#17323A] border border-gray-200 bg-white px-4 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-sm"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      {(() => {
+                        const rolesForUser = Array.from(
+                          selectedRoles[u.id] || []
+                        );
+                        const wantsEmpresa = rolesForUser.includes("EMPRESA");
+                        const wantsEmpleado =
+                          rolesForUser.includes("EMPLEADO_EMPRESA");
+                        const hasResp =
+                          (companyAssociation?.responsibleCompanies?.length ||
+                            0) > 0;
+                        const hasEmpExisting =
+                          (companyAssociation?.employeeCompanies?.length || 0) >
+                          0;
+                        const hasEmpPending = pendingEmployees.length > 0;
+                        const invalidEmpresa = wantsEmpresa && !hasResp;
+                        const invalidEmpleado =
+                          wantsEmpleado && !(hasEmpExisting || hasEmpPending);
+
+                        // Allow saving even if EMPRESA is selected without responsible companies
+                        // as long as there is at least one other role or there are pending employee additions.
+                        const otherRolesCount = rolesForUser.filter(
+                          (r) => r !== "EMPRESA"
+                        ).length;
+                        const blockEmpresa =
+                          invalidEmpresa &&
+                          otherRolesCount === 0 &&
+                          !hasEmpPending;
+
+                        const isSaveDisabled = blockEmpresa || invalidEmpleado;
+
+                        return (
+                          <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
+                            <button
+                              onClick={() => onSave(u)}
+                              disabled={isSaveDisabled}
+                              className={`w-full sm:w-auto px-4 py-2 rounded-lg text-sm cursor-pointer text-white ${
+                                isSaveDisabled
+                                  ? "bg-gray-300 cursor-not-allowed"
+                                  : "bg-[#0097B2] hover:bg-[#007B8E]"
+                              }`}
+                              title={
+                                blockEmpresa
+                                  ? "Add a responsible company or uncheck 'Company' (or add a pending Employee association)."
+                                  : invalidEmpleado
+                                  ? "Add at least one company as Employee before saving"
+                                  : ""
+                              }
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingUserId(null);
+                                setCompanyQuery("");
+                                setCompanyResults([]);
+                                setSelectedCompany(null);
+                                setCompanyAssociation(null);
+                              }}
+                              className="w-full sm:w-auto text-[#17323A] border border-gray-200 bg-white px-4 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 ) : (
@@ -717,6 +772,7 @@ export default function SuperAdminUsersRolesPage() {
                           className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#17323A]"
                         >
                           <User size={14} /> {e.empresa.nombre}
+                          {/* manager tag removido */}
                         </span>
                       ))}
                     </div>

@@ -4,14 +4,13 @@ import { createServerAxios } from "@/services/axios.server";
 
 const AUTH_COOKIE = "auth_token";
 const USER_INFO_COOKIE = "user_info";
-const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 días
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { correo, contrasena, selectedRole, selectedCompanyId } = body || {};
 
-    // Debug: log incoming payload and header to help track whether client reached this route
     try {
       console.log("[API /api/auth/login/with-company] incoming body:", {
         correo,
@@ -85,6 +84,19 @@ export async function POST(request: Request) {
       path: "/",
       sameSite: "strict",
     });
+
+    // Persist selected company for subsequent server requests
+    if (selectedCompanyId) {
+      cookieStore.set({
+        name: "active_company_id",
+        value: selectedCompanyId,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: COOKIE_MAX_AGE,
+        path: "/",
+        sameSite: "strict",
+      });
+    }
 
     return NextResponse.json({ success: true, data });
   } catch (error: any) {

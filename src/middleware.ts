@@ -67,6 +67,8 @@ const companyRoutes = [
 const publicRoutes = [
   "/",
   "/api/auth/logout",
+  // Allow the company-selection login proxy to bypass auth redirects
+  "/api/auth/login/with-company",
   "/api/health",
   "/health",
   // Otras rutas públicas o APIs que deberían estar disponibles para todos
@@ -83,6 +85,14 @@ export function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+
+  // Hard-exempt our login proxy so it never gets redirected by middleware
+  if (
+    pathname === "/api/auth/login/with-company" ||
+    pathname.startsWith("/api/auth/login/with-company/")
+  ) {
+    return NextResponse.next();
+  }
   const isRoleSelectionPath =
     pathname === "/auth/login/select-role" ||
     pathname.startsWith("/auth/login/select-role/");
@@ -115,9 +125,18 @@ export function middleware(request: NextRequest) {
   if (
     isAuthenticated &&
     !isRoleSelectionPath &&
-    authRoutes.some(
-      (route) => pathname === route || pathname.startsWith(`${route}/`)
-    )
+    authRoutes.some((route) => {
+      // Do not treat our proxy as a generic auth route
+      if (route === "/api/auth/login") {
+        if (
+          pathname === "/api/auth/login/with-company" ||
+          pathname.startsWith("/api/auth/login/with-company/")
+        ) {
+          return false;
+        }
+      }
+      return pathname === route || pathname.startsWith(`${route}/`);
+    })
   ) {
     // Redireccionar según el rol usando función helper
     if (isAdmin) {

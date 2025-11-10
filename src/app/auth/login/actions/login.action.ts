@@ -88,6 +88,31 @@ export async function loginAction(values: LoginFormValues) {
             sameSite: "strict",
           });
 
+          // Resolver empresa activa aun cuando no vino selectedCompanyId
+          const resolvedCompanyId =
+            effectiveCompanyId ||
+            // Empresa de EMPRESA
+            userData?.empresaId ||
+            // Empresa dentro de empleadoEmpresa
+            userData?.empleadoEmpresa?.empresa?.id ||
+            // companyOptions (si backend lo envía y hay 1)
+            (Array.isArray(userData?.companyOptions?.companies) &&
+            userData?.companyOptions?.companies?.length === 1
+              ? userData.companyOptions.companies[0]?.id
+              : undefined);
+
+          if (resolvedCompanyId) {
+            cookieHandler.set({
+              name: "active_company_id",
+              value: String(resolvedCompanyId),
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              maxAge: COOKIE_MAX_AGE,
+              path: "/",
+              sameSite: "strict",
+            });
+          }
+
           // Establecer cookie con información del usuario
           cookieHandler.set({
             name: USER_INFO_COOKIE,
