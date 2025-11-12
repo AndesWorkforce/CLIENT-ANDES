@@ -209,6 +209,107 @@ export async function updateInterviewPreference(
 }
 
 /**
+ * Actualiza (o crea) la disponibilidad/fecha propuesta para la entrevista
+ * y dispara la notificación en tiempo real en el backend.
+ * @param postulationId ID de la postulación
+ * @param availabilityISO Fecha/hora propuesta en formato ISO 8601
+ */
+export async function updateInterviewAvailability(
+  postulationId: string,
+  availabilityISO: string
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.patch(
+      `applications/${postulationId}/interview-availability`,
+      {
+        disponibilidadEntrevista: availabilityISO,
+        notify: true,
+      }
+    );
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Disponibilidad de entrevista guardada correctamente",
+        data: response.data,
+      };
+    } else {
+      return {
+        success: false,
+        message:
+          response.data?.message ||
+          "Error al guardar la disponibilidad de entrevista",
+        error: response.data?.error,
+      };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error(
+      "Error updating interview availability:",
+      error.response || error
+    );
+
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Error al guardar la disponibilidad de entrevista";
+
+    return {
+      success: false,
+      message: "Error updating interview availability",
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Obtiene la disponibilidad/fecha propuesta para la entrevista de una postulación
+ * @param postulationId ID de la postulación
+ */
+export async function getInterviewAvailability(
+  postulationId: string
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.get(
+      `applications/${postulationId}/interview-availability`
+    );
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Disponibilidad de entrevista obtenida",
+        data: response.data,
+      };
+    } else {
+      return {
+        success: false,
+        message:
+          response.data?.message ||
+          "Error al obtener la disponibilidad de entrevista",
+        error: response.data?.error,
+      };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error(
+      "Error getting interview availability:",
+      error.response || error
+    );
+    return {
+      success: false,
+      message: "Error getting interview availability",
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message,
+    };
+  }
+}
+
+/**
  * Desactiva una postulación específica
  * @param postulationId ID de la postulación a desactivar
  * @returns Respuesta de la API
