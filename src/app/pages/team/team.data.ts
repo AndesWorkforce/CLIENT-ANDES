@@ -1,4 +1,5 @@
 export type TeamGroup =
+  | "Shareholders"
   | "Leadership"
   | "Marketing & Client Relations"
   | "HR & Recruitment"
@@ -24,7 +25,7 @@ export interface TeamMember {
 export const teamMembers: TeamMember[] = [
   {
     id: "miguel-angel-rendon",
-    name: "Miguel Angel Rendon",
+    name: "Miguel A. Rendon",
     role: "Founder",
     group: "Leadership",
     image:
@@ -40,7 +41,7 @@ export const teamMembers: TeamMember[] = [
   // Technology
   {
     id: "ruben-dario-romero",
-    name: "Ruben Dario Romero",
+    name: "Ruben D. Romero",
     role: "Chief Technology Officer",
     group: "Technology",
     image:
@@ -58,21 +59,21 @@ export const teamMembers: TeamMember[] = [
   {
     id: "nicole-chica",
     name: "Nicole Chica",
-    role: "Marketing and Client Relations Director",
+    role: " Director, Marketing and Client Relations",
     group: "Marketing & Client Relations",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/nicole_chica.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/Nicole.jpg",
     summary: "Business Administrator",
     bullets: [
-      "Has worked in sales, research interviewing, banking, diplomacy, and marketing, a dynamic career shaped by adaptability and global perspective as a military spouse.",
-      "Mom of a teenager, Brownie (forever in her heart), and a recently adopted furry daughter, now Barketing Assistant.",
+      "Has worked in sales, research interviewing, banking, U.S. Diplomacy, and marketing, a dynamic career shaped by adaptability and global perspective as a military spouse.",
+      "Mom of a teenager boy and Brownie (forever in her heart). Recently adopted furry daughter, now Barketing Assitant",
       "Committed to improving her physical and emotional well-being; enjoys exploring new places, dancing, spending time with loved ones, and being close to animals, plants, and the beach.",
     ],
   },
   {
     id: "laura-chica",
-    name: "Laura Chica",
-    role: "HR and Recruitment Manager & Team Liaison at WHG",
+    name: "Laura A. Chica",
+    role: "Manager, HR and Recruitment",
     group: "HR & Recruitment",
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/laura_chica.jpg",
@@ -86,11 +87,11 @@ export const teamMembers: TeamMember[] = [
   // Administration
   {
     id: "violeta-quintero",
-    name: "Violeta Quintero",
+    name: "Violeta A. Quintero",
     role: "Administrative Coordinator",
     group: "Administration",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/violeta_quintero.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alejandra.png",
     summary: "Business Administrator",
     bullets: [
       "The heart behind our operations at Andes.",
@@ -101,8 +102,8 @@ export const teamMembers: TeamMember[] = [
   },
   {
     id: "maria-alejandra-vargas",
-    name: "Maria Alejandra Vargas",
-    role: "Administrative Coordinator Assistant",
+    name: "Maria A. Vargas",
+    role: "Assistant Administrative Coordinator",
     group: "Administration",
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/maria_alejandra_arias.jpg",
@@ -134,35 +135,35 @@ export const teamMembers: TeamMember[] = [
   {
     id: "alejandra-arias",
     name: "Alejandra Arias",
-    role: "Recruitment Management Assistant",
+    role: "Assistant Recruitment Manager",
     group: "Recruitment",
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alejandra_arias.jpg",
     summary: "Psychologist",
     bullets: [
       "Psychologist with a heart for community work, has led group sessions focused on leadership, female empowerment, teamwork, and social skills. ",
-      "Culinary Technician, studied cooking at and even worked in the food industry for a while.",
+      "Culinary Technician, worked in the food industry for a while.",
       "Customer service pro in the Health Industry",
-      "Passionate about culture and creativity – I love exploring gastronomy and world cultures, watching movies and documentaries, listening to music, dancing, reading, and traveling.",
-      "Deep interests are Art in all forms (music, dance, cinema, photography), makeup and fashion, nature and animals, history, languages, and discovering new places.",
+      "Culinary Technician, worked in the food industry for a while.",
+      "Passionate about culture and creativity, loves exploring gastronomy and world cultures, watching movies and documentaries, listening to music, dancing, reading, and traveling",
     ],
   },
   // Client Teams
-  {
-    id: "carlos-soto",
-    name: "Carlos Soto",
-    role: "VA Process Team Lead at Tabak Law",
-    group: "Client Teams",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/carlos_soto.jpg",
-    summary: "Industrial Engineer",
-    bullets: [
-      "Experienced Project Management and Planning Analyst, recognized for his strong leadership and ability to bring teams together",
-      "Carlos has spent the past few years working with law firms, developing deep expertise in Veteran Affairs and streamlining processes for greater efficiency",
-      "Enjoys cooking desserts, singing, and gaming.",
-      "Lives with his playful puppy and recently moved to Panama with his wife, embracing a new adventure together",
-    ],
-  },
+  // {
+  //   id: "carlos-soto",
+  //   name: "Carlos Soto",
+  //   role: "VA Process Team Lead at Tabak Law",
+  //   group: "Client Teams",
+  //   image:
+  //     "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/carlos_soto.jpg",
+  //   summary: "Industrial Engineer",
+  //   bullets: [
+  //     "Experienced Project Management and Planning Analyst, recognized for his strong leadership and ability to bring teams together",
+  //     "Carlos has spent the past few years working with law firms, developing deep expertise in Veteran Affairs and streamlining processes for greater efficiency",
+  //     "Enjoys cooking desserts, singing, and gaming.",
+  //     "Lives with his playful puppy and recently moved to Panama with his wife, embracing a new adventure together",
+  //   ],
+  // },
   // Pet Family
   {
     id: "brownie",
