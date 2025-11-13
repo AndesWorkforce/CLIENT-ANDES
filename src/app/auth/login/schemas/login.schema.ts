@@ -9,6 +9,8 @@ export const loginSchema = z.object({
     .string()
     .min(1, "La contraseña es requerida")
     .min(6, "La contraseña debe tener al menos 6 caracteres"),
+  // Rol activo opcional para usuarios con múltiples roles
+  selectedRole: z.string().optional(),
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;

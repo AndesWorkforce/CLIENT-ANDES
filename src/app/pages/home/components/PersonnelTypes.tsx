@@ -1,4 +1,5 @@
 import { Scale, BarChart, Building2 } from "lucide-react";
+import Link from "next/link";
 
 const serviceCategories = [
   {
@@ -103,6 +104,12 @@ export default function PersonnelTypes() {
             </span>{" "}
             ✨
           </p>
+          <Link
+            href="/pages/services"
+            className="font-semibold text-[#0097B2] mt-4 inline-block"
+          >
+            Learn More...
+          </Link>
         </div>
       </div>
     </section>

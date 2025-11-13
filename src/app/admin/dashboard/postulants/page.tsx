@@ -1393,7 +1393,7 @@ export default function PostulantsPage() {
             {/* Pagination and items per page selector */}
             {Array.isArray(applicants) && applicants.length > 0 && (
               <div className="border-t border-gray-200 p-4">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
                   <div className="flex items-center text-sm text-gray-500">
                     <span className="mr-2">Show:</span>
                     <select
@@ -1409,8 +1409,9 @@ export default function PostulantsPage() {
                     </select>
                     <span className="ml-2">items per page</span>
                   </div>
+
                   {totalPages > 1 && (
-                    <div className="inline-flex border border-gray-300 rounded-md">
+                    <div className="inline-flex items-center border border-gray-300 rounded-md overflow-hidden">
                       <button
                         className={`px-3 py-1 text-[#0097B2] border-r border-gray-300 ${
                           currentPage === 1
@@ -1419,6 +1420,7 @@ export default function PostulantsPage() {
                         }`}
                         onClick={goToPreviousPage}
                         disabled={currentPage === 1}
+                        aria-label="Previous page"
                       >
                         <svg
                           width="16"
@@ -1436,19 +1438,53 @@ export default function PostulantsPage() {
                           />
                         </svg>
                       </button>
-                      {Array.from({ length: totalPages }, (_, index) => (
-                        <button
-                          key={`desktop-pagination-${index + 1}`}
-                          className={`px-3 py-1 ${
-                            currentPage === index + 1
-                              ? "text-white bg-[#0097B2]"
-                              : "text-[#0097B2] hover:bg-gray-50"
-                          }`}
-                          onClick={() => goToPage(index + 1)}
-                        >
-                          {index + 1}
-                        </button>
-                      ))}
+
+                      {/* Compact page list with ellipses */}
+                      {(() => {
+                        const items: (number | "dots")[] = [];
+                        const total = totalPages;
+                        const current = currentPage;
+                        const maxWindow = 7; // total buttons including first/last
+
+                        if (total <= maxWindow) {
+                          for (let i = 1; i <= total; i++) items.push(i);
+                        } else {
+                          const start = Math.max(2, current - 2);
+                          const end = Math.min(total - 1, current + 2);
+                          const showLeftDots = start > 2;
+                          const showRightDots = end < total - 1;
+
+                          items.push(1);
+                          if (showLeftDots) items.push("dots");
+                          for (let i = start; i <= end; i++) items.push(i);
+                          if (showRightDots) items.push("dots");
+                          items.push(total);
+                        }
+
+                        return items.map((it, idx) =>
+                          it === "dots" ? (
+                            <span
+                              key={`dots-${idx}`}
+                              className="px-3 py-1 text-gray-400 select-none"
+                            >
+                              …
+                            </span>
+                          ) : (
+                            <button
+                              key={`desktop-pagination-${it}`}
+                              className={`px-3 py-1 ${
+                                currentPage === it
+                                  ? "text-white bg-[#0097B2]"
+                                  : "text-[#0097B2] hover:bg-gray-50"
+                              }`}
+                              onClick={() => goToPage(it)}
+                            >
+                              {it}
+                            </button>
+                          )
+                        );
+                      })()}
+
                       <button
                         className={`px-3 py-1 text-[#0097B2] border-l border-gray-300 ${
                           currentPage === totalPages
@@ -1457,6 +1493,7 @@ export default function PostulantsPage() {
                         }`}
                         onClick={goToNextPage}
                         disabled={currentPage === totalPages}
+                        aria-label="Next page"
                       >
                         <svg
                           width="16"

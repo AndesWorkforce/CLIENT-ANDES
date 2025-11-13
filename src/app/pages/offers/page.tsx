@@ -446,78 +446,20 @@ export default function JobOffersPage() {
           <div className="container mx-auto px-4 py-8 relative z-10">
             <div className="text-center max-w-4xl mx-auto">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 leading-tight">
-                Why Top Companies Choose Andes Workforce
+                Finding Talent is Easier than Ever
               </h1>
 
               <div className="space-y-6 mb-10 text-center">
                 <div className="flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 mr-4 text-white flex-shrink-0"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
                   <span className="text-base md:text-lg">
-                    Save 40-60% on operational costs without compromising
-                    quality
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 mr-4 text-white flex-shrink-0"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="text-base md:text-lg">
-                    Access to bilingual professionals with U.S. work experience
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 mr-4 text-white flex-shrink-0"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="text-base md:text-lg">
-                    Cultural bridge ensuring smooth communication and
-                    integration
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 mr-4 text-white flex-shrink-0"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="text-base md:text-lg">
-                    Flexible engagement models: full-time, part-time, or
-                    project-based
+                    Once registered, professionals can explore available
+                    contract opportunities tailored to their skills and
+                    experience. Businesses can log in to view applicants for
+                    their openings, review profiles, and select finalists, with
+                    dedicated support from Andes staff throughout the process to
+                    ensure a smooth and efficient experience. Our platform is
+                    designed to connect top talent with meaningful, professional
+                    engagements, efficiently and securely.
                   </span>
                 </div>
               </div>
@@ -525,13 +467,13 @@ export default function JobOffersPage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={() => router.push("/auth/register")}
-                  className="bg-white text-[#0097B2] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors cursor-pointer shadow-lg"
+                  className="bg-white text-[#0097B2] min-w-[200px] px-8 py-2 rounded-lg font-semibold text-lg hover:bg-[#0097B2] hover:text-white transition-colors cursor-pointer shadow-lg"
                 >
                   Join Now
                 </button>
                 <button
                   onClick={() => router.push("/auth/login")}
-                  className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-[#0097B2] transition-colors cursor-pointer"
+                  className="  bg-white min-w-[200px] text-[#0097B2] px-8 py-2 rounded-lg font-semibold text-lg hover:bg-[#0097B2] hover:text-white transition-colors cursor-pointer"
                 >
                   Login
                 </button>

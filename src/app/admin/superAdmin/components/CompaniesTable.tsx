@@ -143,13 +143,16 @@ export default function CompaniesTable({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-[#17323A]">
-                        {company.usuarioResponsable.nombre}{" "}
-                        {company.usuarioResponsable.apellido}
+                        {company.usuarioResponsable
+                          ? `${company.usuarioResponsable.nombre || ""} ${
+                              company.usuarioResponsable.apellido || ""
+                            }`.trim() || "—"
+                          : "—"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-[#17323A]">
-                        {company.usuarioResponsable.correo}
+                        {company.usuarioResponsable?.correo || "—"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
