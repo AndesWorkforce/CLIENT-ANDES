@@ -13,7 +13,9 @@ const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
 export async function loginAction(values: LoginFormValues) {
   try {
-    const { correo, contrasena } = values;
+    const { correo, contrasena, selectedRole } = values as LoginFormValues & {
+      selectedRole?: string;
+    };
     const axios = await createServerAxios();
 
     // Debug logs para producción
@@ -29,6 +31,7 @@ export async function loginAction(values: LoginFormValues) {
         {
           correo,
           contrasena,
+          ...(selectedRole ? { selectedRole } : {}),
         },
         {
           maxRedirects: 0, // No seguir redirecciones automáticamente para esta solicitud

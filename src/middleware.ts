@@ -83,6 +83,9 @@ export function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+  const isRoleSelectionPath =
+    pathname === "/auth/login/select-role" ||
+    pathname.startsWith("/auth/login/select-role/");
 
   // Verificar autenticación usando la cookie
   const authToken = request.cookies.get(AUTH_COOKIE)?.value;
@@ -111,6 +114,7 @@ export function middleware(request: NextRequest) {
   // 1. Si ya está autenticado e intenta ir a páginas de login/registro
   if (
     isAuthenticated &&
+    !isRoleSelectionPath &&
     authRoutes.some(
       (route) => pathname === route || pathname.startsWith(`${route}/`)
     )

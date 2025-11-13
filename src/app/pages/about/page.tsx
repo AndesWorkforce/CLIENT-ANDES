@@ -20,11 +20,10 @@ export default function AboutPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-[#08252A]/10 to-[#08252A]/10 z-10" />
           <div className="relative h-full w-full">
             <Image
-              src="/portada.png"
-              alt="About Us"
+              src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/about.jpg"
+              alt="Andes Workforce"
               fill
               priority
-              style={{ objectFit: "cover" }}
             />
           </div>
         </div>
@@ -163,7 +162,9 @@ export default function AboutPage() {
                       alt={member.name}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      className="object-cover"
+                      {...(member.imageClass
+                        ? { className: member.imageClass }
+                        : {})}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -205,7 +206,7 @@ export default function AboutPage() {
                           alt={pet.name}
                           fill
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover"
+                          className={pet.imageClass || "object-cover"}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -272,7 +273,7 @@ export default function AboutPage() {
                     src={selectedMember.image}
                     alt={selectedMember.name}
                     fill
-                    className="object-cover"
+                    className={selectedMember.imageClass || "object-cover"}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl">
