@@ -89,7 +89,8 @@ export const teamMembers: TeamMember[] = [
       "Passionate about supporting team well-being and building strong connections.",
       "Loves learning new things; often takes courses on a variety of topics and enjoys pondering the idea that we might all be living in the Matrix.",
     ],
-    imageClass: "object-cover",
+    // Crop from the bottom by anchoring to the top and slightly zooming in to hide the bottom star
+    imageClass: "object-cover image-position-top image-zoom-top",
   },
   // Administration
   {

@@ -117,3 +117,9 @@ body {
 .image-position-center {
   object-position: center center;
 }
+
+/* Slight zoom to crop a bit more from the bottom while anchoring to the top */
+.image-zoom-top {
+  transform: scale(1.08);
+  transform-origin: top center;
+}
