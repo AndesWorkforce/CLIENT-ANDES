@@ -155,7 +155,7 @@ export default function AboutPage() {
                 className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
               >
                 {/* Professional Photo */}
-                <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200">
+                <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                   {member.image ? (
                     <Image
                       src={member.image}
@@ -199,7 +199,7 @@ export default function AboutPage() {
                     className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
                   >
                     {/* Pet Photo */}
-                    <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200">
+                    <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                       {pet.image ? (
                         <Image
                           src={pet.image}
@@ -267,7 +267,7 @@ export default function AboutPage() {
 
             {/* Left Side: Image (mobile: top, desktop: left) */}
             <div className="w-full md:w-2/5 flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200">
-              <div className="relative w-full h-64 md:h-full">
+              <div className="relative w-full h-64 md:h-full overflow-hidden">
                 {selectedMember.image ? (
                   <Image
                     src={selectedMember.image}
