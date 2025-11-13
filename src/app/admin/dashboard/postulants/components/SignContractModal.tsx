@@ -12,11 +12,16 @@ import { sendContractSentNotification } from "../../actions/sendEmail.actions";
 import StatementOfWorkPDF from "./templates/StatementOfWorkPDF";
 import StatementOfWorkEnglishPDF from "./templates/StatementOfWorkEnglishPDF";
 import NewStatementOfWorkEnglishPDF from "./templates/NewStatementOfWorkEnglishPDF";
+import {
+  ProfessionalServicesAgreementColPDF,
+  IndependentContractorAgreementUsaPDF,
+} from "./templates";
 import { Applicant } from "../../../../types/applicant";
 import { useNotificationStore } from "@/store/notifications.store";
 import { DocumentProps } from "@react-pdf/renderer";
 
-// Temporary feature flag to only display the primary template
+// Temporary feature flag to keep the template list minimal
+// When true, we only show the core options (English SOW + PSA – Colombia)
 const SHOW_ONLY_PRIMARY_ENGLISH_TEMPLATE = true;
 // Temporary flag to hide Salary Information section in the form
 const SHOW_SALARY_SECTION = false;
@@ -53,6 +58,10 @@ const getFieldLabel = (field: string): string => {
     monedaSalario: "Currency",
     fechaInicioLabores: "Start Date",
     fechaEjecucion: "Execution Date",
+    // PSA Colombia
+    montoEnLetrasUSD: "Amount in words (USD)",
+    // USA ICA
+    cityCountry: "City, Country",
     // Service Fee (New English Template)
     fixedFee: "Fixed fee",
     fixedHours: "Fixed hours",
@@ -99,6 +108,10 @@ const getFieldPlaceholder = (field: string): string => {
     example2Fee: "300",
     example3Hours: "35",
     example3Fee: "350",
+    // PSA Colombia
+    montoEnLetrasUSD: "One thousand one hundred",
+    // USA ICA
+    cityCountry: "e.g., Miami, USA",
   };
   return placeholders[field] || `Enter ${field}`;
 };
@@ -133,6 +146,13 @@ const PDFPreview: React.FC<{
       }
       if (selectedTemplate.id === "new-english-contract") {
         return <NewStatementOfWorkEnglishPDF data={contractData} />;
+      }
+      if (selectedTemplate.id === "psa-col-english") {
+        return <ProfessionalServicesAgreementColPDF data={contractData} />;
+      }
+      // Ensure USA ICA renders the correct PDF in preview
+      if (selectedTemplate.id === "ica-usa-english") {
+        return <IndependentContractorAgreementUsaPDF data={contractData} />;
       }
       return <StatementOfWorkPDF data={contractData} />;
     } catch (e) {
@@ -259,6 +279,9 @@ export default function SignContractModal({
     useState<ContractTemplate | null>(null);
   const [previewKey, setPreviewKey] = useState(0);
   const [showPreview, setShowPreview] = useState(true);
+  // Default text for PSA – Colombia clause one (editable)
+  const PSA_COL_DEFAULT_SERVICES =
+    "maintaining client files, answering phone calls, speaking with potential and current clients, processing legal documents, initiating claims and appeals, providing case-related information, uploading PDFs to electronic portals, gathering potential client information for review, processing admission documents and entering data digitally, confirming client medical appointments, assisting with required forms, and performing additional tasks as assigned";
   // Lista simplificada de templates que funcionan correctamente
   const contractTemplates = useMemo((): ContractTemplate[] => {
     // Eliminar el template estándar, solo dejar los específicos y el custom
@@ -291,8 +314,50 @@ export default function SignContractModal({
       ],
     });
 
-    // Mostrar únicamente el primer template por ahora
+    // Agregar Professional Services Agreement – Colombia (siempre visible junto al principal)
+    workingTemplates.push({
+      id: "psa-col-english",
+      name: "Professional Services Agreement – Colombia",
+      description:
+        "Professional Services Agreement governed by Colombian Civil and Commercial Codes. Fields for Contractor, ID, Nationality, fee (number and words), start/sign dates.",
+      subject: "Professional Services Agreement – {{nombreCompleto}}",
+      component: "ProfessionalServicesAgreementColPDF",
+      category: "International",
+      variables: [
+        "nombreCompleto",
+        "cedula",
+        "nacionalidad",
+        "ofertaSalarial",
+        "montoEnLetrasUSD",
+        "fechaInicioLabores",
+        "fechaEjecucion",
+        // Allow editing Clause One (services)
+        "descripcionServicios",
+      ],
+    });
+
+    // Agregar Independent Contractor Agreement – USA
+    workingTemplates.push({
+      id: "ica-usa-english",
+      name: "Independent Contractor Agreement – USA",
+      description:
+        "Independent Contractor Agreement with Exhibit A (Statement of Work). Editable fields for city/country, effective date, services paragraph, contractor name/email, and monthly fee.",
+      subject: "Independent Contractor Agreement – {{nombreCompleto}}",
+      component: "IndependentContractorAgreementUsaPDF",
+      category: "International",
+      variables: [
+        "nombreCompleto",
+        "correoElectronico",
+        "cityCountry",
+        "descripcionServicios",
+        "ofertaSalarial",
+        "fechaEjecucion",
+      ],
+    });
+
+    // Mostrar únicamente los templates principales (English SOW + PSA Colombia)
     if (SHOW_ONLY_PRIMARY_ENGLISH_TEMPLATE) {
+      // Keep the list minimal but now includes USA ICA as requested
       return workingTemplates;
     }
 
@@ -374,17 +439,21 @@ export default function SignContractModal({
     telefono: applicant.telefono || "",
     nacionalidad: applicant.pais || "",
     direccionCompleta: "",
+    cityCountry: "",
 
     // Datos del puesto
     puestoTrabajo:
       applicant.lastRelevantPostulacion?.titulo || "Administrative Assistant",
     descripcionServicios:
       "Serves as the first point of contact for new or prospective clients. Responsible for gathering initial case information, verifying basic eligibility, and entering client details into internal systems.",
+    // PSA clause content will be taken from descripcionServicios
 
     // Datos salariales
     ofertaSalarial: "1100",
     salarioProbatorio: "1000",
     monedaSalario: "USD",
+    // PSA Colombia
+    montoEnLetrasUSD: "One thousand one hundred",
 
     // New English Template - Service Fee defaults
     fixedFee: "300",
@@ -435,7 +504,10 @@ export default function SignContractModal({
       setSelectedTemplate(template);
       setContractData((prev) => ({
         ...prev,
-        descripcionServicios: template.description,
+        descripcionServicios:
+          template.id === "psa-col-english"
+            ? PSA_COL_DEFAULT_SERVICES
+            : template.description,
       }));
       setPreviewKey((k) => k + 1);
       setShowPreview(true);
@@ -443,10 +515,7 @@ export default function SignContractModal({
   };
 
   const handleInputChange = (key: string, value: string) => {
-    setContractData((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setContractData((prev) => ({ ...prev, [key]: value }));
 
     // Limpiar errores cuando el usuario edite un campo
     if (validationErrors.length > 0) {
@@ -482,6 +551,8 @@ export default function SignContractModal({
       direccionCompleta:
         contractData.direccionCompleta || "Address not provided",
       puestoTrabajo: contractData.puestoTrabajo || "Professional Services",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      cityCountry: (contractData as any).cityCountry || "City, Country",
       descripcionServicios:
         contractData.descripcionServicios ||
         "Professional services to be provided",
@@ -514,6 +585,15 @@ export default function SignContractModal({
           const yyyy = d.getFullYear();
           return `${mm}/${dd}/${yyyy}`;
         })(),
+      // Prefer psaClauseOne if filled; else fall back to descripcionServicios
+      psaClauseOne:
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (contractData as any).psaClauseOne &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        String((contractData as any).psaClauseOne).trim().length > 0
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            String((contractData as any).psaClauseOne)
+          : contractData.descripcionServicios || "",
     };
   };
 
@@ -566,6 +646,10 @@ export default function SignContractModal({
           pdfDocument = <StatementOfWorkEnglishPDF data={pdfData} />;
         } else if (selectedTemplate.id === "new-english-contract") {
           pdfDocument = <NewStatementOfWorkEnglishPDF data={pdfData} />;
+        } else if (selectedTemplate.id === "psa-col-english") {
+          pdfDocument = <ProfessionalServicesAgreementColPDF data={pdfData} />;
+        } else if (selectedTemplate.id === "ica-usa-english") {
+          pdfDocument = <IndependentContractorAgreementUsaPDF data={pdfData} />;
         } else {
           // Para el resto de templates, usar StatementOfWorkPDF
           pdfDocument = <StatementOfWorkPDF data={pdfData} />;
@@ -956,6 +1040,113 @@ export default function SignContractModal({
                     </div>
                   )}
 
+                  {/* PSA Colombia – specific fields */}
+                  {selectedTemplate &&
+                    selectedTemplate.id === "psa-col-english" && (
+                      <div className="border-b border-[#0097B2] pb-3">
+                        <h5 className="text-sm font-semibold text-gray-600 mb-2">
+                          Agreement Details (PSA – Colombia)
+                        </h5>
+                        {/* For PSA, Clause One text is controlled by Position Information → Service Description */}
+                        <div className="grid grid-cols-2 gap-2">
+                          {["ofertaSalarial", "montoEnLetrasUSD"].map(
+                            (field) => (
+                              <div key={field} className="mb-2">
+                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                  {getFieldLabel(field)}
+                                </label>
+                                <input
+                                  type={
+                                    field === "ofertaSalarial"
+                                      ? "number"
+                                      : "text"
+                                  }
+                                  value={
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    (contractData as any)[field] !== undefined
+                                      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        (contractData as any)[field]
+                                      : ""
+                                  }
+                                  onChange={(e) =>
+                                    handleInputChange(field, e.target.value)
+                                  }
+                                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                                  placeholder={getFieldPlaceholder(field)}
+                                />
+                              </div>
+                            )
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Example amount in words: &quot;One thousand one
+                          hundred&quot;.
+                        </p>
+                      </div>
+                    )}
+
+                  {/* USA ICA – specific fields */}
+                  {selectedTemplate &&
+                    selectedTemplate.id === "ica-usa-english" && (
+                      <div className="border-b border-[#0097B2] pb-3">
+                        <h5 className="text-sm font-semibold text-gray-600 mb-2">
+                          Agreement Details (USA – ICA)
+                        </h5>
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* City, Country */}
+                          <div className="mb-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              {getFieldLabel("cityCountry")}
+                            </label>
+                            <input
+                              type="text"
+                              value={(contractData as any).cityCountry || ""}
+                              onChange={(e) =>
+                                handleInputChange("cityCountry", e.target.value)
+                              }
+                              className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                              placeholder={getFieldPlaceholder("cityCountry")}
+                            />
+                          </div>
+                          {/* Monthly fee (USD) */}
+                          <div className="mb-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              {getFieldLabel("ofertaSalarial")}
+                            </label>
+                            <input
+                              type="number"
+                              value={contractData.ofertaSalarial || ""}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "ofertaSalarial",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                              placeholder={getFieldPlaceholder(
+                                "ofertaSalarial"
+                              )}
+                            />
+                          </div>
+                        </div>
+                        {/* Effective Date */}
+                        <div className="mt-2">
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            {getFieldLabel("fechaEjecucion")}
+                          </label>
+                          <DatePicker
+                            value={contractData.fechaEjecucion as string}
+                            onChange={(val) =>
+                              handleInputChange("fechaEjecucion", val)
+                            }
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            The PDF will display it as “Month Day, Year”.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                   {/* Service Fee block removed: now included inside Salary section for new-english-contract */}
 
                   {/* Dates */}
@@ -987,29 +1178,35 @@ export default function SignContractModal({
                       </small>
                     </div>
                   )}
-                  <div className="border-b border-[#0097B2] pb-3">
-                    <h5 className="text-sm font-semibold text-gray-600 mb-2">
-                      Dates
-                    </h5>
-                    {["fechaInicioLabores"].map(
-                      (field) =>
-                        selectedTemplate.variables.includes(field) && (
-                          <div key={field} className="mb-2">
-                            <label className="block text-xs font-medium text-gray-500 mb-1">
-                              {getFieldLabel(field)}
-                            </label>
-                            <DatePicker
-                              value={
-                                contractData[
-                                  field as keyof typeof contractData
-                                ] as string
-                              }
-                              onChange={(val) => handleInputChange(field, val)}
-                            />
-                          </div>
-                        )
-                    )}
-                  </div>
+                  {selectedTemplate.variables.includes(
+                    "fechaInicioLabores"
+                  ) && (
+                    <div className="border-b border-[#0097B2] pb-3">
+                      <h5 className="text-sm font-semibold text-gray-600 mb-2">
+                        Dates
+                      </h5>
+                      {(["fechaInicioLabores"] as const).map(
+                        (field) =>
+                          selectedTemplate.variables.includes(field) && (
+                            <div key={field} className="mb-2">
+                              <label className="block text-xs font-medium text-gray-500 mb-1">
+                                {getFieldLabel(field)}
+                              </label>
+                              <DatePicker
+                                value={
+                                  contractData[
+                                    field as keyof typeof contractData
+                                  ] as string
+                                }
+                                onChange={(val) =>
+                                  handleInputChange(field, val)
+                                }
+                              />
+                            </div>
+                          )
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

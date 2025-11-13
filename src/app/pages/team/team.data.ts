@@ -16,6 +16,9 @@ export interface TeamMember {
   role: string;
   group: TeamGroup;
   image?: string; // Optional headshot URL (allowed domains configured in next.config.ts)
+  // Optional CSS classes to control how the image is fitted/positioned per member
+  // Examples: "object-cover", "object-contain", "object-top object-cover"
+  imageClass?: string;
   summary?: string;
   bullets: string[];
 }
@@ -37,6 +40,7 @@ export const teamMembers: TeamMember[] = [
       "Deep passion for fitness, animals, the natural world, salsa dancing, and playing instruments.",
       "In his free time, Miguel is often found hiking mountains and exploring volcanoes, lakes, and rivers.",
     ],
+    imageClass: "object-cover",
   },
   // Technology
   {
@@ -55,6 +59,7 @@ export const teamMembers: TeamMember[] = [
       "Purpose: connect technology with people to create sustainable value.",
       "Hobbies: traveling, virtual aviation, beach, and movies.",
     ],
+    imageClass: "object-cover",
   },
   {
     id: "nicole-chica",
@@ -69,6 +74,7 @@ export const teamMembers: TeamMember[] = [
       "Mom of a teenager boy and Brownie (forever in her heart). Recently adopted furry daughter, now Barketing Assitant",
       "Committed to improving her physical and emotional well-being; enjoys exploring new places, dancing, spending time with loved ones, and being close to animals, plants, and the beach.",
     ],
+    imageClass: "object-cover",
   },
   {
     id: "laura-chica",
@@ -76,13 +82,14 @@ export const teamMembers: TeamMember[] = [
     role: "Manager, HR and Recruitment",
     group: "HR & Recruitment",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/laura_chica.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/laura_empresaria.jpg",
     summary: "Psychologist",
     bullets: [
       "Mom of two cats, Casper and Bagheera, Directors of Purr-sonal Affairs and soon welcoming a puppy.",
       "Passionate about supporting team well-being and building strong connections.",
       "Loves learning new things; often takes courses on a variety of topics and enjoys pondering the idea that we might all be living in the Matrix.",
     ],
+    imageClass: "object-cover",
   },
   // Administration
   {
@@ -99,6 +106,7 @@ export const teamMembers: TeamMember[] = [
       "Originally from Colombia, now living in Paris with her husband, two boys, and two fabulous cats (our Feline Fun Facilitators).",
       "Loves dancing, cooking, traveling, and making the most of family time.",
     ],
+    imageClass: "object-cover image-position-top",
   },
   {
     id: "maria-alejandra-vargas",
@@ -115,6 +123,7 @@ export const teamMembers: TeamMember[] = [
       "Lives with her beloved dog, our Fur‑st Impressions Coordinator.",
       "Loves traveling, baking delicious desserts, and spending quality time with her family.",
     ],
+    imageClass: "object-cover",
   },
   // IT & Support
   {
@@ -130,6 +139,7 @@ export const teamMembers: TeamMember[] = [
       "Shares his home with three curious cats who keep him company while he works and games—our Meowketing Assistants.",
       "When he's not solving tech issues, you’ll find him skateboarding through the city or diving into his favorite video games.",
     ],
+    imageClass: "object-cover",
   },
   // Recruitment
   {
@@ -147,6 +157,7 @@ export const teamMembers: TeamMember[] = [
       "Culinary Technician, worked in the food industry for a while.",
       "Passionate about culture and creativity, loves exploring gastronomy and world cultures, watching movies and documentaries, listening to music, dancing, reading, and traveling",
     ],
+    imageClass: "object-cover",
   },
   // Client Teams
   // {
