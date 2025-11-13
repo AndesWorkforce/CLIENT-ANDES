@@ -1,4 +1,5 @@
-import { Zap, DollarSign, Shield, Clock } from "lucide-react";
+import { Zap, DollarSign, Shield, Clock, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
 const whyChooseUs = [
   {
@@ -31,6 +32,14 @@ const whyChooseUs = [
     bgColor: "bg-blue-100",
     iconColor: "text-blue-600",
   },
+  {
+    icon: ShieldCheck,
+    title: "Cybersecurity and Data Protection",
+    description:
+      "We safeguard sensitive legal information with top-tier cybersecurity and strict confidentiality protocols.",
+    bgColor: "bg-purple-100",
+    iconColor: "text-purple-600",
+  },
 ];
 
 const processSteps = [
@@ -60,74 +69,122 @@ export default function ServicesSection() {
       <div className="container mx-auto px-4">
         {/* Why Choose Andes Workforce Section */}
         <div className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          {/* Header */}
+          <div className="text-center mb-12 bg-gradient-to-r from-[#0097B2] to-[#4A90E2] rounded-lg py-8 px-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Why Choose Andes Workforce?
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-white max-w-2xl mx-auto">
               We make offshore staffing simple, reliable, and results-driven.
             </p>
           </div>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {whyChooseUs.map((feature, index) => {
-              const IconComponent = feature.icon;
-              return (
-                <div key={index} className="text-center">
-                  {/* Icon Circle */}
-                  <div
-                    className={`w-16 h-16 ${feature.bgColor} rounded-full flex items-center justify-center mx-auto mb-4`}
-                  >
-                    <IconComponent className={`w-8 h-8 ${feature.iconColor}`} />
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+            {/* Left Column - Features List */}
+            <div className="space-y-6 lg:space-y-8">
+              {whyChooseUs.map((feature, index) => {
+                const IconComponent = feature.icon;
+                return (
+                  <div key={index} className="flex items-start  gap-4">
+                    {/* Icon Circle */}
+                    <div
+                      className={`w-14 h-14 ${feature.bgColor} rounded-full flex items-center justify-center flex-shrink-0`}
+                    >
+                      <IconComponent
+                        className={`w-7 h-7 ${feature.iconColor}`}
+                      />
+                    </div>
+
+                    {/* Text Content */}
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  {/* Title */}
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {feature.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              );
-            })}
+            {/* Right Column - Image */}
+            <div className="hidden lg:flex justify-center items-center">
+              <img
+                src="/ideas-2.png"
+                alt="Why Choose Us Illustration"
+                className="w-full h-auto object-cover rounded-lg"
+                style={{ objectPosition: "center 30%" }}
+              />
+            </div>
           </div>
+          <section className="container mx-auto py-12 mt-12 ">
+            <div className="container mx-auto px-4 ">
+              <div className="max-w-lg mx-auto text-center">
+                <p className="text-lg text-gray-700 mb-8">
+                  We handle regulatory requirements, ensuring compliant hiring
+                  for all parties involved. Would you like to hear more about
+                  our services? Please
+                </p>
+
+                <Link
+                  href="/pages/contact"
+                  className="inline-flex items-center justify-center bg-[#0097B2] hover:bg-[#00778E] text-white font-medium py-3 px-8 rounded-md transition-colors"
+                >
+                  Contact Us
+                </Link>
+              </div>
+            </div>
+          </section>
         </div>
 
         {/* Simple 3-Step Process Section */}
         <div>
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          {/* Header */}
+          <div className="text-center mb-12 bg-gradient-to-r from-[#0097B2] to-[#4A90E2] rounded-lg py-8 px-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Simple 3-Step Process
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-white max-w-2xl mx-auto">
               From consultation to onboarding, we make it effortless.
             </p>
           </div>
 
-          {/* Process Steps */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-            {processSteps.map((step, index) => (
-              <div key={index} className="text-center">
-                {/* Step Number Circle */}
-                <div className="w-16 h-16 bg-[#0097B2] text-white rounded-full flex items-center justify-center mx-auto mb-6 text-xl font-bold">
-                  {step.step}
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left Column - Process Steps */}
+            <div className="space-y-8 lg:space-y-10">
+              {processSteps.map((step, index) => (
+                <div key={index} className="flex items-start gap-4">
+                  {/* Step Number Circle */}
+                  <div className="w-16 h-16 bg-[#0097B2] text-white rounded-full flex items-center justify-center flex-shrink-0 text-xl font-bold">
+                    {step.step}
+                  </div>
+
+                  {/* Step Content */}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {step.title}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
                 </div>
+              ))}
+            </div>
 
-                {/* Step Title */}
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  {step.title}
-                </h3>
-
-                {/* Step Description */}
-                <p className="text-gray-600 leading-relaxed max-w-sm mx-auto">
-                  {step.description}
-                </p>
-              </div>
-            ))}
+            {/* Right Column - Image */}
+            <div className="hidden lg:flex justify-center items-center">
+              <img
+                src="/ideas-3.png"
+                alt="3-Step Process Illustration"
+                className="w-full h-auto object-cover rounded-lg"
+                style={{ objectPosition: "center 30%" }}
+              />
+            </div>
           </div>
         </div>
       </div>

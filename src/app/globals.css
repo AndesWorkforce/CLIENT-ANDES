@@ -87,3 +87,22 @@ body {
   max-width: 1900px;
   width: 100%;
 }
+
+/* Animación infinita para carrusel de logos */
+@keyframes scroll-infinite {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-infinite {
+  animation: scroll-infinite 30s linear infinite;
+}
+
+/* Pausar animación al hacer hover */
+.animate-scroll-infinite:hover {
+  animation-play-state: paused;
+}
