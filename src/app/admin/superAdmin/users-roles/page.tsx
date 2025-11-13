@@ -17,11 +17,12 @@ import {
 import { useNotificationStore } from "@/store/notifications.store";
 import { Search, Pencil, Shield, Building2, User, Info } from "lucide-react";
 
+// Removed 'EMPRESA' (Company) from selectable roles as per product decision
 const ALL_ROLES: Rol[] = [
   "ADMIN",
   "EMPLEADO_ADMIN",
   "ADMIN_RECLUTAMIENTO",
-  "EMPRESA",
+  // "EMPRESA", // hidden from UI
   "EMPLEADO_EMPRESA",
   "CANDIDATO",
 ];
@@ -737,14 +738,17 @@ export default function SuperAdminUsersRolesPage() {
                         : u.rol
                         ? [u.rol]
                         : []
-                      ).map((r) => (
-                        <span
-                          key={r}
-                          className="px-2 py-1 text-xs rounded-full bg-[#EBFFF9] text-[#0097B2]"
-                        >
-                          {ROLE_LABELS[r as Rol] || r}
-                        </span>
-                      ))}
+                      )
+                        // Hide 'EMPRESA' from read-only chips as well
+                        .filter((r) => r !== ("EMPRESA" as Rol))
+                        .map((r) => (
+                          <span
+                            key={r}
+                            className="px-2 py-1 text-xs rounded-full bg-[#EBFFF9] text-[#0097B2]"
+                          >
+                            {ROLE_LABELS[r as Rol] || r}
+                          </span>
+                        ))}
                     </div>
                     <div className="text-xs text-gray-600 flex flex-wrap gap-2">
                       {(u.responsibleCompanies || []).map((c) => (
