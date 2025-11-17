@@ -13,10 +13,31 @@ const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
 export async function loginAction(values: LoginFormValues) {
   try {
-    const { correo, contrasena, selectedRole } = values as LoginFormValues & {
-      selectedRole?: string;
-    };
+    const { correo, contrasena, selectedRole, selectedCompanyId } =
+      values as LoginFormValues;
+
     const axios = await createServerAxios();
+    const cookieStore = await cookies();
+    const cookieSelectedCompany = cookieStore.get("selected_company_id")?.value;
+    const effectiveCompanyId = selectedCompanyId || cookieSelectedCompany;
+    // Limpiar la cookie temporal si existe (one-shot)
+    if (cookieSelectedCompany) {
+      cookieStore.set({
+        name: "selected_company_id",
+        value: "",
+        maxAge: 0,
+        path: "/",
+      });
+    }
+
+    console.log("[loginAction] payload", {
+      correo,
+      hasPassword: Boolean(contrasena?.length),
+      selectedRole,
+      selectedCompanyId,
+      cookieSelectedCompany,
+      effectiveCompanyId,
+    });
 
     // Debug logs para producción
     console.log("[DEBUG] API_URL:", process.env.NEXT_PUBLIC_API_URL);
@@ -32,9 +53,17 @@ export async function loginAction(values: LoginFormValues) {
           correo,
           contrasena,
           ...(selectedRole ? { selectedRole } : {}),
+          ...(effectiveCompanyId
+            ? { selectedCompanyId: effectiveCompanyId }
+            : {}),
         },
         {
           maxRedirects: 0, // No seguir redirecciones automáticamente para esta solicitud
+          headers: {
+            ...(effectiveCompanyId
+              ? { "x-company-id": effectiveCompanyId }
+              : {}),
+          },
         }
       );
 
@@ -58,6 +87,31 @@ export async function loginAction(values: LoginFormValues) {
             path: "/",
             sameSite: "strict",
           });
+
+          // Resolver empresa activa aun cuando no vino selectedCompanyId
+          const resolvedCompanyId =
+            effectiveCompanyId ||
+            // Empresa de EMPRESA
+            userData?.empresaId ||
+            // Empresa dentro de empleadoEmpresa
+            userData?.empleadoEmpresa?.empresa?.id ||
+            // companyOptions (si backend lo envía y hay 1)
+            (Array.isArray(userData?.companyOptions?.companies) &&
+            userData?.companyOptions?.companies?.length === 1
+              ? userData.companyOptions.companies[0]?.id
+              : undefined);
+
+          if (resolvedCompanyId) {
+            cookieHandler.set({
+              name: "active_company_id",
+              value: String(resolvedCompanyId),
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              maxAge: COOKIE_MAX_AGE,
+              path: "/",
+              sameSite: "strict",
+            });
+          }
 
           // Establecer cookie con información del usuario
           cookieHandler.set({
@@ -108,31 +162,28 @@ export async function loginAction(values: LoginFormValues) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error("Error en el formulario:", error);
-
-    // Manejar errores específicos de la API si es posible
-    let errorMessage = "Error al iniciar sesión";
-
-    if (error.response) {
-      errorMessage =
-        error.response.data?.message ||
-        `Error ${error.response.status}: ${error.response.statusText}`;
-    } else if (error.request) {
-      console.log("[DEBUG] Error request details:", {
-        url: error.config?.url,
-        baseURL: error.config?.baseURL,
-        method: error.config?.method,
-        timeout: error.config?.timeout,
-      });
-      errorMessage =
-        "No se pudo conectar con el servidor. Verifique su conexión.";
-    } else if (error.message) {
-      errorMessage = error.message;
+    console.error("[loginAction] Error en el formulario:", error?.message);
+    // Capturar payloads útiles si existen
+    if (error?.response) {
+      console.error(
+        "[loginAction] error.response.status:",
+        error.response.status
+      );
+      console.error("[loginAction] error.response.data:", error.response.data);
+    }
+    if (error?.request && !error?.response) {
+      console.error("[loginAction] error.request (no response)");
     }
 
-    return {
-      success: false,
-      error: errorMessage,
-    };
+    // Extraer un mensaje amigable
+    const data = error?.response?.data;
+    const rawMessage =
+      (Array.isArray(data?.message)
+        ? data.message.join(" | ")
+        : data?.message || data?.error) ||
+      error?.message ||
+      "Request failed";
+
+    return { success: false, error: String(rawMessage) };
   }
 }
