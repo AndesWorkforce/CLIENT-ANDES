@@ -86,6 +86,11 @@ export const contractTemplates: ContractTemplate[] = [
 
 // La interfaz ya está exportada arriba
 
+// Re-export PDF components so other modules can import from this index
+export { default as ProfessionalServicesAgreementColPDF } from "./ProfessionalServicesAgreementColPDF";
+export { default as IndependentContractorAgreementUsaPDF } from "./IndependentContractorAgreementUsaPDF";
+export { default as InternationalProfessionalServicesAgreementPDF } from "./InternationalProfessionalServicesAgreementPDF";
+
 // Definición de servicios disponibles con sus descripciones
 export const SERVICIOS_DISPONIBLES = {
   ADMISIONES: {

@@ -106,3 +106,20 @@ body {
 .animate-scroll-infinite:hover {
   animation-play-state: paused;
 }
+
+/* Image helpers: control object-position for Next/Image pictures */
+.image-position-top {
+  object-position: top center;
+}
+.image-position-bottom {
+  object-position: bottom center;
+}
+.image-position-center {
+  object-position: center center;
+}
+
+/* Slight zoom to crop a bit more from the bottom while anchoring to the top */
+.image-zoom-top {
+  transform: scale(1.08);
+  transform-origin: top center;
+}
