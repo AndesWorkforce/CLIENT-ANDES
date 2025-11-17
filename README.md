@@ -264,8 +264,13 @@ andes-client/
 ### Variables Requeridas
 
 ```env
-# URL de la API Backend
-NEXT_PUBLIC_API_URL=https://tu-api.com/api/
+# URL base del backend
+# IMPORTANTE: Debe incluir el sufijo /api/ y una barra final
+# Ejemplos:
+# Local:   http://localhost:5000/api/
+# Staging: https://staging.api.tu-dominio.com/api/
+# Prod:    https://api.teamandes.com/api/
+NEXT_PUBLIC_API_URL=http://localhost:5000/api/
 
 # Configuración de correo para Office 365
 OFFICE365MAIL_CLIENT_ID="tu-client-id"

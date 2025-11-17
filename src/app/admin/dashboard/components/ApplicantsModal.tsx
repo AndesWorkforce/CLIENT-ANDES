@@ -18,7 +18,10 @@ import {
 } from "../actions/sendEmail.actions";
 import { useRouter } from "next/navigation";
 import { removeMultipleApplications } from "../actions/applicants.actions";
-import { updateInterviewPreference } from "../actions/applicants.actions";
+import {
+  updateInterviewPreference,
+  updateInterviewAvailability,
+} from "../actions/applicants.actions";
 import { EstadoPostulacion } from "../types/application-status.types";
 import VideoModal from "./VideoModal";
 import CandidateProfileModal from "./CandidateProfileModal";
@@ -26,6 +29,9 @@ import { CandidateProfileProvider } from "../context/CandidateProfileContext";
 import UpdateStatusModal from "./UpdateStatusModal";
 import ApplicantsTableSkeleton from "./ApplicantsTableSkeleton";
 import TableSkeleton from "./TableSkeleton";
+
+// Feature flag temporal: ocultar columna "Proposed Date" mientras está en desarrollo
+const SHOW_PROPOSED_DATE = false;
 
 // Definir StageStatus aquí
 export type StageStatus =
@@ -477,6 +483,10 @@ const CompanyApplicantsTable = ({
   renderClickableStageStatusBadge,
   renderStageStatus,
   interviewPreferences,
+  interviewAvailability,
+  savingAvailability,
+  onChangeInterviewAvailability,
+  onSaveInterviewAvailability,
   handleInterviewPreferenceChange,
   handleHireCandidate,
   handleRejectCandidate,
@@ -494,6 +504,13 @@ const CompanyApplicantsTable = ({
   ) => React.ReactElement;
   renderStageStatus: (applicant: ExtendedApplicant) => StageStatus;
   interviewPreferences: Record<string, boolean | undefined>;
+  interviewAvailability: Record<string, string | undefined>;
+  savingAvailability: Record<string, boolean>;
+  onChangeInterviewAvailability: (applicantId: string, iso: string) => void;
+  onSaveInterviewAvailability: (
+    applicantId: string,
+    postulationId: string
+  ) => void;
   preferencesEstablished: Record<string, boolean>;
   handleInterviewPreferenceChange: (
     applicantId: string,
@@ -561,6 +578,11 @@ const CompanyApplicantsTable = ({
           <th className="text-left py-3 px-4 font-medium text-gray-700">
             Schedule Interview?
           </th>
+          {SHOW_PROPOSED_DATE && (
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Proposed Date
+            </th>
+          )}
           <th className="text-left py-3 px-4 font-medium text-gray-700">
             Hire
           </th>
@@ -697,6 +719,88 @@ const CompanyApplicantsTable = ({
                 }
               })()}
             </td>
+            {SHOW_PROPOSED_DATE && (
+              <td className="py-4 px-4">
+                {interviewPreferences[applicant.id] ? (
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="datetime-local"
+                      value={(() => {
+                        const raw = interviewAvailability[applicant.id];
+                        if (!raw) return "";
+                        try {
+                          // Convert ISO to local datetime-local format
+                          const d = new Date(raw);
+                          const pad = (n: number) =>
+                            n.toString().padStart(2, "0");
+                          const year = d.getFullYear();
+                          const month = pad(d.getMonth() + 1);
+                          const day = pad(d.getDate());
+                          const hours = pad(d.getHours());
+                          const minutes = pad(d.getMinutes());
+                          return `${year}-${month}-${day}T${hours}:${minutes}`;
+                        } catch {
+                          return "";
+                        }
+                      })()}
+                      min={(() => {
+                        const now = new Date();
+                        now.setMinutes(now.getMinutes() + 10); // enforce +10 minutes lead time
+                        const pad = (n: number) => n.toString().padStart(2, "0");
+                        return `${now.getFullYear()}-${pad(
+                          now.getMonth() + 1
+                        )}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(
+                          now.getMinutes()
+                        )}`;
+                      })()}
+                      onChange={(e) => {
+                        const val = e.target.value; // local string YYYY-MM-DDTHH:mm
+                        if (!val) {
+                          onChangeInterviewAvailability(applicant.id, "");
+                          return;
+                        }
+                        // Convert local to ISO
+                        const localDate = new Date(val);
+                        onChangeInterviewAvailability(
+                          applicant.id,
+                          localDate.toISOString()
+                        );
+                      }}
+                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                    />
+                    <button
+                      onClick={() =>
+                        onSaveInterviewAvailability(
+                          applicant.id,
+                          applicant.postulationId
+                        )
+                      }
+                      disabled={savingAvailability[applicant.id]}
+                      className={`px-3 py-1 text-white text-xs rounded-md transition-colors w-fit ${
+                        savingAvailability[applicant.id]
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                      }`}
+                    >
+                      {savingAvailability[applicant.id]
+                        ? "Saving..."
+                        : interviewAvailability[applicant.id]
+                        ? "Update"
+                        : "Save"}
+                    </button>
+                    {interviewAvailability[applicant.id] && (
+                      <span className="text-xs text-gray-500">
+                        {new Date(
+                          interviewAvailability[applicant.id] as string
+                        ).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-xs text-gray-400">N/A</span>
+                )}
+              </td>
+            )}
             <td className="py-4 px-4">
               <div className="text-gray-400 text-xs">
                 {/* Para clientes (company): pueden hacer Hire desde varios estados para mover a FINALISTA */}
@@ -801,6 +905,43 @@ export default function ApplicantsModal({
   const [loadingActions, setLoadingActions] = useState<{
     [key: string]: "hiring" | "rejecting" | "advancing" | null;
   }>({});
+
+  // Disponibilidad de entrevista por candidato (ISO string)
+  const [interviewAvailability, setInterviewAvailability] = useState<
+    Record<string, string | undefined>
+  >({});
+  const [savingAvailability, setSavingAvailability] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Guardar disponibilidad (PATCH backend)
+  const handleInterviewAvailabilitySave = async (
+    applicantId: string,
+    postulationId: string
+  ) => {
+    const iso = interviewAvailability[applicantId];
+    if (!iso) {
+      addNotification("Selecciona una fecha antes de guardar", "warning");
+      return;
+    }
+    setSavingAvailability((prev) => ({ ...prev, [applicantId]: true }));
+    try {
+      const res = await updateInterviewAvailability(postulationId, iso);
+      if (res.success) {
+        addNotification("Disponibilidad guardada y notificada", "success");
+      } else {
+        addNotification(
+          res.message || "Error al guardar disponibilidad",
+          "error"
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      addNotification("Error inesperado al guardar disponibilidad", "error");
+    } finally {
+      setSavingAvailability((prev) => ({ ...prev, [applicantId]: false }));
+    }
+  };
 
   // Helper functions para manejar loading states
   const setActionLoading = (
@@ -2625,6 +2766,17 @@ export default function ApplicantsModal({
                       }
                       renderStageStatus={renderStageStatus}
                       interviewPreferences={interviewPreferences}
+                      interviewAvailability={interviewAvailability}
+                      savingAvailability={savingAvailability}
+                      onChangeInterviewAvailability={(applicantId, iso) =>
+                        setInterviewAvailability((prev) => ({
+                          ...prev,
+                          [applicantId]: iso || undefined,
+                        }))
+                      }
+                      onSaveInterviewAvailability={
+                        handleInterviewAvailabilitySave
+                      }
                       preferencesEstablished={preferencesEstablished}
                       handleInterviewPreferenceChange={
                         handleInterviewPreferenceChange

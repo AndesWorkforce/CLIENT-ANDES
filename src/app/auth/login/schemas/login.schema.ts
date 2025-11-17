@@ -11,6 +11,8 @@ export const loginSchema = z.object({
     .min(6, "La contraseña debe tener al menos 6 caracteres"),
   // Rol activo opcional para usuarios con múltiples roles
   selectedRole: z.string().optional(),
+  // Empresa seleccionada cuando role=Company o Company Employee
+  selectedCompanyId: z.string().optional(),
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;

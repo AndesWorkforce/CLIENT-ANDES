@@ -9,11 +9,10 @@ import { loginSchema, type LoginFormValues } from "../schemas/login.schema";
 import { loginAction } from "../actions/login.action";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useAuthStore } from "@/store/auth.store";
-import CryptoJS from "crypto-js";
 import { useRouter } from "next/navigation";
 
 const REMEMBER_KEY = "andes_remembered_email";
-const SECRET = process.env.NEXT_PUBLIC_CRYPTO_KEY || "default-secret-key";
+// Encryption removed to simplify flow and avoid runtime issues
 
 export default function LoginForm() {
   const router = useRouter();
@@ -42,11 +41,9 @@ export default function LoginForm() {
     try {
       const remembered = localStorage.getItem(REMEMBER_KEY);
       if (remembered) {
-        const bytes = CryptoJS.AES.decrypt(remembered, SECRET);
-        const decryptedEmail = bytes.toString(CryptoJS.enc.Utf8);
-
-        if (decryptedEmail && decryptedEmail.includes("@")) {
-          setValue("correo", decryptedEmail);
+        // Store plaintext email directly
+        if (remembered && remembered.includes("@")) {
+          setValue("correo", remembered);
           setRememberMe(true);
         } else {
           localStorage.removeItem(REMEMBER_KEY);
@@ -64,18 +61,48 @@ export default function LoginForm() {
     }, 500);
   };
 
+  const readUserInfoCookie = () => {
+    try {
+      const raw = document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("user_info="));
+      if (!raw) return null;
+      const value = raw.split("=")[1];
+      if (!value) return null;
+      const decoded = decodeURIComponent(value);
+      const parsed = JSON.parse(decoded);
+      return parsed;
+    } catch (e) {
+      console.warn("[Login] Could not parse user_info cookie", e);
+      return null;
+    }
+  };
+
+  const hydrateStoreFromCookieIfNeeded = () => {
+    // Si ya tenemos usuario en store, no hacemos nada
+    const existing = useAuthStore.getState().user;
+    if (existing) return existing;
+    const cookieUser = readUserInfoCookie();
+    if (cookieUser) {
+      try {
+        setUser(cookieUser);
+        setAuthenticated(true);
+      } catch (e) {
+        console.warn("[Login] Error hydrating user from cookie", e);
+      }
+      return cookieUser;
+    }
+    return null;
+  };
+
   const onSubmit = async (data: LoginFormValues) => {
     try {
       setIsSubmitting(true);
 
-      // Manejar Remember Me
+      // Manejar Remember Me (plaintext)
       if (rememberMe && data.correo) {
         try {
-          const encrypted = CryptoJS.AES.encrypt(
-            data.correo,
-            SECRET
-          ).toString();
-          localStorage.setItem(REMEMBER_KEY, encrypted);
+          localStorage.setItem(REMEMBER_KEY, data.correo);
         } catch (error) {
           console.error("Error saving remembered email:", error);
         }
@@ -87,25 +114,58 @@ export default function LoginForm() {
       try {
         const result = await loginAction(data);
 
+        // Guard against unexpected undefined
+        if (!result) {
+          addNotification("Login failed: empty response", "error");
+          console.error("[Login] Empty result from loginAction");
+          return;
+        }
+
         if (result.success) {
-          const roles =
-            (result.data?.usuario?.roles as string[] | undefined) || [];
+          // usuario puede venir en distintas formas
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const user: any = result.data?.usuario || result.data;
+          // Normalizamos lista de roles: si user.roles existe y es array con >0, usarla; si no, usar user.rol si existe
+          const rolesFromResponse = Array.isArray(user?.roles)
+            ? (user.roles as string[])
+            : user?.rol
+            ? [user.rol]
+            : [];
+
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const selectedWasProvided = Boolean((data as any).selectedRole);
 
-          // Si el usuario tiene múltiples roles y aún no seleccionó uno, abrir selector y no redirigir aún
-          if (roles.length > 1 && !selectedWasProvided) {
+          // Multi-rol sólo si hay 2 o más roles
+          if (rolesFromResponse.length > 1 && !selectedWasProvided) {
             try {
+              // Pre-cargar sesión local para que la vista de selección tenga contexto inmediatamente
+              if (user) {
+                try {
+                  // Guardar en store
+                  setUser(user);
+                  setAuthenticated(true);
+                  if (result.data?.accessToken)
+                    setToken(result.data?.accessToken);
+                  // Guardar cookie legible por el cliente usada como fallback en select-role
+                  const userInfo = encodeURIComponent(JSON.stringify(user));
+                  // 7 días
+                  document.cookie = `user_info=${userInfo}; path=/; max-age=${
+                    7 * 24 * 60 * 60
+                  }; samesite=strict`;
+                } catch (e) {
+                  console.warn(
+                    "[Login] could not prime local session before role selection",
+                    e
+                  );
+                }
+              }
               const payload = JSON.stringify({
                 correo: data.correo,
                 contrasena: data.contrasena,
-                roles,
+                roles: rolesFromResponse,
               });
-              const encrypted = CryptoJS.AES.encrypt(
-                payload,
-                SECRET
-              ).toString();
-              sessionStorage.setItem("andes_pending_login", encrypted);
+              // Store plaintext payload to avoid CryptoJS issues
+              sessionStorage.setItem("andes_pending_login", payload);
             } catch (e) {
               console.error("Error preparing pending login payload", e);
             }
@@ -113,28 +173,35 @@ export default function LoginForm() {
             return;
           }
 
+          // Si no hay roles en la respuesta, intentar hidratar desde cookie
+          let effectiveUser = user;
+          if (rolesFromResponse.length === 0 || !user) {
+            const cookieUser = hydrateStoreFromCookieIfNeeded();
+            if (cookieUser) {
+              effectiveUser = cookieUser;
+              // Intentar reconstruir roles a partir de cookieUser.rol
+              if (rolesFromResponse.length === 0 && cookieUser.rol) {
+                rolesFromResponse.push(cookieUser.rol);
+              }
+            }
+          }
+
           addNotification("Successfully logged in", "success");
-          setUser(result.data?.usuario);
+          setUser(effectiveUser);
           setAuthenticated(true);
           setToken(result.data?.accessToken);
-          console.log(
-            "\n\n\n result.data?.usuario?.rol",
-            result.data?.usuario?.rol,
-            "\n\n\n"
-          );
-          if (
-            result.data?.usuario?.rol === "EMPRESA" ||
-            result.data?.usuario?.rol === "EMPLEADO_EMPRESA"
-          ) {
+
+          const activeRole = effectiveUser?.rol;
+          if (activeRole === "EMPRESA" || activeRole === "EMPLEADO_EMPRESA") {
             safeRedirect("/companies/dashboard");
           } else if (
-            result.data?.usuario?.rol === "ADMIN" ||
-            result.data?.usuario?.rol === "EMPLEADO_ADMIN" ||
-            result.data?.usuario?.rol === "ADMIN_RECLUTAMIENTO"
+            activeRole === "ADMIN" ||
+            activeRole === "EMPLEADO_ADMIN" ||
+            activeRole === "ADMIN_RECLUTAMIENTO"
           ) {
             safeRedirect("/admin/dashboard");
           } else {
-            if (result.data?.usuario?.perfilCompleto === "INCOMPLETO") {
+            if (effectiveUser?.perfilCompleto === "INCOMPLETO") {
               safeRedirect("/profile");
             } else {
               safeRedirect("/pages/offers");
@@ -152,8 +219,29 @@ export default function LoginForm() {
             loginError.message.includes("307") ||
             loginError.message.includes("redirect"))
         ) {
-          addNotification("Successfully logged in", "success");
-          safeRedirect("/profile");
+          // Flujo de redirección: intentar hidratar store desde cookie antes de redirigir
+          const cookieUser = hydrateStoreFromCookieIfNeeded();
+          if (cookieUser) {
+            addNotification("Successfully logged in", "success");
+            // Determinar destino según rol hidratrado
+            const r = cookieUser?.rol;
+            if (r === "EMPRESA" || r === "EMPLEADO_EMPRESA") {
+              safeRedirect("/companies/dashboard");
+            } else if (
+              r === "ADMIN" ||
+              r === "EMPLEADO_ADMIN" ||
+              r === "ADMIN_RECLUTAMIENTO"
+            ) {
+              safeRedirect("/admin/dashboard");
+            } else if (cookieUser?.perfilCompleto === "INCOMPLETO") {
+              safeRedirect("/profile");
+            } else {
+              safeRedirect("/pages/offers");
+            }
+          } else {
+            addNotification("Successfully logged in", "success");
+            safeRedirect("/profile");
+          }
         } else {
           throw loginError;
         }

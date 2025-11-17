@@ -8,11 +8,20 @@ const USER_INFO_COOKIE = "user_info";
 export async function createServerAxios() {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
+  const activeCompanyId = cookieStore.get("active_company_id")?.value;
 
   const axiosServer = axiosBase;
 
   if (token) {
     axiosServer.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }
+
+  // Persist selected company context across all backend requests
+  if (activeCompanyId) {
+    axiosServer.defaults.headers.common["x-company-id"] = activeCompanyId;
+  } else {
+    // Ensure header is not leaked between requests
+    delete axiosServer.defaults.headers.common["x-company-id"];
   }
 
   axiosServer.interceptors.response.use(
