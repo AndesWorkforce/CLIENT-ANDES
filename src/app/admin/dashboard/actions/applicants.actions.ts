@@ -33,13 +33,13 @@ export async function createApplicant(
     if (response.status === 201 || response.status === 200) {
       return {
         success: true,
-        message: "Postulante creado exitosamente",
+        message: "Applicant created successfully",
         data: response.data,
       };
     } else {
       return {
         success: false,
-        message: response.data.message || "Error al crear el postulante",
+        message: response.data.message || "Error creating applicant",
         error: response.data.error,
       };
     }
@@ -52,11 +52,11 @@ export async function createApplicant(
       error.response?.data?.message ||
       error.response?.data?.error ||
       error.message ||
-      "Error desconocido al crear el postulante";
+      "Unknown error creating applicant";
 
     return {
       success: false,
-      message: "Error al crear el postulante",
+      message: "Error creating applicant",
       error: errorMessage,
     };
   }
@@ -165,7 +165,7 @@ export async function updateInterviewPreference(
   preferenciaEntrevista: boolean
 ): Promise<ApiResponse> {
   console.log(
-    `🔍 Enviando: ${preferenciaEntrevista} (${typeof preferenciaEntrevista})`
+    `🔍 Sending: ${preferenciaEntrevista} (${typeof preferenciaEntrevista})`
   );
 
   const axios = await createServerAxios();
@@ -175,18 +175,18 @@ export async function updateInterviewPreference(
       { preferenciaEntrevista }
     );
 
-    console.log(`✅ Respuesta del backend:`, response.data);
+    console.log(`✅ Backend response:`, response.data);
 
     if (response.status === 200) {
       return {
         success: true,
-        message: "Preferencia de entrevista actualizada exitosamente",
+        message: "Interview preference updated successfully",
         data: response.data,
       };
     } else {
       return {
         success: false,
-        message: response.data.message || "Error al actualizar preferencia",
+        message: response.data.message || "Error updating preference",
         error: response.data.error,
       };
     }
@@ -198,8 +198,7 @@ export async function updateInterviewPreference(
     );
 
     const errorMessage =
-      error.response?.data?.message ||
-      "Error al actualizar preferencia de entrevista";
+      error.response?.data?.message || "Error updating interview preference";
     return {
       success: false,
       message: "Error updating interview preference",
@@ -231,15 +230,14 @@ export async function updateInterviewAvailability(
     if (response.status === 200) {
       return {
         success: true,
-        message: "Disponibilidad de entrevista guardada correctamente",
+        message: "Interview availability saved successfully",
         data: response.data,
       };
     } else {
       return {
         success: false,
         message:
-          response.data?.message ||
-          "Error al guardar la disponibilidad de entrevista",
+          response.data?.message || "Error saving interview availability",
         error: response.data?.error,
       };
     }
@@ -254,7 +252,7 @@ export async function updateInterviewAvailability(
       error.response?.data?.message ||
       error.response?.data?.error ||
       error.message ||
-      "Error al guardar la disponibilidad de entrevista";
+      "Error saving interview availability";
 
     return {
       success: false,
@@ -280,15 +278,14 @@ export async function getInterviewAvailability(
     if (response.status === 200) {
       return {
         success: true,
-        message: "Disponibilidad de entrevista obtenida",
+        message: "Interview availability retrieved",
         data: response.data,
       };
     } else {
       return {
         success: false,
         message:
-          response.data?.message ||
-          "Error al obtener la disponibilidad de entrevista",
+          response.data?.message || "Error retrieving interview availability",
         error: response.data?.error,
       };
     }
@@ -326,13 +323,13 @@ export async function deactivateApplication(
     if (response.status === 200) {
       return {
         success: true,
-        message: "Postulación desactivada exitosamente",
+        message: "Application deactivated successfully",
         data: response.data,
       };
     } else {
       return {
         success: false,
-        message: response.data.message || "Error al desactivar postulación",
+        message: response.data.message || "Error deactivating application",
         error: response.data.error,
       };
     }
@@ -341,7 +338,7 @@ export async function deactivateApplication(
     console.error("Error deactivating application:", error.response || error);
 
     const errorMessage =
-      error.response?.data?.message || "Error al desactivar postulación";
+      error.response?.data?.message || "Error deactivating application";
     return {
       success: false,
       message: "Error deactivating application",
@@ -365,13 +362,13 @@ export async function getCandidateApplications(
     if (response.status === 200) {
       return {
         success: true,
-        message: "Postulaciones obtenidas exitosamente",
+        message: "Applications retrieved successfully",
         data: response.data.data,
       };
     } else {
       return {
         success: false,
-        message: response.data.message || "Error al obtener postulaciones",
+        message: response.data.message || "Error retrieving applications",
         error: response.data.error,
       };
     }
@@ -383,7 +380,7 @@ export async function getCandidateApplications(
     );
 
     const errorMessage =
-      error.response?.data?.message || "Error al obtener postulaciones";
+      error.response?.data?.message || "Error retrieving applications";
     return {
       success: false,
       message: "Error getting candidate applications",
