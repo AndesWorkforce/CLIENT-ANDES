@@ -1,4 +1,6 @@
-import { X, User } from "lucide-react";
+"use client";
+
+import { X, User, Calendar } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Candidato } from "@/app/types/offers";
 import { useNotificationStore } from "@/store/notifications.store";
@@ -17,10 +19,11 @@ import {
   sendRemovalNotification,
 } from "../actions/sendEmail.actions";
 import { useRouter } from "next/navigation";
-import { removeMultipleApplications } from "../actions/applicants.actions";
 import {
+  removeMultipleApplications,
   updateInterviewPreference,
-  updateInterviewAvailability,
+  updateMultiInterviewAvailability,
+  confirmInterviewDate,
 } from "../actions/applicants.actions";
 import { EstadoPostulacion } from "../types/application-status.types";
 import VideoModal from "./VideoModal";
@@ -29,9 +32,10 @@ import { CandidateProfileProvider } from "../context/CandidateProfileContext";
 import UpdateStatusModal from "./UpdateStatusModal";
 import ApplicantsTableSkeleton from "./ApplicantsTableSkeleton";
 import TableSkeleton from "./TableSkeleton";
+import InterviewDateTimePicker from "@/components/InterviewDateTimePicker";
 
 // Feature flag temporal: ocultar columna "Proposed Date" mientras está en desarrollo
-const SHOW_PROPOSED_DATE = false;
+const SHOW_PROPOSED_DATE = true;
 
 // Definir StageStatus aquí
 export type StageStatus =
@@ -51,6 +55,19 @@ interface CandidatoWithPostulationId extends Candidato {
   estadoPostulacion: EstadoPostulacion;
   serviceTitle: string;
   preferenciaEntrevista: boolean | null;
+  disponibilidadEntrevista?: string | null; // Fecha propuesta guardada en backend
+  disponibilidadEntrevista2?: string | null;
+  disponibilidadEntrevista3?: string | null;
+  fechaEntrevistaConfirmada?: string | null; // Fecha confirmada definitiva
+}
+
+interface ApplicantsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  serviceTitle: string;
+  applicants: CandidatoWithPostulationId[];
+  onUpdate?: () => void;
+  disableStatusChange?: boolean; // Nuevo prop para deshabilitar el cambio de estado
 }
 
 interface ExtendedApplicant extends CandidatoWithPostulationId {
@@ -63,15 +80,6 @@ interface ExtendedApplicant extends CandidatoWithPostulationId {
   };
   perfilCompleto?: string;
   clasificacionGlobal?: string;
-}
-
-interface ApplicantsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  serviceTitle: string;
-  applicants: CandidatoWithPostulationId[];
-  onUpdate?: () => void;
-  disableStatusChange?: boolean; // Nuevo prop para deshabilitar el cambio de estado
 }
 
 // Tabla para usuarios Admin
@@ -95,6 +103,12 @@ const AdminApplicantsTable = ({
   isActionLoading,
   currentPage,
   totalPages,
+  selectedInterviewOption,
+  setSelectedInterviewOption,
+  confirmingInterview,
+  setConfirmingInterview,
+  onInterviewConfirmed,
+  triggerParentRefresh,
 }: {
   applicants: ExtendedApplicant[];
   totalCount: number;
@@ -152,327 +166,548 @@ const AdminApplicantsTable = ({
   ) => boolean;
   currentPage: number;
   totalPages: number;
-}) => (
-  <>
-    <div className="mb-4 text-gray-500 text-sm">
-      Total: {totalCount} applicants | Showing page {currentPage} of{" "}
-      {totalPages}
-    </div>
-    <table className="w-full border-collapse">
-      <thead className="sticky top-0 bg-white z-10">
-        <tr className="border-b border-gray-200">
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            <input
-              type="checkbox"
-              checked={selectedCandidates.size === totalCount && totalCount > 0}
-              onChange={(e) => handleSelectAll(e.target.checked)}
-              className="rounded border-gray-300 text-[#0097B2] focus:ring-[#0097B2]"
-            />
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Name
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Profile
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Video
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Email
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Phone
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Stage
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Interview Preference
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            First Interview
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Second Interview
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Hired
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Rejected
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {applicants.map((applicant) => (
-          <tr
-            key={applicant.id}
-            className="border-b border-gray-200 hover:bg-gray-50"
-          >
-            <td className="py-4 px-4">
+  selectedInterviewOption: Record<string, number | null>;
+  setSelectedInterviewOption: React.Dispatch<
+    React.SetStateAction<Record<string, number | null>>
+  >;
+  confirmingInterview: Record<string, boolean>;
+  setConfirmingInterview: React.Dispatch<
+    React.SetStateAction<Record<string, boolean>>
+  >;
+  onInterviewConfirmed: (applicantId: string, confirmedDate: string) => void;
+  triggerParentRefresh?: () => void;
+}) => {
+  const { addNotification } = useNotificationStore();
+  return (
+    <>
+      <div className="mb-4 text-gray-500 text-sm">
+        Total: {totalCount} applicants | Showing page {currentPage} of{" "}
+        {totalPages}
+      </div>
+      <table className="w-full border-collapse">
+        <thead className="sticky top-0 bg-white z-10">
+          <tr className="border-b border-gray-200">
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
               <input
                 type="checkbox"
-                checked={selectedCandidates.has(applicant.id)}
-                onChange={(e) =>
-                  handleCandidateSelection(applicant.id, e.target.checked)
+                checked={
+                  selectedCandidates.size === totalCount && totalCount > 0
                 }
+                onChange={(e) => handleSelectAll(e.target.checked)}
                 className="rounded border-gray-300 text-[#0097B2] focus:ring-[#0097B2]"
               />
-            </td>
-            <td className="py-4 px-4 text-gray-700">{`${applicant.nombre} ${applicant.apellido}`}</td>
-            <td className="py-4 px-4">
-              <button
-                onClick={() => {
-                  setSelectedCandidateId(applicant.id);
-                  setIsCandidateProfileModalOpen(true);
-                }}
-                className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
-              >
-                View profile
-                <User size={16} className="ml-1" />
-              </button>
-            </td>
-            <td className="py-4 px-4">
-              <button
-                onClick={() => handleViewVideo(applicant)}
-                className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
-              >
-                View video
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="ml-1"
-                >
-                  <polygon
-                    points="23 7 16 12 23 17 23 7"
-                    stroke="#0097B2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <rect
-                    x="1"
-                    y="5"
-                    width="15"
-                    height="14"
-                    rx="2"
-                    ry="2"
-                    stroke="#0097B2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </td>
-            <td className="py-4 px-4 text-gray-700">{applicant.correo}</td>
-            <td className="py-4 px-4 text-gray-700">{applicant.telefono}</td>
-            <td className="py-4 px-4 text-gray-700">
-              <div className="flex flex-col">
-                {renderClickableStageStatusBadge(
-                  renderStageStatus(applicant),
-                  applicant
-                )}
-              </div>
-            </td>
-            <td className="py-4 px-4">
-              {(() => {
-                const preference = interviewPreferences[applicant.id];
-                const established = preferencesEstablished[applicant.id];
-
-                if (preference === true) {
-                  return (
-                    <div className="flex items-center gap-2">
-                      <span className="text-green-600 text-sm font-medium">
-                        ✓ Yes
-                      </span>
-                      {established && (
-                        <span className="text-xs text-gray-500">(Set)</span>
-                      )}
-                    </div>
-                  );
-                } else if (preference === false) {
-                  return (
-                    <div className="flex items-center gap-2">
-                      <span className="text-orange-600 text-sm font-medium">
-                        ✗ No
-                      </span>
-                      {established && (
-                        <span className="text-xs text-gray-500">(Set)</span>
-                      )}
-                    </div>
-                  );
-                } else {
-                  return <span className="text-gray-400 text-sm">Not set</span>;
-                }
-              })()}
-            </td>
-            <td className="py-4 px-4">
-              {applicant.estadoPostulacion === "PENDIENTE" ? (
-                <button
-                  className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
-                    isActionLoading(applicant.id, "advancing")
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-[#0097B2] hover:bg-[#007a8f] cursor-pointer"
-                  }`}
-                  onClick={() =>
-                    handleFirstInterview(
-                      applicant.postulationId,
-                      applicant.id,
-                      `${applicant.nombre} ${applicant.apellido}`,
-                      applicant.correo,
-                      applicant.estadoPostulacion
-                    )
-                  }
-                  disabled={isActionLoading(applicant.id, "advancing")}
-                >
-                  {isActionLoading(applicant.id, "advancing")
-                    ? "Sending..."
-                    : "Send"}
-                </button>
-              ) : [
-                  "EN_EVALUACION",
-                  "PRIMERA_ENTREVISTA_REALIZADA",
-                  "EN_EVALUACION_CLIENTE",
-                  "SEGUNDA_ENTREVISTA_REALIZADA",
-                  "FINALISTA",
-                  "ACEPTADA",
-                ].includes(applicant.estadoPostulacion) ? (
-                <div className="text-green-600 text-xs font-medium">✓ Done</div>
-              ) : (
-                <div className="text-gray-400 text-xs">N/A</div>
-              )}
-            </td>
-            <td className="py-4 px-4">
-              {/* Second Interview: Para admin, permitir salto de etapas desde estados tempranos */}
-              {applicant.estadoPostulacion === "PENDIENTE" ||
-              applicant.estadoPostulacion === "EN_EVALUACION" ||
-              applicant.estadoPostulacion === "PRIMERA_ENTREVISTA_REALIZADA" ? (
-                <button
-                  className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
-                    isActionLoading(applicant.id, "advancing")
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-[#0097B2] hover:bg-[#007a8f] cursor-pointer"
-                  }`}
-                  onClick={() =>
-                    handleSecondInterview(
-                      applicant.postulationId,
-                      applicant.id,
-                      `${applicant.nombre} ${applicant.apellido}`,
-                      applicant.correo,
-                      applicant.estadoPostulacion
-                    )
-                  }
-                  disabled={isActionLoading(applicant.id, "advancing")}
-                >
-                  {isActionLoading(applicant.id, "advancing")
-                    ? "Sending..."
-                    : "Send"}
-                </button>
-              ) : [
-                  "EN_EVALUACION_CLIENTE",
-                  "SEGUNDA_ENTREVISTA_REALIZADA",
-                  "FINALISTA",
-                  "ACEPTADA",
-                ].includes(applicant.estadoPostulacion) ? (
-                <div className="text-green-600 text-xs font-medium">✓ Done</div>
-              ) : (
-                <div className="text-gray-400 text-xs">N/A</div>
-              )}
-            </td>
-            <td className="py-4 px-4">
-              {applicant.estadoPostulacion === "FINALISTA" ? (
-                <button
-                  className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
-                    isActionLoading(applicant.id, "hiring")
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-500 hover:bg-green-600 cursor-pointer"
-                  }`}
-                  onClick={() =>
-                    handleHireCandidate(
-                      applicant.postulationId,
-                      applicant.id,
-                      `${applicant.nombre} ${applicant.apellido}`,
-                      applicant.correo,
-                      applicant.estadoPostulacion
-                    )
-                  }
-                  disabled={isActionLoading(applicant.id, "hiring")}
-                >
-                  {isActionLoading(applicant.id, "hiring")
-                    ? "Hiring..."
-                    : "Hire"}
-                </button>
-              ) : applicant.estadoPostulacion !== "ACEPTADA" &&
-                applicant.estadoPostulacion !== "RECHAZADA" ? (
-                <button
-                  className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
-                    isActionLoading(applicant.id, "hiring")
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-500 hover:bg-green-600 cursor-pointer"
-                  }`}
-                  onClick={() =>
-                    handleHireCandidate(
-                      applicant.postulationId,
-                      applicant.id,
-                      `${applicant.nombre} ${applicant.apellido}`,
-                      applicant.correo,
-                      applicant.estadoPostulacion
-                    )
-                  }
-                  disabled={isActionLoading(applicant.id, "hiring")}
-                >
-                  {isActionLoading(applicant.id, "hiring")
-                    ? "Hiring..."
-                    : "Hire"}
-                </button>
-              ) : applicant.estadoPostulacion === "ACEPTADA" ? (
-                <div className="text-green-600 text-xs font-medium">
-                  ✓ Hired
-                </div>
-              ) : (
-                <div className="text-gray-400 text-xs">N/A</div>
-              )}
-            </td>
-            <td className="py-4 px-4">
-              {/* Admin puede rechazar cualquier candidato, excepto los ya rechazados */}
-              {applicant.estadoPostulacion !== "RECHAZADA" ? (
-                <button
-                  className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
-                    isActionLoading(applicant.id, "rejecting")
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-red-500 hover:bg-red-600 cursor-pointer"
-                  }`}
-                  onClick={() =>
-                    handleRejectCandidate(
-                      applicant.postulationId,
-                      applicant.id,
-                      `${applicant.nombre} ${applicant.apellido}`,
-                      applicant.correo
-                    )
-                  }
-                  disabled={isActionLoading(applicant.id, "rejecting")}
-                >
-                  {isActionLoading(applicant.id, "rejecting")
-                    ? "Rejecting..."
-                    : "Reject"}
-                </button>
-              ) : (
-                <div className="text-red-600 text-xs font-medium">
-                  ✗ Rejected
-                </div>
-              )}
-            </td>
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Name
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Profile
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Video
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Email
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Phone
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Stage
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Interview Preference
+            </th>
+            {SHOW_PROPOSED_DATE && (
+              <th className="text-left py-3 px-4 font-medium text-gray-700">
+                Proposed Date
+              </th>
+            )}
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Interview Date
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              First Interview
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Second Interview
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Hired
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Rejected
+            </th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </>
-);
+        </thead>
+        <tbody>
+          {applicants.map((applicant) => (
+            <tr
+              key={applicant.id}
+              className="border-b border-gray-200 hover:bg-gray-50"
+            >
+              <td className="py-4 px-4">
+                <input
+                  type="checkbox"
+                  checked={selectedCandidates.has(applicant.id)}
+                  onChange={(e) =>
+                    handleCandidateSelection(applicant.id, e.target.checked)
+                  }
+                  className="rounded border-gray-300 text-[#0097B2] focus:ring-[#0097B2]"
+                />
+              </td>
+              <td className="py-4 px-4 text-gray-700">{`${applicant.nombre} ${applicant.apellido}`}</td>
+              <td className="py-4 px-4">
+                <button
+                  onClick={() => {
+                    setSelectedCandidateId(applicant.id);
+                    setIsCandidateProfileModalOpen(true);
+                  }}
+                  className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
+                >
+                  View profile
+                  <User size={16} className="ml-1" />
+                </button>
+              </td>
+              <td className="py-4 px-4">
+                <button
+                  onClick={() => handleViewVideo(applicant)}
+                  className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
+                >
+                  View video
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="ml-1"
+                  >
+                    <polygon
+                      points="23 7 16 12 23 17 23 7"
+                      stroke="#0097B2"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <rect
+                      x="1"
+                      y="5"
+                      width="15"
+                      height="14"
+                      rx="2"
+                      ry="2"
+                      stroke="#0097B2"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </td>
+              <td className="py-4 px-4 text-gray-700">{applicant.correo}</td>
+              <td className="py-4 px-4 text-gray-700">{applicant.telefono}</td>
+              <td className="py-4 px-4 text-gray-700">
+                <div className="flex flex-col">
+                  {renderClickableStageStatusBadge(
+                    renderStageStatus(applicant),
+                    applicant
+                  )}
+                </div>
+              </td>
+              <td className="py-4 px-4">
+                {(() => {
+                  const preference = interviewPreferences[applicant.id];
+                  const established = preferencesEstablished[applicant.id];
+                  if (preference === true) {
+                    return (
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-600 text-sm font-medium">
+                          ✓ Yes
+                        </span>
+                        {established && (
+                          <span className="text-xs text-gray-500">(Set)</span>
+                        )}
+                      </div>
+                    );
+                  }
+                  if (preference === false) {
+                    return (
+                      <div className="flex items-center gap-2">
+                        <span className="text-orange-600 text-sm font-medium">
+                          ✗ No
+                        </span>
+                        {established && (
+                          <span className="text-xs text-gray-500">(Set)</span>
+                        )}
+                      </div>
+                    );
+                  }
+                  return <span className="text-gray-400 text-sm">Not set</span>;
+                })()}
+              </td>
+              {SHOW_PROPOSED_DATE && (
+                <td className="py-4 px-4 align-top">
+                  {(() => {
+                    const proposedDates = [
+                      applicant.disponibilidadEntrevista || null,
+                      applicant.disponibilidadEntrevista2 || null,
+                      applicant.disponibilidadEntrevista3 || null,
+                    ].filter(Boolean) as string[];
+                    const confirmed = applicant.fechaEntrevistaConfirmada;
+                    if (confirmed) {
+                      return (
+                        <div className="text-xs text-green-700">
+                          <div>{new Date(confirmed).toLocaleDateString()}</div>
+                          <div className="text-green-600 font-medium">
+                            {new Date(confirmed).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                          {/* Removed explicit 'Confirmed' label per UX request */}
+                        </div>
+                      );
+                    }
+                    if (proposedDates.length === 0) {
+                      return <span className="text-xs text-gray-400">N/A</span>;
+                    }
+                    // Compact select instead of multiple radios
+                    return (
+                      <div className="flex flex-col gap-1">
+                        <select
+                          className="text-[11px] border border-gray-300 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-[#0097B2] w-full"
+                          value={selectedInterviewOption[applicant.id] || ""}
+                          onChange={async (e) => {
+                            const val = e.target.value
+                              ? Number(e.target.value)
+                              : null;
+                            if (!val) {
+                              setSelectedInterviewOption((prev) => ({
+                                ...prev,
+                                [applicant.id]: null,
+                              }));
+                              return;
+                            }
+                            setSelectedInterviewOption((prev) => ({
+                              ...prev,
+                              [applicant.id]: val,
+                            }));
+                            // Auto-confirm immediately on first selection if not already confirmed
+                            if (!applicant.fechaEntrevistaConfirmada) {
+                              setConfirmingInterview((prev) => ({
+                                ...prev,
+                                [applicant.id]: true,
+                              }));
+                              try {
+                                console.log(
+                                  "[InterviewConfirm] Calling server action confirmInterviewDate",
+                                  {
+                                    postulationId: applicant.postulationId,
+                                    optionIndex: val,
+                                  }
+                                );
+                                const resp = await confirmInterviewDate(
+                                  applicant.postulationId,
+                                  val
+                                );
+
+                                console.log("[RESP REVISAR]", resp);
+                                if (!resp?.success)
+                                  throw new Error(
+                                    resp?.message || "Confirm failed"
+                                  );
+                                // Preferir fecha que venga del backend para evitar problemas de zona horaria o desalineación
+                                const backendConfirmed =
+                                  resp?.data?.fechaEntrevistaConfirmada ||
+                                  resp?.data?.data?.fechaEntrevistaConfirmada;
+                                const confirmedDate =
+                                  backendConfirmed || proposedDates[val - 1];
+                                if (!confirmedDate) {
+                                  console.warn(
+                                    "[InterviewConfirm] No fechaEntrevistaConfirmada en respuesta, usando fallback local"
+                                  );
+                                }
+                                onInterviewConfirmed(
+                                  applicant.id,
+                                  confirmedDate
+                                );
+                                // Refrescar datos en el padre para que permanezca al reabrir el modal
+                                try {
+                                  triggerParentRefresh?.();
+                                } catch (e) {
+                                  console.warn(
+                                    "[InterviewConfirm] triggerParentRefresh error",
+                                    e
+                                  );
+                                }
+                                console.log(
+                                  "[InterviewConfirm] Confirmed date set",
+                                  {
+                                    confirmedDate,
+                                    backendConfirmed,
+                                    optionIndex: val,
+                                  }
+                                );
+                                addNotification(
+                                  "Interview date confirmed",
+                                  "success"
+                                );
+                              } catch (err) {
+                                console.error(
+                                  "[InterviewConfirm] Error confirming interview date (server action)",
+                                  err
+                                );
+                                addNotification(
+                                  "Error confirming interview date",
+                                  "error"
+                                );
+                                // rollback selection on error
+                                setSelectedInterviewOption((prev) => ({
+                                  ...prev,
+                                  [applicant.id]: null,
+                                }));
+                              } finally {
+                                setConfirmingInterview((prev) => ({
+                                  ...prev,
+                                  [applicant.id]: false,
+                                }));
+                              }
+                            }
+                          }}
+                          disabled={
+                            confirmingInterview[applicant.id] ||
+                            !!applicant.fechaEntrevistaConfirmada
+                          }
+                        >
+                          <option value="">Select option...</option>
+                          {proposedDates.map((d, idx) => (
+                            <option key={idx} value={idx + 1}>
+                              {idx + 1}. {new Date(d).toLocaleDateString()}{" "}
+                              {new Date(d).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </option>
+                          ))}
+                        </select>
+                        {confirmingInterview[applicant.id] && (
+                          <span className="text-[10px] text-gray-500 mt-1">
+                            Confirming...
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </td>
+              )}
+              <td className="py-4 px-4">
+                {(() => {
+                  const confirmed = applicant.fechaEntrevistaConfirmada;
+                  const firstProposed = applicant.disponibilidadEntrevista;
+                  if (confirmed) {
+                    return (
+                      <div className="text-xs text-green-700">
+                        <div>{new Date(confirmed).toLocaleDateString()}</div>
+                        <div className="text-green-600 font-medium">
+                          {new Date(confirmed).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                        {/* Removed explicit 'Confirmed' label per UX request */}
+                      </div>
+                    );
+                  }
+                  if (firstProposed) {
+                    return (
+                      <div className="text-xs text-gray-700">
+                        <div>
+                          {new Date(firstProposed).toLocaleDateString()}
+                        </div>
+                        <div className="text-gray-500">
+                          {new Date(firstProposed).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                        <div className="text-[10px] text-gray-500 mt-0.5">
+                          Pending confirmation
+                        </div>
+                      </div>
+                    );
+                  }
+                  return <span className="text-gray-400 text-xs">N/A</span>;
+                })()}
+              </td>
+              <td className="py-4 px-4">
+                {applicant.estadoPostulacion === "PENDIENTE" ? (
+                  <button
+                    className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
+                      isActionLoading(applicant.id, "advancing")
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-[#0097B2] hover:bg-[#007a8f] cursor-pointer"
+                    }`}
+                    onClick={() =>
+                      handleFirstInterview(
+                        applicant.postulationId,
+                        applicant.id,
+                        `${applicant.nombre} ${applicant.apellido}`,
+                        applicant.correo,
+                        applicant.estadoPostulacion
+                      )
+                    }
+                    disabled={isActionLoading(applicant.id, "advancing")}
+                  >
+                    {isActionLoading(applicant.id, "advancing")
+                      ? "Sending..."
+                      : "Send"}
+                  </button>
+                ) : [
+                    "EN_EVALUACION",
+                    "PRIMERA_ENTREVISTA_REALIZADA",
+                    "EN_EVALUACION_CLIENTE",
+                    "SEGUNDA_ENTREVISTA_REALIZADA",
+                    "FINALISTA",
+                    "ACEPTADA",
+                  ].includes(applicant.estadoPostulacion) ? (
+                  <div className="text-green-600 text-xs font-medium">
+                    ✓ Done
+                  </div>
+                ) : (
+                  <div className="text-gray-400 text-xs">N/A</div>
+                )}
+              </td>
+              <td className="py-4 px-4">
+                {/* Second Interview: Para admin, permitir salto de etapas desde estados tempranos */}
+                {applicant.estadoPostulacion === "PENDIENTE" ||
+                applicant.estadoPostulacion === "EN_EVALUACION" ||
+                applicant.estadoPostulacion ===
+                  "PRIMERA_ENTREVISTA_REALIZADA" ? (
+                  <button
+                    className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
+                      isActionLoading(applicant.id, "advancing")
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-[#0097B2] hover:bg-[#007a8f] cursor-pointer"
+                    }`}
+                    onClick={() =>
+                      handleSecondInterview(
+                        applicant.postulationId,
+                        applicant.id,
+                        `${applicant.nombre} ${applicant.apellido}`,
+                        applicant.correo,
+                        applicant.estadoPostulacion
+                      )
+                    }
+                    disabled={isActionLoading(applicant.id, "advancing")}
+                  >
+                    {isActionLoading(applicant.id, "advancing")
+                      ? "Sending..."
+                      : "Send"}
+                  </button>
+                ) : [
+                    "EN_EVALUACION_CLIENTE",
+                    "SEGUNDA_ENTREVISTA_REALIZADA",
+                    "FINALISTA",
+                    "ACEPTADA",
+                  ].includes(applicant.estadoPostulacion) ? (
+                  <div className="text-green-600 text-xs font-medium">
+                    ✓ Done
+                  </div>
+                ) : (
+                  <div className="text-gray-400 text-xs">N/A</div>
+                )}
+              </td>
+              <td className="py-4 px-4">
+                {applicant.estadoPostulacion === "FINALISTA" ? (
+                  <button
+                    className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
+                      isActionLoading(applicant.id, "hiring")
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-green-500 hover:bg-green-600 cursor-pointer"
+                    }`}
+                    onClick={() =>
+                      handleHireCandidate(
+                        applicant.postulationId,
+                        applicant.id,
+                        `${applicant.nombre} ${applicant.apellido}`,
+                        applicant.correo,
+                        applicant.estadoPostulacion
+                      )
+                    }
+                    disabled={isActionLoading(applicant.id, "hiring")}
+                  >
+                    {isActionLoading(applicant.id, "hiring")
+                      ? "Hiring..."
+                      : "Hire"}
+                  </button>
+                ) : applicant.estadoPostulacion !== "ACEPTADA" &&
+                  applicant.estadoPostulacion !== "RECHAZADA" ? (
+                  <button
+                    className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
+                      isActionLoading(applicant.id, "hiring")
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-green-500 hover:bg-green-600 cursor-pointer"
+                    }`}
+                    onClick={() =>
+                      handleHireCandidate(
+                        applicant.postulationId,
+                        applicant.id,
+                        `${applicant.nombre} ${applicant.apellido}`,
+                        applicant.correo,
+                        applicant.estadoPostulacion
+                      )
+                    }
+                    disabled={isActionLoading(applicant.id, "hiring")}
+                  >
+                    {isActionLoading(applicant.id, "hiring")
+                      ? "Hiring..."
+                      : "Hire"}
+                  </button>
+                ) : applicant.estadoPostulacion === "ACEPTADA" ? (
+                  <div className="text-green-600 text-xs font-medium">
+                    ✓ Hired
+                  </div>
+                ) : (
+                  <div className="text-gray-400 text-xs">N/A</div>
+                )}
+              </td>
+              <td className="py-4 px-4">
+                {/* Admin puede rechazar cualquier candidato, excepto los ya rechazados */}
+                {applicant.estadoPostulacion !== "RECHAZADA" ? (
+                  <button
+                    className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
+                      isActionLoading(applicant.id, "rejecting")
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-red-500 hover:bg-red-600 cursor-pointer"
+                    }`}
+                    onClick={() =>
+                      handleRejectCandidate(
+                        applicant.postulationId,
+                        applicant.id,
+                        `${applicant.nombre} ${applicant.apellido}`,
+                        applicant.correo
+                      )
+                    }
+                    disabled={isActionLoading(applicant.id, "rejecting")}
+                  >
+                    {isActionLoading(applicant.id, "rejecting")
+                      ? "Rejecting..."
+                      : "Reject"}
+                  </button>
+                ) : (
+                  <div className="text-red-600 text-xs font-medium">
+                    ✗ Rejected
+                  </div>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+};
 
 // Tabla para usuarios Company
 const CompanyApplicantsTable = ({
@@ -487,6 +722,7 @@ const CompanyApplicantsTable = ({
   savingAvailability,
   onChangeInterviewAvailability,
   onSaveInterviewAvailability,
+  onOpenSchedule,
   handleInterviewPreferenceChange,
   handleHireCandidate,
   handleRejectCandidate,
@@ -511,6 +747,7 @@ const CompanyApplicantsTable = ({
     applicantId: string,
     postulationId: string
   ) => void;
+  onOpenSchedule: (applicant: ExtendedApplicant) => void;
   preferencesEstablished: Record<string, boolean>;
   handleInterviewPreferenceChange: (
     applicantId: string,
@@ -557,333 +794,372 @@ const CompanyApplicantsTable = ({
   ) => boolean;
   currentPage: number;
   totalPages: number;
-}) => (
-  <>
-    <div className="mb-4 text-gray-500 text-sm">
-      Total: {totalCount} applicants | Showing page {currentPage} of{" "}
-      {totalPages}
-    </div>
-    <table className="w-full border-collapse">
-      <thead className="sticky top-0 bg-white z-10">
-        <tr className="border-b border-gray-200">
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Name
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Profile
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Stage
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Schedule Interview?
-          </th>
-          {SHOW_PROPOSED_DATE && (
+}) => {
+  console.log("applicants", applicants);
+  console.log(
+    savingAvailability,
+    onChangeInterviewAvailability,
+    onSaveInterviewAvailability
+  );
+  return (
+    <>
+      <div className="mb-4 text-gray-500 text-sm">
+        Total: {totalCount} applicants | Showing page {currentPage} of{" "}
+        {totalPages}
+      </div>
+      <table className="w-full border-collapse">
+        <thead className="sticky top-0 bg-white z-10">
+          <tr className="border-b border-gray-200">
             <th className="text-left py-3 px-4 font-medium text-gray-700">
-              Proposed Date
+              Name
             </th>
-          )}
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Hire
-          </th>
-          <th className="text-left py-3 px-4 font-medium text-gray-700">
-            Reject
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {applicants.map((applicant) => (
-          <tr
-            key={applicant.id}
-            className="border-b border-gray-200 hover:bg-gray-50"
-          >
-            <td className="py-4 px-4 text-gray-700">{`${applicant.nombre} ${applicant.apellido}`}</td>
-            <td className="py-4 px-4">
-              <button
-                onClick={() => {
-                  setSelectedCandidateId(applicant.id);
-                  setIsCandidateProfileModalOpen(true);
-                }}
-                className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
-              >
-                View profile
-                <User size={16} className="ml-1" />
-              </button>
-            </td>
-            <td className="py-4 px-4 text-gray-700">
-              <div className="flex flex-col">
-                {renderClickableStageStatusBadge(
-                  renderStageStatus(applicant),
-                  applicant
-                )}
-              </div>
-            </td>
-            <td className="py-4 px-4">
-              {(() => {
-                const preference = interviewPreferences[applicant.id];
-
-                // Para empresa: siempre mostrar radio buttons para permitir cambios
-                // Solo mostrar el estado actual si está definido
-                if (preference === true) {
-                  return (
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`interview-${applicant.id}`}
-                          checked={true}
-                          onChange={() =>
-                            handleInterviewPreferenceChange(applicant.id, true)
-                          }
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm font-medium text-green-600">
-                          Yes
-                        </span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`interview-${applicant.id}`}
-                          checked={false}
-                          onChange={() =>
-                            handleInterviewPreferenceChange(applicant.id, false)
-                          }
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm">No</span>
-                      </label>
-                    </div>
-                  );
-                } else if (preference === false) {
-                  return (
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`interview-${applicant.id}`}
-                          checked={false}
-                          onChange={() =>
-                            handleInterviewPreferenceChange(applicant.id, true)
-                          }
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm">Yes</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`interview-${applicant.id}`}
-                          checked={true}
-                          onChange={() =>
-                            handleInterviewPreferenceChange(applicant.id, false)
-                          }
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm font-medium text-orange-600">
-                          No
-                        </span>
-                      </label>
-                    </div>
-                  );
-                } else {
-                  // Estado no seleccionado - mostrar radio buttons sin seleccionar
-                  return (
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`interview-${applicant.id}`}
-                          checked={false}
-                          onChange={() =>
-                            handleInterviewPreferenceChange(applicant.id, true)
-                          }
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm">Yes</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`interview-${applicant.id}`}
-                          checked={false}
-                          onChange={() =>
-                            handleInterviewPreferenceChange(applicant.id, false)
-                          }
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm">No</span>
-                      </label>
-                    </div>
-                  );
-                }
-              })()}
-            </td>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Profile
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Stage
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Schedule Interview?
+            </th>
             {SHOW_PROPOSED_DATE && (
+              <th className="text-left py-3 px-4 font-medium text-gray-700">
+                Proposed Date
+              </th>
+            )}
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Interview Date
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Hire
+            </th>
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              Reject
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {applicants.map((applicant) => (
+            <tr
+              key={applicant.id}
+              className="border-b border-gray-200 hover:bg-gray-50"
+            >
+              <td className="py-4 px-4 text-gray-700">{`${applicant.nombre} ${applicant.apellido}`}</td>
               <td className="py-4 px-4">
-                {interviewPreferences[applicant.id] ? (
-                  <div className="flex flex-col gap-2">
-                    <input
-                      type="datetime-local"
-                      value={(() => {
-                        const raw = interviewAvailability[applicant.id];
-                        if (!raw) return "";
-                        try {
-                          // Convert ISO to local datetime-local format
-                          const d = new Date(raw);
-                          const pad = (n: number) =>
-                            n.toString().padStart(2, "0");
-                          const year = d.getFullYear();
-                          const month = pad(d.getMonth() + 1);
-                          const day = pad(d.getDate());
-                          const hours = pad(d.getHours());
-                          const minutes = pad(d.getMinutes());
-                          return `${year}-${month}-${day}T${hours}:${minutes}`;
-                        } catch {
-                          return "";
-                        }
-                      })()}
-                      min={(() => {
-                        const now = new Date();
-                        now.setMinutes(now.getMinutes() + 10); // enforce +10 minutes lead time
-                        const pad = (n: number) => n.toString().padStart(2, "0");
-                        return `${now.getFullYear()}-${pad(
-                          now.getMonth() + 1
-                        )}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(
-                          now.getMinutes()
-                        )}`;
-                      })()}
-                      onChange={(e) => {
-                        const val = e.target.value; // local string YYYY-MM-DDTHH:mm
-                        if (!val) {
-                          onChangeInterviewAvailability(applicant.id, "");
-                          return;
-                        }
-                        // Convert local to ISO
-                        const localDate = new Date(val);
-                        onChangeInterviewAvailability(
-                          applicant.id,
-                          localDate.toISOString()
-                        );
-                      }}
-                      className="border border-gray-300 rounded px-2 py-1 text-sm"
-                    />
+                <button
+                  onClick={() => {
+                    setSelectedCandidateId(applicant.id);
+                    setIsCandidateProfileModalOpen(true);
+                  }}
+                  className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
+                >
+                  View profile
+                  <User size={16} className="ml-1" />
+                </button>
+              </td>
+              <td className="py-4 px-4 text-gray-700">
+                <div className="flex flex-col">
+                  {renderClickableStageStatusBadge(
+                    renderStageStatus(applicant),
+                    applicant
+                  )}
+                </div>
+              </td>
+              <td className="py-4 px-4">
+                {(() => {
+                  const preference = interviewPreferences[applicant.id];
+
+                  // Para empresa: siempre mostrar radio buttons para permitir cambios
+                  // Solo mostrar el estado actual si está definido
+                  if (preference === true) {
+                    return (
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`interview-${applicant.id}`}
+                            checked={true}
+                            onChange={() =>
+                              handleInterviewPreferenceChange(
+                                applicant.id,
+                                true
+                              )
+                            }
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span className="text-sm font-medium text-green-600">
+                            Yes
+                          </span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`interview-${applicant.id}`}
+                            checked={false}
+                            onChange={() =>
+                              handleInterviewPreferenceChange(
+                                applicant.id,
+                                false
+                              )
+                            }
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span className="text-sm">No</span>
+                        </label>
+                      </div>
+                    );
+                  } else if (preference === false) {
+                    return (
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`interview-${applicant.id}`}
+                            checked={false}
+                            onChange={() =>
+                              handleInterviewPreferenceChange(
+                                applicant.id,
+                                true
+                              )
+                            }
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span className="text-sm">Yes</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`interview-${applicant.id}`}
+                            checked={true}
+                            onChange={() =>
+                              handleInterviewPreferenceChange(
+                                applicant.id,
+                                false
+                              )
+                            }
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span className="text-sm font-medium text-orange-600">
+                            No
+                          </span>
+                        </label>
+                      </div>
+                    );
+                  } else {
+                    // Estado no seleccionado - mostrar radio buttons sin seleccionar
+                    return (
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`interview-${applicant.id}`}
+                            checked={false}
+                            onChange={() =>
+                              handleInterviewPreferenceChange(
+                                applicant.id,
+                                true
+                              )
+                            }
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span className="text-sm">Yes</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`interview-${applicant.id}`}
+                            checked={false}
+                            onChange={() =>
+                              handleInterviewPreferenceChange(
+                                applicant.id,
+                                false
+                              )
+                            }
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span className="text-sm">No</span>
+                        </label>
+                      </div>
+                    );
+                  }
+                })()}
+              </td>
+              {SHOW_PROPOSED_DATE && (
+                <td className="py-4 px-4 align-top">
+                  {interviewPreferences[applicant.id] ? (
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => onOpenSchedule(applicant)}
+                        className="inline-flex items-center gap-2 px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 w-fit"
+                      >
+                        <Calendar size={14} />
+                        {interviewAvailability[applicant.id] ||
+                        applicant.disponibilidadEntrevista ||
+                        applicant.disponibilidadEntrevista2 ||
+                        applicant.disponibilidadEntrevista3
+                          ? "Change dates"
+                          : "Set dates"}
+                      </button>
+                      {/* Summary of up to 3 proposed dates (local state first, fallback to persisted) */}
+                      {[
+                        interviewAvailability[applicant.id] ||
+                          applicant.disponibilidadEntrevista ||
+                          null,
+                        applicant.disponibilidadEntrevista2 || null,
+                        applicant.disponibilidadEntrevista3 || null,
+                      ].filter(Boolean).length > 0 && (
+                        <div className="flex flex-col gap-0 mt-1">
+                          {[
+                            interviewAvailability[applicant.id] ||
+                              applicant.disponibilidadEntrevista ||
+                              null,
+                            applicant.disponibilidadEntrevista2 || null,
+                            applicant.disponibilidadEntrevista3 || null,
+                          ]
+                            .filter(Boolean)
+                            .map((d, idx) => (
+                              <span
+                                key={idx}
+                                className="text-[11px] text-gray-600"
+                              >
+                                {idx + 1}.
+                                {new Date(d as string).toLocaleString()}
+                              </span>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-400">N/A</span>
+                  )}
+                </td>
+              )}
+              <td className="py-4 px-4 text-sm">
+                {(() => {
+                  const confirmed = applicant.fechaEntrevistaConfirmada;
+                  const proposed =
+                    applicant.disponibilidadEntrevista ||
+                    interviewAvailability[applicant.id];
+                  if (confirmed) {
+                    return (
+                      <div className="text-xs text-green-700">
+                        <div>{new Date(confirmed).toLocaleDateString()}</div>
+                        <div className="text-green-600 font-medium">
+                          {new Date(confirmed).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                        {/* Removed explicit 'Confirmed' label per UX request */}
+                      </div>
+                    );
+                  }
+                  if (proposed) {
+                    return (
+                      <div className="text-xs text-gray-700">
+                        <div>
+                          {new Date(proposed as string).toLocaleDateString()}
+                        </div>
+                        <div className="text-gray-500">
+                          {new Date(proposed as string).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                        <div className="text-[10px] text-gray-500 mt-0.5">
+                          Pending confirmation
+                        </div>
+                      </div>
+                    );
+                  }
+                  return <span className="text-gray-400 text-xs">N/A</span>;
+                })()}
+              </td>
+              <td className="py-4 px-4">
+                <div className="text-gray-400 text-xs">
+                  {/* Para clientes (company): pueden hacer Hire desde varios estados para mover a FINALISTA */}
+                  {applicant.estadoPostulacion === "PENDIENTE" ||
+                  applicant.estadoPostulacion === "EN_EVALUACION" ||
+                  applicant.estadoPostulacion ===
+                    "PRIMERA_ENTREVISTA_REALIZADA" ||
+                  applicant.estadoPostulacion === "EN_EVALUACION_CLIENTE" ||
+                  applicant.estadoPostulacion ===
+                    "SEGUNDA_ENTREVISTA_REALIZADA" ? (
                     <button
+                      className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
+                        isActionLoading(applicant.id, "hiring")
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-green-500 hover:bg-green-600 cursor-pointer"
+                      }`}
                       onClick={() =>
-                        onSaveInterviewAvailability(
+                        handleHireCandidate(
+                          applicant.postulationId,
                           applicant.id,
-                          applicant.postulationId
+                          `${applicant.nombre} ${applicant.apellido}`,
+                          applicant.correo,
+                          applicant.estadoPostulacion
                         )
                       }
-                      disabled={savingAvailability[applicant.id]}
-                      className={`px-3 py-1 text-white text-xs rounded-md transition-colors w-fit ${
-                        savingAvailability[applicant.id]
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-blue-500 hover:bg-blue-600 cursor-pointer"
-                      }`}
+                      disabled={isActionLoading(applicant.id, "hiring")}
                     >
-                      {savingAvailability[applicant.id]
-                        ? "Saving..."
-                        : interviewAvailability[applicant.id]
-                        ? "Update"
-                        : "Save"}
+                      {isActionLoading(applicant.id, "hiring")
+                        ? "Hiring..."
+                        : "Hire"}
                     </button>
-                    {interviewAvailability[applicant.id] && (
-                      <span className="text-xs text-gray-500">
-                        {new Date(
-                          interviewAvailability[applicant.id] as string
-                        ).toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-xs text-gray-400">N/A</span>
-                )}
+                  ) : applicant.estadoPostulacion === "FINALISTA" ? (
+                    <div className="text-blue-600 text-xs font-medium">
+                      ✓ Approved
+                    </div>
+                  ) : applicant.estadoPostulacion === "ACEPTADA" ? (
+                    <div className="text-green-600 text-xs font-medium">
+                      ✓ Hired
+                    </div>
+                  ) : (
+                    <div className="text-gray-400 text-xs">N/A</div>
+                  )}
+                </div>
               </td>
-            )}
-            <td className="py-4 px-4">
-              <div className="text-gray-400 text-xs">
-                {/* Para clientes (company): pueden hacer Hire desde varios estados para mover a FINALISTA */}
-                {applicant.estadoPostulacion === "PENDIENTE" ||
-                applicant.estadoPostulacion === "EN_EVALUACION" ||
-                applicant.estadoPostulacion ===
-                  "PRIMERA_ENTREVISTA_REALIZADA" ||
-                applicant.estadoPostulacion === "EN_EVALUACION_CLIENTE" ||
-                applicant.estadoPostulacion ===
-                  "SEGUNDA_ENTREVISTA_REALIZADA" ? (
+              <td className="py-4 px-4">
+                {/* No se puede rechazar si ya está aprobado (FINALISTA) o contratado (ACEPTADA) */}
+                {applicant.estadoPostulacion !== "RECHAZADA" &&
+                applicant.estadoPostulacion !== "ACEPTADA" &&
+                applicant.estadoPostulacion !== "FINALISTA" ? (
                   <button
                     className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
-                      isActionLoading(applicant.id, "hiring")
+                      isActionLoading(applicant.id, "rejecting")
                         ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-green-500 hover:bg-green-600 cursor-pointer"
+                        : "bg-red-500 hover:bg-red-600 cursor-pointer"
                     }`}
                     onClick={() =>
-                      handleHireCandidate(
+                      handleRejectCandidate(
                         applicant.postulationId,
                         applicant.id,
                         `${applicant.nombre} ${applicant.apellido}`,
-                        applicant.correo,
-                        applicant.estadoPostulacion
+                        applicant.correo
                       )
                     }
-                    disabled={isActionLoading(applicant.id, "hiring")}
+                    disabled={isActionLoading(applicant.id, "rejecting")}
                   >
-                    {isActionLoading(applicant.id, "hiring")
-                      ? "Hiring..."
-                      : "Hire"}
+                    {isActionLoading(applicant.id, "rejecting")
+                      ? "Rejecting..."
+                      : "Reject"}
                   </button>
-                ) : applicant.estadoPostulacion === "FINALISTA" ? (
-                  <div className="text-blue-600 text-xs font-medium">
-                    ✓ Approved
-                  </div>
-                ) : applicant.estadoPostulacion === "ACEPTADA" ? (
-                  <div className="text-green-600 text-xs font-medium">
-                    ✓ Hired
+                ) : applicant.estadoPostulacion === "RECHAZADA" ? (
+                  <div className="text-red-600 text-xs font-medium">
+                    ✗ Rejected
                   </div>
                 ) : (
                   <div className="text-gray-400 text-xs">N/A</div>
                 )}
-              </div>
-            </td>
-            <td className="py-4 px-4">
-              {/* No se puede rechazar si ya está aprobado (FINALISTA) o contratado (ACEPTADA) */}
-              {applicant.estadoPostulacion !== "RECHAZADA" &&
-              applicant.estadoPostulacion !== "ACEPTADA" &&
-              applicant.estadoPostulacion !== "FINALISTA" ? (
-                <button
-                  className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${
-                    isActionLoading(applicant.id, "rejecting")
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-red-500 hover:bg-red-600 cursor-pointer"
-                  }`}
-                  onClick={() =>
-                    handleRejectCandidate(
-                      applicant.postulationId,
-                      applicant.id,
-                      `${applicant.nombre} ${applicant.apellido}`,
-                      applicant.correo
-                    )
-                  }
-                  disabled={isActionLoading(applicant.id, "rejecting")}
-                >
-                  {isActionLoading(applicant.id, "rejecting")
-                    ? "Rejecting..."
-                    : "Reject"}
-                </button>
-              ) : applicant.estadoPostulacion === "RECHAZADA" ? (
-                <div className="text-red-600 text-xs font-medium">
-                  ✗ Rejected
-                </div>
-              ) : (
-                <div className="text-gray-400 text-xs">N/A</div>
-              )}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </>
-);
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+};
 
 export default function ApplicantsModal({
   isOpen,
@@ -906,38 +1182,114 @@ export default function ApplicantsModal({
     [key: string]: "hiring" | "rejecting" | "advancing" | null;
   }>({});
 
-  // Disponibilidad de entrevista por candidato (ISO string)
+  // Disponibilidad de entrevista por candidato (hasta 3 opciones ISO)
   const [interviewAvailability, setInterviewAvailability] = useState<
+    Record<string, string | undefined>
+  >({});
+  const [interviewAvailability2, setInterviewAvailability2] = useState<
+    Record<string, string | undefined>
+  >({});
+  const [interviewAvailability3, setInterviewAvailability3] = useState<
     Record<string, string | undefined>
   >({});
   const [savingAvailability, setSavingAvailability] = useState<
     Record<string, boolean>
   >({});
+  // Confirmación de fecha (loading por candidato)
+  const [confirmingInterview, setConfirmingInterview] = useState<
+    Record<string, boolean>
+  >({});
+  // Selección temporal de opción (1,2,3) antes de confirmar
+  const [selectedInterviewOption, setSelectedInterviewOption] = useState<
+    Record<string, number | null>
+  >({});
+  const handleInterviewConfirmed = (
+    applicantId: string,
+    confirmedDate: string
+  ) => {
+    setApplicants((prev) =>
+      prev.map((a) =>
+        a.id === applicantId
+          ? { ...a, fechaEntrevistaConfirmada: confirmedDate }
+          : a
+      )
+    );
+  };
+  // Pre-select option automatically for rows that have exactly one proposed date (UX persistence)
+  useEffect(() => {
+    setSelectedInterviewOption((prev) => {
+      const next = { ...prev };
+      applicants.forEach((a) => {
+        if (a.fechaEntrevistaConfirmada) {
+          // Remove any stale selection once confirmed
+          if (next[a.id]) delete next[a.id];
+          return;
+        }
+        const proposed = [
+          a.disponibilidadEntrevista || null,
+          a.disponibilidadEntrevista2 || null,
+          a.disponibilidadEntrevista3 || null,
+        ].filter(Boolean);
+        if (proposed.length === 1 && next[a.id] == null) {
+          next[a.id] = 1; // auto-select the only option
+        }
+      });
+      return next;
+    });
+  }, [applicants]);
+  // Modal para agendar entrevista
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [scheduleTarget, setScheduleTarget] = useState<{
+    applicantId: string;
+    postulationId: string;
+    name: string;
+  } | null>(null);
+  const openScheduleModal = (applicant: ExtendedApplicant) => {
+    setScheduleTarget({
+      applicantId: applicant.id,
+      postulationId: applicant.postulationId,
+      name: `${applicant.nombre} ${applicant.apellido}`,
+    });
+    setScheduleModalOpen(true);
+  };
+  const closeScheduleModal = () => {
+    setScheduleModalOpen(false);
+    setScheduleTarget(null);
+  };
+  // Cantidad de slots visibles dinámicamente (1-3)
+  const [activeSlotCount, setActiveSlotCount] = useState<number>(1);
 
-  // Guardar disponibilidad (PATCH backend)
+  // Guardar múltiples disponibilidades (PATCH backend)
   const handleInterviewAvailabilitySave = async (
     applicantId: string,
     postulationId: string
   ) => {
-    const iso = interviewAvailability[applicantId];
-    if (!iso) {
-      addNotification("Selecciona una fecha antes de guardar", "warning");
+    const fechas = [
+      interviewAvailability[applicantId] || null,
+      interviewAvailability2[applicantId] || null,
+      interviewAvailability3[applicantId] || null,
+    ];
+    if (fechas.every((f) => !f)) {
+      addNotification("Select at least one date before saving", "warning");
       return;
     }
     setSavingAvailability((prev) => ({ ...prev, [applicantId]: true }));
     try {
-      const res = await updateInterviewAvailability(postulationId, iso);
+      const res = await updateMultiInterviewAvailability(postulationId, fechas);
       if (res.success) {
-        addNotification("Disponibilidad guardada y notificada", "success");
+        addNotification("Interview availabilities saved", "success");
       } else {
         addNotification(
-          res.message || "Error al guardar disponibilidad",
+          res.message || "Error saving interview availabilities",
           "error"
         );
       }
     } catch (e) {
       console.error(e);
-      addNotification("Error inesperado al guardar disponibilidad", "error");
+      addNotification(
+        "Unexpected error while saving interview availabilities",
+        "error"
+      );
     } finally {
       setSavingAvailability((prev) => ({ ...prev, [applicantId]: false }));
     }
@@ -1193,6 +1545,7 @@ export default function ApplicantsModal({
     // Objetos para acumular las preferencias
     const newInterviewPreferences: Record<string, boolean | undefined> = {};
     const newPreferencesEstablished: Record<string, boolean> = {};
+    const newInterviewAvailability: Record<string, string | undefined> = {};
 
     // Primero, cargar las preferencias de entrevista desde los datos iniciales
     initialApplicants.forEach((applicant) => {
@@ -1242,6 +1595,15 @@ export default function ApplicantsModal({
           // No asignar nada, queda como undefined
         }
       }
+
+      // Cargar disponibilidad de entrevista si existe (para admins y empresa)
+      if (applicant.disponibilidadEntrevista) {
+        // Normalizar a ISO string
+        newInterviewAvailability[applicant.id] =
+          typeof applicant.disponibilidadEntrevista === "string"
+            ? applicant.disponibilidadEntrevista
+            : new Date(applicant.disponibilidadEntrevista).toISOString();
+      }
     });
 
     const updatedApplicants = await Promise.all(
@@ -1251,7 +1613,7 @@ export default function ApplicantsModal({
             applicant.postulationId,
             applicant.id
           );
-          if (response.success && response.data?.estadoPostulacion) {
+          if (response?.success && response?.data?.estadoPostulacion) {
             console.log(
               `📝 [ApplicantsModal] Response completa para ${applicant.nombre}:`,
               response.data
@@ -1271,6 +1633,11 @@ export default function ApplicantsModal({
               perfilCompleto: "COMPLETO", // Asumimos que está completo si está aplicando
               clasificacionGlobal: "ACTIVE", // Asumimos que está activo
             };
+          }
+          if (!response) {
+            console.warn(
+              `⚠️ [ApplicantsModal] currentStageStatus devolvió undefined para ${applicant.nombre}`
+            );
           }
           return {
             ...applicant,
@@ -1305,6 +1672,8 @@ export default function ApplicantsModal({
     // Actualizar estados al final
     setInterviewPreferences(newInterviewPreferences);
     setPreferencesEstablished(newPreferencesEstablished);
+    // Establecer disponibilidad inicial (no sobreescribir si ya estaba en memoria, pero aquí estamos cargando desde cero)
+    setInterviewAvailability(newInterviewAvailability);
 
     // Para usuarios de empresa, filtrar candidatos rechazados SOLAMENTE
     // Los contratados (ACEPTADA) SÍ deben aparecer para que la empresa los vea
@@ -1789,6 +2158,7 @@ export default function ApplicantsModal({
     }
   };
 
+  // Update interview preference boolean
   const handleInterviewPreferenceChange = async (
     applicantId: string,
     wantsInterview: boolean
@@ -2366,6 +2736,36 @@ export default function ApplicantsModal({
                             )}
                           </div>
                         </div>
+
+                        {/* Proposed Date (mobile) */}
+                        {interviewPreferences[applicant.id] && (
+                          <div className="grid grid-cols-2 w-full mb-4">
+                            <p className="text-gray-700 text-sm">
+                              Proposed Date
+                            </p>
+                            <div className="flex flex-col gap-2">
+                              <button
+                                type="button"
+                                onClick={() => openScheduleModal(applicant)}
+                                className="inline-flex items-center gap-2 px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 w-fit"
+                              >
+                                <Calendar size={14} />
+                                {interviewAvailability[applicant.id]
+                                  ? "Change date"
+                                  : "Set date"}
+                              </button>
+                              {interviewAvailability[applicant.id] && (
+                                <span className="text-xs text-gray-500">
+                                  {new Date(
+                                    interviewAvailability[
+                                      applicant.id
+                                    ] as string
+                                  ).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </>
                     )}
 
@@ -2777,6 +3177,7 @@ export default function ApplicantsModal({
                       onSaveInterviewAvailability={
                         handleInterviewAvailabilitySave
                       }
+                      onOpenSchedule={(a) => openScheduleModal(a)}
                       preferencesEstablished={preferencesEstablished}
                       handleInterviewPreferenceChange={
                         handleInterviewPreferenceChange
@@ -2816,6 +3217,12 @@ export default function ApplicantsModal({
                       isActionLoading={isActionLoading}
                       currentPage={currentPage}
                       totalPages={totalPages}
+                      selectedInterviewOption={selectedInterviewOption}
+                      setSelectedInterviewOption={setSelectedInterviewOption}
+                      confirmingInterview={confirmingInterview}
+                      setConfirmingInterview={setConfirmingInterview}
+                      onInterviewConfirmed={handleInterviewConfirmed}
+                      triggerParentRefresh={onUpdate}
                     />
                   )}
                 </>
@@ -2978,6 +3385,276 @@ export default function ApplicantsModal({
           )}
           onUpdate={handleStatusUpdated}
         />
+      )}
+
+      {/* Modal para agendar entrevista */}
+      {scheduleModalOpen && scheduleTarget && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white w-full max-w-lg rounded-lg shadow-lg p-5 relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={closeScheduleModal}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+            >
+              <X size={18} />
+            </button>
+            <h3 className="text-base font-semibold text-gray-800 mb-2 flex items-center gap-2">
+              <Calendar size={16} /> Propose Interview Dates (up to 3)
+            </h3>
+            <p className="text-xs text-gray-600 mb-4">
+              Candidate:{" "}
+              <span className="font-medium">{scheduleTarget.name}</span> · TZ:{" "}
+              {Intl.DateTimeFormat().resolvedOptions().timeZone}
+            </p>
+            {(() => {
+              const slotValues: (string | undefined)[] = [
+                interviewAvailability[scheduleTarget.applicantId],
+                interviewAvailability2[scheduleTarget.applicantId],
+                interviewAvailability3[scheduleTarget.applicantId],
+              ];
+              const activeValues = slotValues
+                .slice(0, activeSlotCount)
+                .filter(Boolean) as string[];
+              const hasDuplicates =
+                new Set(activeValues.map((d) => new Date(d).getTime())).size !==
+                activeValues.length;
+              const noneSelected = activeValues.length === 0;
+              const disableSave =
+                !!savingAvailability[scheduleTarget.applicantId] ||
+                noneSelected ||
+                hasDuplicates;
+
+              return (
+                <>
+                  <div className="flex flex-col gap-3 mb-3">
+                    {[1, 2, 3].slice(0, activeSlotCount).map((slot) => {
+                      const label = `Option ${slot}`;
+                      const valueISO =
+                        slot === 1
+                          ? interviewAvailability[scheduleTarget.applicantId]
+                          : slot === 2
+                          ? interviewAvailability2[scheduleTarget.applicantId]
+                          : interviewAvailability3[scheduleTarget.applicantId];
+                      const duplicate =
+                        valueISO &&
+                        hasDuplicates &&
+                        activeValues.filter((v) => v === valueISO).length > 1;
+                      return (
+                        <div
+                          key={slot}
+                          className={`border rounded-md p-3 bg-gray-50/40 flex flex-col gap-2 ${
+                            duplicate ? "border-red-500" : "border-gray-200"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-gray-700">
+                                {label}
+                              </span>
+                              {valueISO && (
+                                <span className="text-[11px] text-gray-600 bg-white border border-gray-300 rounded px-2 py-0.5">
+                                  {new Date(valueISO).toLocaleString()}
+                                </span>
+                              )}
+                              {duplicate && (
+                                <span className="text-[10px] text-red-600">
+                                  Duplicate
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {slot > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (slot === 2) {
+                                      setInterviewAvailability2((prev) => ({
+                                        ...prev,
+                                        [scheduleTarget.applicantId]: undefined,
+                                      }));
+                                    } else if (slot === 3) {
+                                      setInterviewAvailability3((prev) => ({
+                                        ...prev,
+                                        [scheduleTarget.applicantId]: undefined,
+                                      }));
+                                    }
+                                    setActiveSlotCount((c) =>
+                                      Math.max(1, c - 1)
+                                    );
+                                  }}
+                                  className="text-[10px] text-gray-500 hover:text-gray-700 cursor-pointer"
+                                >
+                                  Remove
+                                </button>
+                              )}
+                              {valueISO && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (slot === 1) {
+                                      setInterviewAvailability((prev) => ({
+                                        ...prev,
+                                        [scheduleTarget.applicantId]: undefined,
+                                      }));
+                                    } else if (slot === 2) {
+                                      setInterviewAvailability2((prev) => ({
+                                        ...prev,
+                                        [scheduleTarget.applicantId]: undefined,
+                                      }));
+                                    } else if (slot === 3) {
+                                      setInterviewAvailability3((prev) => ({
+                                        ...prev,
+                                        [scheduleTarget.applicantId]: undefined,
+                                      }));
+                                    }
+                                  }}
+                                  className="text-[10px] text-gray-500 hover:text-gray-700 cursor-pointer"
+                                >
+                                  Clear
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <InterviewDateTimePicker
+                            valueISO={valueISO}
+                            onChange={(iso) => {
+                              if (slot === 1) {
+                                setInterviewAvailability((prev) => ({
+                                  ...prev,
+                                  [scheduleTarget.applicantId]:
+                                    iso || undefined,
+                                }));
+                              } else if (slot === 2) {
+                                setInterviewAvailability2((prev) => ({
+                                  ...prev,
+                                  [scheduleTarget.applicantId]:
+                                    iso || undefined,
+                                }));
+                              } else if (slot === 3) {
+                                setInterviewAvailability3((prev) => ({
+                                  ...prev,
+                                  [scheduleTarget.applicantId]:
+                                    iso || undefined,
+                                }));
+                              }
+                            }}
+                            saving={
+                              !!savingAvailability[scheduleTarget.applicantId]
+                            }
+                            compact
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {activeSlotCount < 3 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveSlotCount((c) => Math.min(3, c + 1))
+                      }
+                      className="inline-flex items-center gap-2 px-3 py-1 text-xs rounded border border-gray-300 text-gray-700 hover:bg-gray-100 mb-3 w-fit cursor-pointer"
+                    >
+                      + Add Option
+                    </button>
+                  )}
+                  <div className="text-[11px] text-gray-700 mb-3">
+                    <p className="font-medium mb-1">Unsaved selections:</p>
+                    {activeValues.length === 0 && (
+                      <span className="text-gray-400">None</span>
+                    )}
+                    {activeValues.map((d, idx) => (
+                      <span key={idx} className="block">
+                        {idx + 1}. {new Date(d).toLocaleString()}
+                      </span>
+                    ))}
+                    {hasDuplicates && (
+                      <p className="text-red-600 mt-1">
+                        Duplicate dates detected. Choose distinct times.
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      disabled={disableSave}
+                      onClick={async () => {
+                        await handleInterviewAvailabilitySave(
+                          scheduleTarget.applicantId,
+                          scheduleTarget.postulationId
+                        );
+                        if (!disableSave) closeScheduleModal();
+                      }}
+                      className={`px-4 py-2 text-white text-xs font-medium rounded-md transition-colors ${
+                        disableSave
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-[#0097B2] hover:bg-[#007a8f] cursor-pointer"
+                      }`}
+                    >
+                      {savingAvailability[scheduleTarget.applicantId]
+                        ? "Saving..."
+                        : "Save all"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInterviewAvailability((prev) => ({
+                          ...prev,
+                          [scheduleTarget.applicantId]: undefined,
+                        }));
+                        setInterviewAvailability2((prev) => ({
+                          ...prev,
+                          [scheduleTarget.applicantId]: undefined,
+                        }));
+                        setInterviewAvailability3((prev) => ({
+                          ...prev,
+                          [scheduleTarget.applicantId]: undefined,
+                        }));
+                        setActiveSlotCount(1);
+                      }}
+                      className="px-4 py-2 text-xs font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                  <div className="mt-4 text-[11px] text-gray-500">
+                    Saved previously:
+                    <div className="mt-1 flex flex-col gap-0">
+                      {[
+                        applicants.find(
+                          (a) => a.id === scheduleTarget.applicantId
+                        )?.disponibilidadEntrevista || null,
+                        applicants.find(
+                          (a) => a.id === scheduleTarget.applicantId
+                        )?.disponibilidadEntrevista2 || null,
+                        applicants.find(
+                          (a) => a.id === scheduleTarget.applicantId
+                        )?.disponibilidadEntrevista3 || null,
+                      ].filter(Boolean).length === 0 && (
+                        <span className="text-gray-400">None</span>
+                      )}
+                      {[
+                        applicants.find(
+                          (a) => a.id === scheduleTarget.applicantId
+                        )?.disponibilidadEntrevista || null,
+                        applicants.find(
+                          (a) => a.id === scheduleTarget.applicantId
+                        )?.disponibilidadEntrevista2 || null,
+                        applicants.find(
+                          (a) => a.id === scheduleTarget.applicantId
+                        )?.disponibilidadEntrevista3 || null,
+                      ]
+                        .filter(Boolean)
+                        .map((d, idx) => (
+                          <span key={idx}>
+                            {idx + 1}. {new Date(d as string).toLocaleString()}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
       )}
     </>
   );

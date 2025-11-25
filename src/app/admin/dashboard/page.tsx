@@ -35,6 +35,7 @@ import { useAuthStore } from "@/store/auth.store";
 import OffersSkeleton from "./components/OffersSkeleton";
 import AssignOfferModal from "./components/AssignOfferModal";
 import { EstadoPostulacion } from "./types/application-status.types";
+// Notifications UI moved to global header/layout
 
 export default function AdminDashboardPage() {
   const { user } = useAuthStore();
@@ -492,6 +493,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           </div>
+          {/* Notifications bell now lives in the global header */}
         </div>
 
         {/* Offers list with loading state mobile */}
@@ -1056,6 +1058,14 @@ export default function AdminDashboardPage() {
                 postulacion.estadoPostulacion as EstadoPostulacion,
               serviceTitle: selectedOffer.titulo,
               preferenciaEntrevista: postulacion.preferenciaEntrevista,
+              disponibilidadEntrevista:
+                postulacion.disponibilidadEntrevista || null,
+              disponibilidadEntrevista2:
+                postulacion.disponibilidadEntrevista2 || null,
+              disponibilidadEntrevista3:
+                postulacion.disponibilidadEntrevista3 || null,
+              fechaEntrevistaConfirmada:
+                postulacion.fechaEntrevistaConfirmada || null,
             })) || []
           }
           onUpdate={fetchPublishedOffers}
@@ -1158,6 +1168,7 @@ export default function AdminDashboardPage() {
         offerId={offerToAssign?.id || ""}
         offerTitle={offerToAssign?.titulo || ""}
       />
+      {/* Notifications sidebar mounted at layout level */}
     </div>
   );
 }

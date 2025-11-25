@@ -26,11 +26,8 @@ export default function IdentificationModal({
   const [backImage, setBackImage] = useState<File | null>(null);
   const [frontPreviewUrl, setFrontPreviewUrl] = useState<string | null>(null);
   const [backPreviewUrl, setBackPreviewUrl] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [showUploadForm, setShowUploadForm] = useState(false);
-
-  console.log("[IdentificationModal] uploadProgress:", uploadProgress);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [showUploadForm, setShowUploadForm] = useState<boolean>(false);
 
   const uploadImage = async (
     file: File | null,
@@ -113,27 +110,11 @@ export default function IdentificationModal({
       return;
     }
 
-    console.log("[IdentificationModal] Front image:", frontImage);
-    console.log("[IdentificationModal] Back image:", backImage);
-
     try {
       setIsUploading(true);
-      setUploadProgress(0);
 
       const frontImageUrl = await uploadImage(frontImage, "Front photo");
-      setUploadProgress(50);
-
-      console.log(
-        "[IdentificationModal] URL de la imagen de front:",
-        frontImageUrl
-      );
       const backImageUrl = await uploadImage(backImage, "Back photo");
-      setUploadProgress(80);
-
-      console.log(
-        "[IdentificationModal] URL de la imagen de back:",
-        backImageUrl
-      );
 
       const userId = candidateId || user?.id;
       if (!userId) return;
@@ -155,7 +136,6 @@ export default function IdentificationModal({
       addNotification("An unexpected error occurred", "error");
     } finally {
       setIsUploading(false);
-      setUploadProgress(0);
     }
   };
 

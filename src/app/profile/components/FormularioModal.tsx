@@ -108,7 +108,6 @@ export default function FormularioModal({
     });
 
     if (missingFields.length > 0) {
-      console.log("Missing fields:", missingFields);
       setMissingFieldsCount(missingFields.length);
     } else {
       setMissingFieldsCount(0);

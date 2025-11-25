@@ -39,7 +39,7 @@ export async function saveIdentificationImages(
     try {
       responseData = responseText ? JSON.parse(responseText) : {};
     } catch (e) {
-      console.error("[IdentificationModal] Error al analizar la respuesta:", e);
+      console.error("[identification-actions image] Error:", e);
       responseData = { message: responseText };
     }
 

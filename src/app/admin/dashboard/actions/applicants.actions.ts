@@ -263,6 +263,113 @@ export async function updateInterviewAvailability(
 }
 
 /**
+ * Actualiza múltiples disponibilidades (hasta 3) para entrevista y notifica.
+ * @param postulationId ID de la postulación
+ * @param fechas Array de hasta 3 fechas ISO (puede contener null para slots vacíos)
+ */
+export async function updateMultiInterviewAvailability(
+  postulationId: string,
+  fechas: (string | null)[]
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const [f1, f2, f3] = fechas;
+    const response = await axios.patch(
+      `applications/${postulationId}/interview-availability`,
+      {
+        disponibilidadEntrevista: f1 || null,
+        disponibilidadEntrevista2: f2 || null,
+        disponibilidadEntrevista3: f3 || null,
+        notify: true,
+      }
+    );
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Interview availabilities saved successfully",
+        data: response.data,
+      };
+    } else {
+      return {
+        success: false,
+        message:
+          response.data?.message || "Error saving interview availabilities",
+        error: response.data?.error,
+      };
+    }
+  } catch (error: any) {
+    console.error(
+      "Error updating multiple interview availabilities:",
+      error.response || error
+    );
+
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Error saving interview availabilities";
+    return {
+      success: false,
+      message: "Error saving interview availabilities",
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Actualiza la fecha/hora preferida de entrevista usando el nuevo endpoint
+ * :id/interview-disponibility-preference (solo para usuarios de empresa).
+ * @param postulationId ID de la postulación
+ * @param availabilityISO Fecha/hora propuesta en formato ISO 8601
+ */
+export async function updateInterviewDisponibilityPreference(
+  postulationId: string,
+  availabilityISO: string
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.patch(
+      `applications/${postulationId}/interview-disponibility-preference`,
+      { disponibilidadEntrevista: availabilityISO }
+    );
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Interview availability saved successfully",
+        data: response.data,
+      };
+    } else {
+      return {
+        success: false,
+        message:
+          response.data?.message || "Error saving interview availability",
+        error: response.data?.error,
+      };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error(
+      "Error updating interview availability (disponibility preference):",
+      error.response || error
+    );
+
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Error saving interview availability";
+
+    return {
+      success: false,
+      message: "Error saving interview availability",
+      error: errorMessage,
+    };
+  }
+}
+
+/**
  * Obtiene la disponibilidad/fecha propuesta para la entrevista de una postulación
  * @param postulationId ID de la postulación
  */
@@ -384,6 +491,50 @@ export async function getCandidateApplications(
     return {
       success: false,
       message: "Error getting candidate applications",
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Confirma una de las fechas propuestas de entrevista por parte del candidato
+ * @param postulationId ID de la postulación
+ * @param optionIndex Índice de la fecha seleccionada (1,2,3)
+ */
+export async function confirmInterviewDate(
+  postulationId: string,
+  optionIndex: number
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.patch(
+      `applications/${postulationId}/interview-confirmation`,
+      { optionIndex }
+    );
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Interview date confirmed successfully",
+        data: response.data,
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data.message || "Error confirming interview date",
+        error: response.data.error,
+      };
+    }
+  } catch (error: any) {
+    console.error("Error confirming interview date:", error.response || error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Unknown error confirming interview date";
+    return {
+      success: false,
+      message: "Error confirming interview date",
       error: errorMessage,
     };
   }
