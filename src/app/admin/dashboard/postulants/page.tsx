@@ -751,6 +751,8 @@ export default function PostulantsPage() {
     }
   };
 
+  console.log("\n\n [VER AQUÏ]", applicants);
+
   return (
     <CandidateProfileProvider>
       <div className="container mx-auto px-2 md:px-4 mt-6 flex flex-col min-h-screen">

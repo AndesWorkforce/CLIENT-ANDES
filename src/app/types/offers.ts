@@ -51,6 +51,10 @@ export interface Postulacion {
   documentosPostulacion: DocumentoPostulacion[];
   candidato: Candidato;
   preferenciaEntrevista: boolean;
+  disponibilidadEntrevista: string | null;
+  disponibilidadEntrevista2?: string | null;
+  disponibilidadEntrevista3?: string | null;
+  fechaEntrevistaConfirmada?: string | null;
 }
 
 // Interfaz básica para una oferta

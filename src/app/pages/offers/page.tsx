@@ -55,7 +55,6 @@ export default function JobOffersPage() {
   const isValidProfileUser = async () => {
     try {
       const response = await userIsAppliedToOffer(user?.id || "");
-
       if (response.success) {
         if (response.data?.perfilCompleto === "COMPLETO") {
           setIsValidProfileUserState(true);
@@ -280,6 +279,7 @@ export default function JobOffersPage() {
     const fetchOffers = async () => {
       setIsLoading(true);
       const response = await getOffers();
+      console.log("[OFERTS VIEW ALL]:", response);
       if (response.success) {
         const offers: Offer[] = response.data.data || [];
 

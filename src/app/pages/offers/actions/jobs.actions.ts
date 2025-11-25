@@ -21,6 +21,8 @@ export async function getOffers() {
         "Cache-Control": "no-store",
       },
     });
+
+    console.log("\n\n [ACTION OFFERTS]:", response);
     const data = await response.data;
 
     return {

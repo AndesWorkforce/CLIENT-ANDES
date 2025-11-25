@@ -8,6 +8,7 @@ import {
   getMyApplications,
   removeMyApplication,
 } from "@/app/applications/actions/applications.actions";
+import { confirmInterviewDate } from "@/app/admin/dashboard/actions/applicants.actions";
 import SimpleHeader from "../components/SimpleHeader";
 import { useNotificationStore } from "@/store/notifications.store";
 
@@ -23,6 +24,12 @@ export default function ApplicationsPage() {
   const [applicationToDelete, setApplicationToDelete] =
     useState<Application | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [confirmingMap, setConfirmingMap] = useState<Record<string, boolean>>(
+    {}
+  );
+  const [selectedOptionMap, setSelectedOptionMap] = useState<
+    Record<string, number | null>
+  >({});
   const observer = useRef<IntersectionObserver | null>(null);
 
   const fetchApplications = async () => {
@@ -74,6 +81,48 @@ export default function ApplicationsPage() {
     setShowModal(false);
     setSelectedApplication(null);
     document.body.style.overflow = "auto";
+  };
+
+  const handleConfirmInterview = async (app: Application) => {
+    if (!selectedOptionMap[app.id]) {
+      addNotification("Select an option before confirming", "warning");
+      return;
+    }
+    const optionIndex = selectedOptionMap[app.id]!; // 1-based
+    setConfirmingMap((prev) => ({ ...prev, [app.id]: true }));
+    try {
+      const resp = await confirmInterviewDate(app.id, optionIndex);
+      if (!resp?.success) {
+        addNotification(
+          resp?.message || "Error confirming interview date",
+          "error"
+        );
+        return;
+      }
+      const proposedDates = [
+        app.disponibilidadEntrevista || null,
+        app.disponibilidadEntrevista2 || null,
+        app.disponibilidadEntrevista3 || null,
+      ].filter(Boolean) as string[];
+      const backendConfirmed =
+        resp?.data?.fechaEntrevistaConfirmada ||
+        resp?.data?.data?.fechaEntrevistaConfirmada;
+      const confirmedDate =
+        backendConfirmed || proposedDates[optionIndex - 1] || null;
+      setApplications((prev) =>
+        prev.map((a) =>
+          a.id === app.id
+            ? { ...a, fechaEntrevistaConfirmada: confirmedDate }
+            : a
+        )
+      );
+      addNotification("Interview date confirmed", "success");
+    } catch (e) {
+      console.error("[CandidateConfirm] Error confirming interview date", e);
+      addNotification("Error confirming interview date", "error");
+    } finally {
+      setConfirmingMap((prev) => ({ ...prev, [app.id]: false }));
+    }
   };
 
   const handleDeleteApplication = (app: Application) => {
@@ -227,6 +276,85 @@ export default function ApplicationsPage() {
                         {renderStatusIndicator(app?.estadoPostulacion)}
                       </span>
                     </div>
+
+                    {/* Interview scheduling (candidate view) */}
+                    {(() => {
+                      const proposed = [
+                        app.disponibilidadEntrevista || null,
+                        app.disponibilidadEntrevista2 || null,
+                        app.disponibilidadEntrevista3 || null,
+                      ].filter(Boolean) as string[];
+                      const confirmed = app.fechaEntrevistaConfirmada;
+                      if (confirmed) {
+                        return (
+                          <div className="mt-2 text-[11px] text-green-700 border border-green-200 bg-green-50 rounded p-2 w-full">
+                            <div className="font-medium text-green-600">
+                              Interview Confirmed
+                            </div>
+                            <div>
+                              {new Date(confirmed).toLocaleDateString()}
+                            </div>
+                            <div>
+                              {new Date(confirmed).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }
+                      if (proposed.length === 0) return null; // nothing to show yet
+                      return (
+                        <div className="mt-2 w-full">
+                          <div className="text-[11px] text-gray-600 mb-1">
+                            Select an interview date:
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <select
+                              className="text-[11px] border border-gray-300 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                              value={selectedOptionMap[app.id] || ""}
+                              disabled={confirmingMap[app.id]}
+                              onChange={(e) => {
+                                const val = e.target.value
+                                  ? Number(e.target.value)
+                                  : null;
+                                setSelectedOptionMap((prev) => ({
+                                  ...prev,
+                                  [app.id]: val,
+                                }));
+                              }}
+                            >
+                              <option value="">Choose...</option>
+                              {proposed.map((d, idx) => (
+                                <option key={idx} value={idx + 1}>
+                                  {idx + 1}. {new Date(d).toLocaleDateString()}{" "}
+                                  {new Date(d).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => handleConfirmInterview(app)}
+                              disabled={
+                                confirmingMap[app.id] ||
+                                !selectedOptionMap[app.id]
+                              }
+                              className={`px-2 py-1 text-[11px] rounded ${
+                                confirmingMap[app.id] ||
+                                !selectedOptionMap[app.id]
+                                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                                  : "bg-[#0097B2] text-white hover:bg-[#007a8f] cursor-pointer"
+                              }`}
+                            >
+                              {confirmingMap[app.id] ? "Saving..." : "Confirm"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {app.estadoPostulacion === "ACEPTADA" && (
                       <div className="w-full mt-2 text-sm text-green-600 flex items-center justify-center gap-2">

@@ -69,12 +69,6 @@ export async function searchUsuarios(
       params,
       headers: { "Cache-Control": "no-store" },
     });
-    console.log(
-      "[users-roles.searchUsuarios.raw] status=",
-      response.status,
-      "payload=",
-      response.data
-    );
     // The backend returns a paginated shape from TransformResponseInterceptor
     // Ensure we normalize at least the items list
     const items = response.data?.data || [];

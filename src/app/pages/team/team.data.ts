@@ -149,7 +149,7 @@ export const teamMembers: TeamMember[] = [
     role: "Assistant Recruitment Manager",
     group: "Recruitment",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alejandra_arias.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/Alejandra+Arias.png",
     summary: "Psychologist",
     bullets: [
       "Psychologist with a heart for community work, has led group sessions focused on leadership, female empowerment, teamwork, and social skills. ",

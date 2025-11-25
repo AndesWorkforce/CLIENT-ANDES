@@ -8,6 +8,7 @@ import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Logo from "@/components/ui/Logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import NotificationsBell from "@/app/components/NotificationsBell";
 
 export default function HeaderDashboard() {
   const pathname = usePathname();
@@ -37,6 +38,7 @@ export default function HeaderDashboard() {
           </div>
         </div>
         <div className="flex items-center space-x-4">
+          <NotificationsBell />
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}

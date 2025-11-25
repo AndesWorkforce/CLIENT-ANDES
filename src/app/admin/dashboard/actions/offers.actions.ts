@@ -14,7 +14,7 @@ export async function getPublishedOffers(page = 1, limit = 10, search = "") {
     const requestUrl = `offers?${searchParam}&page=${page}&limit=${limit}`;
 
     const response = await axios.get(requestUrl);
-
+    console.log("[RESPONSE]", response.data);
     if (response.status !== 200) {
       return {
         success: false,
@@ -198,7 +198,8 @@ export async function toggleClientVisibility(
 
     return {
       success: true,
-      message: response.data.message || "Client visibility toggled successfully",
+      message:
+        response.data.message || "Client visibility toggled successfully",
       data: response.data,
     };
   } catch (error: unknown) {

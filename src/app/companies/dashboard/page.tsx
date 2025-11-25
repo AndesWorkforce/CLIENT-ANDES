@@ -517,6 +517,14 @@ export default function CompanyDashboard() {
                 postulacion.estadoPostulacion as EstadoPostulacion,
               serviceTitle: selectedOffer.titulo || "",
               preferenciaEntrevista: postulacion.preferenciaEntrevista ?? null,
+              disponibilidadEntrevista:
+                postulacion.disponibilidadEntrevista || null,
+              disponibilidadEntrevista2:
+                postulacion.disponibilidadEntrevista2 || null,
+              disponibilidadEntrevista3:
+                postulacion.disponibilidadEntrevista3 || null,
+              fechaEntrevistaConfirmada:
+                postulacion.fechaEntrevistaConfirmada || null,
             })) || []
           }
         />

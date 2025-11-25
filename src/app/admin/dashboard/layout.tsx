@@ -1,5 +1,6 @@
 import HeaderDashboard from "./components/HeaderDashboard";
 import TabsNavigation from "./components/TabsNavigation";
+import NotificationsSidebar from "@/app/components/NotificationsSidebar";
 
 export default function DashboardLayout({
   children,
@@ -11,6 +12,7 @@ export default function DashboardLayout({
       <HeaderDashboard />
       <TabsNavigation />
       {children}
+      <NotificationsSidebar />
     </div>
   );
 }
