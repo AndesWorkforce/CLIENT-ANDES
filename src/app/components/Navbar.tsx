@@ -219,6 +219,17 @@ export default function Navbar() {
         </Link>
       )}
 
+      {currentContractStatus && (
+        <Link
+          href="/bonifications"
+          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+          onClick={() => setShowUserMenu(false)}
+        >
+          <Briefcase size={16} className="mr-2 text-[#0097B2]" />
+          Additional Incentives
+        </Link>
+      )}
+
       <Link
         href="/account"
         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
@@ -556,6 +567,28 @@ export default function Navbar() {
                       <User size={20} className="mr-2 text-[#0097B2]" />
                       My Account
                     </Link>
+
+                    {currentContractStatus && (
+                      <Link
+                        href="/currentApplication"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                        onClick={() => setShowMobileSidebar(false)}
+                      >
+                        <Briefcase size={20} className="mr-2 text-[#0097B2]" />
+                        Current Application
+                      </Link>
+                    )}
+
+                    {currentContractStatus && (
+                      <Link
+                        href="/bonifications"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                        onClick={() => setShowMobileSidebar(false)}
+                      >
+                        <Briefcase size={20} className="mr-2 text-[#0097B2]" />
+                        Additional Incentives
+                      </Link>
+                    )}
                   </>
                 ) : (
                   <>

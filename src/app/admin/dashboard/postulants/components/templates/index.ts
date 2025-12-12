@@ -5,6 +5,9 @@ export interface ContractTemplate {
   description: string;
   subject: string;
   variables: string[];
+  fileName?: string;
+  component?: string;
+  category?: string;
 }
 
 // Template principal para Statement of Work (PDF)

@@ -651,7 +651,7 @@ export const sendContractSignatureEmail = async (
 export const sendProviderContractEmail = async (contract: {
   id: string;
   nombreCompleto: string;
-  signWellUrlProveedor: string | null;
+  // signWellUrlProveedor: string | null; // deprecated: moving to internal eSign
   fechaFirmaProveedor: Date | null;
   estadoContratacion: string;
   providerEmail?: string; // Agregamos el email del provider
@@ -661,22 +661,16 @@ export const sendProviderContractEmail = async (contract: {
     console.log("📧 [sendProviderContractEmail] Datos del contrato:", {
       id: contract.id,
       nombreCompleto: contract.nombreCompleto,
-      signWellUrlProveedor: contract.signWellUrlProveedor,
+      // signWellUrlProveedor: contract.signWellUrlProveedor,
       fechaFirmaProveedor: contract.fechaFirmaProveedor,
       estadoContratacion: contract.estadoContratacion,
       providerEmail: contract.providerEmail,
     });
 
-    // Validar que el contrato tenga URL de firma y no esté firmado
-    if (!contract.signWellUrlProveedor) {
-      console.error(
-        "❌ [sendProviderContractEmail] Contract does not have a provider signature URL"
-      );
-      return {
-        success: false,
-        message: "Contract does not have a provider signature URL",
-      };
-    }
+    // Construir URL del sistema interno de firmas (proveedor)
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://app.andes-workforce.com";
+    const internalProviderSignUrl = `${baseUrl}/esign/provider/${contract.id}`;
 
     if (
       contract.fechaFirmaProveedor ||
@@ -707,7 +701,7 @@ export const sendProviderContractEmail = async (contract: {
         <p>We are sending you this email to proceed with the contract signature to complete the hiring process.</p>
         <p>Please click on the link below to review and sign the contract:</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${contract.signWellUrlProveedor}" 
+          <a href="${internalProviderSignUrl}" 
              style="background-color: #2563eb; 
                     color: white; 
                     padding: 12px 24px; 

@@ -41,6 +41,7 @@ export interface CurrentContractData {
   signatureUrl?: string | null; // URL para firmar el contrato
   jobDescription?: string;
   instructions?: string[];
+  contratoFinalUrl?: string | null;
 
   // Datos relacionados
   postulacion?: {
@@ -83,6 +84,20 @@ export interface CurrentContractData {
   }[];
 
   monthlyProofs?: MonthlyProof[];
+
+  pendingAnnexes?: {
+    id: string;
+    title: string;
+    signUrl: string;
+    signToken: string;
+  }[];
+
+  signedAnnexes?: {
+    id: string;
+    title: string;
+    viewUrl: string;
+    signedAt: string;
+  }[];
 }
 
 export interface MonthlyProof {

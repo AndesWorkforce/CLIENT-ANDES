@@ -1591,6 +1591,7 @@ export default function PostulantsPage() {
           isOpen={isSignContractModalOpen}
           onClose={() => setIsSignContractModalOpen(false)}
           applicant={selectedApplicant as Applicant}
+          onContractSent={() => fetchApplicants(currentPage, search)}
         />
       )}
       {isUpdateStatusModalOpen && selectedStatusUpdate && (
