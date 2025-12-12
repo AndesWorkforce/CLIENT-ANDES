@@ -801,9 +801,7 @@ export const ManualBuenGobierno: React.FC<DocumentTemplateProps> = ({
     <div className="max-w-4xl mx-auto p-8 bg-white text-gray-900 leading-relaxed">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          MANUAL DE BUEN GOBIERNO PARA
-          <br />
-          CONTRATISTAS POR PRESTACIÓN DE SERVICIOS
+          MANUAL DE BUEN GOBIERNO PARA CONTRATISTAS REMOTOS
           <br />
           (PERSONA NATURAL)
         </h1>
@@ -817,167 +815,165 @@ export const ManualBuenGobierno: React.FC<DocumentTemplateProps> = ({
             1. Introducción
           </h3>
           <p className="text-justify">
-            Este Manual tiene como propósito establecer las pautas de conducta,
-            principios éticos y reglas de relacionamiento entre la Empresa
-            Contratante y los contratistas por prestación de servicios
-            personales (personas naturales), garantizando transparencia,
-            integridad y cumplimiento normativo en el marco de la legislación
-            colombiana vigente.
+            Este Manual establece pautas de conducta, principios éticos y reglas
+            de relacionamiento entre la Empresa Contratante y contratistas que
+            prestan servicios personales (personas naturales), con el objetivo
+            de asegurar transparencia, integridad y cumplimiento regulatorio en
+            ambientes digitales y remotos, en consonancia con los principios de
+            la OIT sobre trabajo decente y relaciones laborales justas.
           </p>
         </section>
 
         <section>
           <h3 className="text-lg font-semibold text-gray-800 mb-3 bg-gray-50 p-3 rounded">
-            2. Marco Normativo
+            2. Objetivo
           </h3>
-          <p className="text-justify mb-3">Este Manual se basa en:</p>
+          <p className="text-justify mb-3">
+            Asegurar una colaboración ética, eficiente y respetuosa entre
+            contratistas y la organización, alineada con estándares
+            internacionales de la OIT:
+          </p>
           <ul className="list-disc list-inside space-y-1 ml-4">
-            <li>Constitución Política de Colombia.</li>
-            <li>Código Civil y Código Sustantivo del Trabajo.</li>
-            <li>Ley 1474 de 2011 (Estatuto Anticorrupción).</li>
-            <li>Ley 1581 de 2012 (Protección de Datos Personales).</li>
+            <li>Libertad profesional.</li>
+            <li>Igualdad de oportunidades.</li>
+            <li>Condiciones seguras de trabajo en entornos digitales.</li>
+            <li>Relaciones laborales transparentes.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3 bg-gray-50 p-3 rounded">
+            3. Alcance
+          </h3>
+          <p className="text-justify mb-2">Aplica a contratistas que:</p>
+          <ul className="list-disc list-inside space-y-1 ml-4">
+            <li>Prestán servicios de forma remota, digital o híbrida.</li>
             <li>
-              Conceptos del Ministerio del Trabajo sobre tercerización laboral.
+              Usan plataformas tecnológicas para comunicación o entrega de
+              actividades.
             </li>
             <li>
-              Lineamientos internos de ética y buen gobierno corporativo de la
-              Empresa Contratante.
+              Representan a la organización frente a terceros o colaboradores
+              internos.
             </li>
           </ul>
         </section>
 
         <section>
           <h3 className="text-lg font-semibold text-gray-800 mb-3 bg-gray-50 p-3 rounded">
-            3. Principios Rectores
+            4. Principios de Buen Gobierno
           </h3>
-          <ul className="list-disc list-inside space-y-2 ml-4">
+          <ul className="list-disc list-inside space-y-1 ml-4">
             <li>
-              <strong>Legalidad:</strong> Cumplimiento estricto de las normas
-              legales y contractuales.
+              Profesionalismo: estándares de calidad y conducta apropiados.
             </li>
+            <li>Transparencia: comunicación clara, precisa y veraz.</li>
             <li>
-              <strong>Transparencia:</strong> Actuar con rectitud y claridad en
-              todos los procesos y comunicaciones.
+              Responsabilidad: cumplimiento de obligaciones contractuales y
+              operativas.
             </li>
+            <li>Integridad: actuar éticamente.</li>
             <li>
-              <strong>Confidencialidad:</strong> Reserva sobre la información a
-              la que se accede en virtud del contrato.
+              Confidencialidad: proteger información estratégica, operativa y
+              personal.
             </li>
+            <li>Respeto mutuo: trato digno a todas las personas.</li>
             <li>
-              <strong>Integridad:</strong> Coherencia entre lo que se piensa, se
-              dice y se hace.
-            </li>
-            <li>
-              <strong>Respeto:</strong> Trato digno y profesional entre todas
-              las partes.
-            </li>
-            <li>
-              <strong>No subordinación:</strong> Reconocimiento de la autonomía
-              e independencia del contratista.
+              Uso responsable de tecnología: prácticas seguras y eficientes.
             </li>
           </ul>
         </section>
 
         <section>
           <h3 className="text-lg font-semibold text-gray-800 mb-3 bg-gray-50 p-3 rounded">
-            4. Buenas Prácticas en el Relacionamiento
+            5. Buenas Prácticas de Relacionamiento
           </h3>
-          <ul className="list-disc list-inside space-y-2 ml-4">
+          <ul className="list-disc list-inside space-y-1 ml-4">
             <li>
-              Utilizar los canales de comunicación establecidos en el protocolo
-              de comunicaciones.
+              Usar los canales definidos en el protocolo de comunicaciones.
             </li>
             <li>
-              Responder oportunamente solicitudes relacionadas con el objeto del
-              contrato.
+              Responder con prontitud a solicitudes dentro del objeto
+              contractual.
             </li>
             <li>
-              Evitar comportamientos que puedan ser interpretados como
-              subordinación laboral.
+              Evitar comportamientos que se interpreten como subordinación
+              laboral.
             </li>
+            <li>Asegurar calidad y oportunidad en entregables y servicios.</li>
             <li>
-              Garantizar la calidad y oportunidad en los productos o servicios
-              entregados.
-            </li>
-            <li>
-              No utilizar recursos, instalaciones ni activos de la empresa salvo
-              autorización expresa.
+              No usar recursos/activos de la empresa sin autorización expresa.
             </li>
           </ul>
         </section>
 
         <section>
           <h3 className="text-lg font-semibold text-gray-800 mb-3 bg-red-50 p-3 rounded border-l-4 border-red-500">
-            5. Conductas No Permitidas
+            6. Conductas Prohibidas
           </h3>
-          <ul className="list-disc list-inside space-y-2 ml-4">
+          <ul className="list-disc list-inside space-y-1 ml-4">
+            <li>Solicitar o aceptar beneficios indebidos.</li>
+            <li>Incurrir en conflictos de interés sin declararlos.</li>
             <li>
-              Solicitar o aceptar beneficios indebidos por parte del contratista
-              o de terceros.
+              Usar información confidencial para beneficio propio o de terceros.
             </li>
-            <li>
-              Incurrir en conflicto de intereses sin declararlo oportunamente.
-            </li>
-            <li>
-              Utilizar información confidencial para beneficio personal o de
-              terceros.
-            </li>
-            <li>
-              Emitir órdenes directas o exigir horarios al contratista (por
-              parte del contratante).
-            </li>
+            <li>Emitir órdenes directas o imponer horarios al contratista.</li>
           </ul>
         </section>
 
         <section>
           <h3 className="text-lg font-semibold text-gray-800 mb-3 bg-gray-50 p-3 rounded">
-            6. Mecanismos de Prevención y Control
+            7. Mecanismos de Prevención y Control
           </h3>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>Firma de acuerdos de confidencialidad.</li>
-            <li>Declaración de conflictos de interés.</li>
+          <p className="text-justify mb-2">
+            En línea con principios de la OIT sobre condiciones seguras y
+            protección de datos, el contratista se compromete a:
+          </p>
+          <ul className="list-disc list-inside space-y-1 ml-4">
             <li>
-              Seguimiento a los entregables por parte del supervisor del
-              contrato.
+              Usar información solo para fines contractuales y plataformas
+              autorizadas.
             </li>
+            <li>Mantener sistemas protegidos y actualizados.</li>
             <li>
-              Espacios de retroalimentación sobre el cumplimiento del contrato.
+              Firmar acuerdos de confidencialidad y declarar conflictos de
+              interés.
             </li>
+            <li>Participar en espacios de seguimiento y retroalimentación.</li>
           </ul>
         </section>
 
         <section>
           <h3 className="text-lg font-semibold text-gray-800 mb-3 bg-blue-50 p-3 rounded border-l-4 border-blue-500">
-            7. Canales de Reporte
+            8. Canales de Reporte
           </h3>
           <p className="text-justify">
-            Se habilita el correo <strong>help@teamandes.com</strong> para que
-            contratistas puedan reportar situaciones irregulares, conflictos de
-            interés o conductas contrarias al presente manual. Se garantizará
-            reserva y no represalias.
+            Se habilita el correo <strong>help@teamandes.com</strong> para
+            reportar irregularidades, conflictos de interés o conductas
+            contrarias al Manual. Se garantiza confidencialidad y no
+            represalias.
           </p>
         </section>
 
         <section>
           <h3 className="text-lg font-semibold text-gray-800 mb-3 bg-gray-50 p-3 rounded">
-            8. Aceptación y Actualización
+            9. Aceptación y Actualizaciones
           </h3>
           <p className="text-justify">
-            Este Manual será aceptado por el contratista al momento de suscribir
-            el contrato o sus adendas, y podrá ser actualizado por la Empresa
-            Contratante cuando lo considere pertinente, previa notificación a
-            los contratistas vigentes.
+            El Manual se entiende aceptado con la firma del contrato o adendas.
+            Podrá ser actualizado por la Empresa Contratante con notificación
+            previa a contratistas activos.
           </p>
         </section>
 
         <section>
           <h3 className="text-lg font-semibold text-gray-800 mb-3 bg-gray-50 p-3 rounded">
-            9. Vigencia
+            10. Vigencia
           </h3>
           <p className="text-justify">
-            Este Manual rige a partir de su publicación y será aplicable a todos
-            los contratistas por prestación de servicios personales que tengan
-            relación con la Empresa Contratante.
+            Vigente desde su publicación y aplicable a todos los contratistas de
+            servicios personales con relación vigente con la Empresa
+            Contratante.
           </p>
         </section>
       </div>
@@ -988,6 +984,935 @@ export const ManualBuenGobierno: React.FC<DocumentTemplateProps> = ({
             Este Manual de Buen Gobierno ha sido leído y aceptado por{" "}
             <strong>{candidateName}</strong>
             <br />a través del sistema de {companyName} el {currentDate}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const GoodGovernanceManualEN: React.FC<DocumentTemplateProps> = ({
+  companyName = "ANDES WORKFORCE LLC",
+}) => {
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  return (
+    <div className="max-w-4xl mx-auto p-8 bg-white text-gray-900 leading-relaxed">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          Good Governance Manual for Remote Service Contractors (Natural
+          Persons)
+        </h1>
+        <h2 className="text-lg font-semibold text-gray-700">{companyName}</h2>
+        <p className="text-sm text-gray-600 mt-2">{currentDate}</p>
+      </div>
+
+      <div className="space-y-6">
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            1. Introduction
+          </h3>
+          <p className="text-justify">
+            This Manual aims to establish conduct guidelines, ethical
+            principles, and rules of engagement between the Contracting Company
+            and contractors providing personal services (natural persons). It
+            seeks to ensure transparency, integrity, and regulatory compliance
+            as promoted by the International Labour Organization (ILO),
+            particularly regarding decent work, professional responsibility, and
+            fair labor relations.
+          </p>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            2. Objetive
+          </h3>
+          <p className="text-justify mb-2">
+            To ensure ethical, efficient, and respectful collaboration between
+            contractors and the organization, in alignment with international
+            labor standards promoted by the ILO related to:
+          </p>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>Professional freedom</li>
+            <li>Equal opportunities</li>
+            <li>Safe working conditions in digital environments</li>
+            <li>Transparent labor relations</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">3. Scope</h3>
+          <p className="text-justify mb-2">
+            This Manual applies to all contractors who:
+          </p>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              Provide services remotely, digitally, or in a hybrid format.
+            </li>
+            <li>
+              Use technological platforms for communication or delivery of
+              activities.
+            </li>
+            <li>
+              Represent the organization before third parties or internal
+              collaborators.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            4. Principles of Good Governance
+          </h3>
+          <p className="text-justify mb-2">
+            In accordance with best practices recognized by the ILO:
+          </p>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              Professionalism: Maintain appropriate quality standards and
+              conduct.
+            </li>
+            <li>
+              Transparency: Communicate clearly, accurately, and truthfully.
+            </li>
+            <li>
+              Responsibility: Fulfill contractual and operational obligations.
+            </li>
+            <li>Integrity: Act ethically.</li>
+            <li>
+              Confidentiality: Protect strategic, operational, and personal
+              information.
+            </li>
+            <li>Mutual respect: Treat all individuals with dignity.</li>
+            <li>
+              Responsible use of technology: Ensure safe and efficient digital
+              work practices.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            5. Good Practices in Engagement
+          </h3>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              Use the communication channels established in the communications
+              protocol.
+            </li>
+            <li>
+              Respond promptly to requests related to the purpose of the
+              contract.
+            </li>
+            <li>
+              Avoid behaviors that may be interpreted as labor subordination.
+            </li>
+            <li>
+              Ensure quality and timeliness in the products or services
+              delivered.
+            </li>
+            <li>
+              Do not use company resources, facilities, or assets without
+              express authorization.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            6. Prohibited Conduct
+          </h3>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              Requesting or accepting undue benefits from the contractor or
+              third parties.
+            </li>
+            <li>Engaging conflicts of interest without timely disclosure.</li>
+            <li>
+              Using confidential information for personal or third-party
+              benefits.
+            </li>
+            <li>
+              Issuing direct orders or imposing schedules on the contractor (by
+              the contracting company).
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            7. Prevention and Control Mechanisms
+          </h3>
+          <p className="text-justify mb-2">
+            In accordance with ILO principles on safe working conditions and
+            data protection, the contractor commits to:
+          </p>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              Use information solely for contractual purposes and employ only
+              authorized platforms, keeping systems protected and updated.
+            </li>
+            <li>
+              Sign confidentiality agreements and disclose any conflict of
+              interest.
+            </li>
+            <li>
+              Comply with deliverable monitoring processes and participate in
+              feedback spaces to ensure responsible information management and
+              contract compliance.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            8. Reporting Channels
+          </h3>
+          <p className="text-justify">
+            The email{" "}
+            <a
+              className="text-[#0097B2] hover:underline"
+              href="mailto:help@teamandes.com"
+            >
+              help@teamandes.com
+            </a>{" "}
+            is available for contractors to report irregular situations,
+            conflicts of interest, or conduct contrary to this Manual.
+            Confidentiality and non-retaliation are guaranteed.
+          </p>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            9. Acceptance and Updates
+          </h3>
+          <p className="text-justify">
+            This Manual will be deemed accepted by the contractor upon signing
+            the contract or any addenda. It may be updated by the Contracting
+            Company when deemed necessary, with prior notification to active
+            contractors.
+          </p>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            10. Validity
+          </h3>
+          <p className="text-justify">
+            This Manual is effective as of its publication and applies to all
+            contractors providing personal services who maintain a relationship
+            with the Contracting Company.
+          </p>
+        </section>
+      </div>
+
+      <div className="mt-12 pt-8 border-t border-gray-300">
+        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+          <p className="text-center text-sm text-gray-800 font-semibold">
+            This Manual has been read and accepted through the {companyName}{" "}
+            system on {currentDate}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const AnnexesHarassmentEN: React.FC<DocumentTemplateProps> = ({
+  companyName = "ANDES WORKFORCE LLC",
+}) => {
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  return (
+    <div className="max-w-4xl mx-auto p-8 bg-white text-gray-900 leading-relaxed">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          Annexes – Policy for the Prevention and Response to Harassment
+        </h1>
+        <h2 className="text-lg font-semibold text-gray-700">{companyName}</h2>
+        <p className="text-sm text-gray-600 mt-2">{currentDate}</p>
+      </div>
+
+      <div className="space-y-8">
+        <section>
+          <h3 className="text-xl font-semibold text-gray-800 mb-4 bg-red-50 p-4 rounded border-l-4 border-red-500">
+            Annex 1: Harassment Complaint Form
+          </h3>
+          <div className="bg-gray-50 p-6 rounded-lg space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Date of complaint:
+                </label>
+                <div className="border-b-2 border-dotted border-gray-400 h-8"></div>
+              </div>
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Name of complainant (optional):
+                </label>
+                <div className="border-b-2 border-dotted border-gray-400 h-8"></div>
+              </div>
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-2">
+                Relationship with the company (mark with an X):
+              </label>
+              <div className="flex flex-wrap gap-6">
+                <span>[ ] Contractor</span>
+                <span>[ ] Other: _______________</span>
+              </div>
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                Name of alleged aggressor (if known):
+              </label>
+              <div className="border-b-2 border-dotted border-gray-400 h-8"></div>
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-2">
+                Detailed description of the facts (include place, approximate
+                date(s), and witness(es), if any):
+              </label>
+              <div className="space-y-2">
+                <div className="border-b-2 border-dotted border-gray-400 h-8"></div>
+                <div className="border-b-2 border-dotted border-gray-400 h-8"></div>
+                <div className="border-b-2 border-dotted border-gray-400 h-8"></div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Places where events occurred:
+                </label>
+                <div className="border-b-2 border-dotted border-gray-400 h-8"></div>
+              </div>
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Approximate dates:
+                </label>
+                <div className="border-b-2 border-dotted border-gray-400 h-8"></div>
+              </div>
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                Witnesses (if any):
+              </label>
+              <div className="border-b-2 border-dotted border-gray-400 h-8"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Signature of complainant (if applicable):
+                </label>
+                <div className="border-b-2 border-dotted border-gray-400 h-12"></div>
+              </div>
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Signature of receipt:
+                </label>
+                <div className="border-b-2 border-dotted border-gray-400 h-12"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="text-xl font-semibold text-gray-800 mb-4 bg-blue-50 p-4 rounded border-l-4 border-blue-500">
+            Annex 2: Response and Protection Pathway
+          </h3>
+          <ol className="list-decimal list-inside space-y-3 ml-4">
+            <li className="font-semibold">
+              Receipt of the complaint (designated channel).
+            </li>
+            <li className="font-semibold">
+              Preliminary assessment of the situation and activation of the
+              response pathway.
+            </li>
+            <li className="font-semibold">
+              Confidential interview with the complainant.
+            </li>
+            <li className="font-semibold">
+              Implementation of protection measures if required (e.g., temporary
+              adjustments to tasks or communication channels).
+            </li>
+            <li className="font-semibold">Internal actions as appropriate.</li>
+            <li className="font-semibold">
+              Referral to external authorities if necessary.
+            </li>
+            <li className="font-semibold">
+              Case follow-up and formal closure.
+            </li>
+          </ol>
+        </section>
+
+        <section>
+          <h3 className="text-xl font-semibold text-gray-800 mb-4 bg-green-50 p-4 rounded border-l-4 border-green-500">
+            Annex 3: Psychological and Legal Support Resources
+          </h3>
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-lg font-semibold text-gray-800 mb-3">
+                Internal resources:
+              </h4>
+              <ul className="space-y-2 ml-4">
+                <li className="flex items-center">
+                  <strong className="mr-2">Ethics line:</strong>{" "}
+                  Help@teamandes.com
+                </li>
+                <li className="flex items-center">
+                  <strong className="mr-2">Institutional psychologist:</strong>
+                  <div className="border-b border-dotted border-gray-400 flex-1 h-6"></div>
+                </li>
+                <li className="flex items-center">
+                  <strong className="mr-2">Institutional legal advisor:</strong>
+                  <div className="border-b border-dotted border-gray-400 flex-1 h-6"></div>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold text-gray-800 mb-3">
+                External resources:
+              </h4>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li>
+                  Hotlines for victims of harassment or violence (international
+                  or local)
+                </li>
+                <li>Online psychological support platforms</li>
+                <li>Virtual legal counseling</li>
+                <li>
+                  Competent authorities in the complainant’s country of
+                  residence, if required.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-12 pt-8 border-t border-gray-300">
+        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+          <p className="text-center text-sm text-gray-800 font-semibold">
+            These Annexes have been reviewed through the {companyName} system on{" "}
+            {currentDate}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const ConfidentialityAgreementEN: React.FC<DocumentTemplateProps> = ({
+  companyName = "ANDES WORKFORCE LLC",
+}) => {
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  return (
+    <div className="max-w-4xl mx-auto p-8 bg-white text-gray-900 leading-relaxed">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          Confidentiality Agreement
+        </h1>
+        <h2 className="text-lg font-semibold text-gray-700">{companyName}</h2>
+        <p className="text-sm text-gray-600 mt-2">{currentDate}</p>
+      </div>
+
+      <div className="space-y-6">
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Parties</h3>
+          <p className="text-justify">
+            The Contracting Company and the Contractor enter into this
+            Confidentiality Agreement under the following terms.
+          </p>
+        </section>
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            1. Purpose
+          </h3>
+          <p className="text-justify">
+            The Contractor agrees to maintain confidentiality on any information
+            received or accessed in the course of the services rendered.
+          </p>
+        </section>
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            2. Confidential Information
+          </h3>
+          <p className="text-justify">
+            Includes documents, data, processes, technical knowledge, reports,
+            specifications, methodologies, strategies, and any information
+            provided or accessed, in any medium.
+          </p>
+        </section>
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            3. Contractor Obligations
+          </h3>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              Use confidential information solely for contractual purposes.
+            </li>
+            <li>
+              Do not disclose, copy, reproduce, transfer, or communicate
+              information to third parties.
+            </li>
+            <li>Adopt measures to prevent unauthorized disclosure.</li>
+            <li>
+              Immediately inform the Company in case of loss, misuse, or
+              leakage.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            4. Exceptions
+          </h3>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>Public domain information not resulting from a breach.</li>
+            <li>Information disclosed with written authorization.</li>
+            <li>
+              Information required by law or court order, with prior notice.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">5. Term</h3>
+          <p className="text-justify">
+            This obligation remains for the duration of the services contract
+            and for two (2) years after termination.
+          </p>
+        </section>
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            6. Liability
+          </h3>
+          <p className="text-justify">
+            In case of breach, the Contractor is liable for damages caused,
+            without prejudice to applicable legal actions.
+          </p>
+        </section>
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            7. Applicable Law
+          </h3>
+          <p className="text-justify">
+            This Agreement is governed by applicable laws in the relevant
+            jurisdiction.
+          </p>
+        </section>
+      </div>
+
+      <div className="mt-12 pt-8 border-t border-gray-300">
+        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+          <p className="text-center text-sm text-gray-800 font-semibold">
+            This Agreement has been accepted through the {companyName} system on{" "}
+            {currentDate}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const CommunicationsProtocolEN: React.FC<DocumentTemplateProps> = ({
+  companyName = "ANDES WORKFORCE LLC",
+}) => {
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  return (
+    <div className="max-w-4xl mx-auto p-8 bg-white text-gray-900 leading-relaxed">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          Communications Protocol: Contracting Company – Independent Service
+          Contractor (Natural Person)
+        </h1>
+        <h2 className="text-lg font-semibold text-gray-700">{companyName}</h2>
+        <p className="text-sm text-gray-600 mt-2">{currentDate}</p>
+      </div>
+
+      <div className="space-y-6">
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            1. Objetive
+          </h3>
+          <p className="text-justify">
+            To establish clear guidelines for communication and coordination
+            between the organization and the contractor, ensuring the effective
+            execution of contracted services, respecting the contractor’s
+            independence, and avoiding any employment-like subordination
+            relationship, in line with ILO principles on decent work and fair
+            labor relations.
+          </p>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            2. Guiding Principles
+          </h3>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              <strong>Autonomy:</strong> The contractor’s technical,
+              administrative, and operational independence is respected.
+            </li>
+            <li>
+              <strong>No subordination:</strong> No direct orders will be given,
+              nor will compliance with schedules or mandatory attendance be
+              required, as these are characteristics of an employment
+              relationship.
+            </li>
+            <li>
+              <strong>Effective communication:</strong> All information
+              exchanged between the parties will be clear, timely, and
+              documented.
+            </li>
+            <li>
+              <strong>Transparency:</strong> All instructions and requests must
+              remain strict within the scope of the contract.
+            </li>
+            <li>
+              <strong>Legality:</strong> Compliance with applicable labor and
+              civil legislation will be ensured.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            3. Communication Channels (including tools and loan agreements)
+          </h3>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              <strong>
+                Institutional email (company) or personal email (contractor):
+              </strong>{" "}
+              Primary channel for formal communications.
+            </li>
+            <li>
+              <strong>Virtual or in-person meetings:</strong> Scheduled in
+              advance, with a clear agenda and meeting minutes.
+            </li>
+            <li>
+              <strong>Project management platforms (optional):</strong> Only
+              when they do not involve time tracking or direct supervision of
+              the contractor.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            4. Types of Communication
+          </h3>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              <strong>Start of activities:</strong> The contractor will inform
+              the organization of their estimated execution schedule.
+            </li>
+            <li>
+              <strong>Activity monitoring:</strong> The contractor may be asked
+              for partial reports, deliverables, or progress updates—always
+              based on results, never on compliance with schedules.
+            </li>
+            <li>
+              <strong>Specific requests:</strong> All requests must relate to
+              the purpose of the contract. Imperative language will be avoided
+              to preserve independence.
+            </li>
+            <li>
+              <strong>Contract termination:</strong> Notification will be
+              provided in advance as stipulated in the contract, including
+              submission of the final report and evaluation of results.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            5. Coordination Meetings
+          </h3>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              Will be held only when strictly necessary for the execution of the
+              contract.
+            </li>
+            <li>
+              Invitations will be sent via email at least 48 hours in advance.
+            </li>
+            <li>
+              A record of discussed topics and agreed-upon commitments will be
+              kept (without generating orders).
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            6. Communication Responsibilities
+          </h3>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>
+              <strong>Contracting Company:</strong> A contract coordinator or
+              supervisor will serve as the official point of contact, without
+              assuming the role of employer.
+            </li>
+            <li>
+              <strong>Contractor:</strong> Responsible for delivering products
+              and progress as contractually agreed.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            7. Express Prohibitions
+          </h3>
+          <p className="text-justify mb-2">
+            The contractor will not be required to:
+          </p>
+          <ul className="list-disc list-inside ml-4 space-y-1">
+            <li>Comply with fixed schedules.</li>
+            <li>Remain at company facilities.</li>
+            <li>
+              Use uniforms, operational ID cards, or institutional email (except
+              for coordination when applicable).
+            </li>
+            <li>Submit daily activity reports based on hours worked.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            8. Confidentiality and Data Protection
+          </h3>
+          <p className="text-justify">
+            Both parties commit to maintaining confidentiality of all
+            information exchanged under the contract. The contractor must sign a
+            confidentiality agreement when required and ensure responsible data
+            management, following international data protection, privacy, and
+            security standards, including those promoted by the ILO.
+          </p>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            9. Protocol Updates
+          </h3>
+          <p className="text-justify">
+            This protocol may be updated by mutual agreement between the parties
+            when necessary to improve coordination, always respecting the
+            applicable regulatory framework.
+          </p>
+        </section>
+      </div>
+
+      <div className="mt-12 pt-8 border-t border-gray-300">
+        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+          <p className="text-center text-sm text-gray-800 font-semibold">
+            This Protocol has been read and accepted through the {companyName}{" "}
+            system on {currentDate}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const RemoteHarassmentPolicyEN: React.FC<DocumentTemplateProps> = ({
+  companyName = "ANDES WORKFORCE LLC",
+}) => {
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  return (
+    <div className="max-w-4xl mx-auto p-8 bg-white text-gray-900 leading-relaxed">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          Policy for the Prevention and Response to Harassment in Remote Work
+        </h1>
+        <h2 className="text-lg font-semibold text-gray-700">{companyName}</h2>
+        <p className="text-sm text-gray-600 mt-2">{currentDate}</p>
+      </div>
+
+      <div className="space-y-6">
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            1. Purpose
+          </h3>
+          <p className="text-justify">
+            This policy establishes clear rules and practices to prevent,
+            identify, and address any form of harassment in remote or hybrid
+            work environments, promoting a respectful, safe, and inclusive
+            workplace across all digital platforms and communication channels
+            used at {companyName}.
+          </p>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">2. Scope</h3>
+          <p className="text-justify">
+            This policy applies to all individuals working with or collaborating
+            with the organization, regardless of location, including employees,
+            supervisors, contractors, and suppliers. It covers all digital
+            interactions such as video calls, chats, emails, and internal
+            platforms.
+          </p>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            3. What is Considered Harassment?
+          </h3>
+          <ul className="list-disc list-inside space-y-2 ml-4">
+            <li>
+              <strong>Harassment:</strong> Unwanted conduct that undermines the
+              dignity, well-being, or performance of a person.
+            </li>
+            <li>
+              <strong>Digital harassment:</strong> Insults, mockery, deliberate
+              exclusion from communications, offensive messages, invasive
+              monitoring, screenshots, or recordings without permission.
+            </li>
+            <li>
+              <strong>Sexual harassment:</strong> Sexual messages or
+              insinuations, sending inappropriate content, or unwanted comments
+              during video calls.
+            </li>
+            <li>
+              <strong>Retaliation:</strong> Negative actions taken against
+              someone who reports a situation.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            4. Principles
+          </h3>
+          <ul className="list-disc list-inside space-y-1 ml-4">
+            <li>Zero tolerance for harassment.</li>
+            <li>Respect all digital communications.</li>
+            <li>Confidentiality when handling reports.</li>
+            <li>No retaliation.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            5. Responsibilities
+          </h3>
+          <ul className="list-disc list-inside space-y-1 ml-4">
+            <li>
+              <strong>Organization:</strong> Provide security tools, train
+              staff, address reports promptly, and act impartially.
+            </li>
+            <li>
+              <strong>Collaborators:</strong> Maintain professionalism, respect
+              work schedules, avoid inappropriate conduct, and report incidents.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            6. Incident Reporting
+          </h3>
+          <p className="text-justify mb-2">
+            Reports may be submitted with a name or anonymously (when
+            applicable). Situations can be reported through:
+          </p>
+          <ul className="list-disc list-inside space-y-1 ml-4">
+            <li>
+              Designated email: <strong>help@teamandes.com</strong>
+            </li>
+            <li>Internal platform</li>
+            <li>Supervisor or designated area</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            7. Basic Procedure
+          </h3>
+          <ol className="list-decimal list-inside space-y-1 ml-4">
+            <li>Receipt of the report</li>
+            <li>Review and analysis</li>
+            <li>Remote investigation</li>
+            <li>Conclusions</li>
+            <li>Corrective measures</li>
+            <li>Follow-up to prevent retaliation</li>
+          </ol>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            8. Consequences
+          </h3>
+          <p className="text-justify mb-2">
+            Depending on the severity and nature of the case, measures may
+            include:
+          </p>
+          <ul className="list-disc list-inside space-y-1 ml-4">
+            <li>Corrective conversations or formal warnings</li>
+            <li>Mandatory training</li>
+            <li>Temporary suspension of access to digital platforms</li>
+            <li>Proportional disciplinary actions</li>
+            <li>Termination of employment or contractual relationship</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            9. Best Practices in Remote Work
+          </h3>
+          <ul className="list-disc list-inside space-y-1 ml-4">
+            <li>Professional language</li>
+            <li>Respect for schedules</li>
+            <li>No recording without permission</li>
+            <li>Privacy during video calls</li>
+            <li>Responsible use of digital platforms</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            10. Measures
+          </h3>
+          <p className="text-justify">
+            Harassment behaviors will be evaluated by the Management of{" "}
+            {companyName} according to their severity. Based on the established
+            protocol, affected parties will be guided to the legally appropriate
+            channels. If actions affecting individuals within our stakeholder
+            group are confirmed, contractual measures may be taken, including
+            termination of the service contract. In serious cases, the competent
+            authorities will be notified.
+          </p>
+        </section>
+      </div>
+
+      <div className="mt-12 pt-8 border-t border-gray-300">
+        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+          <p className="text-center text-sm text-gray-800 font-semibold">
+            This policy has been read and accepted through the {companyName}{" "}
+            system on {currentDate}
           </p>
         </div>
       </div>

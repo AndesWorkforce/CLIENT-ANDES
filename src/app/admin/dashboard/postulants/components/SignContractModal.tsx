@@ -4,11 +4,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import DatePicker from "@/app/components/ui/date-picker/date-picker";
 import { X, FileText, Send, Eye } from "lucide-react";
 import { SERVICIOS_DISPONIBLES, CATEGORIAS_SERVICIOS } from "./templates";
-import {
-  sendContractToSignWell,
-  SendContractPayload,
-} from "../../actions/contracts.actions";
-import { sendContractSentNotification } from "../../actions/sendEmail.actions";
 import StatementOfWorkPDF from "./templates/StatementOfWorkPDF";
 import StatementOfWorkEnglishPDF from "./templates/StatementOfWorkEnglishPDF";
 import NewStatementOfWorkEnglishPDF from "./templates/NewStatementOfWorkEnglishPDF";
@@ -20,6 +15,14 @@ import {
 import { Applicant } from "../../../../types/applicant";
 import { useNotificationStore } from "@/store/notifications.store";
 import { DocumentProps } from "@react-pdf/renderer";
+import {
+  filesUploadPdfWithKey,
+  esignCreateDocument,
+  esignAddRecipients,
+  esignAddFields,
+  esignSendDocument,
+  esignUpdateDocumentSource,
+} from "@/app/admin/dashboard/actions/esign.client";
 
 // Temporary feature flag to keep the template list minimal
 // When true, we only show the core options (English SOW + PSA – Colombia)
@@ -41,6 +44,7 @@ interface SignContractModalProps {
   isOpen: boolean;
   onClose: () => void;
   applicant: Applicant;
+  onContractSent?: () => void;
 }
 
 // Funciones auxiliares para labels y placeholders
@@ -278,6 +282,7 @@ export default function SignContractModal({
   isOpen,
   onClose,
   applicant,
+  onContractSent,
 }: SignContractModalProps) {
   const { addNotification } = useNotificationStore();
 
@@ -513,6 +518,15 @@ export default function SignContractModal({
   }));
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  // Datos del firmante empresa / delegación
+  const DEFAULT_CEO_EMAIL = "mrendon@teamandes.com";
+  const [companySignerEmail, setCompanySignerEmail] =
+    useState<string>(DEFAULT_CEO_EMAIL);
+  const [companySignerName, setCompanySignerName] =
+    useState<string>("CEO Signature");
+  const [useAlternateSigner, setUseAlternateSigner] = useState<boolean>(false);
+  const [alternateSignerEmail, setAlternateSignerEmail] = useState<string>("");
+  const [alternateSignerName, setAlternateSignerName] = useState<string>("");
 
   useEffect(() => {
     if (isOpen && contractTemplates.length > 0) {
@@ -657,7 +671,7 @@ export default function SignContractModal({
 
     setIsLoading(true);
     try {
-      // Importar dinámicamente las librerías de PDF
+      // 1. Generar PDF base64 local
       const { pdf } = await import("@react-pdf/renderer");
 
       // Generar el PDF usando el template correspondiente
@@ -692,116 +706,128 @@ export default function SignContractModal({
         throw error;
       }
 
-      // Generar el PDF como blob
       const pdfBlob = await pdf(pdfDocument).toBlob();
 
-      // Convertir a base64
-      const base64Content = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          // Extraer solo el contenido base64 (sin el prefijo data:application/pdf;base64,)
-          const base64 = result.split(",")[1];
-          resolve(base64);
-        };
-        reader.readAsDataURL(pdfBlob);
+      // Calcular número de páginas para ubicar la firma en la última
+      let numPages = 1;
+      try {
+        const pdfjsLibModule = await import("pdfjs-dist");
+        const pdfjsLib: any = (pdfjsLibModule as any).default || pdfjsLibModule;
+        // Configurar worker (aunque intentaremos sin él para contar páginas rápido)
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+
+        const arrayBuffer = await pdfBlob.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({
+          data: arrayBuffer,
+          disableWorker: true, // Evitar problemas de worker en modal
+        });
+        const pdfProxy = await loadingTask.promise;
+        numPages = pdfProxy.numPages;
+        console.log("PDF generated with pages:", numPages);
+      } catch (e) {
+        console.error("Error counting PDF pages:", e);
+        // Fallback: si falla, asumimos que es multipágina y tratamos de adivinar o usar 1
+        // Pero para estos contratos suele ser > 1.
+      }
+
+      // 2. Crear Documento (sin archivo) para obtener ID, luego subir con key fija y vincular
+      const tituloDoc = `Contract - ${contractData.nombreCompleto}`;
+      const delegacionDesc =
+        useAlternateSigner && alternateSignerEmail
+          ? `Delegated by CEO ${DEFAULT_CEO_EMAIL} to ${alternateSignerEmail}`
+          : undefined;
+      const createData = await esignCreateDocument({
+        titulo: tituloDoc,
+        descripcion: delegacionDesc,
+        // No enviamos procesoContratacionId desde el cliente: el backend auto-crea/auto-vincula
       });
+      const documentId = createData.document?.id;
+      if (!documentId) {
+        addNotification("Invalid document response.", "error");
+        return;
+      }
 
-      // Datos para el endpoint del backend usando la interfaz definida
-      const contractPayload: SendContractPayload = {
-        nombreCompleto: contractData.nombreCompleto,
-        puestoTrabajo: contractData.puestoTrabajo,
-        ofertaSalarial: parseFloat(contractData.ofertaSalarial),
-        monedaSalario: contractData.monedaSalario,
-        // Parse canonical MM/DD/YYYY to Date for payload
-        fechaInicioLabores: (() => {
-          const m = contractData.fechaInicioLabores.match(
-            /^(\d{2})\/(\d{2})\/(\d{4})$/
-          );
-          if (m) {
-            const [, mm, dd, yyyy] = m;
-            return new Date(
-              parseInt(yyyy, 10),
-              parseInt(mm, 10) - 1,
-              parseInt(dd, 10)
-            );
-          }
-          return new Date(contractData.fechaInicioLabores);
-        })(),
-        archivoBase64: base64Content,
-        nombreArchivo: `statement_of_work_${applicant.nombre}_${applicant.apellido}.pdf`,
-        urlRedirect: `${window.location.origin}/admin/dashboard/contracts/callback`,
+      // Subir PDF a una clave determinística por documento (sobrescribe en reintentos)
+      const fixedKey = `documents/esign/${documentId}.pdf`;
+      const publicUrl = await filesUploadPdfWithKey(pdfBlob, fixedKey);
+      await esignUpdateDocumentSource(documentId, publicUrl);
+
+      // 3. Recipients: candidato y empresa (CEO o delegado)
+      const finalCompanyEmail =
+        useAlternateSigner && alternateSignerEmail
+          ? alternateSignerEmail
+          : companySignerEmail;
+      const finalCompanyName =
+        useAlternateSigner && alternateSignerName
+          ? alternateSignerName
+          : companySignerName;
+      const recipientsPayload = {
+        recipients: [
+          {
+            email: contractData.correoElectronico,
+            nombre: contractData.nombreCompleto,
+            orden: 1,
+            rol: "CANDIDATO",
+          },
+          {
+            email: finalCompanyEmail,
+            nombre: finalCompanyName,
+            orden: 2,
+            rol: "EMPRESA",
+          },
+        ],
       };
-
-      // Usar la action para enviar el contrato
-      const result = await sendContractToSignWell(
-        applicant.lastRelevantPostulacion.id,
-        contractPayload
+      const docWithRecipients = await esignAddRecipients(
+        documentId,
+        recipientsPayload
+      );
+      const candidateRecipient = docWithRecipients.recipients.find(
+        (r: any) => r.rol === "CANDIDATO"
+      );
+      const companyRecipient = docWithRecipients.recipients.find(
+        (r: any) => r.rol === "EMPRESA"
       );
 
-      if (result.success) {
-        console.log("Contract sent successfully:", result.data);
-
-        // Show signing URLs and redirect to first signer
-        if (result.signingUrls && result.signingUrls.length > 0) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          result.signingUrls.forEach((signer: any) => {
-            console.log(`${signer.name}: ${signer.signingUrl}`);
-          });
-
-          // Redirect to first signer URL (candidate)
-          const candidateUrl = result.signingUrls.find(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (signer: any) =>
-              signer.name === contractData.nombreCompleto ||
-              signer.email === contractData.correoElectronico
-          );
-
-          if (candidateUrl?.signingUrl) {
-            // Open signing URL for the candidate in a new tab
-            window.open(candidateUrl.signingUrl, "_blank");
-          }
-        }
-
-        // Show success message
-        addNotification(
-          "Contract sent successfully! The signing window has been opened for the candidate.",
-          "success"
-        );
-
-        // Send contract notification email
-        try {
-          const emailResponse = await sendContractSentNotification(
-            contractData.nombreCompleto,
-            contractData.correoElectronico
-          );
-
-          if (emailResponse.success) {
-            console.log("✅ Contract notification email sent successfully");
-            addNotification(
-              "Contract notification email sent to candidate.",
-              "success"
-            );
-          } else {
-            console.error(
-              "❌ Error sending contract notification email:",
-              emailResponse.error
-            );
-            // Don't show error to user since the main action succeeded
-          }
-        } catch (emailError) {
-          console.error(
-            "❌ Error sending contract notification email:",
-            emailError
-          );
-          // Don't show error to user since the main action succeeded
-        }
-
-        onClose();
-      } else {
-        console.error("Error sending contract:", result.message);
-        addNotification(`Error sending contract: ${result.message}`, "error");
+      // 4. Crear campos de firma (en la última página)
+      if (candidateRecipient && companyRecipient) {
+        // Coordenadas ajustadas según screenshot:
+        // Company a la izquierda, Contractor a la derecha.
+        // Altura ajustada para caer sobre las líneas de firma (aprox 72% de la página)
+        const fieldsPayload = {
+          fields: [
+            {
+              pageNumber: -1, // Backend ahora interpreta -1 como última página
+              x: 0.55, // Contractor (Candidate) a la derecha
+              y: 0.72,
+              width: 0.3,
+              height: 0.08,
+              fieldType: "SIGNATURE",
+              assignedToRecipientId: candidateRecipient.id,
+              required: true,
+              label: "Candidate Signature",
+            },
+            {
+              pageNumber: -1, // Backend ahora interpreta -1 como última página
+              x: 0.1, // Company a la izquierda
+              y: 0.72,
+              width: 0.3,
+              height: 0.08,
+              fieldType: "SIGNATURE",
+              assignedToRecipientId: companyRecipient.id,
+              required: true,
+              label: "Company Signature",
+            },
+          ],
+        };
+        await esignAddFields(documentId, fieldsPayload);
       }
+
+      // 5. Enviar (genera tokens)
+      await esignSendDocument(documentId);
+
+      addNotification("Contract sent successfully to recipients.", "success");
+      if (onContractSent) onContractSent();
+      onClose();
     } catch (error) {
       console.error("Error:", error);
       addNotification(
@@ -1320,7 +1346,6 @@ export default function SignContractModal({
                     {replaceVariables(selectedTemplate.subject)}
                   </p>
                 </div>
-
                 {/* PDF Preview */}
                 <div className="bg-white rounded border shadow-sm">
                   <div className="h-[600px] border rounded-lg overflow-hidden">
@@ -1351,31 +1376,112 @@ export default function SignContractModal({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-gray-200 p-6 flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSendContract}
-            disabled={!selectedTemplate || isLoading}
-            className="px-6 py-2 bg-[#0097B2] text-white rounded-md hover:bg-[#007a8f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-          >
-            {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Sending...
-              </>
-            ) : (
-              <>
-                <Send size={16} className="mr-2" />
-                Send Contract
-              </>
-            )}
-          </button>
+        {/* Company Signer Section */}
+        <div className="border-t border-gray-200 px-6 py-5 bg-gray-50">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+            Company Signer
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Name
+              </label>
+              <input
+                type="text"
+                value={companySignerName}
+                onChange={(e) => setCompanySignerName(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                placeholder="CEO Signature"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={companySignerEmail}
+                onChange={(e) => setCompanySignerEmail(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                placeholder={DEFAULT_CEO_EMAIL}
+              />
+            </div>
+            <div className="flex items-start pt-5">
+              <label className="inline-flex items-center text-xs text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mr-2"
+                  checked={useAlternateSigner}
+                  onChange={(e) => setUseAlternateSigner(e.target.checked)}
+                />
+                Delegate to alternate signer
+              </label>
+            </div>
+          </div>
+          {useAlternateSigner && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  Alt Name
+                </label>
+                <input
+                  type="text"
+                  value={alternateSignerName}
+                  onChange={(e) => setAlternateSignerName(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                  placeholder="Admin Name"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  Alt Email
+                </label>
+                <input
+                  type="email"
+                  value={alternateSignerEmail}
+                  onChange={(e) => setAlternateSignerEmail(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                  placeholder="admin@teamandes.com"
+                />
+              </div>
+            </div>
+          )}
+          <p className="text-xs text-gray-500">
+            Signing order: 1) Candidate 2) Company (CEO or delegate). Two
+            signature fields will be automatically created on page 1.
+          </p>
+        </div>
+
+        {/* Footer buttons */}
+        <div className="border-t border-gray-200 px-6 py-4 flex justify-between items-center bg-white">
+          <div className="text-xs text-gray-400">
+            Review the data before sending. The candidate signs first.
+          </div>
+          <div className="flex space-x-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSendContract}
+              disabled={!selectedTemplate || isLoading}
+              className="px-6 py-2 rounded-md bg-gradient-to-r from-[#0097B2] to-[#00b8d8] text-white shadow-sm hover:shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send size={16} className="mr-2" />
+                  Send Contract
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

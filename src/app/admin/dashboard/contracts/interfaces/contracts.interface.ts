@@ -56,6 +56,15 @@ export interface DocumentoLeido {
   fechaUltimaUpdate: string;
 }
 
+export interface Anexo {
+  id: string;
+  titulo: string;
+  descripcion?: string;
+  archivoFirmadoUrl?: string;
+  estado: string;
+  createdAt: string;
+}
+
 export interface ProcesoContratacion {
   id: string;
   postulacionId: string;
@@ -77,6 +86,7 @@ export interface ProcesoContratacion {
   fechaFirmaProveedor?: Date | null;
   fechaFirma?: Date | null;
   activo: boolean;
+  anexos?: Anexo[];
 
   // Información del cliente
   clienteNombre?: string;
