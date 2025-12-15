@@ -19,7 +19,7 @@ export async function filesUploadPdf(pdfBlob: Blob): Promise<string> {
   const res = await axiosBase.post("files/upload/pdf", form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-  // API returns public URL string
+
   return res.data;
 }
 
@@ -46,7 +46,7 @@ export async function esignCreateDocument(payload: {
   isAnnex?: boolean;
 }) {
   const res = await axiosBase.post("esign/documents", payload);
-  // Normalize to { document: {...} } to match base64 endpoint shape
+
   const data = res.data;
   return data && data.id ? { document: data } : data;
 }

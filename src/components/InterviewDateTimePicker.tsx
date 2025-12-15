@@ -5,12 +5,12 @@ import "react-datepicker/dist/react-datepicker.css";
 
 interface InterviewDateTimePickerProps {
   valueISO?: string;
-  minMinutesFromNow?: number; // default 10
+  minMinutesFromNow?: number;
   onChange: (iso: string | undefined) => void;
   saving?: boolean;
   onSave?: () => void;
-  inline?: boolean; // render calendar inline (for modals)
-  compact?: boolean; // render small date + time inputs instead of full calendar
+  inline?: boolean;
+  compact?: boolean;
 }
 
 function isoToDate(iso?: string): Date | null {
@@ -37,6 +37,7 @@ export const InterviewDateTimePicker: React.FC<
 }) => {
   const initialDate = isoToDate(valueISO);
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
+  const [selectedTz, setSelectedTz] = useState<string>("America/New_York");
 
   const minDate = (() => {
     const d = new Date();
@@ -118,8 +119,28 @@ export const InterviewDateTimePicker: React.FC<
       handleChange(combined);
     };
 
+    const isComplete = Boolean(dateValue && timeValue);
+
     return (
       <div className="flex flex-col gap-2 w-full">
+        <div className="flex items-center gap-2 text-[11px] text-gray-600">
+          <span className="font-semibold">Time Zone:</span>
+          <select
+            value={selectedTz}
+            onChange={(e) => setSelectedTz(e.target.value)}
+            className="border border-[#cfd8dc] rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+          >
+            <option value="America/New_York">US Eastern Time</option>
+            <option value="America/Chicago">US Central Time</option>
+            <option value="America/Denver">US Mountain Time</option>
+            <option value="America/Los_Angeles">US Pacific Time</option>
+          </select>
+          {selectedDate && (
+            <span className="ml-2">
+              {selectedDate.toLocaleString("en-US", { timeZone: selectedTz })}
+            </span>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2 items-center">
           <input
             type="date"
@@ -141,10 +162,10 @@ export const InterviewDateTimePicker: React.FC<
             ))}
           </select>
           <button
-            disabled={!selectedDate || saving}
+            disabled={!isComplete || saving}
             onClick={() => onSave && onSave()}
             className={`px-3 py-1.5 text-white text-xs font-medium rounded transition-colors ${
-              !selectedDate || saving
+              !isComplete || saving
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-[#0097B2] hover:bg-[#007a8f] cursor-pointer"
             }`}
@@ -157,7 +178,7 @@ export const InterviewDateTimePicker: React.FC<
             </span>
           )}
         </div>
-        {selectedDate && selectedDate < minDate && (
+        {isComplete && selectedDate && selectedDate < minDate && (
           <p className="text-[10px] text-red-600">
             Selected time must be at least {minMinutesFromNow} minutes ahead.
           </p>
@@ -168,6 +189,24 @@ export const InterviewDateTimePicker: React.FC<
 
   return (
     <div className="flex flex-col gap-3 w-full">
+      <div className="flex items-center gap-2 text-xs text-gray-600">
+        <span className="font-semibold">Time Zone:</span>
+        <select
+          value={selectedTz}
+          onChange={(e) => setSelectedTz(e.target.value)}
+          className="border border-[#cfd8dc] rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+        >
+          <option value="America/New_York">US Eastern Time</option>
+          <option value="America/Chicago">US Central Time</option>
+          <option value="America/Denver">US Mountain Time</option>
+          <option value="America/Los_Angeles">US Pacific Time</option>
+        </select>
+        {selectedDate && (
+          <span className="ml-2">
+            {selectedDate.toLocaleString("en-US", { timeZone: selectedTz })}
+          </span>
+        )}
+      </div>
       <div className={`w-full ${inline ? "" : "max-w-full"}`}>
         <DatePicker
           selected={selectedDate}

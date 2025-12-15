@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { X, FileText, Send, Eye } from "lucide-react";
 import StatementOfWorkPDF from "../../postulants/components/templates/StatementOfWorkPDF";
 import StatementOfWorkEnglishPDF from "../../postulants/components/templates/StatementOfWorkEnglishPDF";
@@ -304,6 +304,7 @@ export default function SendAnnexModal({
     useState<ContractTemplate | null>(null);
   const [previewKey, setPreviewKey] = useState(0);
   const [showPreview, setShowPreview] = useState(true);
+  const sendingRef = useRef(false);
   const PSA_COL_DEFAULT_SERVICES =
     "maintaining client files, answering phone calls, speaking with potential and current clients, processing legal documents, initiating claims and appeals, providing case-related information, uploading PDFs to electronic portals, gathering potential client information for review, processing admission documents and entering data digitally, confirming client medical appointments, assisting with required forms, and performing additional tasks as assigned";
 
@@ -553,9 +554,11 @@ export default function SendAnnexModal({
   };
 
   const handleSendAnnex = async () => {
+    if (sendingRef.current) return; // prevent double send
     if (!selectedTemplate) return;
     if (!validateRequiredFields()) return;
 
+    sendingRef.current = true;
     setIsLoading(true);
     try {
       const { pdf } = await import("@react-pdf/renderer");
@@ -650,17 +653,35 @@ export default function SendAnnexModal({
       );
 
       if (candidateRecipient) {
-        const fields = [];
+        const fields = [] as any[];
 
-        // Candidate Signature (Always present)
-        // For Compliance Declaration, position might need adjustment if it's different
-        // But using the same bottom-page logic is usually safe if the PDF has space.
-        // The template has a signature line at the bottom.
+        // Consistent baseline Y for signatures across templates
+        // Slightly above bottom to align with typical signature lines in templates
+        // Use a safer baseline near typical signature lines
+        let baseY = 0.72;
+        let candidateX = 0.1;
+        let companyX = 0.55;
+
+        // Template-specific adjustment: swap positions on Loan Agreement
+        if (selectedTemplate.id === "loan-agreement") {
+          companyX = 0.1;
+          candidateX = 0.55;
+        }
+
+        // For single-signer Compliance Declaration, keep candidate on the left and raise a bit
+        if (
+          !companyRecipient &&
+          selectedTemplate.id === "compliance-declaration"
+        ) {
+          candidateX = 0.1;
+          baseY = 0.74;
+        }
+
+        // Candidate Signature box
         fields.push({
           pageNumber: -1,
-          x: 0.1, // Left aligned for single signature or specific placement
-          y: 0.85, // Lower down for this specific template? Or keep 0.72?
-          // Template has signature section at bottom.
+          x: candidateX,
+          y: baseY,
           width: 0.3,
           height: 0.08,
           fieldType: "SIGNATURE",
@@ -669,21 +690,30 @@ export default function SendAnnexModal({
           label: "Candidate Signature",
         });
 
-        // Company Signature (Only if recipient exists)
-        if (companyRecipient) {
-          let companyX = 0.55;
-          let candidateX = 0.1;
-
-          if (selectedTemplate.id === "loan-agreement") {
-            // Swap: Company Left, Candidate Right
-            companyX = 0.1;
-            candidateX = 0.55;
-          }
-
+        // Printed Candidate Name just below the signature box (only if defined)
+        const candidatePrintedName = (contractData.nombreCompleto || "").trim();
+        if (candidatePrintedName.length > 0) {
           fields.push({
             pageNumber: -1,
-            x: companyX, // Right side
-            y: 0.72,
+            x: candidateX,
+            y: Math.min(baseY + 0.085, 0.95),
+            width: 0.3,
+            height: 0.035,
+            fieldType: "TEXT",
+            assignedToRecipientId: candidateRecipient.id,
+            required: false,
+            label: "Candidate Name",
+            defaultValue: candidatePrintedName,
+            readOnly: true,
+          });
+        }
+
+        // Company Signature (if second recipient exists)
+        if (companyRecipient) {
+          fields.push({
+            pageNumber: -1,
+            x: companyX,
+            y: baseY,
             width: 0.3,
             height: 0.08,
             fieldType: "SIGNATURE",
@@ -692,14 +722,23 @@ export default function SendAnnexModal({
             label: "Company Signature",
           });
 
-          // Adjust Candidate to left if Company exists
-          fields[0].x = candidateX;
-          fields[0].y = 0.72;
-        } else {
-          // Single signer centering or specific placement
-          // For Compliance Declaration, the line is on the left/start.
-          fields[0].x = 0.1;
-          fields[0].y = 0.8; // Adjust to match the line in the PDF component
+          // Printed Company Name below (only if defined)
+          const companyPrintedName = (finalCompanyName || "").trim();
+          if (companyPrintedName.length > 0) {
+            fields.push({
+              pageNumber: -1,
+              x: companyX,
+              y: Math.min(baseY + 0.085, 0.95),
+              width: 0.3,
+              height: 0.035,
+              fieldType: "TEXT",
+              assignedToRecipientId: companyRecipient.id,
+              required: false,
+              label: "Company Name",
+              defaultValue: companyPrintedName,
+              readOnly: true,
+            });
+          }
         }
 
         const fieldsPayload = { fields };
@@ -719,6 +758,7 @@ export default function SendAnnexModal({
       );
     } finally {
       setIsLoading(false);
+      sendingRef.current = false;
     }
   };
 
