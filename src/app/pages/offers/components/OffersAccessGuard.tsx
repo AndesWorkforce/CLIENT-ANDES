@@ -102,10 +102,10 @@ const OffersAccessGuard: React.FC<OffersAccessGuardProps> = ({ children }) => {
       <div className="container mx-auto bg-white min-h-screen">
         <div className="flex items-center justify-center min-h-screen p-4">
           <div className="max-w-md w-full text-center">
-            <div className="bg-orange-50 p-8 rounded-lg border border-orange-200">
+            <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-md">
               <div className="mb-6">
                 <svg
-                  className="mx-auto h-16 w-16 text-orange-500"
+                  className="mx-auto h-16 w-16 text-[#0097B2]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -132,13 +132,13 @@ const OffersAccessGuard: React.FC<OffersAccessGuardProps> = ({ children }) => {
               <div className="space-y-3">
                 <button
                   onClick={() => router.push("/currentApplication")}
-                  className="w-full bg-[#0097B2] text-white py-3 px-4 rounded-md font-medium hover:bg-[#007A8F] transition-colors"
+                  className="w-full bg-[#0097B2] text-white py-3 px-4 rounded-md font-medium hover:bg-[#007A8F] transition-colors cursor-pointer"
                 >
                   View Current Contract
                 </button>
                 <button
                   onClick={() => router.push("/")}
-                  className="w-full bg-white text-[#0097B2] py-3 px-4 rounded-md font-medium border border-[#0097B2] hover:bg-blue-50 transition-colors"
+                  className="w-full bg-white text-[#0097B2] py-3 px-4 rounded-md font-medium border border-[#0097B2] hover:bg-blue-50 transition-colors cursor-pointer"
                 >
                   Go to Home
                 </button>

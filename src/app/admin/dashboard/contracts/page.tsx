@@ -1252,7 +1252,7 @@ export default function ContractsPage() {
                                   setSelectedContractForAnnex(contract);
                                   setIsAnnexModalOpen(true);
                                 }}
-                                className="text-[#0097B2] hover:underline flex items-center text-sm font-medium"
+                                className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
                               >
                                 <PenTool size={16} className="mr-1" />
                                 Add Annex
@@ -1264,7 +1264,7 @@ export default function ContractsPage() {
                                       setSelectedContractForAnnexList(contract);
                                       setIsAnnexListModalOpen(true);
                                     }}
-                                    className="text-gray-600 hover:text-gray-800 hover:underline flex items-center text-sm font-medium"
+                                    className="text-gray-600 hover:text-gray-800 hover:underline flex items-center text-sm font-medium cursor-pointer"
                                   >
                                     <FileText size={16} className="mr-1" />
                                     View {contract.anexos.length} Annexes

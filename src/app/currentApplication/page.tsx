@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Download,
   Upload,
@@ -41,7 +42,8 @@ import {
 import { useNotificationStore } from "@/store/notifications.store";
 
 export default function CurrentApplication() {
-  const { user } = useAuthStore();
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
   const { addNotification } = useNotificationStore();
   const [currentJob, setCurrentJob] = useState<CurrentContractData | null>(
     null
@@ -146,6 +148,17 @@ export default function CurrentApplication() {
     setSelectedMonth(currentMonth);
     setSelectedYear(currentYear);
   }, [currentMonth, currentYear]);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (isAuthenticated === false || !user) {
+      try {
+        router.replace("/auth/login");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [isAuthenticated, user, router]);
 
   const currentContract = async () => {
     if (!user?.id) return;
@@ -411,11 +424,6 @@ export default function CurrentApplication() {
 
   const closeDocumentsModal = async () => {
     setShowDocumentsModal(false);
-    // NO resetear readDocuments - mantener el progreso del usuario
-    // setReadDocuments({});
-    // setCurrentDocumentIndex(0);
-
-    // Actualizar tiempo final del documento actual si estaba siendo leído
     if (documentStartTime > 0) {
       const currentTime = Date.now();
       const sessionTime = Math.floor((currentTime - documentStartTime) / 1000);
@@ -985,15 +993,6 @@ export default function CurrentApplication() {
                           ✅
                         </p>
                       </div>
-                      {/* <div className="flex gap-4 justify-center">
-                        <button
-                          onClick={openDocumentsModal}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <Eye size={16} />
-                          Review Documents
-                        </button>
-                      </div> */}
                     </div>
                   )}
 
@@ -1061,18 +1060,6 @@ export default function CurrentApplication() {
                     </div>
                   </div>
                 </div>
-
-                {/* <div className="mt-8">
-                  <p className="text-gray-600 text-sm">
-                    Need help? Contact our HR team at{" "}
-                    <a
-                      href="mailto:hr@andes-workforce.com"
-                      className="text-[#0097B2] hover:underline"
-                    >
-                      hr@andes-workforce.com
-                    </a>
-                  </p>
-                </div> */}
               </div>
             </div>
           </div>
@@ -1796,7 +1783,7 @@ export default function CurrentApplication() {
       {/* Modal de Documentos Contractuales */}
       {showDocumentsModal && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar border-2 border-[#0097B2]">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar border border-gray-300">
             <div className="flex justify-between items-center p-4 border-b border-[#0097B2]">
               <h2 className="text-xl font-medium text-[#0097B2]">
                 Contract Documents
@@ -1876,7 +1863,7 @@ export default function CurrentApplication() {
                               contractDocuments[currentDocumentIndex].id
                             ] || !hasReachedEnd
                           }
-                          className={`px-4 py-2 rounded ${
+                          className={`px-4 py-2 rounded cursor-pointer ${
                             readDocuments[
                               contractDocuments[currentDocumentIndex].id
                             ] && hasReachedEnd
