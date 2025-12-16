@@ -38,6 +38,41 @@ import InterviewDateTimePicker from "@/components/InterviewDateTimePicker";
 // Feature flag temporal: ocultar columna "Proposed Date" mientras está en desarrollo
 const SHOW_PROPOSED_DATE = true;
 
+// Helper: US date format MM/DD/YYYY, optionally respecting a timeZone
+const formatDateUS = (iso?: string, tz?: string | null) => {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    if (tz) {
+      // Use Intl to format in specific timeZone and then assemble MM/DD/YYYY
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: tz || undefined,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+        .formatToParts(d)
+        .reduce<Record<string, string>>((acc, p) => {
+          acc[p.type] = p.value;
+          return acc;
+        }, {});
+      return `${parts.month}/${parts.day}/${parts.year}`;
+    }
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  } catch {
+    const plain = (iso || "").split("T")[0];
+    const parts = plain.split("-");
+    if (parts.length === 3) {
+      const [y, m, day] = parts;
+      return `${m}/${day}/${y}`;
+    }
+    return iso || "";
+  }
+};
+
 // Definir StageStatus aquí
 export type StageStatus =
   | "PROFILE_INCOMPLETE"
@@ -393,7 +428,12 @@ const AdminApplicantsTable = ({
                     if (confirmed) {
                       return (
                         <div className="text-xs text-green-700">
-                          <div>{new Date(confirmed).toLocaleDateString()}</div>
+                          <div>
+                            {formatDateUS(
+                              confirmed,
+                              applicant.zonaHorariaEntrevista
+                            )}
+                          </div>
                           <div className="text-green-600 font-medium">
                             {new Date(confirmed).toLocaleTimeString([], {
                               hour: "2-digit",
@@ -521,10 +561,7 @@ const AdminApplicantsTable = ({
                             const tz =
                               applicant.zonaHorariaEntrevista || undefined;
                             const dt = new Date(d);
-                            const dateStr = dt.toLocaleDateString(
-                              undefined,
-                              tz ? ({ timeZone: tz } as any) : undefined
-                            );
+                            const dateStr = formatDateUS(d, tz);
                             const timeStr = dt.toLocaleTimeString(
                               [],
                               tz
@@ -582,7 +619,10 @@ const AdminApplicantsTable = ({
                     return (
                       <div className="text-xs text-gray-700">
                         <div>
-                          {new Date(firstProposed).toLocaleDateString()}
+                          {formatDateUS(
+                            firstProposed,
+                            applicant.zonaHorariaEntrevista
+                          )}
                         </div>
                         <div className="text-gray-500">
                           {new Date(firstProposed).toLocaleTimeString([], {

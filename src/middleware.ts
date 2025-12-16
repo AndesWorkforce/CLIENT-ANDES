@@ -71,6 +71,8 @@ const publicRoutes = [
   "/api/auth/login/with-company",
   "/api/health",
   "/health",
+  // ESIGN public flows must be accessible without auth
+  "/esign",
   // Otras rutas públicas o APIs que deberían estar disponibles para todos
 ];
 

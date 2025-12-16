@@ -57,15 +57,6 @@ const styles = StyleSheet.create({
   bold: {
     fontFamily: "Helvetica-Bold",
   },
-  signatureSection: {
-    marginTop: 50,
-  },
-  signatureLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#000",
-    width: 200,
-    marginBottom: 5,
-  },
 });
 
 interface ComplianceDeclarationData {
@@ -185,11 +176,7 @@ const ComplianceDeclarationAnnexPDF: React.FC<{
           termination of the contract.
         </Text>
 
-        {/* Signature Section */}
-        <View style={styles.signatureSection}>
-          <View style={styles.signatureLine} />
-          <Text style={styles.bold}>{data.nombreCompleto}</Text>
-        </View>
+        {/* Signature area will be added dynamically by ESIGN fields */}
       </Page>
     </Document>
   );

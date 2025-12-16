@@ -328,7 +328,7 @@ export default function SendAnnexModal({
       id: "loan-agreement",
       name: "ANNEX I – LOAN AGREEMENT",
       description:
-        "Loan agreement for laptop computer. Requires Contractor and Company signature.",
+        "Loan agreement for laptop computer. Requires only Contractor signature.",
       subject: "Annex - Loan Agreement - {{nombreCompleto}}",
       component: "LoanAgreementAnnexPDF",
       category: "Equipment",
@@ -347,7 +347,7 @@ export default function SendAnnexModal({
       id: "extension-addendum",
       name: "ADDENDUM FOR EXTENSION",
       description:
-        "Addendum for extension and amendment to the service agreement. Requires Contractor and Company signature.",
+        "Addendum for extension and amendment to the service agreement. Requires only Contractor signature.",
       subject: "Addendum for Extension - {{nombreCompleto}}",
       component: "ExtensionAddendumAnnexPDF",
       category: "Contract Amendment",
@@ -427,14 +427,6 @@ export default function SendAnnexModal({
   }));
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const DEFAULT_CEO_EMAIL = "mrendon@teamandes.com";
-  const [companySignerEmail, setCompanySignerEmail] =
-    useState<string>(DEFAULT_CEO_EMAIL);
-  const [companySignerName, setCompanySignerName] =
-    useState<string>("CEO Signature");
-  const [useAlternateSigner] = useState<boolean>(false);
-  const [alternateSignerEmail] = useState<string>("");
-  const [alternateSignerName] = useState<string>("");
 
   useEffect(() => {
     if (isOpen && contractTemplates.length > 0) {
@@ -588,14 +580,11 @@ export default function SendAnnexModal({
 
       const pdfBlob = await pdf(pdfDocument).toBlob();
 
-      const tituloDoc = `Annex - ${contractData.nombreCompleto}`;
-      const delegacionDesc =
-        useAlternateSigner && alternateSignerEmail
-          ? `Delegated by CEO ${DEFAULT_CEO_EMAIL} to ${alternateSignerEmail}`
-          : undefined;
+      // Use template subject with variables replaced for ESIGN document title
+      const tituloDoc = replaceVariables(selectedTemplate.subject);
       const createData = await esignCreateDocument({
         titulo: tituloDoc,
-        descripcion: delegacionDesc,
+        descripcion: `${selectedTemplate.name} · ${selectedTemplate.category}`,
         procesoContratacionId: contract.id,
         isAnnex: true,
       });
@@ -609,16 +598,7 @@ export default function SendAnnexModal({
       const publicUrl = await filesUploadPdfWithKey(pdfBlob, fixedKey);
       await esignUpdateDocumentSource(documentId, publicUrl);
 
-      const finalCompanyEmail =
-        useAlternateSigner && alternateSignerEmail
-          ? alternateSignerEmail
-          : companySignerEmail;
-      const finalCompanyName =
-        useAlternateSigner && alternateSignerName
-          ? alternateSignerName
-          : companySignerName;
-
-      // Determine recipients based on template
+      // Determine recipients: all annexes are single-signer (Contractor only)
       const recipientsList = [
         {
           email: contractData.correoElectronico,
@@ -627,16 +607,6 @@ export default function SendAnnexModal({
           rol: "CANDIDATO",
         },
       ];
-
-      // Only add Company recipient if NOT Compliance Declaration (which is single signer)
-      if (selectedTemplate.id !== "compliance-declaration") {
-        recipientsList.push({
-          email: finalCompanyEmail,
-          nombre: finalCompanyName,
-          orden: 2,
-          rol: "EMPRESA",
-        });
-      }
 
       const recipientsPayload = {
         recipients: recipientsList,
@@ -648,9 +618,6 @@ export default function SendAnnexModal({
       const candidateRecipient = docWithRecipients.recipients.find(
         (r: any) => r.rol === "CANDIDATO"
       );
-      const companyRecipient = docWithRecipients.recipients.find(
-        (r: any) => r.rol === "EMPRESA"
-      );
 
       if (candidateRecipient) {
         const fields = [] as any[];
@@ -658,23 +625,23 @@ export default function SendAnnexModal({
         // Consistent baseline Y for signatures across templates
         // Slightly above bottom to align with typical signature lines in templates
         // Use a safer baseline near typical signature lines
-        let baseY = 0.72;
+        let baseY = 0.74;
         let candidateX = 0.1;
-        let companyX = 0.55;
 
-        // Template-specific adjustment: swap positions on Loan Agreement
+        // Per-template placement so the signature aligns with visible labels
+        // Note: y is normalized [0..1] from top -> bottom in our placement helper
         if (selectedTemplate.id === "loan-agreement") {
-          companyX = 0.1;
-          candidateX = 0.55;
-        }
-
-        // For single-signer Compliance Declaration, keep candidate on the left and raise a bit
-        if (
-          !companyRecipient &&
-          selectedTemplate.id === "compliance-declaration"
-        ) {
-          candidateX = 0.1;
-          baseY = 0.74;
+          // Right column near THE BORROWER (higher on the page)
+          candidateX = 0.62;
+          baseY = 0.26;
+        } else if (selectedTemplate.id === "extension-addendum") {
+          // Right side signer area, upper mid
+          candidateX = 0.6;
+          baseY = 0.28;
+        } else if (selectedTemplate.id === "compliance-declaration") {
+          // Left side near the paragraph end, upper-lower third
+          candidateX = 0.12;
+          baseY = 0.32;
         }
 
         // Candidate Signature box
@@ -690,51 +657,32 @@ export default function SendAnnexModal({
           label: "Candidate Signature",
         });
 
-        // Printed Candidate Name just below the signature box (only if defined)
+        // Add dotted line and printed full name dynamically below the signature
+        fields.push({
+          pageNumber: -1,
+          x: candidateX,
+          y: Math.min(baseY + 0.08, 0.95),
+          width: 0.3,
+          height: 0.02,
+          fieldType: "TEXT",
+          assignedToRecipientId: candidateRecipient.id,
+          required: false,
+          label: "_______________________________",
+        });
+
         const candidatePrintedName = (contractData.nombreCompleto || "").trim();
         if (candidatePrintedName.length > 0) {
           fields.push({
             pageNumber: -1,
             x: candidateX,
-            y: Math.min(baseY + 0.085, 0.95),
+            y: Math.min(baseY + 0.095, 0.95),
             width: 0.3,
             height: 0.035,
             fieldType: "TEXT",
             assignedToRecipientId: candidateRecipient.id,
             required: false,
-            label: `Candidate Name: ${candidatePrintedName}`,
+            label: candidatePrintedName,
           });
-        }
-
-        // Company Signature (if second recipient exists)
-        if (companyRecipient) {
-          fields.push({
-            pageNumber: -1,
-            x: companyX,
-            y: baseY,
-            width: 0.3,
-            height: 0.08,
-            fieldType: "SIGNATURE",
-            assignedToRecipientId: companyRecipient.id,
-            required: true,
-            label: "Company Signature",
-          });
-
-          // Printed Company Name below (only if defined)
-          const companyPrintedName = (finalCompanyName || "").trim();
-          if (companyPrintedName.length > 0) {
-            fields.push({
-              pageNumber: -1,
-              x: companyX,
-              y: Math.min(baseY + 0.085, 0.95),
-              width: 0.3,
-              height: 0.035,
-              fieldType: "TEXT",
-              assignedToRecipientId: companyRecipient.id,
-              required: false,
-              label: `Company Name: ${companyPrintedName}`,
-            });
-          }
         }
 
         const fieldsPayload = { fields };
@@ -916,44 +864,10 @@ export default function SendAnnexModal({
         </div>
 
         <div className="border-t border-gray-200 px-6 py-5 bg-gray-50">
-          {selectedTemplate?.id !== "compliance-declaration" ? (
-            <>
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                Company Signer
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={companySignerName}
-                    onChange={(e) => setCompanySignerName(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-                    placeholder="CEO Signature"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={companySignerEmail}
-                    onChange={(e) => setCompanySignerEmail(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-                    placeholder={DEFAULT_CEO_EMAIL}
-                  />
-                </div>
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-gray-500 italic">
-              This document requires only the Contractor&apos;s signature. No
-              Company signer needed.
-            </p>
-          )}
+          <p className="text-sm text-gray-500 italic">
+            This document requires only the Contractor&apos;s signature. No
+            Company signer needed.
+          </p>
         </div>
 
         <div className="border-t border-gray-200 px-6 py-4 flex justify-between items-center bg-white">

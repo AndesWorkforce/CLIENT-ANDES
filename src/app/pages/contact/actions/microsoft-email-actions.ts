@@ -152,9 +152,6 @@ export async function sendContractSignatureEmail(
             Sign Contract
           </a>
         </div>
-        <p style="color: #64748b; font-size: 14px;">
-          If you have any questions or issues accessing the link, please contact us by replying to this email.
-        </p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 12px;">
           This is an automated email. Please do not reply directly to this address.
@@ -253,9 +250,6 @@ export async function sendProviderContractEmail(contract: {
             Sign Contract
           </a>
         </div>
-        <p style="color: #64748b; font-size: 14px;">
-          If you have any questions or issues accessing the link, please contact us by replying to this email.
-        </p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 12px;">
           This is an automated email. Please do not reply directly to this address.
@@ -354,11 +348,6 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
             Login to Your Account
           </a>
         </div>
-
-        <p style="color: #64748b; font-size: 14px;">
-          If you have any questions or need assistance, please don't hesitate to contact our support team.
-        </p>
-        
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 12px;">
           This is an automated email. Please do not reply directly to this address.
