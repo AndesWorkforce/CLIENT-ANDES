@@ -519,6 +519,8 @@ export default function CompanyDashboard() {
               preferenciaEntrevista: postulacion.preferenciaEntrevista ?? null,
               disponibilidadEntrevista:
                 postulacion.disponibilidadEntrevista || null,
+              zonaHorariaEntrevista:
+                (postulacion as any).zonaHorariaEntrevista || null,
               disponibilidadEntrevista2:
                 postulacion.disponibilidadEntrevista2 || null,
               disponibilidadEntrevista3:

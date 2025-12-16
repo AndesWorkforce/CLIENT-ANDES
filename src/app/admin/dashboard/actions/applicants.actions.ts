@@ -215,7 +215,8 @@ export async function updateInterviewPreference(
  */
 export async function updateInterviewAvailability(
   postulationId: string,
-  availabilityISO: string
+  availabilityISO: string,
+  timeZone?: string
 ): Promise<ApiResponse> {
   const axios = await createServerAxios();
   try {
@@ -223,6 +224,7 @@ export async function updateInterviewAvailability(
       `applications/${postulationId}/interview-availability`,
       {
         disponibilidadEntrevista: availabilityISO,
+        ...(timeZone ? { timeZone } : {}),
         notify: true,
       }
     );
@@ -269,7 +271,8 @@ export async function updateInterviewAvailability(
  */
 export async function updateMultiInterviewAvailability(
   postulationId: string,
-  fechas: (string | null)[]
+  fechas: (string | null)[],
+  timeZone?: string
 ): Promise<ApiResponse> {
   const axios = await createServerAxios();
   try {
@@ -280,6 +283,7 @@ export async function updateMultiInterviewAvailability(
         disponibilidadEntrevista: f1 || null,
         disponibilidadEntrevista2: f2 || null,
         disponibilidadEntrevista3: f3 || null,
+        ...(timeZone ? { timeZone } : {}),
         notify: true,
       }
     );
@@ -313,6 +317,53 @@ export async function updateMultiInterviewAvailability(
       success: false,
       message: "Error saving interview availabilities",
       error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Reabre la entrevista (elimina la confirmación) para poder proponer nuevas fechas.
+ * Admin-only.
+ */
+export async function rescheduleInterview(
+  postulationId: string,
+  options?: {
+    clearProposals?: boolean;
+    clearTimeZone?: boolean;
+    notify?: boolean;
+  }
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.patch(
+      `applications/${postulationId}/interview-reschedule`,
+      {
+        clearProposals: options?.clearProposals ?? false,
+        clearTimeZone: options?.clearTimeZone ?? false,
+        notify: options?.notify ?? true,
+      }
+    );
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Interview reopened successfully",
+        data: response.data,
+      };
+    }
+    return {
+      success: false,
+      message: response.data?.message || "Error reopening interview",
+      error: response.data?.error,
+    };
+  } catch (error: any) {
+    console.error("Error reopening interview:", error.response || error);
+    return {
+      success: false,
+      message: "Error reopening interview",
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message,
     };
   }
 }
