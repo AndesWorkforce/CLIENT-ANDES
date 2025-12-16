@@ -670,7 +670,8 @@ export const sendProviderContractEmail = async (contract: {
     // Construir URL del sistema interno de firmas (proveedor)
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL || "https://andesworkforce.com";
-    const internalProviderSignUrl = `${baseUrl}/esign/provider/${contract.id}`;
+    // Use PUBLIC signing route to avoid auth issues and token loss
+    const internalProviderSignUrl = `${baseUrl}/esign/public/sign/${contract.id}`;
 
     if (
       contract.fechaFirmaProveedor ||
