@@ -566,7 +566,7 @@ export default function ContractsPage() {
       const emailResult = await sendProviderContractEmail({
         id: contract.id,
         nombreCompleto: contract.nombreCompleto,
-        // signWellUrlProveedor: contract.signWellUrlProveedor || null, // deprecated
+        signWellUrlProveedor: contract.signWellUrlProveedor || null,
         fechaFirmaProveedor: contract.fechaFirmaProveedor
           ? new Date(contract.fechaFirmaProveedor)
           : null,
