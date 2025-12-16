@@ -651,7 +651,7 @@ export const sendContractSignatureEmail = async (
 export const sendProviderContractEmail = async (contract: {
   id: string;
   nombreCompleto: string;
-  // signWellUrlProveedor: string | null; // deprecated: moving to internal eSign
+  signWellUrlProveedor?: string | null;
   fechaFirmaProveedor: Date | null;
   estadoContratacion: string;
   providerEmail?: string; // Agregamos el email del provider
@@ -661,17 +661,26 @@ export const sendProviderContractEmail = async (contract: {
     console.log("📧 [sendProviderContractEmail] Datos del contrato:", {
       id: contract.id,
       nombreCompleto: contract.nombreCompleto,
-      // signWellUrlProveedor: contract.signWellUrlProveedor,
+      signWellUrlProveedor: contract.signWellUrlProveedor,
       fechaFirmaProveedor: contract.fechaFirmaProveedor,
       estadoContratacion: contract.estadoContratacion,
       providerEmail: contract.providerEmail,
     });
 
-    // Construir URL del sistema interno de firmas (proveedor)
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL || "https://andesworkforce.com";
-    // Use PUBLIC signing route to avoid auth issues and token loss
-    const internalProviderSignUrl = `${baseUrl}/esign/public/sign/${contract.id}`;
+    // Determinar el enlace de firma correcto para el proveedor
+    // PRIORIDAD: usar la URL pública de SignWell almacenada en la base de datos
+    const providerSignUrl = contract.signWellUrlProveedor || null;
+
+    if (!providerSignUrl) {
+      console.error(
+        "❌ [sendProviderContractEmail] Missing SignWell provider URL in contract"
+      );
+      return {
+        success: false,
+        message:
+          "Contract does not have a provider SignWell URL. Cannot send signature email.",
+      };
+    }
 
     if (
       contract.fechaFirmaProveedor ||
@@ -702,7 +711,7 @@ export const sendProviderContractEmail = async (contract: {
         <p>We are sending you this email to proceed with the contract signature to complete the hiring process.</p>
         <p>Please click on the link below to review and sign the contract:</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${internalProviderSignUrl}" 
+          <a href="${providerSignUrl}" 
              style="background-color: #2563eb; 
                     color: white; 
                     padding: 12px 24px; 
@@ -712,9 +721,6 @@ export const sendProviderContractEmail = async (contract: {
             Sign Contract
           </a>
         </div>
-        <p style="color: #64748b; font-size: 14px;">
-          If you have any questions or issues accessing the link, please contact us by replying to this email.
-        </p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 12px;">
           This is an automated email. Please do not reply directly to this address.
@@ -832,10 +838,6 @@ export const sendWelcomeEmail = async (data: WelcomeEmailData) => {
             Login to Your Account
           </a>
         </div>
-
-        <p style="color: #64748b; font-size: 14px;">
-          If you have any questions or need assistance, please don't hesitate to contact our support team.
-        </p>
         
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 12px;">
