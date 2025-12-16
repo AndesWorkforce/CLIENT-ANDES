@@ -702,9 +702,7 @@ export default function SendAnnexModal({
             fieldType: "TEXT",
             assignedToRecipientId: candidateRecipient.id,
             required: false,
-            label: "Candidate Name",
-            defaultValue: candidatePrintedName,
-            readOnly: true,
+            label: `Candidate Name: ${candidatePrintedName}`,
           });
         }
 
@@ -734,9 +732,7 @@ export default function SendAnnexModal({
               fieldType: "TEXT",
               assignedToRecipientId: companyRecipient.id,
               required: false,
-              label: "Company Name",
-              defaultValue: companyPrintedName,
-              readOnly: true,
+              label: `Company Name: ${companyPrintedName}`,
             });
           }
         }

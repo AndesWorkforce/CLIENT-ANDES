@@ -11,6 +11,8 @@ interface InterviewDateTimePickerProps {
   onSave?: () => void;
   inline?: boolean;
   compact?: boolean;
+  timeZone?: string;
+  onTimeZoneChange?: (tz: string) => void;
 }
 
 function isoToDate(iso?: string): Date | null {
@@ -34,10 +36,14 @@ export const InterviewDateTimePicker: React.FC<
   onSave,
   inline = false,
   compact = false,
+  timeZone,
+  onTimeZoneChange,
 }) => {
   const initialDate = isoToDate(valueISO);
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
-  const [selectedTz, setSelectedTz] = useState<string>("America/New_York");
+  const [selectedTz, setSelectedTz] = useState<string>(
+    timeZone || "America/New_York"
+  );
 
   const minDate = (() => {
     const d = new Date();
@@ -58,6 +64,12 @@ export const InterviewDateTimePicker: React.FC<
   useEffect(() => {
     setSelectedDate(initialDate);
   }, [valueISO]);
+
+  useEffect(() => {
+    if (timeZone && timeZone !== selectedTz) {
+      setSelectedTz(timeZone);
+    }
+  }, [timeZone]);
 
   const handleChange = (date: Date | null) => {
     setSelectedDate(date);
@@ -127,7 +139,11 @@ export const InterviewDateTimePicker: React.FC<
           <span className="font-semibold">Time Zone:</span>
           <select
             value={selectedTz}
-            onChange={(e) => setSelectedTz(e.target.value)}
+            onChange={(e) => {
+              const tz = e.target.value;
+              setSelectedTz(tz);
+              onTimeZoneChange && onTimeZoneChange(tz);
+            }}
             className="border border-[#cfd8dc] rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
           >
             <option value="America/New_York">US Eastern Time</option>
@@ -135,11 +151,11 @@ export const InterviewDateTimePicker: React.FC<
             <option value="America/Denver">US Mountain Time</option>
             <option value="America/Los_Angeles">US Pacific Time</option>
           </select>
-          {selectedDate && (
+          {selectedDate ? (
             <span className="ml-2">
               {selectedDate.toLocaleString("en-US", { timeZone: selectedTz })}
             </span>
-          )}
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2 items-center">
           <input
@@ -172,11 +188,11 @@ export const InterviewDateTimePicker: React.FC<
           >
             {saving ? "Saving..." : valueISO ? "Update" : "Save"}
           </button>
-          {selectedDate && (
+          {selectedDate ? (
             <span className="text-[11px] text-gray-600">
               {selectedDate.toLocaleString()}
             </span>
-          )}
+          ) : null}
         </div>
         {isComplete && selectedDate && selectedDate < minDate && (
           <p className="text-[10px] text-red-600">
@@ -193,7 +209,11 @@ export const InterviewDateTimePicker: React.FC<
         <span className="font-semibold">Time Zone:</span>
         <select
           value={selectedTz}
-          onChange={(e) => setSelectedTz(e.target.value)}
+          onChange={(e) => {
+            const tz = e.target.value;
+            setSelectedTz(tz);
+            onTimeZoneChange && onTimeZoneChange(tz);
+          }}
           className="border border-[#cfd8dc] rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
         >
           <option value="America/New_York">US Eastern Time</option>
@@ -201,11 +221,11 @@ export const InterviewDateTimePicker: React.FC<
           <option value="America/Denver">US Mountain Time</option>
           <option value="America/Los_Angeles">US Pacific Time</option>
         </select>
-        {selectedDate && (
+        {selectedDate ? (
           <span className="ml-2">
             {selectedDate.toLocaleString("en-US", { timeZone: selectedTz })}
           </span>
-        )}
+        ) : null}
       </div>
       <div className={`w-full ${inline ? "" : "max-w-full"}`}>
         <DatePicker
@@ -236,11 +256,11 @@ export const InterviewDateTimePicker: React.FC<
         >
           {saving ? "Saving..." : valueISO ? "Update" : "Save"}
         </button>
-        {selectedDate && (
+        {selectedDate ? (
           <span className="text-xs text-gray-600">
             {selectedDate.toLocaleString()}
           </span>
-        )}
+        ) : null}
       </div>
       {selectedDate && selectedDate < minDate && (
         <p className="text-xs text-red-600">

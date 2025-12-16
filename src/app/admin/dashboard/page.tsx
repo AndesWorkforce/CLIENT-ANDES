@@ -1064,6 +1064,8 @@ export default function AdminDashboardPage() {
                 postulacion.disponibilidadEntrevista2 || null,
               disponibilidadEntrevista3:
                 postulacion.disponibilidadEntrevista3 || null,
+              zonaHorariaEntrevista:
+                (postulacion as any).zonaHorariaEntrevista || null,
               fechaEntrevistaConfirmada:
                 postulacion.fechaEntrevistaConfirmada || null,
             })) || []
