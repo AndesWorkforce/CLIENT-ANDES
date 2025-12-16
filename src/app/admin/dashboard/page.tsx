@@ -445,6 +445,24 @@ export default function AdminDashboardPage() {
     </div>
   );
 
+  const formatDateUS = (iso?: string) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) {
+      // Fallback for simple YYYY-MM-DD strings
+      const parts = iso.split("T")[0].split("-");
+      if (parts.length === 3) {
+        const [y, m, day] = parts;
+        return `${m}/${day}/${y}`;
+      }
+      return iso;
+    }
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  };
+
   return (
     <div className="bg-white">
       {/* Main content */}
@@ -550,7 +568,7 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center text-xs text-gray-500">
                         <Calendar className="flex-shrink-0 mr-1 h-4 w-4 text-[#0097B2]" />
-                        <span>{offer.fechaCreacion?.split("T")[0]}</span>
+                        <span>{formatDateUS(offer.fechaCreacion)}</span>
                       </div>
                       <div
                         className="flex items-center text-xs text-gray-500 gap-1 cursor-pointer"
@@ -991,7 +1009,7 @@ export default function AdminDashboardPage() {
                           d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      <span>{selectedJob.fechaCreacion?.split("T")[0]}</span>
+                      <span>{formatDateUS(selectedJob.fechaCreacion)}</span>
                     </div>
                   </div>
 

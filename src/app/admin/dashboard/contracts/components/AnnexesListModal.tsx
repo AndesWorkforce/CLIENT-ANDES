@@ -26,7 +26,7 @@ export default function AnnexesListModal({
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           >
             <X size={24} />
           </button>
@@ -48,7 +48,8 @@ export default function AnnexesListModal({
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-medium text-gray-800">
-                        {annex.titulo}
+                        {(annex.titulo && annex.titulo.trim()) ||
+                          `Annex - ${candidateName}`}
                       </h3>
                       {annex.descripcion && (
                         <p className="text-sm text-gray-600 mt-1">

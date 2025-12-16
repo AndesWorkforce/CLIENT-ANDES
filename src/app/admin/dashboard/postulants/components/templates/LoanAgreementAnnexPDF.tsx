@@ -280,9 +280,6 @@ const LoanAgreementAnnexPDF: React.FC<{
             <Text style={styles.bold}>THE LENDER</Text>
           </View>
           <View style={styles.signatureBlock}>
-            <Text style={styles.bold}>
-              {data.nombreCompleto || "CANDIDATE NAME"}
-            </Text>
             <Text style={styles.bold}>THE BORROWER</Text>
           </View>
         </View>

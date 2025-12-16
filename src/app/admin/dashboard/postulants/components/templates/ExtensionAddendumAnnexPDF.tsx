@@ -243,9 +243,7 @@ const ExtensionAddendumAnnexPDF: React.FC<{
             <Text>Andes Workforce LLC</Text>
           </View>
           <View style={styles.signatureBlock}>
-            <Text style={styles.bold}>
-              {data.nombreCompleto || "CANDIDATE NAME"}
-            </Text>
+            {/* Candidate name will be added dynamically by ESIGN overlays */}
           </View>
         </View>
       </Page>
