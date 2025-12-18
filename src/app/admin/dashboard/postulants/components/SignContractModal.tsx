@@ -22,11 +22,11 @@ import {
   esignAddFields,
   esignSendDocument,
   esignUpdateDocumentSource,
+  esignUpdateProcessOffer,
 } from "@/app/admin/dashboard/actions/esign.client";
 
-// Temporary feature flag to keep the template list minimal
-// When true, we only show the core options (English SOW + PSA – Colombia)
-const SHOW_ONLY_PRIMARY_ENGLISH_TEMPLATE = true;
+// Temporary feature flag: show only the International PSA template in UI
+const SHOW_ONLY_INTERNATIONAL_PSA_TEMPLATE = true;
 // Temporary flag to hide Salary Information section in the form
 const SHOW_SALARY_SECTION = false;
 
@@ -298,56 +298,7 @@ export default function SignContractModal({
     // Eliminar el template estándar, solo dejar los específicos y el custom
     const workingTemplates: ContractTemplate[] = [];
 
-    // Agregar contrato en inglés como primera opción
-    workingTemplates.push({
-      id: "english-contract",
-      name: "English Contract - Standard Service Fee Structure (Update September 01, 2025)",
-      description:
-        "Complete English contract package including Statement of Work, Professional Services Agreement, and Confidentiality Agreement for international contractors.",
-      subject:
-        "Statement of Work - {{nombreCompleto}} - English Contract Package",
-      component: "StatementOfWorkEnglishPDF",
-      category: "International",
-      variables: [
-        "nombreCompleto",
-        "correoElectronico",
-        "cedula",
-        "telefono",
-        "direccionCompleta",
-        "nacionalidad",
-        "puestoTrabajo",
-        "descripcionServicios",
-        "ofertaSalarial",
-        "salarioProbatorio",
-        "monedaSalario",
-        "fechaInicioLabores",
-        "fechaEjecucion",
-      ],
-    });
-
-    // Agregar Professional Services Agreement – Colombia (siempre visible junto al principal)
-    workingTemplates.push({
-      id: "psa-col-english",
-      name: "Professional Services Agreement – Colombia",
-      description:
-        "Professional Services Agreement governed by Colombian Civil and Commercial Codes. Fields for Contractor, ID, Nationality, fee (number and words), start/sign dates.",
-      subject: "Professional Services Agreement – {{nombreCompleto}}",
-      component: "ProfessionalServicesAgreementColPDF",
-      category: "International",
-      variables: [
-        "nombreCompleto",
-        "cedula",
-        "nacionalidad",
-        "ofertaSalarial",
-        "montoEnLetrasUSD",
-        "fechaInicioLabores",
-        "fechaEjecucion",
-        // Allow editing Clause One (services)
-        "descripcionServicios",
-      ],
-    });
-
-    // Agregar International Professional Services Agreement
+    // Agregar International Professional Services Agreement (único disponible en modo simplificado)
     workingTemplates.push({
       id: "psa-international-english",
       name: "International Professional Services Agreement",
@@ -361,6 +312,7 @@ export default function SignContractModal({
         "nombreCompleto",
         "cedula",
         "nacionalidad",
+        "cityCountry",
         "descripcionServicios",
         "ofertaSalarial",
         "montoEnLetrasUSD",
@@ -369,29 +321,11 @@ export default function SignContractModal({
       ],
     });
 
-    // Agregar Independent Contractor Agreement – USA
-    workingTemplates.push({
-      id: "ica-usa-english",
-      name: "Independent Contractor Agreement – USA",
-      description:
-        "Independent Contractor Agreement with Exhibit A (Statement of Work). Editable fields for city/country, effective date, services paragraph, contractor name/email, and monthly fee.",
-      subject: "Independent Contractor Agreement – {{nombreCompleto}}",
-      component: "IndependentContractorAgreementUsaPDF",
-      category: "International",
-      variables: [
-        "nombreCompleto",
-        "correoElectronico",
-        "cityCountry",
-        "descripcionServicios",
-        "ofertaSalarial",
-        "fechaEjecucion",
-      ],
-    });
-
-    // Mostrar únicamente los templates principales (English SOW + PSA Colombia)
-    if (SHOW_ONLY_PRIMARY_ENGLISH_TEMPLATE) {
-      // Keep the list minimal but now includes USA ICA as requested
-      return workingTemplates;
+    // Mostrar únicamente el template internacional cuando el flag está activo
+    if (SHOW_ONLY_INTERNATIONAL_PSA_TEMPLATE) {
+      return workingTemplates.filter(
+        (t) => t.id === "psa-international-english"
+      );
     }
 
     // Agregar nuevo contrato en inglés actualizado
@@ -534,7 +468,10 @@ export default function SignContractModal({
       // Actualizar la descripción de servicios según el template seleccionado
       setContractData((prev) => ({
         ...prev,
-        descripcionServicios: contractTemplates[0].description,
+        descripcionServicios:
+          contractTemplates[0].id === "psa-international-english"
+            ? PSA_COL_DEFAULT_SERVICES
+            : contractTemplates[0].description,
       }));
     }
   }, [isOpen]);
@@ -752,6 +689,9 @@ export default function SignContractModal({
       const publicUrl = await filesUploadPdfWithKey(pdfBlob, fixedKey);
       await esignUpdateDocumentSource(documentId, publicUrl);
 
+      // Nota: el ProcesoContratacion se crea/vincula al enviar el documento.
+      // Por ello, actualizamos oferta/moneda DESPUÉS del envío.
+
       // 3. Recipients: candidato y empresa (CEO o delegado)
       const finalCompanyEmail =
         useAlternateSigner && alternateSignerEmail
@@ -795,9 +735,10 @@ export default function SignContractModal({
         // Altura ajustada para caer sobre las líneas de firma (aprox 72% de la página)
         const fieldsPayload = {
           fields: [
+            // Signatures
             {
-              pageNumber: -1, // Backend ahora interpreta -1 como última página
-              x: 0.55, // Contractor (Candidate) a la derecha
+              pageNumber: -1,
+              x: 0.55,
               y: 0.72,
               width: 0.3,
               height: 0.08,
@@ -807,8 +748,8 @@ export default function SignContractModal({
               label: "Candidate Signature",
             },
             {
-              pageNumber: -1, // Backend ahora interpreta -1 como última página
-              x: 0.1, // Company a la izquierda
+              pageNumber: -1,
+              x: 0.1,
               y: 0.72,
               width: 0.3,
               height: 0.08,
@@ -817,6 +758,54 @@ export default function SignContractModal({
               required: true,
               label: "Company Signature",
             },
+
+            // Candidate info (under right signature line)
+            {
+              pageNumber: -1,
+              x: 0.56,
+              y: 0.76,
+              width: 0.33,
+              height: 0.04,
+              fieldType: "TEXT",
+              assignedToRecipientId: candidateRecipient.id,
+              required: true,
+              label: "Name",
+            },
+            {
+              pageNumber: -1,
+              x: 0.56,
+              y: 0.8,
+              width: 0.33,
+              height: 0.04,
+              fieldType: "TEXT",
+              assignedToRecipientId: candidateRecipient.id,
+              required: true,
+              label: "Country",
+            },
+            {
+              pageNumber: -1,
+              x: 0.56,
+              y: 0.84,
+              width: 0.33,
+              height: 0.04,
+              fieldType: "TEXT",
+              assignedToRecipientId: candidateRecipient.id,
+              required: true,
+              label: "Identification No.",
+            },
+
+            // Company representative name (under left signature line)
+            {
+              pageNumber: -1,
+              x: 0.12,
+              y: 0.76,
+              width: 0.28,
+              height: 0.04,
+              fieldType: "TEXT",
+              assignedToRecipientId: companyRecipient.id,
+              required: true,
+              label: "Company Rep Name",
+            },
           ],
         };
         await esignAddFields(documentId, fieldsPayload);
@@ -824,6 +813,16 @@ export default function SignContractModal({
 
       // 5. Enviar (genera tokens)
       await esignSendDocument(documentId);
+
+      // Persistir salario final y moneda en el ProcesoContratacion vinculado
+      try {
+        const pdfData = getPDFData() as any;
+        const oferta = pdfData.ofertaSalarial ?? 0;
+        const moneda = pdfData.monedaSalario || "USD";
+        await esignUpdateProcessOffer(documentId, oferta, moneda);
+      } catch (e) {
+        console.warn("Unable to update process offer salary after send:", e);
+      }
 
       addNotification("Contract sent successfully to recipients.", "success");
       if (onContractSent) onContractSent();
@@ -1153,29 +1152,62 @@ export default function SignContractModal({
                         </h5>
                         {/* Clause One text comes from Position → Service Description */}
                         <div className="grid grid-cols-2 gap-2">
-                          {(
-                            ["ofertaSalarial", "montoEnLetrasUSD"] as const
-                          ).map((field) => (
-                            <div key={field} className="mb-2">
-                              <label className="block text-xs font-medium text-gray-500 mb-1">
-                                {getFieldLabel(field)}
-                              </label>
-                              <input
-                                type={
-                                  field === "ofertaSalarial" ? "number" : "text"
-                                }
-                                value={
-                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                  (contractData as any)[field] ?? ""
-                                }
-                                onChange={(e) =>
-                                  handleInputChange(field, e.target.value)
-                                }
-                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-                                placeholder={getFieldPlaceholder(field)}
-                              />
-                            </div>
-                          ))}
+                          {/* City, Country */}
+                          <div className="mb-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              {getFieldLabel("cityCountry")}
+                            </label>
+                            <input
+                              type="text"
+                              value={(contractData as any).cityCountry ?? ""}
+                              onChange={(e) =>
+                                handleInputChange("cityCountry", e.target.value)
+                              }
+                              className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                              placeholder={getFieldPlaceholder("cityCountry")}
+                            />
+                          </div>
+                          {/* Monthly fee and amount in words */}
+                          <div className="mb-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              {getFieldLabel("ofertaSalarial")}
+                            </label>
+                            <input
+                              type="number"
+                              value={(contractData as any).ofertaSalarial ?? ""}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "ofertaSalarial",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                              placeholder={getFieldPlaceholder(
+                                "ofertaSalarial"
+                              )}
+                            />
+                          </div>
+                          <div className="mb-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              {getFieldLabel("montoEnLetrasUSD")}
+                            </label>
+                            <input
+                              type="text"
+                              value={
+                                (contractData as any).montoEnLetrasUSD ?? ""
+                              }
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "montoEnLetrasUSD",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                              placeholder={getFieldPlaceholder(
+                                "montoEnLetrasUSD"
+                              )}
+                            />
+                          </div>
                         </div>
                         {/* Execution Date */}
                         <div className="mt-2">

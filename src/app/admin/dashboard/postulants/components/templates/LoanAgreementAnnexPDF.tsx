@@ -273,16 +273,19 @@ const LoanAgreementAnnexPDF: React.FC<{
           <Text style={styles.bold}>{data.fechaInicioLabores}</Text>
         </Text>
 
-        {/* Signatures */}
+        {/* Signatures will be added dynamically by ESIGN overlays (Contractor only) */}
+        {/* Static signature blocks commented out to avoid duplication/overlap */}
+        {/**
         <View style={styles.signatureSection}>
           <View style={styles.signatureBlock}>
             <Text style={styles.bold}>NICOLE CHICA</Text>
-            <Text style={styles.bold}>THE LENDER</Text>
+            <Text>Andes Workforce LLC</Text>
           </View>
           <View style={styles.signatureBlock}>
             <Text style={styles.bold}>THE BORROWER</Text>
           </View>
         </View>
+        **/}
       </Page>
     </Document>
   );

@@ -70,6 +70,7 @@ function PublicSignClient() {
   const [mode, setMode] = useState<"DRAW" | "TYPED">("DRAW");
   const [typedName, setTypedName] = useState("");
   const [justSigned, setJustSigned] = useState(false);
+  const [textValues, setTextValues] = useState<Record<string, string>>({});
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const padRef = useRef<any | null>(null);
   const router = useRouter();
@@ -87,7 +88,41 @@ function PublicSignClient() {
         );
         setDoc(res.data.documento);
         setRecipient(res.data.recipient);
-        setFields(res.data.fields || []);
+        const fetchedFields: Field[] = res.data.fields || [];
+        setFields(fetchedFields);
+
+        // Initialize text values for TEXT/DATE fields with sensible defaults
+        const tv: Record<string, string> = {};
+        // Local persisted hints, if any
+        let persistedName = "";
+        let persistedCountry = "";
+        let persistedId = "";
+        if (typeof window !== "undefined") {
+          persistedName = localStorage.getItem("esign_name") || "";
+          persistedCountry = localStorage.getItem("esign_country") || "";
+          persistedId = localStorage.getItem("esign_id_number") || "";
+        }
+        // Pre-fill typed name state from persisted value (if any)
+        if (persistedName) setTypedName(persistedName);
+
+        fetchedFields.forEach((f: Field) => {
+          if (f.fieldType === "DATE") {
+            const today = new Date().toISOString().slice(0, 10);
+            tv[f.id] = today;
+          }
+          if (f.fieldType === "TEXT") {
+            const label = (f.label || "").trim().toLowerCase();
+            if (label === "name" && persistedName) tv[f.id] = persistedName;
+            if (label === "country" && persistedCountry)
+              tv[f.id] = persistedCountry;
+            if (
+              (label.includes("identification") || label === "id") &&
+              persistedId
+            )
+              tv[f.id] = persistedId;
+          }
+        });
+        setTextValues(tv);
         setAlreadySigned(Boolean(res.data.alreadySigned));
         setOverlays(res.data.signedOverlays || []);
         setLoading(false);
@@ -98,6 +133,25 @@ function PublicSignClient() {
     };
     fetchPayload();
   }, [token]);
+
+  // Keep the "Name" TEXT field in sync with the typed signature name
+  useEffect(() => {
+    if (!fields.length) return;
+    const nameField = fields.find(
+      (f) =>
+        f.fieldType === "TEXT" &&
+        (f.label || "").trim().toLowerCase() === "name"
+    );
+    if (!nameField) return;
+    setTextValues((prev) => {
+      if ((prev[nameField.id] || "") === (typedName || "")) return prev;
+      return { ...prev, [nameField.id]: typedName };
+    });
+    // Persist for future sessions
+    if (typeof window !== "undefined") {
+      if (typedName) localStorage.setItem("esign_name", typedName);
+    }
+  }, [typedName, JSON.stringify(fields)]);
 
   // Inicialización robusta del SignaturePad: se activa cuando el canvas está listo y el modo es DRAW
   useEffect(() => {
@@ -195,12 +249,34 @@ function PublicSignClient() {
         }
       }
 
+      // Validate required TEXT/DATE fields must be filled
+      const missingText = fields.filter(
+        (f) =>
+          (f.fieldType === "TEXT" || f.fieldType === "DATE") &&
+          !String(textValues[f.id] || "").trim()
+      );
+      if (missingText.length) {
+        setError("Please complete the required text fields before signing");
+        return;
+      }
+
       const payload: any = {
         mode,
         firmaBase64,
       };
       if (mode === "TYPED") {
         payload.typedName = typedName.trim();
+      }
+      // Include typed values for TEXT/DATE fields
+      const relevant = fields.filter(
+        (f) => f.fieldType === "TEXT" || f.fieldType === "DATE"
+      );
+      if (relevant.length) {
+        payload.textValues = {} as Record<string, string>;
+        relevant.forEach((f) => {
+          const v = String(textValues[f.id] || "").trim();
+          if (v) (payload.textValues as any)[f.id] = v;
+        });
       }
 
       // Update local preview immediately
@@ -323,6 +399,7 @@ function PublicSignClient() {
                   pdfUrl={doc.archivoOrigenUrl}
                   fields={fields as unknown as PdfField[]}
                   signedImages={signedImages}
+                  typedTexts={textValues}
                   overlays={overlays}
                   onFieldClick={handleFieldClick}
                 />
@@ -433,7 +510,62 @@ function PublicSignClient() {
           )}
           {error && <div className="mt-3 text-xs text-red-600">{error}</div>}
 
-          {/* Ocultamos la lista de campos asignados para evitar ruido visual */}
+          {/* Inputs for TEXT/DATE fields */}
+          {!alreadySigned &&
+            fields.some(
+              (f) => f.fieldType === "TEXT" || f.fieldType === "DATE"
+            ) && (
+              <div className="mt-6">
+                <h3 className="font-medium text-gray-900 mb-3 text-sm">
+                  Required Details
+                </h3>
+                <div className="space-y-3">
+                  {fields
+                    .filter(
+                      (f) => f.fieldType === "TEXT" || f.fieldType === "DATE"
+                    )
+                    .map((f) => (
+                      <div key={f.id} className="space-y-1">
+                        <label className="block text-xs text-gray-600">
+                          {f.label ||
+                            (f.fieldType === "DATE" ? "Date" : "Text")}
+                        </label>
+                        <input
+                          type={f.fieldType === "DATE" ? "date" : "text"}
+                          value={textValues[f.id] || ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setTextValues((prev) => ({
+                              ...prev,
+                              [f.id]: val,
+                            }));
+                            const label = (f.label || "").trim().toLowerCase();
+                            // Keep typed name in sync when editing the "Name" field directly
+                            if (label === "name") setTypedName(val);
+                            // Persist useful hints
+                            if (typeof window !== "undefined") {
+                              if (label === "country")
+                                localStorage.setItem("esign_country", val);
+                              if (
+                                label.includes("identification") ||
+                                label === "id"
+                              )
+                                localStorage.setItem("esign_id_number", val);
+                            }
+                          }}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2] focus:border-[#0097B2]"
+                          placeholder={
+                            f.label ||
+                            (f.fieldType === "DATE"
+                              ? "YYYY-MM-DD"
+                              : "Enter text")
+                          }
+                        />
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
         </aside>
       </div>
     </div>
