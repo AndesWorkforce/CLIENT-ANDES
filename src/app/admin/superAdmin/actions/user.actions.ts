@@ -11,6 +11,7 @@ interface GetUsersResponse extends ApiResponse {
     data: Array<{
       id: string;
       rol: string;
+      activo: boolean;
       usuario: {
         id: string;
         nombre: string;
@@ -36,7 +37,6 @@ export const getUsersAdmin = async (
         },
       }
     );
-
     if (response.status === 200) {
       revalidatePath("/admin/superAdmin/users");
       const users = Array.isArray(response.data.data) ? response.data.data : [];
@@ -48,7 +48,7 @@ export const getUsersAdmin = async (
           data: users.map((user: any) => ({
             id: user.id,
             usuarioId: user.usuario.id,
-            activo: true,
+            activo: user.activo,
             rol: user.usuario.rol,
             fechaCreacion: new Date().toISOString(),
             fechaActualizacion: new Date().toISOString(),

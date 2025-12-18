@@ -17,35 +17,47 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://andes-workforce.com"),
+  metadataBase: new URL("https://andesworkforce.com"),
   title: {
     default: "Andes Workforce | Human Resources Management Platform",
     template: "%s | Andes Workforce",
   },
   description:
-    "Comprehensive platform for human resources management, recruitment, and talent selection. Find jobs and connect with the best talents at Andes Workforce.",
+    "Andes Workforce is a veteran-owned talent solutions company connecting businesses with skilled professionals across Latin America. We specialize in remote staffing, recruitment, and workforce management—helping organizations scale efficiently while empowering regional talent. Connecting Talent. Empowering Growth.",
   keywords: [
-    "human resources",
-    "job",
-    "employment",
-    "recruitment",
-    "selection",
-    "talent",
-    "hiring",
-    "staff",
-    "candidates",
-    "hr management",
-    "applications",
-    "job offers",
+    // Core
     "andes workforce",
+    "human resources",
+    "human resources management platform",
+    "hr management",
+    "online hr management",
+    "hr solutions",
+    "hr applications",
+    "hr resources",
+    // Services & positioning
+    "paralegal services provider",
+    "virtual assistant",
+    "business process outsourcing",
+    "outsourcing services",
+    "employment agency",
+    "staffing",
+    "workforce",
+    "veteran-owned outsourcing",
+    "legal research service",
+    // Geography & talent
+    "va latam",
+    "latam talent",
+    // Hiring & speed
+    "fast hiring",
+    // Jobs & categories
+    "bpo jobs",
+    "offshore jobs",
+    // Spanish variants
     "recursos humanos",
-    "empleo",
-    "trabajo",
-    "reclutamiento",
-    "selección",
-    "contratación",
-    "personal",
-    "postulaciones",
+    "gestión de recursos humanos",
+    "plataforma de recursos humanos",
+    "outsourcing",
+    "agencia de empleo",
   ],
   authors: [{ name: "Andes Workforce" }],
   creator: "Andes Workforce",
@@ -77,7 +89,7 @@ export const metadata: Metadata = {
     siteName: "Andes Workforce",
     title: "Andes Workforce | Human Resources Management Platform",
     description:
-      "Comprehensive platform for human resources management, recruitment, and talent selection.",
+      "Andes Workforce connects businesses with skilled LATAM professionals through remote staffing, recruitment, and workforce management.",
     images: [
       {
         url: "/logo.png",
@@ -91,7 +103,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Andes Workforce | HR Management",
     description:
-      "Comprehensive platform for human resources management and recruitment.",
+      "Talent solutions across LATAM: remote staffing, recruitment, and workforce management.",
     creator: "@andesworkforce",
     images: ["/logo.png"],
   },
@@ -116,6 +128,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* Google tag (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-11VQNRYDS8"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);} 
+            gtag('js', new Date());
+            gtag('config', 'G-11VQNRYDS8');
+          `}
+        </Script>
+      </head>
       <body className={inter.className}>
         <Navbar />
         {children}

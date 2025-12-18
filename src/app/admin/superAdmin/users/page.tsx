@@ -28,7 +28,7 @@ export default function UsersPage() {
           response.data.data.map((user) => ({
             ...user,
             usuarioId: user.usuario.id,
-            activo: true,
+            activo: user.activo,
             rol: user.rol as EmployeeRole,
             fechaCreacion: new Date().toISOString(),
             fechaActualizacion: new Date().toISOString(),
@@ -47,6 +47,8 @@ export default function UsersPage() {
       setLoading(false);
     }
   };
+
+  console.log("VERRRR", users);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
