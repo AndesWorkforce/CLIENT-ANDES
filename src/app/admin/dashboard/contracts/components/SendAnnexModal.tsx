@@ -622,27 +622,13 @@ export default function SendAnnexModal({
       if (candidateRecipient) {
         const fields = [] as any[];
 
-        // Consistent baseline Y for signatures across templates
-        // Slightly above bottom to align with typical signature lines in templates
-        // Use a safer baseline near typical signature lines
-        let baseY = 0.74;
-        let candidateX = 0.1;
-
-        // Per-template placement so the signature aligns with visible labels
-        // Note: y is normalized [0..1] from top -> bottom in our placement helper
-        if (selectedTemplate.id === "loan-agreement") {
-          // Right column near THE BORROWER (higher on the page)
-          candidateX = 0.62;
-          baseY = 0.26;
-        } else if (selectedTemplate.id === "extension-addendum") {
-          // Right side signer area, upper mid
-          candidateX = 0.6;
-          baseY = 0.28;
-        } else if (selectedTemplate.id === "compliance-declaration") {
-          // Left side near the paragraph end, upper-lower third
-          candidateX = 0.12;
-          baseY = 0.32;
-        }
+        // Place signature at the bottom of the LAST page to avoid
+        // overlapping body text across annex templates.
+        // Coordinates are normalized [0..1] from top to bottom.
+        // We anchor the signature box at ~82% of the page height.
+        const baseY = 0.82;
+        // Left margin alignment for single contractor signer
+        const candidateX = 0.12;
 
         // Candidate Signature box
         fields.push({
@@ -656,34 +642,44 @@ export default function SendAnnexModal({
           required: true,
           label: "Candidate Signature",
         });
-
-        // Add dotted line and printed full name dynamically below the signature
+        // Dynamic signer details captured at signing time
+        // Place Name / Country / Identification No. below the signature box
         fields.push({
           pageNumber: -1,
           x: candidateX,
-          y: Math.min(baseY + 0.08, 0.95),
-          width: 0.3,
-          height: 0.02,
+          // Name just below the signature box with tighter spacing
+          y: Math.min(baseY + 0.085, 0.91),
+          width: 0.33,
+          height: 0.03,
           fieldType: "TEXT",
           assignedToRecipientId: candidateRecipient.id,
-          required: false,
-          label: "_______________________________",
+          required: true,
+          label: "Name",
         });
-
-        const candidatePrintedName = (contractData.nombreCompleto || "").trim();
-        if (candidatePrintedName.length > 0) {
-          fields.push({
-            pageNumber: -1,
-            x: candidateX,
-            y: Math.min(baseY + 0.095, 0.95),
-            width: 0.3,
-            height: 0.035,
-            fieldType: "TEXT",
-            assignedToRecipientId: candidateRecipient.id,
-            required: false,
-            label: candidatePrintedName,
-          });
-        }
+        fields.push({
+          pageNumber: -1,
+          x: candidateX,
+          // Country slightly below Name (reduced gap)
+          y: Math.min(baseY + 0.105, 0.935),
+          width: 0.33,
+          height: 0.03,
+          fieldType: "TEXT",
+          assignedToRecipientId: candidateRecipient.id,
+          required: true,
+          label: "Country",
+        });
+        fields.push({
+          pageNumber: -1,
+          x: candidateX,
+          // ID just below Country (reduced gap)
+          y: Math.min(baseY + 0.125, 0.96),
+          width: 0.33,
+          height: 0.03,
+          fieldType: "TEXT",
+          assignedToRecipientId: candidateRecipient.id,
+          required: true,
+          label: "Identification No.",
+        });
 
         const fieldsPayload = { fields };
         await esignAddFields(documentId, fieldsPayload);

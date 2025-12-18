@@ -237,15 +237,19 @@ const ExtensionAddendumAnnexPDF: React.FC<{
           <Text style={styles.bold}>{year}</Text>.
         </Text>
 
+        {/* Signatures will be added dynamically by ESIGN overlays (Contractor only) */}
+        {/* Static signature blocks commented out to avoid duplication/overlap */}
+        {/**
         <View style={styles.signatureSection}>
           <View style={styles.signatureBlock}>
             <Text style={styles.bold}>NICOLE CHICA</Text>
             <Text>Andes Workforce LLC</Text>
           </View>
           <View style={styles.signatureBlock}>
-            {/* Candidate name will be added dynamically by ESIGN overlays */}
+            
           </View>
         </View>
+        **/}
       </Page>
     </Document>
   );

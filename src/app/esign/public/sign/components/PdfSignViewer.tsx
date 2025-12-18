@@ -20,6 +20,7 @@ type Props = {
   pdfUrl: string;
   fields: PdfField[];
   signedImages?: Record<string, string>; // fieldId -> dataURL
+  typedTexts?: Record<string, string>; // fieldId -> typed value (for TEXT/DATE preview)
   overlays?: Array<{
     pageNumber: number;
     x: number; // 0..1
@@ -35,6 +36,7 @@ export default function PdfSignViewer({
   pdfUrl,
   fields,
   signedImages = {},
+  typedTexts = {},
   overlays = [],
   onFieldClick,
 }: Props) {
@@ -142,6 +144,29 @@ export default function PdfSignViewer({
               el.style.borderColor = "#20a060";
             }
 
+            // If typed text exists for this field, render a lightweight preview
+            const txt = typedTexts[f.id];
+            if (
+              !imgData &&
+              txt &&
+              (f.fieldType === "TEXT" || f.fieldType === "DATE")
+            ) {
+              const span = document.createElement("div");
+              span.innerText = String(txt);
+              span.style.position = "absolute";
+              span.style.left = "2px";
+              span.style.right = "2px";
+              span.style.top = "50%";
+              span.style.transform = "translateY(-50%)";
+              span.style.fontSize = Math.max(10, Math.min(14, h - 2)) + "px";
+              span.style.color = "#000";
+              span.style.whiteSpace = "nowrap";
+              span.style.overflow = "hidden";
+              span.style.textOverflow = "ellipsis";
+              span.style.pointerEvents = "none";
+              el.appendChild(span);
+            }
+
             el.addEventListener("click", () => {
               if (!onFieldClick) return;
               onFieldClick(f, el.getBoundingClientRect());
@@ -181,7 +206,13 @@ export default function PdfSignViewer({
     return () => {
       cancelled = true;
     };
-  }, [pdfUrl, JSON.stringify(fields), JSON.stringify(signedImages), fallback]);
+  }, [
+    pdfUrl,
+    JSON.stringify(fields),
+    JSON.stringify(signedImages),
+    JSON.stringify(typedTexts),
+    fallback,
+  ]);
 
   return (
     <div style={{ overflow: "auto" }}>
