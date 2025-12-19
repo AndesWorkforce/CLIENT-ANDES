@@ -152,9 +152,6 @@ export async function sendContractSignatureEmail(
             Sign Contract
           </a>
         </div>
-        <p style="color: #64748b; font-size: 14px;">
-          If you have any questions or issues accessing the link, please contact us by replying to this email.
-        </p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 12px;">
           This is an automated email. Please do not reply directly to this address.
@@ -253,9 +250,6 @@ export async function sendProviderContractEmail(contract: {
             Sign Contract
           </a>
         </div>
-        <p style="color: #64748b; font-size: 14px;">
-          If you have any questions or issues accessing the link, please contact us by replying to this email.
-        </p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 12px;">
           This is an automated email. Please do not reply directly to this address.
@@ -318,6 +312,8 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
 
     // Verificar la conexión
     await transporter.verify();
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://andesworkforce.com";
 
     // Template del correo
     const emailHtml = `
@@ -334,7 +330,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
 
         <p>To ensure the security of your account, please follow these steps:</p>
         <ol style="color: #475569; margin: 16px 0; padding-left: 24px;">
-          <li>Visit <a href="https://app.andes-workforce.com/auth/login" style="color: #2563eb;">our login page</a></li>
+          <li>Visit <a href="${baseUrl}/auth/login" style="color: #2563eb;">our login page</a></li>
           <li>Sign in with your email and temporary password</li>
           <li>Go to "My Profile" section</li>
           <li>Click on "Change Password"</li>
@@ -342,7 +338,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
         </ol>
 
         <div style="text-align: center; margin: 30px 0;">
-          <a href="https://app.andes-workforce.com/auth/login" 
+          <a href="${baseUrl}/auth/login" 
              style="background-color: #2563eb; 
                     color: white; 
                     padding: 12px 24px; 
@@ -352,11 +348,6 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
             Login to Your Account
           </a>
         </div>
-
-        <p style="color: #64748b; font-size: 14px;">
-          If you have any questions or need assistance, please don't hesitate to contact our support team.
-        </p>
-        
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 12px;">
           This is an automated email. Please do not reply directly to this address.

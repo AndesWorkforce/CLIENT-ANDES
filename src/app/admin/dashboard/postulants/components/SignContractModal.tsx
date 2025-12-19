@@ -4,11 +4,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import DatePicker from "@/app/components/ui/date-picker/date-picker";
 import { X, FileText, Send, Eye } from "lucide-react";
 import { SERVICIOS_DISPONIBLES, CATEGORIAS_SERVICIOS } from "./templates";
-import {
-  sendContractToSignWell,
-  SendContractPayload,
-} from "../../actions/contracts.actions";
-import { sendContractSentNotification } from "../../actions/sendEmail.actions";
 import StatementOfWorkPDF from "./templates/StatementOfWorkPDF";
 import StatementOfWorkEnglishPDF from "./templates/StatementOfWorkEnglishPDF";
 import NewStatementOfWorkEnglishPDF from "./templates/NewStatementOfWorkEnglishPDF";
@@ -20,10 +15,18 @@ import {
 import { Applicant } from "../../../../types/applicant";
 import { useNotificationStore } from "@/store/notifications.store";
 import { DocumentProps } from "@react-pdf/renderer";
+import {
+  filesUploadPdfWithKey,
+  esignCreateDocument,
+  esignAddRecipients,
+  esignAddFields,
+  esignSendDocument,
+  esignUpdateDocumentSource,
+  esignUpdateProcessOffer,
+} from "@/app/admin/dashboard/actions/esign.client";
 
-// Temporary feature flag to keep the template list minimal
-// When true, we only show the core options (English SOW + PSA – Colombia)
-const SHOW_ONLY_PRIMARY_ENGLISH_TEMPLATE = true;
+// Temporary feature flag: show only the International PSA template in UI
+const SHOW_ONLY_INTERNATIONAL_PSA_TEMPLATE = true;
 // Temporary flag to hide Salary Information section in the form
 const SHOW_SALARY_SECTION = false;
 
@@ -41,6 +44,7 @@ interface SignContractModalProps {
   isOpen: boolean;
   onClose: () => void;
   applicant: Applicant;
+  onContractSent?: () => void;
 }
 
 // Funciones auxiliares para labels y placeholders
@@ -278,6 +282,7 @@ export default function SignContractModal({
   isOpen,
   onClose,
   applicant,
+  onContractSent,
 }: SignContractModalProps) {
   const { addNotification } = useNotificationStore();
 
@@ -293,56 +298,7 @@ export default function SignContractModal({
     // Eliminar el template estándar, solo dejar los específicos y el custom
     const workingTemplates: ContractTemplate[] = [];
 
-    // Agregar contrato en inglés como primera opción
-    workingTemplates.push({
-      id: "english-contract",
-      name: "English Contract - Standard Service Fee Structure (Update September 01, 2025)",
-      description:
-        "Complete English contract package including Statement of Work, Professional Services Agreement, and Confidentiality Agreement for international contractors.",
-      subject:
-        "Statement of Work - {{nombreCompleto}} - English Contract Package",
-      component: "StatementOfWorkEnglishPDF",
-      category: "International",
-      variables: [
-        "nombreCompleto",
-        "correoElectronico",
-        "cedula",
-        "telefono",
-        "direccionCompleta",
-        "nacionalidad",
-        "puestoTrabajo",
-        "descripcionServicios",
-        "ofertaSalarial",
-        "salarioProbatorio",
-        "monedaSalario",
-        "fechaInicioLabores",
-        "fechaEjecucion",
-      ],
-    });
-
-    // Agregar Professional Services Agreement – Colombia (siempre visible junto al principal)
-    workingTemplates.push({
-      id: "psa-col-english",
-      name: "Professional Services Agreement – Colombia",
-      description:
-        "Professional Services Agreement governed by Colombian Civil and Commercial Codes. Fields for Contractor, ID, Nationality, fee (number and words), start/sign dates.",
-      subject: "Professional Services Agreement – {{nombreCompleto}}",
-      component: "ProfessionalServicesAgreementColPDF",
-      category: "International",
-      variables: [
-        "nombreCompleto",
-        "cedula",
-        "nacionalidad",
-        "ofertaSalarial",
-        "montoEnLetrasUSD",
-        "fechaInicioLabores",
-        "fechaEjecucion",
-        // Allow editing Clause One (services)
-        "descripcionServicios",
-      ],
-    });
-
-    // Agregar International Professional Services Agreement
+    // Agregar International Professional Services Agreement (único disponible en modo simplificado)
     workingTemplates.push({
       id: "psa-international-english",
       name: "International Professional Services Agreement",
@@ -356,6 +312,7 @@ export default function SignContractModal({
         "nombreCompleto",
         "cedula",
         "nacionalidad",
+        "cityCountry",
         "descripcionServicios",
         "ofertaSalarial",
         "montoEnLetrasUSD",
@@ -364,29 +321,11 @@ export default function SignContractModal({
       ],
     });
 
-    // Agregar Independent Contractor Agreement – USA
-    workingTemplates.push({
-      id: "ica-usa-english",
-      name: "Independent Contractor Agreement – USA",
-      description:
-        "Independent Contractor Agreement with Exhibit A (Statement of Work). Editable fields for city/country, effective date, services paragraph, contractor name/email, and monthly fee.",
-      subject: "Independent Contractor Agreement – {{nombreCompleto}}",
-      component: "IndependentContractorAgreementUsaPDF",
-      category: "International",
-      variables: [
-        "nombreCompleto",
-        "correoElectronico",
-        "cityCountry",
-        "descripcionServicios",
-        "ofertaSalarial",
-        "fechaEjecucion",
-      ],
-    });
-
-    // Mostrar únicamente los templates principales (English SOW + PSA Colombia)
-    if (SHOW_ONLY_PRIMARY_ENGLISH_TEMPLATE) {
-      // Keep the list minimal but now includes USA ICA as requested
-      return workingTemplates;
+    // Mostrar únicamente el template internacional cuando el flag está activo
+    if (SHOW_ONLY_INTERNATIONAL_PSA_TEMPLATE) {
+      return workingTemplates.filter(
+        (t) => t.id === "psa-international-english"
+      );
     }
 
     // Agregar nuevo contrato en inglés actualizado
@@ -513,6 +452,15 @@ export default function SignContractModal({
   }));
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  // Datos del firmante empresa / delegación
+  const DEFAULT_CEO_EMAIL = "mrendon@teamandes.com";
+  const [companySignerEmail, setCompanySignerEmail] =
+    useState<string>(DEFAULT_CEO_EMAIL);
+  const [companySignerName, setCompanySignerName] =
+    useState<string>("CEO Signature");
+  const [useAlternateSigner, setUseAlternateSigner] = useState<boolean>(false);
+  const [alternateSignerEmail, setAlternateSignerEmail] = useState<string>("");
+  const [alternateSignerName, setAlternateSignerName] = useState<string>("");
 
   useEffect(() => {
     if (isOpen && contractTemplates.length > 0) {
@@ -520,7 +468,10 @@ export default function SignContractModal({
       // Actualizar la descripción de servicios según el template seleccionado
       setContractData((prev) => ({
         ...prev,
-        descripcionServicios: contractTemplates[0].description,
+        descripcionServicios:
+          contractTemplates[0].id === "psa-international-english"
+            ? PSA_COL_DEFAULT_SERVICES
+            : contractTemplates[0].description,
       }));
     }
   }, [isOpen]);
@@ -657,7 +608,7 @@ export default function SignContractModal({
 
     setIsLoading(true);
     try {
-      // Importar dinámicamente las librerías de PDF
+      // 1. Generar PDF base64 local
       const { pdf } = await import("@react-pdf/renderer");
 
       // Generar el PDF usando el template correspondiente
@@ -692,116 +643,190 @@ export default function SignContractModal({
         throw error;
       }
 
-      // Generar el PDF como blob
       const pdfBlob = await pdf(pdfDocument).toBlob();
 
-      // Convertir a base64
-      const base64Content = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          // Extraer solo el contenido base64 (sin el prefijo data:application/pdf;base64,)
-          const base64 = result.split(",")[1];
-          resolve(base64);
-        };
-        reader.readAsDataURL(pdfBlob);
+      // Calcular número de páginas para ubicar la firma en la última
+      let numPages = 1;
+      try {
+        const pdfjsLibModule = await import("pdfjs-dist");
+        const pdfjsLib: any = (pdfjsLibModule as any).default || pdfjsLibModule;
+        // Configurar worker (aunque intentaremos sin él para contar páginas rápido)
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+
+        const arrayBuffer = await pdfBlob.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({
+          data: arrayBuffer,
+          disableWorker: true, // Evitar problemas de worker en modal
+        });
+        const pdfProxy = await loadingTask.promise;
+        numPages = pdfProxy.numPages;
+        console.log("PDF generated with pages:", numPages);
+      } catch (e) {
+        console.error("Error counting PDF pages:", e);
+        // Fallback: si falla, asumimos que es multipágina y tratamos de adivinar o usar 1
+        // Pero para estos contratos suele ser > 1.
+      }
+
+      // 2. Crear Documento (sin archivo) para obtener ID, luego subir con key fija y vincular
+      const tituloDoc = `Contract - ${contractData.nombreCompleto}`;
+      const delegacionDesc =
+        useAlternateSigner && alternateSignerEmail
+          ? `Delegated by CEO ${DEFAULT_CEO_EMAIL} to ${alternateSignerEmail}`
+          : undefined;
+      const createData = await esignCreateDocument({
+        titulo: tituloDoc,
+        descripcion: delegacionDesc,
+        // No enviamos procesoContratacionId desde el cliente: el backend auto-crea/auto-vincula
       });
+      const documentId = createData.document?.id;
+      if (!documentId) {
+        addNotification("Invalid document response.", "error");
+        return;
+      }
 
-      // Datos para el endpoint del backend usando la interfaz definida
-      const contractPayload: SendContractPayload = {
-        nombreCompleto: contractData.nombreCompleto,
-        puestoTrabajo: contractData.puestoTrabajo,
-        ofertaSalarial: parseFloat(contractData.ofertaSalarial),
-        monedaSalario: contractData.monedaSalario,
-        // Parse canonical MM/DD/YYYY to Date for payload
-        fechaInicioLabores: (() => {
-          const m = contractData.fechaInicioLabores.match(
-            /^(\d{2})\/(\d{2})\/(\d{4})$/
-          );
-          if (m) {
-            const [, mm, dd, yyyy] = m;
-            return new Date(
-              parseInt(yyyy, 10),
-              parseInt(mm, 10) - 1,
-              parseInt(dd, 10)
-            );
-          }
-          return new Date(contractData.fechaInicioLabores);
-        })(),
-        archivoBase64: base64Content,
-        nombreArchivo: `statement_of_work_${applicant.nombre}_${applicant.apellido}.pdf`,
-        urlRedirect: `${window.location.origin}/admin/dashboard/contracts/callback`,
+      // Subir PDF a una clave determinística por documento (sobrescribe en reintentos)
+      const fixedKey = `documents/esign/${documentId}.pdf`;
+      const publicUrl = await filesUploadPdfWithKey(pdfBlob, fixedKey);
+      await esignUpdateDocumentSource(documentId, publicUrl);
+
+      // Nota: el ProcesoContratacion se crea/vincula al enviar el documento.
+      // Por ello, actualizamos oferta/moneda DESPUÉS del envío.
+
+      // 3. Recipients: candidato y empresa (CEO o delegado)
+      const finalCompanyEmail =
+        useAlternateSigner && alternateSignerEmail
+          ? alternateSignerEmail
+          : companySignerEmail;
+      const finalCompanyName =
+        useAlternateSigner && alternateSignerName
+          ? alternateSignerName
+          : companySignerName;
+      const recipientsPayload = {
+        recipients: [
+          {
+            email: contractData.correoElectronico,
+            nombre: contractData.nombreCompleto,
+            orden: 1,
+            rol: "CANDIDATO",
+          },
+          {
+            email: finalCompanyEmail,
+            nombre: finalCompanyName,
+            orden: 2,
+            rol: "EMPRESA",
+          },
+        ],
       };
-
-      // Usar la action para enviar el contrato
-      const result = await sendContractToSignWell(
-        applicant.lastRelevantPostulacion.id,
-        contractPayload
+      const docWithRecipients = await esignAddRecipients(
+        documentId,
+        recipientsPayload
+      );
+      const candidateRecipient = docWithRecipients.recipients.find(
+        (r: any) => r.rol === "CANDIDATO"
+      );
+      const companyRecipient = docWithRecipients.recipients.find(
+        (r: any) => r.rol === "EMPRESA"
       );
 
-      if (result.success) {
-        console.log("Contract sent successfully:", result.data);
+      // 4. Crear campos de firma (en la última página)
+      if (candidateRecipient && companyRecipient) {
+        // Coordenadas ajustadas según screenshot:
+        // Company a la izquierda, Contractor a la derecha.
+        // Altura ajustada para caer sobre las líneas de firma (aprox 72% de la página)
+        const fieldsPayload = {
+          fields: [
+            // Signatures
+            {
+              pageNumber: -1,
+              x: 0.55,
+              y: 0.72,
+              width: 0.3,
+              height: 0.08,
+              fieldType: "SIGNATURE",
+              assignedToRecipientId: candidateRecipient.id,
+              required: true,
+              label: "Candidate Signature",
+            },
+            {
+              pageNumber: -1,
+              x: 0.1,
+              y: 0.72,
+              width: 0.3,
+              height: 0.08,
+              fieldType: "SIGNATURE",
+              assignedToRecipientId: companyRecipient.id,
+              required: true,
+              label: "Company Signature",
+            },
 
-        // Show signing URLs and redirect to first signer
-        if (result.signingUrls && result.signingUrls.length > 0) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          result.signingUrls.forEach((signer: any) => {
-            console.log(`${signer.name}: ${signer.signingUrl}`);
-          });
+            // Candidate info (under right signature line)
+            {
+              pageNumber: -1,
+              x: 0.56,
+              y: 0.76,
+              width: 0.33,
+              height: 0.04,
+              fieldType: "TEXT",
+              assignedToRecipientId: candidateRecipient.id,
+              required: true,
+              label: "Name",
+            },
+            {
+              pageNumber: -1,
+              x: 0.56,
+              y: 0.8,
+              width: 0.33,
+              height: 0.04,
+              fieldType: "TEXT",
+              assignedToRecipientId: candidateRecipient.id,
+              required: true,
+              label: "Country",
+            },
+            {
+              pageNumber: -1,
+              x: 0.56,
+              y: 0.84,
+              width: 0.33,
+              height: 0.04,
+              fieldType: "TEXT",
+              assignedToRecipientId: candidateRecipient.id,
+              required: true,
+              label: "Identification No.",
+            },
 
-          // Redirect to first signer URL (candidate)
-          const candidateUrl = result.signingUrls.find(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (signer: any) =>
-              signer.name === contractData.nombreCompleto ||
-              signer.email === contractData.correoElectronico
-          );
-
-          if (candidateUrl?.signingUrl) {
-            // Open signing URL for the candidate in a new tab
-            window.open(candidateUrl.signingUrl, "_blank");
-          }
-        }
-
-        // Show success message
-        addNotification(
-          "Contract sent successfully! The signing window has been opened for the candidate.",
-          "success"
-        );
-
-        // Send contract notification email
-        try {
-          const emailResponse = await sendContractSentNotification(
-            contractData.nombreCompleto,
-            contractData.correoElectronico
-          );
-
-          if (emailResponse.success) {
-            console.log("✅ Contract notification email sent successfully");
-            addNotification(
-              "Contract notification email sent to candidate.",
-              "success"
-            );
-          } else {
-            console.error(
-              "❌ Error sending contract notification email:",
-              emailResponse.error
-            );
-            // Don't show error to user since the main action succeeded
-          }
-        } catch (emailError) {
-          console.error(
-            "❌ Error sending contract notification email:",
-            emailError
-          );
-          // Don't show error to user since the main action succeeded
-        }
-
-        onClose();
-      } else {
-        console.error("Error sending contract:", result.message);
-        addNotification(`Error sending contract: ${result.message}`, "error");
+            // Company representative name (under left signature line)
+            {
+              pageNumber: -1,
+              x: 0.12,
+              y: 0.76,
+              width: 0.28,
+              height: 0.04,
+              fieldType: "TEXT",
+              assignedToRecipientId: companyRecipient.id,
+              required: true,
+              label: "Company Rep Name",
+            },
+          ],
+        };
+        await esignAddFields(documentId, fieldsPayload);
       }
+
+      // 5. Enviar (genera tokens)
+      await esignSendDocument(documentId);
+
+      // Persistir salario final y moneda en el ProcesoContratacion vinculado
+      try {
+        const pdfData = getPDFData() as any;
+        const oferta = pdfData.ofertaSalarial ?? 0;
+        const moneda = pdfData.monedaSalario || "USD";
+        await esignUpdateProcessOffer(documentId, oferta, moneda);
+      } catch (e) {
+        console.warn("Unable to update process offer salary after send:", e);
+      }
+
+      addNotification("Contract sent successfully to recipients.", "success");
+      if (onContractSent) onContractSent();
+      onClose();
     } catch (error) {
       console.error("Error:", error);
       addNotification(
@@ -1127,29 +1152,62 @@ export default function SignContractModal({
                         </h5>
                         {/* Clause One text comes from Position → Service Description */}
                         <div className="grid grid-cols-2 gap-2">
-                          {(
-                            ["ofertaSalarial", "montoEnLetrasUSD"] as const
-                          ).map((field) => (
-                            <div key={field} className="mb-2">
-                              <label className="block text-xs font-medium text-gray-500 mb-1">
-                                {getFieldLabel(field)}
-                              </label>
-                              <input
-                                type={
-                                  field === "ofertaSalarial" ? "number" : "text"
-                                }
-                                value={
-                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                  (contractData as any)[field] ?? ""
-                                }
-                                onChange={(e) =>
-                                  handleInputChange(field, e.target.value)
-                                }
-                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-                                placeholder={getFieldPlaceholder(field)}
-                              />
-                            </div>
-                          ))}
+                          {/* City, Country */}
+                          <div className="mb-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              {getFieldLabel("cityCountry")}
+                            </label>
+                            <input
+                              type="text"
+                              value={(contractData as any).cityCountry ?? ""}
+                              onChange={(e) =>
+                                handleInputChange("cityCountry", e.target.value)
+                              }
+                              className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                              placeholder={getFieldPlaceholder("cityCountry")}
+                            />
+                          </div>
+                          {/* Monthly fee and amount in words */}
+                          <div className="mb-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              {getFieldLabel("ofertaSalarial")}
+                            </label>
+                            <input
+                              type="number"
+                              value={(contractData as any).ofertaSalarial ?? ""}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "ofertaSalarial",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                              placeholder={getFieldPlaceholder(
+                                "ofertaSalarial"
+                              )}
+                            />
+                          </div>
+                          <div className="mb-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              {getFieldLabel("montoEnLetrasUSD")}
+                            </label>
+                            <input
+                              type="text"
+                              value={
+                                (contractData as any).montoEnLetrasUSD ?? ""
+                              }
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "montoEnLetrasUSD",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                              placeholder={getFieldPlaceholder(
+                                "montoEnLetrasUSD"
+                              )}
+                            />
+                          </div>
                         </div>
                         {/* Execution Date */}
                         <div className="mt-2">
@@ -1320,7 +1378,6 @@ export default function SignContractModal({
                     {replaceVariables(selectedTemplate.subject)}
                   </p>
                 </div>
-
                 {/* PDF Preview */}
                 <div className="bg-white rounded border shadow-sm">
                   <div className="h-[600px] border rounded-lg overflow-hidden">
@@ -1351,31 +1408,112 @@ export default function SignContractModal({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-gray-200 p-6 flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSendContract}
-            disabled={!selectedTemplate || isLoading}
-            className="px-6 py-2 bg-[#0097B2] text-white rounded-md hover:bg-[#007a8f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-          >
-            {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Sending...
-              </>
-            ) : (
-              <>
-                <Send size={16} className="mr-2" />
-                Send Contract
-              </>
-            )}
-          </button>
+        {/* Company Signer Section */}
+        <div className="border-t border-gray-200 px-6 py-5 bg-gray-50">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+            Company Signer
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Name
+              </label>
+              <input
+                type="text"
+                value={companySignerName}
+                onChange={(e) => setCompanySignerName(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                placeholder="CEO Signature"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={companySignerEmail}
+                onChange={(e) => setCompanySignerEmail(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                placeholder={DEFAULT_CEO_EMAIL}
+              />
+            </div>
+            <div className="flex items-start pt-5">
+              <label className="inline-flex items-center text-xs text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mr-2"
+                  checked={useAlternateSigner}
+                  onChange={(e) => setUseAlternateSigner(e.target.checked)}
+                />
+                Delegate to alternate signer
+              </label>
+            </div>
+          </div>
+          {useAlternateSigner && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  Alt Name
+                </label>
+                <input
+                  type="text"
+                  value={alternateSignerName}
+                  onChange={(e) => setAlternateSignerName(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                  placeholder="Admin Name"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  Alt Email
+                </label>
+                <input
+                  type="email"
+                  value={alternateSignerEmail}
+                  onChange={(e) => setAlternateSignerEmail(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                  placeholder="admin@teamandes.com"
+                />
+              </div>
+            </div>
+          )}
+          <p className="text-xs text-gray-500">
+            Signing order: 1) Candidate 2) Company (CEO or delegate). Two
+            signature fields will be automatically created on page 1.
+          </p>
+        </div>
+
+        {/* Footer buttons */}
+        <div className="border-t border-gray-200 px-6 py-4 flex justify-between items-center bg-white">
+          <div className="text-xs text-gray-400">
+            Review the data before sending. The candidate signs first.
+          </div>
+          <div className="flex space-x-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSendContract}
+              disabled={!selectedTemplate || isLoading}
+              className="px-6 py-2 rounded-md bg-gradient-to-r from-[#0097B2] to-[#00b8d8] text-white shadow-sm hover:shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send size={16} className="mr-2" />
+                  Send Contract
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

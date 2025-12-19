@@ -144,19 +144,19 @@ export const teamMembers: TeamMember[] = [
   },
   // Recruitment
   {
-    id: "alejandra-arias",
-    name: "Alejandra Arias",
+    id: "daniela-ramirez",
+    name: "Daniela Ramirez",
     role: "Assistant Recruitment Manager",
     group: "Recruitment",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/Alejandra+Arias.png",
-    summary: "Psychologist",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/daniela-ramirez.jpg",
+    summary: "",
     bullets: [
-      "Psychologist with a heart for community work, has led group sessions focused on leadership, female empowerment, teamwork, and social skills. ",
-      "Culinary Technician, worked in the food industry for a while.",
-      "Customer service pro in the Health Industry",
-      "Culinary Technician, worked in the food industry for a while.",
-      "Passionate about culture and creativity, loves exploring gastronomy and world cultures, watching movies and documentaries, listening to music, dancing, reading, and traveling",
+      "Industrial Engineer with a Master’s in Quality and Integrated Management Systems, bringing experience in HR recruiting, customer service, and legal support.",
+      "Proud mom to one dog and four cats, all happily rescued.",
+      "Passionate about helping people, optimizing processes, and creating work environments that feel more human.",
+      "Loves staying active, enjoying weekend hikes with her dog, and relaxing at home with a great movie.",
+      "Values quality time with family and believes that balance is the key to doing exceptional work.",
     ],
     imageClass: "object-cover",
   },

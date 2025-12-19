@@ -522,6 +522,48 @@ export default function TabsNavigation() {
               </svg>
               Team Members
             </Link>
+            {/* {isAdmin && (
+              <Link
+                href="/admin/dashboard/esign"
+                className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
+                  pathname === "/admin/dashboard/esign"
+                    ? "bg-[#B6B4B4] text-white"
+                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M3 21v-2a4 4 0 0 1 4-4h4"
+                    stroke={
+                      pathname === "/admin/dashboard/esign"
+                        ? "#FFFFFF"
+                        : "#6D6D6D"
+                    }
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M16 3l5 5-8 8H8v-5l8-8z"
+                    stroke={
+                      pathname === "/admin/dashboard/esign"
+                        ? "#FFFFFF"
+                        : "#6D6D6D"
+                    }
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                eSign
+              </Link>
+            )} */}
             {isAdmin && (
               <Link
                 href="/admin/dashboard/contracts"

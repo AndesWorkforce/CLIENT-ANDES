@@ -23,9 +23,12 @@ import {
   XSquare,
   PenTool,
   AlertTriangle,
+  FileText,
 } from "lucide-react";
 import TableSkeleton from "../components/TableSkeleton";
 import CancelContractModal from "./components/CancelContractModal";
+import SendAnnexModal from "./components/SendAnnexModal";
+import AnnexesListModal from "./components/AnnexesListModal";
 import * as XLSX from "xlsx";
 
 import { useNotificationStore } from "@/store/notifications.store";
@@ -39,15 +42,28 @@ interface DocumentReadStatusProps {
 }
 
 const DocumentReadStatus = ({ contract }: DocumentReadStatusProps) => {
+  // Calculate based on the 4 required docs newly added
+  const requiredDocs = [
+    contract.introduccionLeido,
+    contract.politicasLeido,
+    contract.beneficiosLeido,
+    contract.reglamentoLeido,
+  ];
+
+  const readCount = requiredDocs.filter(Boolean).length;
+  const totalRequired = 4;
+  const percentage = Math.round((readCount / totalRequired) * 100);
+  const completed = percentage === 100;
+
   return (
     <span
       className={`px-2 py-1 ${
-        contract.readCompleted
+        completed
           ? "bg-[#E6F4F6] text-[#0097B2]"
           : "bg-yellow-100 text-yellow-800"
       } text-xs rounded-full`}
     >
-      {contract.readCompleted ? "Yes" : `${contract.documentReadPercentage}%`}
+      {completed ? "Yes" : `${percentage}%`}
     </span>
   );
 };
@@ -178,6 +194,12 @@ export default function ContractsPage() {
   const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancellingContract, setIsCancellingContract] = useState(false);
+  const [isAnnexModalOpen, setIsAnnexModalOpen] = useState(false);
+  const [selectedContractForAnnex, setSelectedContractForAnnex] =
+    useState<ProcesoContratacion | null>(null);
+  const [isAnnexListModalOpen, setIsAnnexListModalOpen] = useState(false);
+  const [selectedContractForAnnexList, setSelectedContractForAnnexList] =
+    useState<ProcesoContratacion | null>(null);
   const [isSigningContract, setIsSigningContract] = useState<string | null>(
     null
   );
@@ -549,6 +571,9 @@ export default function ContractsPage() {
           ? new Date(contract.fechaFirmaProveedor)
           : null,
         estadoContratacion: contract.estadoContratacion,
+        // If available in the contract, pass the provider/manager email
+        providerEmail:
+          (contract as any).emailProveedor || (contract as any).providerEmail,
       });
 
       if (emailResult.success) {
@@ -995,7 +1020,7 @@ export default function ContractsPage() {
       </div>
     );
   };
-
+  console.log("[SORTED CONTRACTS]", sortedContracts);
   return (
     <div className="w-full max-w-screen-2xl mx-auto mt-8 flex flex-col h-screen">
       {/* Search Input */}
@@ -1184,7 +1209,7 @@ export default function ContractsPage() {
                           Documents Read
                         </th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
-                          Signed Contract
+                          Contract Annex
                         </th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/8">
                           Upload Contract
@@ -1221,36 +1246,31 @@ export default function ContractsPage() {
                             <DocumentReadStatus contract={contract} />
                           </td>
                           <td className="py-4 px-4">
-                            {(contract.estadoContratacion ===
-                              EstadoContratacion.CONTRATO_FINALIZADO ||
-                              contract.estadoContratacion ===
-                                EstadoContratacion.FIRMADO) &&
-                            contract.signWellDownloadUrl ? (
-                              <div className="flex items-center space-x-2">
-                                <a
-                                  href={contract.signWellDownloadUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[#0097B2] hover:underline flex items-center text-sm font-medium"
-                                >
-                                  <Download size={18} className="mr-1" />
-                                  PDF
-                                </a>
-                                <button
-                                  onClick={() =>
-                                    handleViewDocument(
-                                      contract.signWellDownloadUrl!
-                                    )
-                                  }
-                                  className="text-[#0097B2] hover:underline flex items-center text-sm font-medium"
-                                  title="View document"
-                                >
-                                  <Eye size={18} />
-                                </button>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400 text-sm">N/A</span>
-                            )}
+                            <div className="flex flex-col gap-2">
+                              <button
+                                onClick={() => {
+                                  setSelectedContractForAnnex(contract);
+                                  setIsAnnexModalOpen(true);
+                                }}
+                                className="text-[#0097B2] hover:underline flex items-center text-sm font-medium cursor-pointer"
+                              >
+                                <PenTool size={16} className="mr-1" />
+                                Add Annex
+                              </button>
+                              {contract.anexos &&
+                                contract.anexos.length > 0 && (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedContractForAnnexList(contract);
+                                      setIsAnnexListModalOpen(true);
+                                    }}
+                                    className="text-gray-600 hover:text-gray-800 hover:underline flex items-center text-sm font-medium cursor-pointer"
+                                  >
+                                    <FileText size={16} className="mr-1" />
+                                    View {contract.anexos.length} Annexes
+                                  </button>
+                                )}
+                            </div>
                           </td>
                           <td className="py-4 px-4">
                             {contract.contratoFinalUrl ? (
@@ -1925,6 +1945,35 @@ export default function ContractsPage() {
           }}
           onConfirm={handleConfirmCancellation}
           isSubmitting={isCancellingContract}
+        />
+      )}
+
+      {/* Send Annex Modal */}
+      {isAnnexModalOpen && selectedContractForAnnex && (
+        <SendAnnexModal
+          isOpen={isAnnexModalOpen}
+          contract={selectedContractForAnnex}
+          onClose={() => {
+            setIsAnnexModalOpen(false);
+            setSelectedContractForAnnex(null);
+          }}
+          onAnnexSent={() => {
+            // Refresh contracts or show notification
+            loadContracts();
+          }}
+        />
+      )}
+
+      {/* Annexes List Modal */}
+      {isAnnexListModalOpen && selectedContractForAnnexList && (
+        <AnnexesListModal
+          isOpen={isAnnexListModalOpen}
+          onClose={() => {
+            setIsAnnexListModalOpen(false);
+            setSelectedContractForAnnexList(null);
+          }}
+          candidateName={selectedContractForAnnexList.nombreCompleto}
+          annexes={selectedContractForAnnexList.anexos || []}
         />
       )}
     </div>

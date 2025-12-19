@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Download,
   Upload,
@@ -32,11 +33,17 @@ import {
   AcuerdoConfidencialidad,
   AnexosPoliticaAcoso,
   ManualBuenGobierno,
+  RemoteHarassmentPolicyEN,
+  GoodGovernanceManualEN,
+  AnnexesHarassmentEN,
+  ConfidentialityAgreementEN,
+  CommunicationsProtocolEN,
 } from "./components/DocumentTemplates";
 import { useNotificationStore } from "@/store/notifications.store";
 
 export default function CurrentApplication() {
-  const { user } = useAuthStore();
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
   const { addNotification } = useNotificationStore();
   const [currentJob, setCurrentJob] = useState<CurrentContractData | null>(
     null
@@ -91,47 +98,44 @@ export default function CurrentApplication() {
     "December",
   ];
 
-  // Documents that must be read after signing
+  // Documents that must be read after signing (now 4 items)
   const contractDocuments = [
     {
-      id: "politica_acoso",
-      name: "Harassment Prevention Policy",
-      template: "PoliticaPrevencionAcoso",
-      description: "Workplace harassment prevention policy in Colombia",
+      id: "annexes_harassment_en",
+      name: "Annexes – Policy for the Prevention and Response to Harassment",
+      template: "AnnexesHarassmentEN",
+      description:
+        "Harassment complaint form, response/protection pathway, and support resources (English)",
     },
     {
-      id: "contrato_servicio",
-      name: "Service Agreement Contract",
-      template: "ContratoServicio",
-      description: "Main service provision agreement",
+      id: "good_governance_manual_en",
+      name: "Good Governance Manual for Remote Service Contractors (Natural Persons)",
+      template: "GoodGovernanceManualEN",
+      description:
+        "Ethics and conduct guidelines for service contractors (English)",
     },
     {
-      id: "acuerdo_confidencialidad",
-      name: "Confidentiality Agreement",
-      template: "AcuerdoConfidencialidad",
-      description: "Non-disclosure agreement for confidential information",
+      id: "remote_harassment_policy_en",
+      name: "Policy for the Prevention and Response to Harassment in Remote Work",
+      template: "RemoteHarassmentPolicyEN",
+      description: "Remote/hybrid work harassment policy (English)",
     },
     {
-      id: "anexos_politica_acoso",
-      name: "Harassment Policy Annexes",
-      template: "AnexosPoliticaAcoso",
-      description: "Complaint forms, attention routes and support resources",
-    },
-    {
-      id: "manual_buen_gobierno",
-      name: "Good Governance Manual",
-      template: "ManualBuenGobierno",
-      description: "Ethics and conduct guidelines for service contractors",
+      id: "communications_protocol_en",
+      name: "Communications Protocol: Contracting Company – Independent Service Contractor (Natural Person)",
+      template: "CommunicationsProtocolEN",
+      description:
+        "Guidelines for communication and coordination respecting contractor independence (English)",
     },
   ];
 
   // Mapeo de nombres de documentos a secciones de la API
   const documentToSection: { [key: string]: string } = {
-    politica_acoso: "introduccion",
-    contrato_servicio: "politicas",
-    acuerdo_confidencialidad: "beneficios",
-    anexos_politica_acoso: "contrato",
-    manual_buen_gobierno: "reglamento",
+    annexes_harassment_en: "introduccion",
+    good_governance_manual_en: "politicas",
+    remote_harassment_policy_en: "beneficios",
+    communications_protocol_en: "reglamento",
+    // Map communications protocol to reglamento to complete 4 flags
   };
 
   // Get current date information
@@ -144,6 +148,17 @@ export default function CurrentApplication() {
     setSelectedMonth(currentMonth);
     setSelectedYear(currentYear);
   }, [currentMonth, currentYear]);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (isAuthenticated === false || !user) {
+      try {
+        router.replace("/auth/login");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [isAuthenticated, user, router]);
 
   const currentContract = async () => {
     if (!user?.id) return;
@@ -160,6 +175,12 @@ export default function CurrentApplication() {
           beneficios: response.data.beneficiosLeido || false,
           contrato: response.data.contratoLeido || false,
           reglamento: response.data.reglamentoLeido || false,
+
+          // Map documents to their section status
+          annexes_harassment_en: response.data.introduccionLeido || false,
+          good_governance_manual_en: response.data.politicasLeido || false,
+          remote_harassment_policy_en: response.data.beneficiosLeido || false,
+          communications_protocol_en: response.data.reglamentoLeido || false,
         };
 
         const initialReadingTime: { [key: string]: number } = {
@@ -169,18 +190,6 @@ export default function CurrentApplication() {
           contrato: 0,
           reglamento: 0,
         };
-
-        console.log("🔄 INICIALIZANDO DOCUMENTOS DESDE getCurrentContract:", {
-          estadoDocumentos: {
-            introduccionLeido: response.data.introduccionLeido,
-            politicasLeido: response.data.politicasLeido,
-            beneficiosLeido: response.data.beneficiosLeido,
-            contratoLeido: response.data.contratoLeido,
-            reglamentoLeido: response.data.reglamentoLeido,
-          },
-          readState: initialReadState,
-          readingTime: initialReadingTime,
-        });
 
         setReadDocuments(initialReadState);
         setDocumentReadingTime(initialReadingTime);
@@ -415,11 +424,6 @@ export default function CurrentApplication() {
 
   const closeDocumentsModal = async () => {
     setShowDocumentsModal(false);
-    // NO resetear readDocuments - mantener el progreso del usuario
-    // setReadDocuments({});
-    // setCurrentDocumentIndex(0);
-
-    // Actualizar tiempo final del documento actual si estaba siendo leído
     if (documentStartTime > 0) {
       const currentTime = Date.now();
       const sessionTime = Math.floor((currentTime - documentStartTime) / 1000);
@@ -706,6 +710,16 @@ export default function CurrentApplication() {
         return <AnexosPoliticaAcoso {...templateProps} />;
       case "ManualBuenGobierno":
         return <ManualBuenGobierno {...templateProps} />;
+      case "AnnexesHarassmentEN":
+        return <AnnexesHarassmentEN {...templateProps} />;
+      case "GoodGovernanceManualEN":
+        return <GoodGovernanceManualEN {...templateProps} />;
+      case "RemoteHarassmentPolicyEN":
+        return <RemoteHarassmentPolicyEN {...templateProps} />;
+      case "ConfidentialityAgreementEN":
+        return <ConfidentialityAgreementEN {...templateProps} />;
+      case "CommunicationsProtocolEN":
+        return <CommunicationsProtocolEN {...templateProps} />;
       default:
         return (
           <div className="p-8 text-center">
@@ -806,8 +820,6 @@ export default function CurrentApplication() {
       openDocumentsModal();
     }
   }, [currentJob]);
-
-  console.log("\n\n [currentApplication] currentJob", currentJob, "\n\n");
 
   if (isLoading) {
     return (
@@ -938,8 +950,8 @@ export default function CurrentApplication() {
                         <p className="text-sm text-red-800">
                           Progress:{" "}
                           {
-                            Object.keys(readDocuments).filter(
-                              (key) => readDocuments[key]
+                            contractDocuments.filter(
+                              (doc) => readDocuments[doc.id]
                             ).length
                           }{" "}
                           of {contractDocuments.length} documents read
@@ -981,15 +993,6 @@ export default function CurrentApplication() {
                           ✅
                         </p>
                       </div>
-                      {/* <div className="flex gap-4 justify-center">
-                        <button
-                          onClick={openDocumentsModal}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <Eye size={16} />
-                          Review Documents
-                        </button>
-                      </div> */}
                     </div>
                   )}
 
@@ -1057,18 +1060,6 @@ export default function CurrentApplication() {
                     </div>
                   </div>
                 </div>
-
-                {/* <div className="mt-8">
-                  <p className="text-gray-600 text-sm">
-                    Need help? Contact our HR team at{" "}
-                    <a
-                      href="mailto:hr@andes-workforce.com"
-                      className="text-[#0097B2] hover:underline"
-                    >
-                      hr@andes-workforce.com
-                    </a>
-                  </p>
-                </div> */}
               </div>
             </div>
           </div>
@@ -1266,6 +1257,45 @@ export default function CurrentApplication() {
     <div className="min-h-screen bg-gray-50 p-6">
       <SimpleHeader title="Current Application" />
       <div className="max-w-6xl mx-auto space-y-6">
+        {/* Pending Annexes Notification */}
+        {currentJob.pendingAnnexes && currentJob.pendingAnnexes.length > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <div className="flex items-start gap-4">
+              <Clock size={24} className="text-yellow-600 mt-1" />
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-yellow-800 mb-2">
+                  Pending Documents
+                </h2>
+                <p className="text-yellow-700 mb-4">
+                  You have {currentJob.pendingAnnexes.length} pending
+                  document(s) to sign.
+                </p>
+                <div className="space-y-3">
+                  {currentJob.pendingAnnexes.map((annex) => (
+                    <div
+                      key={annex.id}
+                      className="flex items-center justify-between bg-white p-3 rounded border border-yellow-100"
+                    >
+                      <span className="font-medium text-gray-700">
+                        {annex.title}
+                      </span>
+                      <a
+                        href={annex.signUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white text-sm font-medium rounded hover:bg-[#007B8E] transition-colors"
+                      >
+                        <FileText size={16} />
+                        Sign Document
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Current Employment Information */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-[#0097B2] text-white p-6">
@@ -1381,7 +1411,7 @@ export default function CurrentApplication() {
                   Documentation
                 </h2>
 
-                {currentJob.signWellDownloadUrl && (
+                {currentJob.contratoFinalUrl && (
                   <div className="space-y-3">
                     <div className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between">
@@ -1397,7 +1427,7 @@ export default function CurrentApplication() {
                           </div>
                         </div>
                         <a
-                          href={currentJob.signWellDownloadUrl}
+                          href={currentJob.contratoFinalUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors"
@@ -1407,6 +1437,42 @@ export default function CurrentApplication() {
                         </a>
                       </div>
                     </div>
+
+                    {/* Signed Annexes */}
+                    {currentJob.signedAnnexes &&
+                      currentJob.signedAnnexes.length > 0 &&
+                      currentJob.signedAnnexes.map((annex) => (
+                        <div
+                          key={annex.id}
+                          className="border border-gray-200 rounded-lg p-4"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <FileText className="text-[#0097B2]" size={20} />
+                              <div>
+                                <p className="font-medium text-gray-900">
+                                  {annex.title}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  Signed on{" "}
+                                  {new Date(annex.signedAt).toLocaleDateString(
+                                    "en-US"
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                            <a
+                              href={annex.viewUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors"
+                            >
+                              <Eye size={16} />
+                              View
+                            </a>
+                          </div>
+                        </div>
+                      ))}
 
                     {/* Active Breaks Guide */}
                     <div className="border border-gray-200 rounded-lg p-4">
@@ -1497,8 +1563,8 @@ export default function CurrentApplication() {
                                 <p className="text-xs text-gray-600 mt-1">
                                   Progress:{" "}
                                   {
-                                    Object.keys(readDocuments).filter(
-                                      (key) => readDocuments[key]
+                                    contractDocuments.filter(
+                                      (doc) => readDocuments[doc.id]
                                     ).length
                                   }{" "}
                                   of {contractDocuments.length} documents read
@@ -1717,7 +1783,7 @@ export default function CurrentApplication() {
       {/* Modal de Documentos Contractuales */}
       {showDocumentsModal && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar border-2 border-[#0097B2]">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar border border-gray-300">
             <div className="flex justify-between items-center p-4 border-b border-[#0097B2]">
               <h2 className="text-xl font-medium text-[#0097B2]">
                 Contract Documents
@@ -1797,7 +1863,7 @@ export default function CurrentApplication() {
                               contractDocuments[currentDocumentIndex].id
                             ] || !hasReachedEnd
                           }
-                          className={`px-4 py-2 rounded ${
+                          className={`px-4 py-2 rounded cursor-pointer ${
                             readDocuments[
                               contractDocuments[currentDocumentIndex].id
                             ] && hasReachedEnd

@@ -24,6 +24,7 @@ import {
   updateInterviewPreference,
   updateMultiInterviewAvailability,
   confirmInterviewDate,
+  rescheduleInterview,
 } from "../actions/applicants.actions";
 import { EstadoPostulacion } from "../types/application-status.types";
 import VideoModal from "./VideoModal";
@@ -36,6 +37,41 @@ import InterviewDateTimePicker from "@/components/InterviewDateTimePicker";
 
 // Feature flag temporal: ocultar columna "Proposed Date" mientras está en desarrollo
 const SHOW_PROPOSED_DATE = true;
+
+// Helper: US date format MM/DD/YYYY, optionally respecting a timeZone
+const formatDateUS = (iso?: string, tz?: string | null) => {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    if (tz) {
+      // Use Intl to format in specific timeZone and then assemble MM/DD/YYYY
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: tz || undefined,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+        .formatToParts(d)
+        .reduce<Record<string, string>>((acc, p) => {
+          acc[p.type] = p.value;
+          return acc;
+        }, {});
+      return `${parts.month}/${parts.day}/${parts.year}`;
+    }
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  } catch {
+    const plain = (iso || "").split("T")[0];
+    const parts = plain.split("-");
+    if (parts.length === 3) {
+      const [y, m, day] = parts;
+      return `${m}/${day}/${y}`;
+    }
+    return iso || "";
+  }
+};
 
 // Definir StageStatus aquí
 export type StageStatus =
@@ -59,6 +95,7 @@ interface CandidatoWithPostulationId extends Candidato {
   disponibilidadEntrevista2?: string | null;
   disponibilidadEntrevista3?: string | null;
   fechaEntrevistaConfirmada?: string | null; // Fecha confirmada definitiva
+  zonaHorariaEntrevista?: string | null;
 }
 
 interface ApplicantsModalProps {
@@ -109,6 +146,7 @@ const AdminApplicantsTable = ({
   setConfirmingInterview,
   onInterviewConfirmed,
   triggerParentRefresh,
+  onReschedule,
 }: {
   applicants: ExtendedApplicant[];
   totalCount: number;
@@ -176,8 +214,12 @@ const AdminApplicantsTable = ({
   >;
   onInterviewConfirmed: (applicantId: string, confirmedDate: string) => void;
   triggerParentRefresh?: () => void;
+  onReschedule: (applicant: ExtendedApplicant) => void;
 }) => {
   const { addNotification } = useNotificationStore();
+
+  console.log("[Applicant]", applicants);
+
   return (
     <>
       <div className="mb-4 text-gray-500 text-sm">
@@ -256,7 +298,35 @@ const AdminApplicantsTable = ({
                   className="rounded border-gray-300 text-[#0097B2] focus:ring-[#0097B2]"
                 />
               </td>
-              <td className="py-4 px-4 text-gray-700">{`${applicant.nombre} ${applicant.apellido}`}</td>
+              <td className="py-4 px-4 text-gray-700">
+                <div className="flex items-center gap-2">
+                  <span>{`${applicant.nombre} ${applicant.apellido}`}</span>
+                  {applicant.zonaHorariaEntrevista && (
+                    <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-[10px] text-gray-700 border border-gray-200">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"
+                          stroke="#6b7280"
+                          strokeWidth="1.5"
+                        />
+                        <path
+                          d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"
+                          stroke="#6b7280"
+                          strokeWidth="1"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      {applicant.zonaHorariaEntrevista}
+                    </span>
+                  )}
+                </div>
+              </td>
               <td className="py-4 px-4">
                 <button
                   onClick={() => {
@@ -358,13 +428,19 @@ const AdminApplicantsTable = ({
                     if (confirmed) {
                       return (
                         <div className="text-xs text-green-700">
-                          <div>{new Date(confirmed).toLocaleDateString()}</div>
+                          <div>
+                            {formatDateUS(
+                              confirmed,
+                              applicant.zonaHorariaEntrevista
+                            )}
+                          </div>
                           <div className="text-green-600 font-medium">
                             {new Date(confirmed).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}
                           </div>
+                          {/* TZ badge moved to Name cell to reduce clutter */}
                           {/* Removed explicit 'Confirmed' label per UX request */}
                         </div>
                       );
@@ -481,16 +557,29 @@ const AdminApplicantsTable = ({
                           }
                         >
                           <option value="">Select option...</option>
-                          {proposedDates.map((d, idx) => (
-                            <option key={idx} value={idx + 1}>
-                              {idx + 1}. {new Date(d).toLocaleDateString()}{" "}
-                              {new Date(d).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </option>
-                          ))}
+                          {proposedDates.map((d, idx) => {
+                            const tz =
+                              applicant.zonaHorariaEntrevista || undefined;
+                            const dt = new Date(d);
+                            const dateStr = formatDateUS(d, tz);
+                            const timeStr = dt.toLocaleTimeString(
+                              [],
+                              tz
+                                ? ({
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    timeZone: tz as string,
+                                  } as any)
+                                : { hour: "2-digit", minute: "2-digit" }
+                            );
+                            return (
+                              <option key={idx} value={idx + 1}>
+                                {idx + 1}. {dateStr} {timeStr}
+                              </option>
+                            );
+                          })}
                         </select>
+                        {/* TZ badge moved to Name cell to reduce clutter */}
                         {confirmingInterview[applicant.id] && (
                           <span className="text-[10px] text-gray-500 mt-1">
                             Confirming...
@@ -507,7 +596,7 @@ const AdminApplicantsTable = ({
                   const firstProposed = applicant.disponibilidadEntrevista;
                   if (confirmed) {
                     return (
-                      <div className="text-xs text-green-700">
+                      <div className="text-xs text-green-700 flex flex-col gap-1">
                         <div>{new Date(confirmed).toLocaleDateString()}</div>
                         <div className="text-green-600 font-medium">
                           {new Date(confirmed).toLocaleTimeString([], {
@@ -515,7 +604,14 @@ const AdminApplicantsTable = ({
                             minute: "2-digit",
                           })}
                         </div>
-                        {/* Removed explicit 'Confirmed' label per UX request */}
+                        {/* TZ badge moved to Name cell to reduce clutter */}
+                        <button
+                          type="button"
+                          onClick={() => onReschedule(applicant)}
+                          className="text-[11px] text-blue-600 hover:text-blue-700 underline cursor-pointer w-fit"
+                        >
+                          Reschedule
+                        </button>
                       </div>
                     );
                   }
@@ -523,7 +619,10 @@ const AdminApplicantsTable = ({
                     return (
                       <div className="text-xs text-gray-700">
                         <div>
-                          {new Date(firstProposed).toLocaleDateString()}
+                          {formatDateUS(
+                            firstProposed,
+                            applicant.zonaHorariaEntrevista
+                          )}
                         </div>
                         <div className="text-gray-500">
                           {new Date(firstProposed).toLocaleTimeString([], {
@@ -531,6 +630,11 @@ const AdminApplicantsTable = ({
                             minute: "2-digit",
                           })}
                         </div>
+                        {applicant.zonaHorariaEntrevista && (
+                          <span className="text-[10px] text-gray-500 inline-block">
+                            TZ: {applicant.zonaHorariaEntrevista}
+                          </span>
+                        )}
                         <div className="text-[10px] text-gray-500 mt-0.5">
                           Pending confirmation
                         </div>
@@ -1018,15 +1122,26 @@ const CompanyApplicantsTable = ({
                             applicant.disponibilidadEntrevista3 || null,
                           ]
                             .filter(Boolean)
-                            .map((d, idx) => (
-                              <span
-                                key={idx}
-                                className="text-[11px] text-gray-600"
-                              >
-                                {idx + 1}.
-                                {new Date(d as string).toLocaleString()}
-                              </span>
-                            ))}
+                            .map((d, idx) => {
+                              const tz =
+                                applicant.zonaHorariaEntrevista || undefined;
+                              const dt = new Date(d as string);
+                              return (
+                                <span
+                                  key={idx}
+                                  className="text-[11px] text-gray-600"
+                                >
+                                  {`${idx + 1}. ${dt.toLocaleString(undefined, {
+                                    timeZone: tz,
+                                  })}`}
+                                </span>
+                              );
+                            })}
+                          {applicant.zonaHorariaEntrevista && (
+                            <span className="text-[10px] text-gray-500 mt-1 inline-block">
+                              TZ: {applicant.zonaHorariaEntrevista}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1044,13 +1159,37 @@ const CompanyApplicantsTable = ({
                   if (confirmed) {
                     return (
                       <div className="text-xs text-green-700">
-                        <div>{new Date(confirmed).toLocaleDateString()}</div>
-                        <div className="text-green-600 font-medium">
-                          {new Date(confirmed).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
+                        {(() => {
+                          const tz =
+                            applicant.zonaHorariaEntrevista || undefined;
+                          const d = new Date(confirmed);
+                          const dateOptions = tz ? { timeZone: tz } : undefined;
+                          const timeOptions = tz
+                            ? {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                timeZone: tz as string,
+                              }
+                            : { hour: "2-digit", minute: "2-digit" };
+                          return (
+                            <>
+                              <div>
+                                {d.toLocaleDateString(
+                                  undefined,
+                                  dateOptions as any
+                                )}
+                              </div>
+                              <div className="text-green-600 font-medium">
+                                {d.toLocaleTimeString([], timeOptions as any)}
+                              </div>
+                            </>
+                          );
+                        })()}
+                        {applicant.zonaHorariaEntrevista && (
+                          <span className="text-[10px] text-gray-500 inline-block">
+                            TZ: {applicant.zonaHorariaEntrevista}
+                          </span>
+                        )}
                         {/* Removed explicit 'Confirmed' label per UX request */}
                       </div>
                     );
@@ -1058,22 +1197,53 @@ const CompanyApplicantsTable = ({
                   if (proposed) {
                     return (
                       <div className="text-xs text-gray-700">
-                        <div>
-                          {new Date(proposed as string).toLocaleDateString()}
-                        </div>
-                        <div className="text-gray-500">
-                          {new Date(proposed as string).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
+                        {(() => {
+                          const tz =
+                            applicant.zonaHorariaEntrevista || undefined;
+                          const d = new Date(proposed as string);
+                          const dateOptions = tz ? { timeZone: tz } : undefined;
+                          const timeOptions = tz
+                            ? {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                timeZone: tz as string,
+                              }
+                            : { hour: "2-digit", minute: "2-digit" };
+                          return (
+                            <>
+                              <div>
+                                {d.toLocaleDateString(
+                                  undefined,
+                                  dateOptions as any
+                                )}
+                              </div>
+                              <div className="text-gray-500">
+                                {d.toLocaleTimeString([], timeOptions as any)}
+                              </div>
+                            </>
+                          );
+                        })()}
+                        {applicant.zonaHorariaEntrevista && (
+                          <span className="text-[10px] text-gray-500 inline-block">
+                            TZ: {applicant.zonaHorariaEntrevista}
+                          </span>
+                        )}
                         <div className="text-[10px] text-gray-500 mt-0.5">
                           Pending confirmation
                         </div>
                       </div>
                     );
                   }
-                  return <span className="text-gray-400 text-xs">N/A</span>;
+                  return (
+                    <div className="text-xs text-gray-700">
+                      <span className="text-gray-400">N/A</span>
+                      {applicant.zonaHorariaEntrevista && (
+                        <span className="text-[10px] text-gray-500 inline-block ml-2">
+                          TZ: {applicant.zonaHorariaEntrevista}
+                        </span>
+                      )}
+                    </div>
+                  );
                 })()}
               </td>
               <td className="py-4 px-4">
@@ -1258,6 +1428,10 @@ export default function ApplicantsModal({
   };
   // Cantidad de slots visibles dinámicamente (1-3)
   const [activeSlotCount, setActiveSlotCount] = useState<number>(1);
+  // Zona horaria seleccionada por la empresa por candidato
+  const [interviewTimeZone, setInterviewTimeZone] = useState<
+    Record<string, string | undefined>
+  >({});
 
   // Guardar múltiples disponibilidades (PATCH backend)
   const handleInterviewAvailabilitySave = async (
@@ -1275,9 +1449,21 @@ export default function ApplicantsModal({
     }
     setSavingAvailability((prev) => ({ ...prev, [applicantId]: true }));
     try {
-      const res = await updateMultiInterviewAvailability(postulationId, fechas);
+      const fallbackTz =
+        interviewTimeZone[applicantId] ||
+        applicants.find((a) => a.id === applicantId)?.zonaHorariaEntrevista ||
+        Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const res = await updateMultiInterviewAvailability(
+        postulationId,
+        fechas,
+        fallbackTz
+      );
       if (res.success) {
         addNotification("Interview availabilities saved", "success");
+        // Pull latest postulacion to reflect saved zonaHorariaEntrevista
+        if (typeof onUpdate === "function") {
+          await onUpdate();
+        }
       } else {
         addNotification(
           res.message || "Error saving interview availabilities",
@@ -1304,6 +1490,44 @@ export default function ApplicantsModal({
       ...prev,
       [candidateId]: action,
     }));
+  };
+
+  const handleReschedule = async (applicant: CandidatoWithPostulationId) => {
+    try {
+      setActionLoading(applicant.id, "advancing");
+      const resp = await rescheduleInterview(applicant.postulationId, {
+        clearProposals: false,
+        clearTimeZone: false,
+        notify: true,
+      });
+      if (resp.success) {
+        addNotification("Interview reopened", "success");
+        // Locally clear confirmation to reflect reopened state immediately
+        setApplicants((prev) =>
+          prev.map((a) =>
+            a.id === applicant.id
+              ? {
+                  ...a,
+                  fechaEntrevistaConfirmada: null,
+                }
+              : a
+          )
+        );
+        // Also reset any in-progress confirming flag
+        setConfirmingInterview((prev) => ({ ...prev, [applicant.id]: false }));
+        // Trigger parent refresh to sync with backend
+        if (typeof onUpdate === "function") {
+          await onUpdate();
+        }
+      } else {
+        addNotification(resp.message || "Error reopening interview", "error");
+      }
+    } catch (e) {
+      console.error("[ApplicantsModal] Error reopening interview", e);
+      addNotification("Error reopening interview", "error");
+    } finally {
+      setActionLoading(applicant.id, null);
+    }
   };
 
   const isActionLoading = (
@@ -3223,6 +3447,7 @@ export default function ApplicantsModal({
                       setConfirmingInterview={setConfirmingInterview}
                       onInterviewConfirmed={handleInterviewConfirmed}
                       triggerParentRefresh={onUpdate}
+                      onReschedule={(a) => handleReschedule(a)}
                     />
                   )}
                 </>
@@ -3403,7 +3628,10 @@ export default function ApplicantsModal({
             <p className="text-xs text-gray-600 mb-4">
               Candidate:{" "}
               <span className="font-medium">{scheduleTarget.name}</span> · TZ:{" "}
-              {Intl.DateTimeFormat().resolvedOptions().timeZone}
+              {interviewTimeZone[scheduleTarget.applicantId] ||
+                applicants.find((a) => a.id === scheduleTarget.applicantId)
+                  ?.zonaHorariaEntrevista ||
+                Intl.DateTimeFormat().resolvedOptions().timeZone}
             </p>
             {(() => {
               const slotValues: (string | undefined)[] = [
@@ -3516,6 +3744,19 @@ export default function ApplicantsModal({
                           </div>
                           <InterviewDateTimePicker
                             valueISO={valueISO}
+                            timeZone={
+                              interviewTimeZone[scheduleTarget.applicantId] ||
+                              applicants.find(
+                                (a) => a.id === scheduleTarget.applicantId
+                              )?.zonaHorariaEntrevista ||
+                              undefined
+                            }
+                            onTimeZoneChange={(tz) =>
+                              setInterviewTimeZone((prev) => ({
+                                ...prev,
+                                [scheduleTarget.applicantId]: tz,
+                              }))
+                            }
                             onChange={(iso) => {
                               if (slot === 1) {
                                 setInterviewAvailability((prev) => ({

@@ -651,7 +651,7 @@ export const sendContractSignatureEmail = async (
 export const sendProviderContractEmail = async (contract: {
   id: string;
   nombreCompleto: string;
-  signWellUrlProveedor: string | null;
+  signWellUrlProveedor?: string | null;
   fechaFirmaProveedor: Date | null;
   estadoContratacion: string;
   providerEmail?: string; // Agregamos el email del provider
@@ -667,14 +667,18 @@ export const sendProviderContractEmail = async (contract: {
       providerEmail: contract.providerEmail,
     });
 
-    // Validar que el contrato tenga URL de firma y no esté firmado
-    if (!contract.signWellUrlProveedor) {
+    // Determinar el enlace de firma correcto para el proveedor
+    // PRIORIDAD: usar la URL pública de SignWell almacenada en la base de datos
+    const providerSignUrl = contract.signWellUrlProveedor || null;
+
+    if (!providerSignUrl) {
       console.error(
-        "❌ [sendProviderContractEmail] Contract does not have a provider signature URL"
+        "❌ [sendProviderContractEmail] Missing SignWell provider URL in contract"
       );
       return {
         success: false,
-        message: "Contract does not have a provider signature URL",
+        message:
+          "Contract does not have a provider SignWell URL. Cannot send signature email.",
       };
     }
 
@@ -707,7 +711,7 @@ export const sendProviderContractEmail = async (contract: {
         <p>We are sending you this email to proceed with the contract signature to complete the hiring process.</p>
         <p>Please click on the link below to review and sign the contract:</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${contract.signWellUrlProveedor}" 
+          <a href="${providerSignUrl}" 
              style="background-color: #2563eb; 
                     color: white; 
                     padding: 12px 24px; 
@@ -717,9 +721,6 @@ export const sendProviderContractEmail = async (contract: {
             Sign Contract
           </a>
         </div>
-        <p style="color: #64748b; font-size: 14px;">
-          If you have any questions or issues accessing the link, please contact us by replying to this email.
-        </p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 12px;">
           This is an automated email. Please do not reply directly to this address.
@@ -799,6 +800,8 @@ export type WelcomeEmailData = {
 };
 
 export const sendWelcomeEmail = async (data: WelcomeEmailData) => {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || "https://andesworkforce.com";
   try {
     console.log("📧 [sendWelcomeEmail] Preparing email...");
 
@@ -817,7 +820,7 @@ export const sendWelcomeEmail = async (data: WelcomeEmailData) => {
 
         <p>To ensure the security of your account, please follow these steps:</p>
         <ol style="color: #475569; margin: 16px 0; padding-left: 24px;">
-          <li>Visit <a href="https://app.andes-workforce.com/auth/login" style="color: #2563eb;">our login page</a></li>
+          <li>Visit <a href="${baseUrl}/auth/login" style="color: #2563eb;">our login page</a></li>
           <li>Sign in with your email and temporary password</li>
           <li>Go to "My Profile" section</li>
           <li>Click on "Change Password"</li>
@@ -825,7 +828,7 @@ export const sendWelcomeEmail = async (data: WelcomeEmailData) => {
         </ol>
 
         <div style="text-align: center; margin: 30px 0;">
-          <a href="https://app.andes-workforce.com/auth/login" 
+          <a href="${baseUrl}/auth/login" 
              style="background-color: #2563eb; 
                     color: white; 
                     padding: 12px 24px; 
@@ -835,10 +838,6 @@ export const sendWelcomeEmail = async (data: WelcomeEmailData) => {
             Login to Your Account
           </a>
         </div>
-
-        <p style="color: #64748b; font-size: 14px;">
-          If you have any questions or need assistance, please don't hesitate to contact our support team.
-        </p>
         
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 12px;">
