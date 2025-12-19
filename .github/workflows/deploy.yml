@@ -1,0 +1,16 @@
+name: Deploy Application AndesWorkforce Production
+on:
+    push:
+        branches: [master]
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: appleboy/ssh-action@v1.0.3
+              with:
+                  host: ${{ secrets.HOST }}
+                  username: ${{ secrets.USERNAME }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: ${{ secrets.PORT }}
+                  script: ./deploy_client.sh
