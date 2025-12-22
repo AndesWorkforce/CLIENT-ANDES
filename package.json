@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:no-turbo": "cross-env NEXT_DISABLE_TURBOPACK=1 next dev -p 3002",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -28,13 +29,13 @@
     "next": "16.1.0",
     "nodemailer": "^6.10.0",
     "pdfjs-dist": "^5.4.449",
+    "quill": "^2.0.2",
     "react": "^19.2.3",
     "react-datepicker": "^4.25.0",
     "react-dom": "^19.2.3",
     "react-hook-form": "^7.54.2",
     "react-pdf": "^9.2.1",
     "react-quill": "^2.0.0",
-    "quill": "^2.0.2",
     "resend": "^4.1.2",
     "signature_pad": "^5.1.3",
     "slate": "^0.112.0",
@@ -53,8 +54,9 @@
     "@types/quill": "^2.0.14",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^7.0.3",
     "eslint": "^9",
-    "eslint-config-next": "15.2.0",
+    "eslint-config-next": "16.1.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
