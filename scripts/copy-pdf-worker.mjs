@@ -1,21 +1,38 @@
 #!/usr/bin/env node
 import { existsSync, mkdirSync, copyFileSync } from "fs";
-import { dirname, join } from "path";
+import { dirname } from "path";
+import { createRequire } from "module";
 
-const candidates = [
-  // pnpm hoisted
-  "node_modules/.pnpm/pdfjs-dist@4.8.69/node_modules/pdfjs-dist/build/pdf.worker.min.js",
-  // npm/yarn classic
-  "node_modules/pdfjs-dist/build/pdf.worker.min.js",
-];
+const require = createRequire(import.meta.url);
+
+function resolveWorker() {
+  const candidates = [
+    // Preferred UMD/min build
+    "pdfjs-dist/build/pdf.worker.min.js",
+    // Legacy build (some versions expose both)
+    "pdfjs-dist/legacy/build/pdf.worker.min.js",
+    // Non-minified fallbacks
+    "pdfjs-dist/build/pdf.worker.js",
+    "pdfjs-dist/legacy/build/pdf.worker.js",
+  ];
+  for (const spec of candidates) {
+    try {
+      const p = require.resolve(spec);
+      if (existsSync(p)) return p;
+    } catch {}
+  }
+  return null;
+}
 
 const out = "public/pdf.worker.min.js";
 mkdirSync(dirname(out), { recursive: true });
 
-const found = candidates.find((p) => existsSync(p));
-if (!found) {
-  console.warn("[copy-pdf-worker] pdf.worker.min.js not found. Skipping.");
+const src = resolveWorker();
+if (!src) {
+  console.warn(
+    "[copy-pdf-worker] Could not locate pdf.worker.* in pdfjs-dist. Skipping."
+  );
   process.exit(0);
 }
-copyFileSync(found, out);
-console.log(`[copy-pdf-worker] Copied from ${found} -> ${out}`);
+copyFileSync(src, out);
+console.log(`[copy-pdf-worker] Copied from ${src} -> ${out}`);
