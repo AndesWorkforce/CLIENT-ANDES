@@ -199,6 +199,12 @@ const InternationalProfessionalServicesAgreementPDF: React.FC<{
         <Text style={[styles.bold, { marginTop: 6 }]}>
           CLAUSE THREE – INCENTIVES, BONUSES, AND ANNUAL FEE ADJUSTMENT:
         </Text>
+        <Text style={styles.paragraph}>
+          In order to promote efficiency and compliance with contractual
+          objectives, THE CLIENT may, at its sole discretion, grant THE
+          CONTRACTOR economic incentives, performance bonuses, and an annual fee
+          adjustment of five percent (5%), subject to the following terms:
+        </Text>
         <Text style={styles.listItem}>
           • Incentives and Bonuses. THE CONTRACTOR may receive incentives for
           meeting goals defined by THE CLIENT, as well as semiannual or annual
@@ -281,6 +287,11 @@ const InternationalProfessionalServicesAgreementPDF: React.FC<{
         <Text style={[styles.bold, { marginTop: 6 }]}>
           CLAUSE SIX – SPECIAL OBLIGATIONS OF THE CLIENT:
         </Text>
+        <Text style={styles.paragraph}>
+          In addition to the general obligations set forth herein, and in light
+          of the technical and specialized nature of the professional services
+          provided, THE CLIENT shall have the following obligations:
+        </Text>
         <Text style={styles.listItem}>
           1. Pay the agreed compensation to THE CONTRACTOR within the terms and
           conditions set forth in this agreement.
@@ -306,6 +317,13 @@ const InternationalProfessionalServicesAgreementPDF: React.FC<{
 
         <Text style={[styles.bold, { marginTop: 6 }]}>
           CLAUSE SEVEN – SPECIAL OBLIGATIONS OF THE CONTRACTOR:
+        </Text>
+        <Text style={styles.paragraph}>
+          Without prejudice to the general obligations inherent to the provision
+          of professional services, THE CONTRACTOR, acting as an independent
+          professional and as a specialized advisor, consultant, and legal
+          representative, hereby undertakes toward THE CLIENT the following
+          obligations:
         </Text>
         <Text style={styles.listItem}>
           1. Professional Diligence and Ethical Standards. THE CONTRACTOR shall
@@ -383,6 +401,10 @@ const InternationalProfessionalServicesAgreementPDF: React.FC<{
 
         <Text style={[styles.bold, { marginTop: 6 }]}>
           CLAUSE NINE – EARLY TERMINATION:
+        </Text>
+        <Text style={styles.paragraph}>
+          This Agreement may be terminated prior to the expiration of its term
+          for any of the following reasons:
         </Text>
         <Text style={styles.listItem}>
           1. By mutual agreement of the Parties, formalized in writing.
@@ -475,6 +497,10 @@ const InternationalProfessionalServicesAgreementPDF: React.FC<{
           THE CLIENT as a result of any breach of the confidentiality
           obligations set forth herein, without prejudice to any other legal
           remedies available to THE CLIENT.
+        </Text>
+        <Text style={styles.paragraph}>
+          IN WITNESS WHEREOF, the Parties have executed this Agreement on the
+          date first written above.
         </Text>
 
         <Text style={[styles.bold, { marginTop: 6 }]}>
