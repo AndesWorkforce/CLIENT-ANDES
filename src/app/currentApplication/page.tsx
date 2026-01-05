@@ -40,11 +40,25 @@ import {
   CommunicationsProtocolEN,
 } from "./components/DocumentTemplates";
 import { useNotificationStore } from "@/store/notifications.store";
+import {
+  getUserInboxesAction,
+  viewInboxPdfAction,
+  downloadInboxPdfAction,
+} from "./actions/invoices.actions";
 
 export default function CurrentApplication() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const { addNotification } = useNotificationStore();
+  const u: any = user;
+  const isColombiaUser = (() => {
+    const country = String(
+      u?.country ?? u?.pais ?? u?.location?.country ?? u?.address?.country ?? ""
+    )
+      .trim()
+      .toLowerCase();
+    return country === "colombia";
+  })();
   const [currentJob, setCurrentJob] = useState<CurrentContractData | null>(
     null
   );
@@ -54,6 +68,33 @@ export default function CurrentApplication() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<"proofs" | "inboxes">(
+    "proofs"
+  );
+  // Set initial tab based on user's country (Colombia -> proofs, others -> inboxes)
+  useEffect(() => {
+    setSelectedTab(isColombiaUser ? "proofs" : "inboxes");
+  }, [isColombiaUser]);
+  type InboxItem = {
+    id: string;
+    invoiceNumber: string;
+    month: string;
+    year: number;
+    amount: number;
+    currency: string;
+    generatedAt: string; // ISO date
+    status: "PAID" | "PENDING";
+    viewUrl?: string;
+    downloadUrl?: string;
+  };
+  const [inboxes, setInboxes] = useState<InboxItem[]>([]);
+  const [visibleInboxCount, setVisibleInboxCount] = useState(6);
+  const [inboxScrollNode, setInboxScrollNode] = useState<HTMLDivElement | null>(
+    null
+  );
+  const [inboxEndSentinelNode, setInboxEndSentinelNode] =
+    useState<HTMLDivElement | null>(null);
+  const inboxObserver = useRef<IntersectionObserver | null>(null);
 
   // Estados para el modal de documentos
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
@@ -142,6 +183,113 @@ export default function CurrentApplication() {
   const currentDate = new Date();
   const currentMonth = months[currentDate.getMonth()]; // Get current month name
   const currentYear = currentDate.getFullYear();
+  // Tab visibility based on country
+  const showProofsTab = isColombiaUser;
+  const showInboxesTab = !isColombiaUser;
+
+  // Load real inbox items for the logged-in user (paginated)
+  const [inboxNextCursor, setInboxNextCursor] = useState<string | null>(null);
+  const [loadingInboxes, setLoadingInboxes] = useState<boolean>(false);
+
+  const mapInboxItems = (items: any[]): InboxItem[] => {
+    return (items || []).map((it) => {
+      const ym: string = String(it.añoMes || "");
+      const [yearStr, monthStr] = ym.split("-");
+      const mIdx = Math.max(0, Math.min(11, Number(monthStr || 1) - 1));
+      const rawStatus = String(
+        (it.status || it.estado || it.paymentStatus || "").toString()
+      ).toUpperCase();
+      const normalizedStatus: "PAID" | "PENDING" =
+        rawStatus === "PAID"
+          ? "PAID"
+          : rawStatus === "PENDING"
+          ? "PENDING"
+          : isColombiaUser
+          ? "PENDING"
+          : "PAID"; // Default: non-Colombia invoices are considered Paid
+      return {
+        id: it.id,
+        invoiceNumber: String(it.invoiceNumber || "#"),
+        month: months[mIdx],
+        year: Number(yearStr || new Date().getFullYear()),
+        amount: Number(it.amount || currentJob?.ofertaSalarial || 0),
+        currency: String(it.currency || currentJob?.monedaSalario || "USD"),
+        generatedAt: String(
+          it.createdAt || it.fechaCreacion || new Date().toISOString()
+        ),
+        status: normalizedStatus,
+        viewUrl: undefined,
+        downloadUrl: undefined,
+      } as InboxItem;
+    });
+  };
+
+  const fetchInboxesPage = async (append = false) => {
+    if (!user?.id) return;
+    setLoadingInboxes(true);
+    try {
+      const res = await getUserInboxesAction(
+        user.id,
+        append ? inboxNextCursor || undefined : undefined,
+        20
+      );
+      if (!res.success) {
+        addNotification(res.error || "Error loading inboxes", "error");
+        return;
+      }
+      const payload = res.data || {};
+      const items = mapInboxItems(payload.data || payload.items || []);
+      const nextCursor = payload.nextCursor || null;
+      setInboxNextCursor(nextCursor);
+      setInboxes((prev) => (append ? [...prev, ...items] : items));
+      setVisibleInboxCount((prev) =>
+        Math.min(append ? prev : 6, append ? prev + items.length : items.length)
+      );
+    } catch (error) {
+      console.error("Error fetching inboxes:", error);
+      addNotification("Error loading inboxes", "error");
+    } finally {
+      setLoadingInboxes(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!currentJob || !user?.id) return;
+    if (selectedTab === "inboxes") fetchInboxesPage(false);
+  }, [currentJob, user?.id, selectedTab]);
+
+  const loadMoreInboxes = async () => {
+    if (visibleInboxCount < inboxes.length) {
+      setVisibleInboxCount((prev) => Math.min(prev + 6, inboxes.length));
+      return;
+    }
+    if (inboxNextCursor && !loadingInboxes) {
+      await fetchInboxesPage(true);
+    }
+  };
+
+  // Infinite scroll sentinel for inboxes
+  useEffect(() => {
+    if (selectedTab !== "inboxes") return;
+    if (!inboxScrollNode || !inboxEndSentinelNode) return;
+
+    if (inboxObserver.current) inboxObserver.current.disconnect();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting) {
+          loadMoreInboxes();
+        }
+      },
+      { root: inboxScrollNode, threshold: 0.1 }
+    );
+
+    inboxObserver.current = observer;
+    observer.observe(inboxEndSentinelNode);
+
+    return () => observer.disconnect();
+  }, [selectedTab, inboxScrollNode, inboxEndSentinelNode, inboxes.length]);
 
   // Set current month and year when component mounts or when they change
   useEffect(() => {
@@ -887,19 +1035,19 @@ export default function CurrentApplication() {
         <div className="max-w-6xl mx-auto">
           {/* Contract Pending Notification */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="bg-[#0097B2] text-white p-6">
-              <h1 className="text-2xl font-bold">Contract Status</h1>
+            <div className="bg-[#0097B2] text-white p-4">
+              <h1 className="text-xl font-bold">Contract Status</h1>
               <p className="text-blue-100 mt-1">
                 Your service contract information
               </p>
             </div>
 
-            <div className="p-8">
+            <div className="p-6">
               <div className="text-center">
                 <div className="mb-6">
                   {currentJob.estadoContratacion ===
                     "PENDIENTE_FIRMA_CANDIDATO" && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                       <Clock
                         size={48}
                         className="text-yellow-600 mx-auto mb-4"
@@ -932,7 +1080,7 @@ export default function CurrentApplication() {
 
                   {/* Estado: Necesita leer documentos */}
                   {needsDocumentReading && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                       <AlertCircle
                         size={48}
                         className="text-red-600 mx-auto mb-4"
@@ -969,7 +1117,7 @@ export default function CurrentApplication() {
 
                   {/* Estado: Esperando firma del proveedor */}
                   {isWaitingForProviderSignature && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <CheckCircle
                         size={48}
                         className="text-blue-600 mx-auto mb-4"
@@ -1298,18 +1446,18 @@ export default function CurrentApplication() {
 
         {/* Current Employment Information */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-[#0097B2] text-white p-6">
-            <h1 className="text-2xl font-bold">Current Contract</h1>
+          <div className="bg-[#0097B2] text-white p-4">
+            <h1 className="text-xl font-bold">Current Contract</h1>
             <p className="text-blue-100 mt-1">
               Job position information and documentation
             </p>
           </div>
 
-          <div className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="p-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Position Data */}
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900">
+              <div className="space-y-3">
+                <h2 className="text-base font-semibold text-gray-900">
                   Position Details
                 </h2>
 
@@ -1406,8 +1554,8 @@ export default function CurrentApplication() {
               </div>
 
               {/* Documentation and Instructions */}
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900">
+              <div className="space-y-3">
+                <h2 className="text-base font-semibold text-gray-900">
                   Documentation
                 </h2>
 
@@ -1603,179 +1751,423 @@ export default function CurrentApplication() {
           </div>
         </div>
 
-        {/* Monthly Proofs Management */}
+        {/* Documents Management */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gray-50 border-b border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Monthly Proofs
-            </h2>
-            <p className="text-gray-600 mt-1">
-              Upload your monthly proofs to enable payment processing
+          <div className="bg-gray-50 border-b border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Documents</h2>
+              <div className="flex gap-2">
+                {showProofsTab && (
+                  <button
+                    onClick={() => setSelectedTab("proofs")}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                      selectedTab === "proofs"
+                        ? "bg-[#0097B2] text-white"
+                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    Proofs
+                  </button>
+                )}
+                {showInboxesTab && (
+                  <button
+                    onClick={() => setSelectedTab("inboxes")}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                      selectedTab === "inboxes"
+                        ? "bg-[#0097B2] text-white"
+                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    Inboxes
+                  </button>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              {isColombiaUser
+                ? "Upload your monthly proofs to enable payment processing"
+                : "View your payment inboxes"}
             </p>
           </div>
 
           <div className="p-6">
-            {/* Upload Form */}
-            <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Upload New Proof
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Month
-                  </label>
-                  <input
-                    type="text"
-                    value={currentMonth}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Year
-                  </label>
-                  <input
-                    type="text"
-                    value={currentYear}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    File
-                  </label>
-                  <input
-                    id="file-upload"
-                    type="file"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    onChange={handleFileSelect}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              {selectedFile && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                  <p className="text-sm text-blue-800">
-                    <strong>Selected file:</strong> {selectedFile.name}
+            {selectedTab === "proofs" ? (
+              <>
+                {/* Tab Heading: Monthly Proofs */}
+                <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                  <h3 className="text-base font-medium text-gray-900 mb-1">
+                    Monthly Proofs
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Upload your monthly proofs to enable payment processing
                   </p>
                 </div>
-              )}
+                {/* Upload Form */}
+                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    Upload New Proof
+                  </h3>
 
-              <button
-                onClick={handleNewProofUpload}
-                disabled={!selectedFile || !selectedMonth || uploading}
-                className="flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                {uploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <Upload size={16} />
-                    Upload Proof
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Proofs List */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Uploaded Proofs
-              </h3>
-
-              {monthlyProofs.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-                  <p>No proofs uploaded yet</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {monthlyProofs.map((proof) => (
-                    <div
-                      key={proof.id}
-                      className="border border-gray-200 rounded-lg p-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <Calendar size={20} className="text-[#0097B2]" />
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {proof.month} {proof.year}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Uploaded on{" "}
-                                {new Date(proof.uploadDate).toLocaleDateString(
-                                  "en-US"
-                                )}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="ml-4">
-                            {getStatusBadge(proof.status)}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => window.open(proof.file, "_blank")}
-                            className="flex items-center gap-2 px-3 py-2 text-[#0097B2] border border-[#0097B2] rounded-lg hover:bg-blue-50 transition-colors"
-                          >
-                            <Eye size={16} />
-                            View
-                          </button>
-                          <button
-                            onClick={() => {
-                              editingProofRef.current = proof;
-                              setShowEditModal(true);
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
-                          >
-                            <Upload size={16} />
-                            Edit
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="mt-2 text-sm text-gray-600">
-                        <strong>File:</strong> {proof.fileName}
-                      </div>
-
-                      {/* Observaciones de la revisión */}
-                      {proof.observacionesRevision && (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
-                          <div className="flex items-start gap-2">
-                            <AlertCircle
-                              size={16}
-                              className="text-yellow-600 mt-0.5"
-                            />
-                            <div>
-                              <p className="text-sm font-medium text-yellow-800">
-                                Observations:
-                              </p>
-                              <p className="text-sm text-yellow-700 mt-1">
-                                {proof.observacionesRevision}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Month
+                      </label>
+                      <input
+                        type="text"
+                        value={currentMonth}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                      />
                     </div>
-                  ))}
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Year
+                      </label>
+                      <input
+                        type="text"
+                        value={currentYear}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        File
+                      </label>
+                      <input
+                        id="file-upload"
+                        type="file"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        onChange={handleFileSelect}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  {selectedFile && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>Selected file:</strong> {selectedFile.name}
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleNewProofUpload}
+                    disabled={!selectedFile || !selectedMonth || uploading}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {uploading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={16} />
+                        Upload Proof
+                      </>
+                    )}
+                  </button>
                 </div>
-              )}
-            </div>
+
+                {/* Proofs List */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    Uploaded Proofs
+                  </h3>
+
+                  {monthlyProofs.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <FileText
+                        size={48}
+                        className="mx-auto mb-4 text-gray-300"
+                      />
+                      <p>No proofs uploaded yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {monthlyProofs.map((proof) => (
+                        <div
+                          key={proof.id}
+                          className="border border-gray-200 rounded-lg p-4"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <Calendar
+                                  size={20}
+                                  className="text-[#0097B2]"
+                                />
+                                <div>
+                                  <p className="font-medium text-gray-900">
+                                    {proof.month} {proof.year}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    Uploaded on{" "}
+                                    {new Date(
+                                      proof.uploadDate
+                                    ).toLocaleDateString("en-US")}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="ml-4">
+                                {getStatusBadge(proof.status)}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() =>
+                                  window.open(proof.file, "_blank")
+                                }
+                                className="flex items-center gap-2 px-3 py-2 text-[#0097B2] border border-[#0097B2] rounded-lg hover:bg-blue-50 transition-colors"
+                              >
+                                <Eye size={16} />
+                                View
+                              </button>
+                              <button
+                                onClick={() => {
+                                  editingProofRef.current = proof;
+                                  setShowEditModal(true);
+                                }}
+                                className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+                              >
+                                <Upload size={16} />
+                                Edit
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="mt-2 text-sm text-gray-600">
+                            <strong>File:</strong> {proof.fileName}
+                          </div>
+
+                          {proof.observacionesRevision && (
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
+                              <div className="flex items-start gap-2">
+                                <AlertCircle
+                                  size={16}
+                                  className="text-yellow-600 mt-0.5"
+                                />
+                                <div>
+                                  <p className="text-sm font-medium text-yellow-800">
+                                    Observations:
+                                  </p>
+                                  <p className="text-sm text-yellow-700 mt-1">
+                                    {proof.observacionesRevision}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <h3 className="text-base font-medium text-gray-900 mb-1">
+                    Inboxes
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Recent payment inboxes (newest first). Auto-loads as you
+                    scroll; use the button to view more.
+                  </p>
+                </div>
+
+                <div
+                  ref={setInboxScrollNode}
+                  className="max-h-[60vh] overflow-y-auto custom-scrollbar border border-gray-200 rounded-lg"
+                >
+                  <div className="p-4 space-y-4">
+                    {inboxes.slice(0, visibleInboxCount).map((item) => (
+                      <div
+                        key={item.id}
+                        className="border border-gray-200 rounded-lg p-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                              <Calendar size={20} className="text-[#0097B2]" />
+                              <div>
+                                <p className="font-medium text-gray-900">
+                                  Invoice {item.invoiceNumber} — {item.month}{" "}
+                                  {item.year}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  Generated on{" "}
+                                  {new Date(
+                                    item.generatedAt
+                                  ).toLocaleDateString("en-US")}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="ml-4 text-sm text-gray-700">
+                              <strong>Amount:</strong> {item.currency} $
+                              {item.amount.toLocaleString()}
+                            </div>
+                            <div className="ml-4">
+                              {item.status === "PAID" ? (
+                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                  Paid
+                                </span>
+                              ) : (
+                                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                                  Pending
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const res = await viewInboxPdfAction(item.id);
+                                  if (!res.success) {
+                                    addNotification(
+                                      res.error || "Error opening invoice",
+                                      "error"
+                                    );
+                                    return;
+                                  }
+                                  const byteCharacters = atob(res.base64);
+                                  const byteNumbers = new Array(
+                                    byteCharacters.length
+                                  );
+                                  for (
+                                    let i = 0;
+                                    i < byteCharacters.length;
+                                    i++
+                                  ) {
+                                    byteNumbers[i] =
+                                      byteCharacters.charCodeAt(i);
+                                  }
+                                  const byteArray = new Uint8Array(byteNumbers);
+                                  const blob = new Blob([byteArray], {
+                                    type: "application/pdf",
+                                  });
+                                  const url = URL.createObjectURL(blob);
+                                  window.open(url, "_blank");
+                                  setTimeout(
+                                    () => URL.revokeObjectURL(url),
+                                    60_000
+                                  );
+                                } catch (error) {
+                                  console.error(
+                                    "Error opening invoice:",
+                                    error
+                                  );
+                                  addNotification(
+                                    "Error opening invoice",
+                                    "error"
+                                  );
+                                }
+                              }}
+                              className="flex items-center gap-2 px-3 py-2 text-[#0097B2] border border-[#0097B2] rounded-lg hover:bg-blue-50 transition-colors"
+                            >
+                              <Eye size={16} />
+                              View
+                            </button>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const res = await downloadInboxPdfAction(
+                                    item.id
+                                  );
+                                  if (!res.success) {
+                                    addNotification(
+                                      res.error || "Error downloading invoice",
+                                      "error"
+                                    );
+                                    return;
+                                  }
+                                  const byteCharacters = atob(res.base64);
+                                  const byteNumbers = new Array(
+                                    byteCharacters.length
+                                  );
+                                  for (
+                                    let i = 0;
+                                    i < byteCharacters.length;
+                                    i++
+                                  ) {
+                                    byteNumbers[i] =
+                                      byteCharacters.charCodeAt(i);
+                                  }
+                                  const byteArray = new Uint8Array(byteNumbers);
+                                  const blob = new Blob([byteArray], {
+                                    type: "application/pdf",
+                                  });
+                                  const url = URL.createObjectURL(blob);
+                                  const link = document.createElement("a");
+                                  link.href = url;
+                                  link.download =
+                                    res.filename ||
+                                    `invoice-${item.year}-${String(
+                                      months.indexOf(item.month) + 1
+                                    ).padStart(2, "0")}.pdf`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  setTimeout(
+                                    () => URL.revokeObjectURL(url),
+                                    60_000
+                                  );
+                                } catch (error) {
+                                  console.error(
+                                    "Error downloading invoice:",
+                                    error
+                                  );
+                                  addNotification(
+                                    "Error downloading invoice",
+                                    "error"
+                                  );
+                                }
+                              }}
+                              className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors"
+                            >
+                              <Download size={16} />
+                              Download
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div ref={setInboxEndSentinelNode} className="h-5" />
+                  </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <button
+                    onClick={loadMoreInboxes}
+                    disabled={
+                      (!inboxNextCursor &&
+                        visibleInboxCount >= inboxes.length) ||
+                      loadingInboxes
+                    }
+                    className={`px-4 py-2 rounded ${
+                      visibleInboxCount < inboxes.length || inboxNextCursor
+                        ? "bg-[#0097B2] text-white hover:bg-[#007B8F]"
+                        : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    }`}
+                  >
+                    {loadingInboxes
+                      ? "Loading..."
+                      : inboxNextCursor || visibleInboxCount < inboxes.length
+                      ? "Load more"
+                      : "All loaded"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

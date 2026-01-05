@@ -47,12 +47,14 @@ export const updateObservations = async (
 };
 
 export async function enableBulkPayments(
-  evaluacionIds: string[]
+  evaluacionIds: string[],
+  procesoContratacionIds?: string[]
 ): Promise<ApiResponse<EnableBulkPaymentsResponse>> {
   try {
     const axios = await createServerAxios();
     const response = await axios.post(`/admin/evaluaciones/habilitar-pagos`, {
       evaluacionIds,
+      procesoContratacionIds: procesoContratacionIds || [],
     });
 
     revalidatePath("/admin/superAdmin/payments");
@@ -94,5 +96,44 @@ export async function resetToPending(
       success: false,
       error: error.response?.data?.message || "Error al resetear evaluación",
     };
+  }
+}
+
+// Obtener inboxes del usuario (paginado)
+export async function getUserInboxes(
+  usuarioId: string,
+  limit = 10
+): Promise<ApiResponse<Array<any>>> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.get(`/users/${usuarioId}/inboxes`, {
+      params: { limit },
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error fetching user inboxes:", error);
+    return { success: false, error: "Failed to fetch user inboxes" };
+  }
+}
+
+// Obtener presencia de inbox en lote para procesos en un año-mes
+export async function getInboxesPresenceBulk(
+  procesoContratacionIds: string[],
+  anioMes?: string
+): Promise<
+  ApiResponse<
+    Array<{ id: string; procesoContratacionId: string; añoMes: string }>
+  >
+> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.post(`/admin/inboxes/presence`, {
+      procesoContratacionIds,
+      anioMes,
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error fetching inbox presence in bulk:", error);
+    return { success: false, error: "Failed to fetch inbox presence" };
   }
 }
