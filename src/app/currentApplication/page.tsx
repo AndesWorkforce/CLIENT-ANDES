@@ -2038,7 +2038,15 @@ export default function CurrentApplication() {
                                     );
                                     return;
                                   }
-                                  const byteCharacters = atob(res.base64);
+                                  const base64 = res.base64;
+                                  if (!base64) {
+                                    addNotification(
+                                      "PDF data not available",
+                                      "error"
+                                    );
+                                    return;
+                                  }
+                                  const byteCharacters = atob(base64);
                                   const byteNumbers = new Array(
                                     byteCharacters.length
                                   );
@@ -2089,7 +2097,15 @@ export default function CurrentApplication() {
                                     );
                                     return;
                                   }
-                                  const byteCharacters = atob(res.base64);
+                                  const base64 = res.base64;
+                                  if (!base64) {
+                                    addNotification(
+                                      "PDF data not available",
+                                      "error"
+                                    );
+                                    return;
+                                  }
+                                  const byteCharacters = atob(base64);
                                   const byteNumbers = new Array(
                                     byteCharacters.length
                                   );
