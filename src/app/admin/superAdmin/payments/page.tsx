@@ -12,7 +12,12 @@ import {
   AlertCircle,
   X,
   Eye,
+  Download,
 } from "lucide-react";
+import {
+  viewInboxPdfAction,
+  downloadInboxPdfAction,
+} from "./actions/invoices.actions";
 import { getContracts } from "../../dashboard/contracts/actions/contracts.actions";
 import {
   updateObservations,
@@ -26,9 +31,11 @@ import { useNotificationStore } from "@/store/notifications.store";
 // Adaptamos ProcesoContratacion para payments
 type UserContract = {
   id: string;
+  usuarioId?: string | null;
   firstName: string;
   lastName: string;
   email: string;
+  country?: string | null;
   documentUploadedThisMonth: boolean;
   lastDocumentDate: string | null;
   documentImageUrl: string | null;
@@ -43,6 +50,9 @@ type UserContract = {
   evaluacionMesAnteriorId?: string | null;
   // Información de la empresa/cliente
   companyName?: string | null;
+  // Presencia de inbox del mes actual
+  inboxMesActualId?: string | null;
+  inboxMesActualAñoMes?: string | null;
 };
 
 interface ActionLog {
@@ -67,6 +77,7 @@ export default function PaymentsPage() {
   const [processingUsers, setProcessingUsers] = useState<Set<string>>(
     new Set()
   );
+  // Eliminado: la presencia de inbox viene del backend en cada contrato
 
   // Estados para sorting
   const [sortKey, setSortKey] = useState<keyof UserContract | null>(null);
@@ -209,6 +220,8 @@ export default function PaymentsPage() {
             .filter((contrato) => contrato.activo) // Solo contratos activos
             .map((contrato) => ({
               id: contrato.id, // Este es el ID del proceso de contratación
+              usuarioId: (contrato as any)?.postulacion?.candidatoId || null,
+              country: (contrato as any).pais || null,
               firstName: contrato.nombreCompleto.split(" ")[0] || "",
               lastName:
                 contrato.nombreCompleto.split(" ").slice(1).join(" ") || "",
@@ -232,6 +245,10 @@ export default function PaymentsPage() {
               evaluacionMesAnteriorId: contrato.evaluacionMesAnteriorId || null,
               // Información de la empresa/cliente
               companyName: contrato.clienteNombre || null,
+              // Presencia de inbox del mes actual proveniente del backend
+              inboxMesActualId: (contrato as any).inboxMesActualId || null,
+              inboxMesActualAñoMes:
+                (contrato as any).inboxMesActualAñoMes || null,
             }));
 
           setUsers(transformedUsers);
@@ -256,6 +273,8 @@ export default function PaymentsPage() {
 
     loadActiveContracts();
   }, []);
+
+  // Eliminado: ya no necesitamos cargar presencia de inbox en el cliente
 
   useEffect(() => {
     // Filter users based on search (only among active users)
@@ -407,14 +426,29 @@ export default function PaymentsPage() {
           return user?.evaluacionMensualId;
         })
         .filter((id): id is string => id !== null && id !== undefined);
+      // Si todos los seleccionados son de Colombia, requerimos evaluaciones.
+      // Para no-Colombia, permitimos continuar sin evaluaciones para crear Inboxes.
+      const allSelectedAreColombia = selectedUsersList.every((userId) => {
+        const user = users.find((u) => u.id === userId);
+        return String(user?.country || "").toLowerCase() === "colombia";
+      });
 
-      if (evaluacionIds.length === 0) {
+      if (evaluacionIds.length === 0 && allSelectedAreColombia) {
         throw new Error(
           "No se encontraron evaluaciones mensuales para los usuarios seleccionados"
         );
       }
 
-      const result = await enableBulkPayments(evaluacionIds);
+      // Para usuarios no-Colombia sin evaluación, enviar los procesos seleccionados
+      const procesoContratacionIds = selectedUsersList.filter((userId) => {
+        const user = users.find((u) => u.id === userId);
+        return String(user?.country || "").toLowerCase() !== "colombia";
+      });
+
+      const result = await enableBulkPayments(
+        evaluacionIds,
+        procesoContratacionIds
+      );
 
       if (!result.success) {
         throw new Error(result.error || "Error desconocido");
@@ -423,15 +457,35 @@ export default function PaymentsPage() {
       // Actualizar el estado local
       const currentDate = new Date().toLocaleDateString();
       setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          selectedUsers.has(user.id)
-            ? {
-                ...user,
-                paymentEnabled: true,
-                paymentEnabledDate: currentDate,
-              }
-            : user
-        )
+        prevUsers.map((user) => {
+          if (!selectedUsers.has(user.id)) return user;
+          const isColombia =
+            String(user.country || "").toLowerCase() === "colombia";
+          return {
+            ...user,
+            // Solo marcamos paymentEnabled para Colombia; para no-Colombia se genera Inbox y permanece Pending
+            paymentEnabled: isColombia ? true : user.paymentEnabled,
+            paymentEnabledDate: isColombia
+              ? currentDate
+              : user.paymentEnabledDate,
+          };
+        })
+      );
+
+      // Mantener lista filtrada sincronizada
+      setFilteredUsers((prevUsers) =>
+        prevUsers.map((user) => {
+          if (!selectedUsers.has(user.id)) return user;
+          const isColombia =
+            String(user.country || "").toLowerCase() === "colombia";
+          return {
+            ...user,
+            paymentEnabled: isColombia ? true : user.paymentEnabled,
+            paymentEnabledDate: isColombia
+              ? currentDate
+              : user.paymentEnabledDate,
+          };
+        })
       );
 
       const currentDateTime = new Date().toLocaleString();
@@ -473,9 +527,10 @@ export default function PaymentsPage() {
     try {
       // Primero aprobar el mes anterior si existe evaluación
       if (user.evaluacionMesAnteriorId) {
-        const approveLastMonth = await enableBulkPayments([
-          user.evaluacionMesAnteriorId,
-        ]);
+        const approveLastMonth = await enableBulkPayments(
+          [user.evaluacionMesAnteriorId],
+          []
+        );
         if (!approveLastMonth.success) {
           throw new Error("Error aprobando el mes anterior");
         }
@@ -532,6 +587,75 @@ export default function PaymentsPage() {
     }
   };
 
+  const handleViewInvoice = async (inboxId: string, añoMes?: string | null) => {
+    try {
+      const res = await viewInboxPdfAction(inboxId);
+      if (!res.success) {
+        addNotification(res.error || "Error opening invoice", "error");
+        return;
+      }
+      if (!res.base64) {
+        addNotification("Error: No PDF data received", "error");
+        return;
+      }
+      const byteCharacters = atob(res.base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (error) {
+      console.error("Error opening invoice PDF:", error);
+      addNotification(
+        `Error opening invoice${añoMes ? ` ${añoMes}` : ""}`,
+        "error"
+      );
+    }
+  };
+
+  const handleDownloadInvoice = async (
+    inboxId: string,
+    añoMes?: string | null
+  ) => {
+    try {
+      const res = await downloadInboxPdfAction(inboxId);
+
+      if (!res.success) {
+        addNotification(res.error || "Error downloading invoice", "error");
+        return;
+      }
+      if (!res.base64) {
+        addNotification("Error: No PDF data received", "error");
+        return;
+      }
+      const byteCharacters = atob(res.base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = res.filename || `invoice-${añoMes || "current"}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (error) {
+      console.error("Error downloading invoice PDF:", error);
+      addNotification(
+        `Error downloading invoice${añoMes ? ` ${añoMes}` : ""}`,
+        "error"
+      );
+    }
+  };
+
   // Función para determinar si mostrar el botón de reset
   const shouldShowResetButton = (user: UserContract) => {
     const today = new Date();
@@ -553,6 +677,7 @@ export default function PaymentsPage() {
   };
 
   const getPaymentStatus = (user: UserContract) => {
+    const isColombia = String(user.country || "").toLowerCase() === "colombia";
     if (processingUsers.has(user.id)) {
       return (
         <div className="flex items-center text-blue-600">
@@ -562,15 +687,43 @@ export default function PaymentsPage() {
       );
     }
 
-    if (user.paymentEnabled) {
+    // Colombia: usar flujo de habilitación
+    if (isColombia) {
+      if (user.paymentEnabled) {
+        return (
+          <div className="flex items-center text-green-600">
+            <CheckCircle size={16} className="mr-2" />
+            <span className="text-sm">Enabled</span>
+          </div>
+        );
+      }
+      if (user.documentUploadedThisMonth) {
+        return (
+          <div className="flex items-center text-yellow-600">
+            <AlertCircle size={16} className="mr-2" />
+            <span className="text-sm">In review</span>
+          </div>
+        );
+      }
       return (
-        <div className="flex items-center text-green-600">
-          <CheckCircle size={16} className="mr-2" />
-          <span className="text-sm">Enabled</span>
+        <div className="flex items-center text-gray-500">
+          <Clock size={16} className="mr-2" />
+          <span className="text-sm">Pending</span>
         </div>
       );
     }
 
+    // No-Colombia: si existe inbox del mes actual, mostrarlo como estado principal
+    if (user.inboxMesActualId) {
+      return (
+        <div className="flex items-center">
+          <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 border border-green-200">
+            <CheckCircle size={12} className="mr-1" /> Invoice{" "}
+            {user.inboxMesActualAñoMes}
+          </span>
+        </div>
+      );
+    }
     return (
       <div className="flex items-center text-gray-500">
         <Clock size={16} className="mr-2" />
@@ -628,34 +781,6 @@ export default function PaymentsPage() {
           </div>
         </div>
       </div>
-
-      {/* Stats */}
-      {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
-          <div className="text-sm text-gray-600">Total Active Users</div>
-          <div className="text-2xl font-bold text-gray-900">
-            {stats.totalUsers}
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
-          <div className="text-sm text-gray-600">With Documents</div>
-          <div className="text-2xl font-bold text-gray-900">
-            {stats.withDocuments}
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-500">
-          <div className="text-sm text-gray-600">Payments Enabled</div>
-          <div className="text-2xl font-bold text-gray-900">
-            {stats.paymentsEnabled}
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
-          <div className="text-sm text-gray-600">Pending</div>
-          <div className="text-2xl font-bold text-gray-900">
-            {stats.pendingUsers}
-          </div>
-        </div>
-      </div> */}
 
       {/* Success Message */}
       {showSuccessMessage && (
@@ -840,67 +965,81 @@ export default function PaymentsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      {user.documentUploadedThisMonth ? (
-                        <div
-                          className="flex items-center text-green-600 cursor-pointer hover:bg-gray-100 rounded p-1 -m-1 transition-colors"
-                          onClick={() => handleDocumentClick(user)}
-                          title="Click to view document"
-                        >
-                          <FileCheck size={16} className="mr-2" />
-                          <span className="text-sm">Yes</span>
-                          {user.documentImageUrl && (
-                            <Eye size={14} className="ml-2 text-gray-400" />
+                    {String(user.country || "").toLowerCase() === "colombia" ? (
+                      <>
+                        <div className="flex items-center">
+                          {user.documentUploadedThisMonth ? (
+                            <div
+                              className="flex items-center text-green-600 cursor-pointer hover:bg-gray-100 rounded p-1 -m-1 transition-colors"
+                              onClick={() => handleDocumentClick(user)}
+                              title="Click to view document"
+                            >
+                              <FileCheck size={16} className="mr-2" />
+                              <span className="text-sm">Yes</span>
+                              {user.documentImageUrl && (
+                                <Eye size={14} className="ml-2 text-gray-400" />
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center text-red-600">
+                              <FileX size={16} className="mr-2" />
+                              <span className="text-sm">No</span>
+                            </div>
                           )}
                         </div>
-                      ) : (
-                        <div className="flex items-center text-red-600">
-                          <FileX size={16} className="mr-2" />
-                          <span className="text-sm">No</span>
-                        </div>
-                      )}
-                    </div>
-                    {user.lastDocumentDate && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        Last: {user.lastDocumentDate}
-                      </div>
+                        {user.lastDocumentDate && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Last: {user.lastDocumentDate}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-xs text-gray-400">
+                        Not required
+                      </span>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <div
-                      className="max-w-xs cursor-pointer hover:bg-gray-50 rounded p-2 -m-2 transition-colors"
-                      onClick={() => handleObservationsClick(user)}
-                      title="Click to add/edit observations"
-                    >
-                      {user.observacionesRevision ? (
-                        <div className="flex items-start gap-2">
-                          <AlertCircle
-                            size={16}
-                            className="text-yellow-600 mt-0.5 flex-shrink-0"
-                          />
-                          <div className="text-sm text-gray-700 break-words">
-                            {user.observacionesRevision}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 4v16m8-8H4"
+                    {String(user.country || "").toLowerCase() === "colombia" ? (
+                      <div
+                        className="max-w-xs cursor-pointer hover:bg-gray-50 rounded p-2 -m-2 transition-colors"
+                        onClick={() => handleObservationsClick(user)}
+                        title="Click to add/edit observations"
+                      >
+                        {user.observacionesRevision ? (
+                          <div className="flex items-start gap-2">
+                            <AlertCircle
+                              size={16}
+                              className="text-yellow-600 mt-0.5 shrink-0"
                             />
-                          </svg>
-                          <span className="text-sm">Add observations</span>
-                        </div>
-                      )}
-                    </div>
+                            <div className="text-sm text-gray-700">
+                              {user.observacionesRevision}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-gray-400">
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                              />
+                            </svg>
+                            <span className="text-sm">Add observations</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">
+                        Not required
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getPaymentStatus(user)}
@@ -944,6 +1083,38 @@ export default function PaymentsPage() {
                       </button>
                     ) : (
                       <span className="text-sm text-gray-400">-</span>
+                    )}
+                    {user.inboxMesActualId && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            handleViewInvoice(
+                              user.inboxMesActualId as string,
+                              user.inboxMesActualAñoMes
+                            )
+                          }
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200"
+                          title={`View invoice ${
+                            user.inboxMesActualAñoMes || "current"
+                          }`}
+                        >
+                          <Eye size={14} /> View
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDownloadInvoice(
+                              user.inboxMesActualId as string,
+                              user.inboxMesActualAñoMes
+                            )
+                          }
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          title={`Download invoice ${
+                            user.inboxMesActualAñoMes || "current"
+                          }`}
+                        >
+                          <Download size={14} /> Download
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
