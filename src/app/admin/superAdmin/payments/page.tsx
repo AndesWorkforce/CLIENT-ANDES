@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import * as XLSX from "xlsx";
 import {
   Search,
@@ -23,12 +25,10 @@ import {
   updateObservations,
   enableBulkPayments,
   resetToPending,
+  getInboxesPresenceBulk,
 } from "./actions/observations.actions";
 import { useNotificationStore } from "@/store/notifications.store";
 
-// Eliminamos datos hardcodeados; se cargarán desde API
-
-// Adaptamos ProcesoContratacion para payments
 type UserContract = {
   id: string;
   usuarioId?: string | null;
@@ -69,15 +69,128 @@ export default function PaymentsPage() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
+  const [countryFilter, setCountryFilter] = useState<
+    "all" | "colombia" | "rest"
+  >("all");
+  const [documentFilter, setDocumentFilter] = useState<"all" | "yes" | "no">(
+    "all"
+  );
+  const now = new Date();
+  const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(
+    now.getMonth() + 1
+  ); // 1-12
   const [loading, setLoading] = useState<boolean>(true);
   const [enablingPayments, setEnablingPayments] = useState<boolean>(false);
+  const [preparingInvoices, setPreparingInvoices] = useState<boolean>(false);
   const [actionLogs, setActionLogs] = useState<ActionLog[]>([]);
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [lastActionMessage, setLastActionMessage] = useState<string>("");
   const [processingUsers, setProcessingUsers] = useState<Set<string>>(
     new Set()
   );
-  // Eliminado: la presencia de inbox viene del backend en cada contrato
+
+  // Guided tour for this page
+  const startPaymentsTour = () => {
+    const d = driver({
+      showProgress: true,
+      allowClose: true,
+      stagePadding: 6,
+      steps: [
+        {
+          element: "#payments-title",
+          popover: {
+            title: "Monthly Payments",
+            description:
+              "Manage monthly payments: filter, review documents, and enable payments (Colombia only).",
+            side: "bottom",
+            align: "start",
+          },
+        },
+        {
+          element: "#filter-country",
+          popover: {
+            title: "Country filter",
+            description:
+              "Use Colombia/Rest to segment. Only Colombia users can be selected and enabled.",
+            side: "bottom",
+            align: "start",
+          },
+        },
+        {
+          element: "#filter-period",
+          popover: {
+            title: "Period (Year/Month)",
+            description:
+              "Choose year and month. Future months are disabled and selection auto-clamps when needed.",
+            side: "bottom",
+            align: "start",
+          },
+        },
+        {
+          element: "#filter-document",
+          popover: {
+            title: "Document (Period)",
+            description:
+              "Filter by delivered or missing for the selected period. For non‑Colombia, documents are not required.",
+            side: "bottom",
+            align: "start",
+          },
+        },
+        {
+          element: "#select-all-checkbox",
+          popover: {
+            title: "Select all (Colombia)",
+            description:
+              "Select only eligible Colombia users. Rows from other countries cannot be checked.",
+            side: "right",
+            align: "center",
+          },
+        },
+        {
+          element: "#col-document-header",
+          popover: {
+            title: "Document column (Period)",
+            description:
+              "Shows if a document is delivered in the selected period. In the current month, you can open the evidence when available.",
+            side: "bottom",
+            align: "start",
+          },
+        },
+        {
+          element: "#col-invoices-header",
+          popover: {
+            title: "Invoices (All countries)",
+            description:
+              "Shows invoice availability when present. Monthly invoicing applies to all countries; monthly payment enablement is for Colombia.",
+            side: "bottom",
+            align: "start",
+          },
+        },
+        {
+          element: "#payments-title",
+          popover: {
+            title: "Enable payments (Colombia)",
+            description:
+              "Select Colombia users only and use 'Enable Monthly Payments'. If a non‑Colombia user is selected, we’ll alert you to deselect them.",
+            side: "bottom",
+            align: "start",
+          },
+        },
+      ],
+    });
+    d.drive();
+  };
+
+  // Utilidad: normalizar texto para búsqueda (sin acentos, espacios colapsados)
+  const normalizeText = (value: string) =>
+    String(value || "")
+      .normalize("NFD")
+      // @ts-ignore - soporte unicode property escapes
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
 
   // Estados para sorting
   const [sortKey, setSortKey] = useState<keyof UserContract | null>(null);
@@ -178,7 +291,12 @@ export default function PaymentsPage() {
 
   // Función para usuarios ordenados
   const sortedUsers = useMemo(() => {
-    if (!sortKey) return filteredUsers;
+    if (!sortKey) {
+      // Default: place completed (paymentEnabled) at the end
+      return [...filteredUsers].sort((a, b) =>
+        a.paymentEnabled === b.paymentEnabled ? 0 : a.paymentEnabled ? 1 : -1
+      );
+    }
 
     return [...filteredUsers].sort((a, b) => {
       const aValue = a[sortKey];
@@ -276,26 +394,118 @@ export default function PaymentsPage() {
 
   // Eliminado: ya no necesitamos cargar presencia de inbox en el cliente
 
-  useEffect(() => {
-    // Filter users based on search (only among active users)
-    const filtered = users.filter(
-      (user) =>
-        user.firstName.toLowerCase().includes(search.toLowerCase()) ||
-        user.lastName.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase())
+  // Helpers para filtro por período
+  const isSelectedCurrentPeriod = useMemo(() => {
+    const d = new Date();
+    return (
+      selectedYear === d.getFullYear() && selectedMonth === d.getMonth() + 1
     );
-    setFilteredUsers(filtered);
+  }, [selectedYear, selectedMonth]);
+
+  const getPreviousYearMonth = (y: number, m: number) => {
+    return m === 1 ? { y: y - 1, m: 12 } : { y, m: m - 1 };
+  };
+
+  const isSelectedPreviousPeriod = useMemo(() => {
+    const d = new Date();
+    const p = getPreviousYearMonth(d.getFullYear(), d.getMonth() + 1);
+    return selectedYear === p.y && selectedMonth === p.m;
+  }, [selectedYear, selectedMonth]);
+
+  // Evitar selección de meses futuros en el año actual
+  useEffect(() => {
+    const currY = now.getFullYear();
+    const currM = now.getMonth() + 1;
+    const prev = getPreviousYearMonth(currY, currM);
+    // Clamp future month in current year
+    if (selectedYear === currY && selectedMonth > currM) {
+      setSelectedMonth(currM);
+      return;
+    }
+    // When previous year is selected, clamp to the actual previous month
+    if (selectedYear === prev.y && selectedMonth !== prev.m) {
+      setSelectedMonth(prev.m);
+      return;
+    }
+  }, [selectedYear, selectedMonth]);
+
+  const hasDocForPeriod = (user: UserContract) => {
+    const isColombia = String(user.country || "").toLowerCase() === "colombia";
+    if (isColombia) {
+      if (isSelectedCurrentPeriod) return !!user.documentUploadedThisMonth;
+      if (isSelectedPreviousPeriod)
+        return !!user.mesAnteriorAprobado || !!user.evaluacionMesAnteriorId;
+      return false;
+    }
+    // Para no-Colombia, usamos presencia de inbox para el mes actual si está disponible
+    if (isSelectedCurrentPeriod) return !!user.inboxMesActualId;
+    return false;
+  };
+
+  useEffect(() => {
+    // Filter users based on search (accent/space insensitive among active users)
+    const q = normalizeText(search);
+    const filteredBySearch = users.filter((user) => {
+      if (!q) return true;
+      const fullName = normalizeText(`${user.firstName} ${user.lastName}`);
+      const email = normalizeText(user.email);
+      const countryN = normalizeText(user.country || "");
+      const company = normalizeText(user.companyName || "");
+      return (
+        fullName.includes(q) ||
+        email.includes(q) ||
+        countryN.includes(q) ||
+        company.includes(q)
+      );
+    });
+
+    const filteredByCountry = filteredBySearch.filter((user) => {
+      if (countryFilter === "all") return true;
+      const isColombia =
+        String(user.country || "").toLowerCase() === "colombia";
+      return countryFilter === "colombia" ? isColombia : !isColombia;
+    });
+
+    let filtered = filteredByCountry.filter((user) => {
+      if (documentFilter === "all") return true;
+      const hasDoc = hasDocForPeriod(user);
+      return documentFilter === "yes" ? hasDoc : !hasDoc;
+    });
+    // Always include completed users (paymentEnabled), even if the document filter would exclude them
+    const completedUsers = filteredByCountry.filter(
+      (user) => user.paymentEnabled
+    );
+    const completedIds = new Set(completedUsers.map((u) => u.id));
+    const existingIds = new Set(filtered.map((u) => u.id));
+    const merged = [
+      ...filtered,
+      ...completedUsers.filter((u) => !existingIds.has(u.id)),
+    ];
+    setFilteredUsers(merged);
 
     // Clear selections if they're not in the filtered list
-    const filteredIds = new Set(filtered.map((user) => user.id));
+    const filteredIds = new Set(merged.map((user) => user.id));
     setSelectedUsers(
       (prev) => new Set([...prev].filter((id) => filteredIds.has(id)))
     );
-  }, [search, users]);
+  }, [
+    search,
+    users,
+    countryFilter,
+    documentFilter,
+    selectedYear,
+    selectedMonth,
+  ]);
 
   useEffect(() => {
-    // Update "select all" state (only for users without enabled payments)
-    const eligibleUsers = filteredUsers.filter((user) => !user.paymentEnabled);
+    // Update "select all" state: allow selecting Colombians even if paymentEnabled
+    const eligibleUsers = filteredUsers.filter((user) => {
+      const isColombia =
+        String(user.country || "").toLowerCase() === "colombia";
+      if (processingUsers.has(user.id)) return false;
+      // Only Colombians are eligible for monthly enablement
+      return isColombia;
+    });
     if (eligibleUsers.length === 0) {
       setSelectAll(false);
     } else {
@@ -304,10 +514,15 @@ export default function PaymentsPage() {
       );
       setSelectAll(allEligibleSelected);
     }
-  }, [selectedUsers, filteredUsers]);
+  }, [selectedUsers, filteredUsers, processingUsers]);
 
   const handleSelectAll = () => {
-    const eligibleUsers = filteredUsers.filter((user) => !user.paymentEnabled);
+    const eligibleUsers = filteredUsers.filter((user) => {
+      const isColombia =
+        String(user.country || "").toLowerCase() === "colombia";
+      if (processingUsers.has(user.id)) return false;
+      return isColombia; // Only Colombians
+    });
     if (selectAll) {
       // Deselect all eligible users
       const newSelected = new Set(selectedUsers);
@@ -323,7 +538,11 @@ export default function PaymentsPage() {
 
   const handleUserSelect = (userId: string) => {
     const user = users.find((u) => u.id === userId);
-    if (!user || user.paymentEnabled) return;
+    if (!user) return;
+    if (processingUsers.has(user.id)) return;
+    const isColombia = String(user.country || "").toLowerCase() === "colombia";
+    const canSelect = isColombia;
+    if (!canSelect) return;
 
     const newSelected = new Set(selectedUsers);
     if (newSelected.has(userId)) {
@@ -418,37 +637,32 @@ export default function PaymentsPage() {
     setProcessingUsers(new Set(selectedUsers));
 
     try {
-      // Obtener IDs de evaluaciones mensuales de los usuarios seleccionados
+      // Validar selección: solo usuarios de Colombia
       const selectedUsersList = Array.from(selectedUsers);
+      const hasNonColombia = selectedUsersList.some((userId) => {
+        const user = users.find((u) => u.id === userId);
+        return String(user?.country || "").toLowerCase() !== "colombia";
+      });
+      if (hasNonColombia) {
+        addNotification(
+          "Only Colombia users can be enabled. Please deselect non-Colombia users.",
+          "error"
+        );
+        return;
+      }
+      // Obtener IDs de evaluaciones mensuales de los usuarios seleccionados
       const evaluacionIds = selectedUsersList
         .map((userId) => {
           const user = users.find((u) => u.id === userId);
           return user?.evaluacionMensualId;
         })
         .filter((id): id is string => id !== null && id !== undefined);
-      // Si todos los seleccionados son de Colombia, requerimos evaluaciones.
-      // Para no-Colombia, permitimos continuar sin evaluaciones para crear Inboxes.
-      const allSelectedAreColombia = selectedUsersList.every((userId) => {
-        const user = users.find((u) => u.id === userId);
-        return String(user?.country || "").toLowerCase() === "colombia";
-      });
-
-      if (evaluacionIds.length === 0 && allSelectedAreColombia) {
+      if (evaluacionIds.length === 0) {
         throw new Error(
           "No se encontraron evaluaciones mensuales para los usuarios seleccionados"
         );
       }
-
-      // Para usuarios no-Colombia sin evaluación, enviar los procesos seleccionados
-      const procesoContratacionIds = selectedUsersList.filter((userId) => {
-        const user = users.find((u) => u.id === userId);
-        return String(user?.country || "").toLowerCase() !== "colombia";
-      });
-
-      const result = await enableBulkPayments(
-        evaluacionIds,
-        procesoContratacionIds
-      );
+      const result = await enableBulkPayments(evaluacionIds, []);
 
       if (!result.success) {
         throw new Error(result.error || "Error desconocido");
@@ -555,7 +769,7 @@ export default function PaymentsPage() {
                 lastDocumentDate: null,
                 documentImageUrl: null,
                 paymentEnabled: false,
-                mesAnteriorAprobado: true, // Marcar que el mes anterior fue aprobado
+                mesAnteriorAprobado: true,
               }
             : u
         )
@@ -584,6 +798,61 @@ export default function PaymentsPage() {
       );
     } finally {
       setResettingUser(null);
+    }
+  };
+
+  // Bulk: prepare invoices by fetching inbox presence for selected users
+  const handlePrepareInvoices = async () => {
+    if (selectedUsers.size === 0) return;
+    setPreparingInvoices(true);
+    try {
+      const procesoContratacionIds = Array.from(selectedUsers);
+      const presence = await getInboxesPresenceBulk(procesoContratacionIds);
+      if (!presence.success || !presence.data) {
+        addNotification(presence.error || "Error preparing invoices", "error");
+        return;
+      }
+      const mapByProceso: Record<string, { id: string; añoMes: string }> = {};
+      for (const it of presence.data) {
+        mapByProceso[it.procesoContratacionId] = {
+          id: it.id,
+          añoMes: it.añoMes,
+        };
+      }
+      setUsers((prev) =>
+        prev.map((u) =>
+          mapByProceso[u.id]
+            ? {
+                ...u,
+                inboxMesActualId: mapByProceso[u.id].id,
+                inboxMesActualAñoMes: mapByProceso[u.id].añoMes,
+              }
+            : u
+        )
+      );
+      setFilteredUsers((prev) =>
+        prev.map((u) =>
+          mapByProceso[u.id]
+            ? {
+                ...u,
+                inboxMesActualId: mapByProceso[u.id].id,
+                inboxMesActualAñoMes: mapByProceso[u.id].añoMes,
+              }
+            : u
+        )
+      );
+      const found = Object.keys(mapByProceso).length;
+      addNotification(
+        found > 0
+          ? `Prepared invoices for ${found} user(s)`
+          : "No invoices found for selected users",
+        found > 0 ? "success" : "error"
+      );
+    } catch (error) {
+      console.error("Error preparing invoices:", error);
+      addNotification("Error preparing invoices", "error");
+    } finally {
+      setPreparingInvoices(false);
     }
   };
 
@@ -748,7 +1017,9 @@ export default function PaymentsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Monthly Payments</h1>
+        <h1 id="payments-title" className="text-2xl font-bold">
+          Monthly Payments
+        </h1>
         <div className="flex items-center space-x-4">
           <button
             onClick={exportToExcel}
@@ -778,6 +1049,290 @@ export default function PaymentsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+          </div>
+          <button
+            onClick={startPaymentsTour}
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 cursor-pointer"
+            title="Open guided tour"
+          >
+            ❔
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div id="filter-country" className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm text-gray-600">Country:</span>
+          <div className="inline-flex rounded-md overflow-hidden border border-gray-200">
+            <button
+              onClick={() => setCountryFilter("all")}
+              className={`px-3 py-1.5 text-sm transition-colors cursor-pointer ${
+                countryFilter === "all"
+                  ? "bg-[#0097B2] text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setCountryFilter("colombia")}
+              className={`px-3 py-1.5 text-sm transition-colors cursor-pointer border-l border-gray-200 ${
+                countryFilter === "colombia"
+                  ? "bg-[#0097B2] text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              Colombia
+            </button>
+            <button
+              onClick={() => setCountryFilter("rest")}
+              className={`px-3 py-1.5 text-sm transition-colors cursor-pointer border-l border-gray-200 ${
+                countryFilter === "rest"
+                  ? "bg-[#0097B2] text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              Rest
+            </button>
+          </div>
+        </div>
+
+        <div id="filter-period" className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm text-gray-600">Period:</span>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
+            className="px-2 py-1.5 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 cursor-pointer"
+            title="Select year"
+          >
+            <option value={now.getFullYear()}>{now.getFullYear()}</option>
+            <option value={now.getFullYear() - 1}>
+              {now.getFullYear() - 1}
+            </option>
+          </select>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(parseInt(e.target.value, 10))}
+            className="px-2 py-1.5 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 cursor-pointer"
+            title="Select month"
+          >
+            <option
+              value={1}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  1 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  1 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Jan
+            </option>
+            <option
+              value={2}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  2 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  2 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Feb
+            </option>
+            <option
+              value={3}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  3 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  3 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Mar
+            </option>
+            <option
+              value={4}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  4 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  4 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Apr
+            </option>
+            <option
+              value={5}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  5 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  5 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              May
+            </option>
+            <option
+              value={6}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  6 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  6 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Jun
+            </option>
+            <option
+              value={7}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  7 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  7 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Jul
+            </option>
+            <option
+              value={8}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  8 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  8 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Aug
+            </option>
+            <option
+              value={9}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  9 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  9 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Sep
+            </option>
+            <option
+              value={10}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  10 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  10 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Oct
+            </option>
+            <option
+              value={11}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  11 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  11 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Nov
+            </option>
+            <option
+              value={12}
+              disabled={
+                (selectedYear === now.getFullYear() &&
+                  12 > now.getMonth() + 1) ||
+                (selectedYear ===
+                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                    .y &&
+                  12 !==
+                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
+                      .m)
+              }
+            >
+              Dec
+            </option>
+          </select>
+        </div>
+
+        <div id="filter-document" className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm text-gray-600">Document:</span>
+          <div className="inline-flex rounded-md overflow-hidden border border-gray-200">
+            <button
+              onClick={() => setDocumentFilter("all")}
+              className={`px-3 py-1.5 text-sm transition-colors cursor-pointer ${
+                documentFilter === "all"
+                  ? "bg-[#0097B2] text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setDocumentFilter("yes")}
+              className={`px-3 py-1.5 text-sm transition-colors cursor-pointer border-l border-gray-200 ${
+                documentFilter === "yes"
+                  ? "bg-[#0097B2] text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              Delivered
+            </button>
+            <button
+              onClick={() => setDocumentFilter("no")}
+              className={`px-3 py-1.5 text-sm transition-colors cursor-pointer border-l border-gray-200 ${
+                documentFilter === "no"
+                  ? "bg-[#0097B2] text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              Not delivered
+            </button>
           </div>
         </div>
       </div>
@@ -826,6 +1381,7 @@ export default function PaymentsPage() {
             <tr>
               <th className="px-6 py-3 text-left">
                 <input
+                  id="select-all-checkbox"
                   type="checkbox"
                   checked={selectAll}
                   onChange={handleSelectAll}
@@ -868,6 +1424,23 @@ export default function PaymentsPage() {
               </th>
               <th
                 className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("country")}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Country</span>
+                  <div className="flex flex-col text-xs text-gray-400">
+                    {sortKey === "country" && sortDirection === "asc" ? (
+                      <span className="text-blue-600">▲</span>
+                    ) : sortKey === "country" && sortDirection === "desc" ? (
+                      <span className="text-blue-600">▼</span>
+                    ) : (
+                      <span className="opacity-50">⇅</span>
+                    )}
+                  </div>
+                </div>
+              </th>
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
                 onClick={() => handleSort("companyName")}
               >
                 <div className="flex items-center space-x-1">
@@ -889,7 +1462,7 @@ export default function PaymentsPage() {
                 onClick={() => handleSort("documentUploadedThisMonth")}
               >
                 <div className="flex items-center space-x-1">
-                  <span>Document This Month</span>
+                  <span id="col-document-header">Document (Period)</span>
                   <div className="flex flex-col text-xs text-gray-400">
                     {sortKey === "documentUploadedThisMonth" &&
                     sortDirection === "asc" ? (
@@ -925,7 +1498,7 @@ export default function PaymentsPage() {
                 </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                Actions
+                <span id="col-invoices-header">Invoices</span>
               </th>
             </tr>
           </thead>
@@ -941,15 +1514,24 @@ export default function PaymentsPage() {
                   } ${processingUsers.has(user.id) ? "bg-blue-50" : ""}`}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.has(user.id)}
-                      onChange={() => handleUserSelect(user.id)}
-                      disabled={
-                        user.paymentEnabled || processingUsers.has(user.id)
-                      }
-                      className="h-4 w-4 text-[#0097B2] focus:ring-[#0097B2] border-gray-300 rounded disabled:opacity-50"
-                    />
+                    {(() => {
+                      const isCol =
+                        String(user.country || "").toLowerCase() === "colombia";
+                      return (
+                        <input
+                          type="checkbox"
+                          checked={selectedUsers.has(user.id)}
+                          onChange={() => handleUserSelect(user.id)}
+                          disabled={processingUsers.has(user.id) || !isCol}
+                          title={
+                            !isCol
+                              ? "Only Colombia users can be enabled"
+                              : undefined
+                          }
+                          className="h-4 w-4 text-[#0097B2] focus:ring-[#0097B2] border-gray-300 rounded disabled:opacity-50"
+                        />
+                      );
+                    })()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-[#17323A]">
@@ -961,43 +1543,75 @@ export default function PaymentsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-[#17323A]">
+                      {(user.country || "N/A").toString()}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-[#17323A]">
                       {user.companyName || "N/A"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {String(user.country || "").toLowerCase() === "colombia" ? (
-                      <>
-                        <div className="flex items-center">
-                          {user.documentUploadedThisMonth ? (
-                            <div
-                              className="flex items-center text-green-600 cursor-pointer hover:bg-gray-100 rounded p-1 -m-1 transition-colors"
-                              onClick={() => handleDocumentClick(user)}
-                              title="Click to view document"
-                            >
-                              <FileCheck size={16} className="mr-2" />
-                              <span className="text-sm">Yes</span>
-                              {user.documentImageUrl && (
-                                <Eye size={14} className="ml-2 text-gray-400" />
-                              )}
-                            </div>
-                          ) : (
-                            <div className="flex items-center text-red-600">
-                              <FileX size={16} className="mr-2" />
-                              <span className="text-sm">No</span>
+                    {(() => {
+                      const isCol =
+                        String(user.country || "").toLowerCase() === "colombia";
+                      const hasDoc = hasDocForPeriod(user);
+                      if (!isCol) {
+                        return (
+                          <span className="text-xs text-gray-400">
+                            Not required
+                          </span>
+                        );
+                      }
+                      return (
+                        <>
+                          <div className="flex items-center">
+                            {hasDoc ? (
+                              <div
+                                className={`flex items-center text-green-600 ${
+                                  isSelectedCurrentPeriod &&
+                                  user.documentImageUrl
+                                    ? "cursor-pointer hover:bg-gray-100 rounded p-1 -m-1 transition-colors"
+                                    : ""
+                                }`}
+                                onClick={() =>
+                                  isSelectedCurrentPeriod &&
+                                  user.documentImageUrl
+                                    ? handleDocumentClick(user)
+                                    : undefined
+                                }
+                                title={
+                                  isSelectedCurrentPeriod &&
+                                  user.documentImageUrl
+                                    ? "Click to view document"
+                                    : undefined
+                                }
+                              >
+                                <FileCheck size={16} className="mr-2" />
+                                <span className="text-sm">Yes</span>
+                                {isSelectedCurrentPeriod &&
+                                  user.documentImageUrl && (
+                                    <Eye
+                                      size={14}
+                                      className="ml-2 text-blue-600"
+                                    />
+                                  )}
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-red-600">
+                                <FileX size={16} className="mr-2" />
+                                <span className="text-sm">No</span>
+                              </div>
+                            )}
+                          </div>
+                          {user.lastDocumentDate && isSelectedCurrentPeriod && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Last: {user.lastDocumentDate}
                             </div>
                           )}
-                        </div>
-                        {user.lastDocumentDate && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Last: {user.lastDocumentDate}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-xs text-gray-400">
-                        Not required
-                      </span>
-                    )}
+                        </>
+                      );
+                    })()}
                   </td>
                   <td className="px-6 py-4">
                     {String(user.country || "").toLowerCase() === "colombia" ? (
@@ -1082,7 +1696,7 @@ export default function PaymentsPage() {
                         )}
                       </button>
                     ) : (
-                      <span className="text-sm text-gray-400">-</span>
+                      <></>
                     )}
                     {user.inboxMesActualId && (
                       <div className="mt-2 flex items-center gap-2">
@@ -1098,7 +1712,7 @@ export default function PaymentsPage() {
                             user.inboxMesActualAñoMes || "current"
                           }`}
                         >
-                          <Eye size={14} /> View
+                          <Eye size={14} className="text-blue-700" /> View
                         </button>
                         <button
                           onClick={() =>
