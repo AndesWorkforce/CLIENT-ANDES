@@ -77,3 +77,25 @@ export async function downloadInboxPdfAction(inboxId: string) {
     };
   }
 }
+
+export async function generateUserInboxAction(
+  userId: string,
+  yearMonth?: string
+) {
+  try {
+    const axios = await createServerAxios();
+    const body: any = {};
+    if (yearMonth) body.yearMonth = yearMonth;
+    const url = `users/${userId}/inboxes/generate`;
+    const response = await axios.post(url, body);
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    const status = error?.response?.status;
+    const message =
+      error?.response?.data?.message || error?.message || "Request failed";
+    return {
+      success: false,
+      error: `HTTP ${status || ""} - ${String(message)}`,
+    };
+  }
+}

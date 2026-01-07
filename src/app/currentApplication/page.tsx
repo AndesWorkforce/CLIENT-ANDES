@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Download,
@@ -13,7 +13,11 @@ import {
   Clock,
   ChevronDown,
   X,
+  HelpCircle,
+  Info,
 } from "lucide-react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import SimpleHeader from "../components/SimpleHeader";
 import {
   uploadMonthlyProof,
@@ -44,6 +48,7 @@ import {
   getUserInboxesAction,
   viewInboxPdfAction,
   downloadInboxPdfAction,
+  generateUserInboxAction,
 } from "./actions/invoices.actions";
 
 export default function CurrentApplication() {
@@ -65,7 +70,10 @@ export default function CurrentApplication() {
   const [monthlyProofs, setMonthlyProofs] = useState<MonthlyProof[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState("");
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedPeriod, setSelectedPeriod] = useState<{
+    month: string;
+    year: number;
+  } | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [selectedTab, setSelectedTab] = useState<"proofs" | "inboxes">(
@@ -88,6 +96,8 @@ export default function CurrentApplication() {
     downloadUrl?: string;
   };
   const [inboxes, setInboxes] = useState<InboxItem[]>([]);
+  const [genMonth, setGenMonth] = useState<string>("");
+  const [genYear, setGenYear] = useState<number>(new Date().getFullYear());
   const [visibleInboxCount, setVisibleInboxCount] = useState(6);
   const [inboxScrollNode, setInboxScrollNode] = useState<HTMLDivElement | null>(
     null
@@ -179,13 +189,244 @@ export default function CurrentApplication() {
     // Map communications protocol to reglamento to complete 4 flags
   };
 
+  const startTour = () => {
+    try {
+      const d = driver({
+        showProgress: true,
+        overlayOpacity: 0.35,
+        steps: [
+          {
+            element: "#documents-section",
+            popover: {
+              title: "Documents",
+              description:
+                "Manage your monthly proofs and payment inboxes here.",
+              side: "bottom",
+              align: "start",
+            },
+          },
+          {
+            element: "#period-input",
+            popover: {
+              title: "Period",
+              description:
+                "Pick the period. It includes allowed months this year and the Dec 2025 exception.",
+              side: "bottom",
+              align: "start",
+            },
+          },
+          {
+            element: "#file-upload-trigger",
+            popover: {
+              title: "Select the file",
+              description:
+                "Click to choose the file. Images (JPG/PNG) or PDF are accepted.",
+              side: "bottom",
+              align: "start",
+            },
+          },
+          {
+            element: "#upload-proof-button",
+            popover: {
+              title: "Upload your proof",
+              description:
+                "When everything is ready, press here to upload and save your monthly proof.",
+              side: "top",
+              align: "start",
+            },
+          },
+        ],
+      });
+      d.drive();
+    } catch (e) {
+      console.error("Error starting tour", e);
+    }
+  };
+
+  const startInboxesTour = () => {
+    try {
+      const steps: any[] = [];
+      if (document.getElementById("inboxes-generate-section")) {
+        steps.push({
+          element: "#inboxes-generate-section",
+          popover: {
+            title: "Generate Inbox",
+            description:
+              "Select the month (current year only) and click Generate to create your invoice/inbox.",
+            side: "bottom",
+            align: "start",
+          },
+        });
+      }
+      if (document.getElementById("inboxes-generate-month")) {
+        steps.push({
+          element: "#inboxes-generate-month",
+          popover: {
+            title: "Month",
+            description:
+              "You can generate for any past month in the current year.",
+            side: "bottom",
+            align: "start",
+          },
+        });
+      }
+      if (document.getElementById("inboxes-generate-button")) {
+        steps.push({
+          element: "#inboxes-generate-button",
+          popover: {
+            title: "Create",
+            description:
+              "Press to create your inbox. In Colombia, you must upload your monthly proof first.",
+            side: "left",
+            align: "start",
+          },
+        });
+      }
+      if (document.getElementById("inboxes-list")) {
+        steps.push({
+          element: "#inboxes-list",
+          popover: {
+            title: "Your Inboxes",
+            description:
+              "Use View to open the PDF or Download to save it. More items load as you scroll.",
+            side: "top",
+            align: "start",
+          },
+        });
+      }
+      const d = driver({ showProgress: true, overlayOpacity: 0.35, steps });
+      d.drive();
+    } catch (e) {
+      console.error("Error starting inboxes tour", e);
+    }
+  };
+
+  const [showTopHelpNudge, setShowTopHelpNudge] = useState(false);
+  const startTopTour = () => {
+    try {
+      const steps: any[] = [];
+      if (document.getElementById("top-card")) {
+        steps.push({
+          element: "#top-card",
+          popover: {
+            title: "Current Contract",
+            description:
+              "Overview of your position details and key documentation.",
+            side: "bottom",
+            align: "start",
+          },
+        });
+      }
+      if (document.getElementById("position-details")) {
+        steps.push({
+          element: "#position-details",
+          popover: {
+            title: "Position Details",
+            description:
+              "Job, company, start date, salary, and contract status.",
+            side: "right",
+            align: "start",
+          },
+        });
+      }
+      if (document.getElementById("active-contract-card")) {
+        steps.push({
+          element: "#active-contract-card",
+          popover: {
+            title: "Active Contract",
+            description: "Download your signed contract here.",
+            side: "left",
+            align: "start",
+          },
+        });
+      }
+      if (document.getElementById("active-breaks-card")) {
+        steps.push({
+          element: "#active-breaks-card",
+          popover: {
+            title: "Active Breaks Guide",
+            description: "View the guide with recommendations.",
+            side: "left",
+            align: "start",
+          },
+        });
+      }
+      if (document.getElementById("documents-section")) {
+        steps.push({
+          element: "#documents-section",
+          popover: {
+            title: "Documents",
+            description:
+              "Manage monthly proofs (Colombia) and your payment inboxes.",
+            side: "top",
+            align: "start",
+          },
+        });
+      }
+      const d = driver({ showProgress: true, overlayOpacity: 0.35, steps });
+      d.drive();
+    } catch (e) {
+      console.error("Error starting top tour", e);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoading) return;
+    const fullySigned =
+      currentJob?.estadoContratacion === "CONTRATO_FINALIZADO";
+    if (!fullySigned) return;
+    try {
+      const key = "currentApp_topTourSeen";
+      const seen = typeof window !== "undefined" && localStorage.getItem(key);
+      if (!seen) {
+        setShowTopHelpNudge(true);
+        setTimeout(() => {
+          startTopTour();
+          try {
+            localStorage.setItem(key, "1");
+          } catch {}
+          setShowTopHelpNudge(false);
+          addNotification(
+            "Tip: Click the ? icons anytime for a guided tour.",
+            "info"
+          );
+        }, 1000);
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, [isLoading, currentJob?.estadoContratacion]);
+
   // Get current date information
   const currentDate = new Date();
   const currentMonth = months[currentDate.getMonth()]; // Get current month name
   const currentYear = currentDate.getFullYear();
-  // Tab visibility based on country
+  const currentMonthIndex = months.indexOf(currentMonth);
+  const allowedMonths = months.slice(0, currentMonthIndex + 1);
+  // Build combined period options for Proofs (adds Dec 2025 exception in 2026)
+  const periodOptions = useMemo(() => {
+    const opts: { label: string; month: string; year: number; value: string }[] = [];
+    if (selectedTab === "proofs" && currentYear === 2026) {
+      opts.push({
+        label: "December 2025",
+        month: "December",
+        year: 2025,
+        value: "2025-12",
+      });
+    }
+    allowedMonths.forEach((m, idx) => {
+      opts.push({
+        label: `${m} ${currentYear}`,
+        month: m,
+        year: currentYear,
+        value: `${currentYear}-${String(idx + 1).padStart(2, "0")}`,
+      });
+    });
+    return opts;
+  }, [selectedTab, currentYear, allowedMonths]);
+  // Tab visibility: show Inboxes to all users, and Proofs for Colombians
   const showProofsTab = isColombiaUser;
-  const showInboxesTab = !isColombiaUser;
+  const showInboxesTab = true;
 
   // Load real inbox items for the logged-in user (paginated)
   const [inboxNextCursor, setInboxNextCursor] = useState<string | null>(null);
@@ -222,6 +463,63 @@ export default function CurrentApplication() {
         downloadUrl: undefined,
       } as InboxItem;
     });
+  };
+
+  const handleGenerateInbox = async () => {
+    if (!user?.id) return;
+    const mIdx = months.indexOf(genMonth || currentMonth);
+    if (genYear !== currentYear) {
+      addNotification("Year must be the current year", "error");
+      return;
+    }
+    if (mIdx < 0) {
+      addNotification("Invalid month selected", "error");
+      return;
+    }
+    if (mIdx > currentMonthIndex) {
+      addNotification("Cannot generate an inbox for a future month", "error");
+      return;
+    }
+    const yearMonth = `${genYear}-${String(mIdx + 1).padStart(2, "0")}`;
+    try {
+      const res = await generateUserInboxAction(user.id, yearMonth);
+      if (!res.success) {
+        addNotification(res.error || "Error generating inbox", "error");
+        return;
+      }
+      const item = res.data?.data || res.data;
+      if (item) {
+        const mapped = mapInboxItems([item])[0];
+        setInboxes((prev) => {
+          const exists = prev.some(
+            (p) => p.year === mapped.year && p.month === mapped.month
+          );
+          const next = exists ? prev : [mapped, ...prev];
+          return next.sort((a, b) =>
+            `${b.year}-${String(months.indexOf(b.month) + 1).padStart(
+              2,
+              "0"
+            )}`.localeCompare(
+              `${a.year}-${String(months.indexOf(a.month) + 1).padStart(
+                2,
+                "0"
+              )}`
+            )
+          );
+        });
+      } else {
+        await fetchInboxesPage(false);
+      }
+      addNotification(
+        res.data?.alreadyExists
+          ? "Inbox already exists for that month"
+          : "Inbox generated",
+        res.data?.alreadyExists ? "info" : "success"
+      );
+    } catch (e) {
+      console.error("Error generating inbox", e);
+      addNotification("Error generating inbox", "error");
+    }
   };
 
   const fetchInboxesPage = async (append = false) => {
@@ -294,7 +592,9 @@ export default function CurrentApplication() {
   // Set current month and year when component mounts or when they change
   useEffect(() => {
     setSelectedMonth(currentMonth);
-    setSelectedYear(currentYear);
+    setSelectedPeriod({ month: currentMonth, year: currentYear });
+    setGenMonth(currentMonth);
+    setGenYear(currentYear);
   }, [currentMonth, currentYear]);
 
   // Redirect to login if not authenticated
@@ -439,20 +739,43 @@ export default function CurrentApplication() {
 
   // Upload a completely new proof (from the top form)
   const handleNewProofUpload = async () => {
-    if (!selectedFile || !selectedMonth || !currentJob?.id) return;
+    if (!selectedFile || !selectedPeriod || !currentJob?.id) return;
+    const { month: effMonth, year: effYear } = selectedPeriod;
+    const selIdx = months.indexOf(effMonth);
+    if (selIdx < 0) {
+      addNotification("Invalid month selected", "error");
+      return;
+    }
+    const isDec2025 =
+      selectedTab === "proofs" && effMonth === "December" && effYear === 2025;
+    // Only allow past/current months in current year, or exactly Dec 2025
+    const selectedYm = effYear * 100 + (selIdx + 1);
+    const currentYm = currentYear * 100 + (currentMonthIndex + 1);
+    if (effYear < currentYear && !isDec2025) {
+      addNotification("Year cannot be less than the current year", "error");
+      return;
+    }
+    if (effYear > currentYear) {
+      addNotification("Year cannot be greater than the current year", "error");
+      return;
+    }
+    if (selectedYm > currentYm) {
+      addNotification("You cannot upload a proof for a future month", "error");
+      return;
+    }
     setUploading(true);
     try {
       const result = await uploadMonthlyProof(
         currentJob.id,
-        selectedMonth,
-        selectedYear,
+        effMonth,
+        effYear,
         selectedFile
       );
       if (result.success) {
         const newProof: MonthlyProof = {
           id: result.data?.id || `proof-${Date.now()}`,
-          month: selectedMonth,
-          year: selectedYear,
+          month: effMonth,
+          year: effYear,
           file: result.data?.file || URL.createObjectURL(selectedFile),
           fileName: selectedFile.name,
           uploadDate: new Date().toISOString().split("T")[0],
@@ -460,7 +783,8 @@ export default function CurrentApplication() {
         };
         setMonthlyProofs((prev) => [...prev, newProof]);
         setSelectedFile(null);
-        setSelectedMonth("");
+        setSelectedMonth(currentMonth);
+        setSelectedPeriod({ month: currentMonth, year: currentYear });
         const fileInput = document.getElementById(
           "file-upload"
         ) as HTMLInputElement;
@@ -1031,7 +1355,34 @@ export default function CurrentApplication() {
   if (!isContractFullySigned) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
-        <SimpleHeader title="Current Application" />
+        <style jsx global>{`
+          .driver-popover-title {
+            color: #0097b2;
+          }
+          .driver-popover {
+            border-color: #0097b2;
+          }
+          .driver-popover-progress {
+            color: #0097b2;
+          }
+          .driver-popover-close-btn,
+          .driver-popover-next-btn,
+          .driver-popover-prev-btn {
+            cursor: pointer;
+          }
+          .driver-popover-next-btn,
+          .driver-popover-prev-btn {
+            background-color: #0097b2;
+            color: #fff;
+            border-color: #0097b2;
+          }
+          .driver-popover-footer .driver-popover-close-btn {
+            background-color: #0097b2;
+            color: #fff;
+            border-color: #0097b2;
+          }
+        `}</style>
+        <SimpleHeader title="Current Contract" />
         <div className="max-w-6xl mx-auto">
           {/* Contract Pending Notification */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -1089,7 +1440,7 @@ export default function CurrentApplication() {
                         ⚠️ Action Required: Read Contract Documents
                       </h2>
                       <p className="text-red-700 mb-4">
-                        {currentJob.estadoContratacion ===
+                        {String(currentJob.estadoContratacion) ===
                         "DOCUMENTOS_EN_LECTURA"
                           ? "You have started the document reading process. You must complete reading all documents to finalize the hiring process."
                           : "You have successfully signed the contract. Now you must read and accept all additional documents to complete the hiring process."}
@@ -1324,7 +1675,7 @@ export default function CurrentApplication() {
         {/* Edit proof modal */}
         {showEditModal && editingProofRef.current && (
           <div className="fixed inset-0 bg-[rgba(0,0,0,0.6)] z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl h-[90vh] flex flex-col overflow-hidden">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl h-[75vh] flex flex-col overflow-hidden">
               <div className="flex justify-between items-center p-4 border-b">
                 <h2 className="text-lg font-medium text-gray-800">
                   Edit Proof
@@ -1336,23 +1687,31 @@ export default function CurrentApplication() {
                   <X size={20} />
                 </button>
               </div>
-              <div className="flex-1 p-6">
+              <div className="flex-1 p-4">
                 {/* Upload form for editing */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     New File
                   </label>
                   <input
+                    id="replacement-file-input"
                     type="file"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    accept="image/*,application/pdf"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
                         setReplacementFile(file);
                       }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                    className="hidden"
                   />
+                  <label
+                    htmlFor="replacement-file-input"
+                    className="flex items-center gap-2 w-full px-3 py-2 border border-dashed border-gray-300 rounded-lg text-gray-700 hover:border-[#0097B2] hover:text-[#0097B2] cursor-pointer"
+                  >
+                    <Upload size={16} />
+                    Select the file to upload
+                  </label>
                 </div>
 
                 {/* Preview and confirm */}
@@ -1363,7 +1722,7 @@ export default function CurrentApplication() {
                     </h3>
                     <iframe
                       src={URL.createObjectURL(replacementFile)}
-                      className="w-full h-[300px] border border-gray-200 rounded-lg"
+                      className="w-full h-75 border border-gray-200 rounded-lg"
                       title="Proof Preview"
                     />
                   </div>
@@ -1403,7 +1762,34 @@ export default function CurrentApplication() {
   // Full view for signed contracts
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <SimpleHeader title="Current Application" />
+      <style jsx global>{`
+        .driver-popover-title {
+          color: #0097b2;
+        }
+        .driver-popover {
+          border-color: #0097b2;
+        }
+        .driver-popover-progress {
+          color: #0097b2;
+        }
+        .driver-popover-close-btn,
+        .driver-popover-next-btn,
+        .driver-popover-prev-btn {
+          cursor: pointer;
+        }
+        .driver-popover-next-btn,
+        .driver-popover-prev-btn {
+          background-color: #0097b2;
+          color: #fff;
+          border-color: #0097b2;
+        }
+        .driver-popover-footer .driver-popover-close-btn {
+          background-color: #0097b2;
+          color: #fff;
+          border-color: #0097b2;
+        }
+      `}</style>
+      <SimpleHeader title="Current Contract" />
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Pending Annexes Notification */}
         {currentJob.pendingAnnexes && currentJob.pendingAnnexes.length > 0 && (
@@ -1445,18 +1831,38 @@ export default function CurrentApplication() {
         )}
 
         {/* Current Employment Information */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div
+          id="top-card"
+          className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+        >
           <div className="bg-[#0097B2] text-white p-4">
-            <h1 className="text-xl font-bold">Current Contract</h1>
-            <p className="text-blue-100 mt-1">
-              Job position information and documentation
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-bold">Current Contract</h1>
+                <p className="text-blue-100 mt-1">
+                  Job position information and documentation
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={startTopTour}
+                aria-label="Show top section guide"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded text-white/90 hover:bg-white/10 cursor-pointer"
+              >
+                <HelpCircle size={18} />
+                {showTopHelpNudge && (
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full animate-pulse">
+                    Help
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="p-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Position Data */}
-              <div className="space-y-3">
+              <div id="position-details" className="space-y-3">
                 <h2 className="text-base font-semibold text-gray-900">
                   Position Details
                 </h2>
@@ -1561,7 +1967,10 @@ export default function CurrentApplication() {
 
                 {currentJob.contratoFinalUrl && (
                   <div className="space-y-3">
-                    <div className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      id="active-contract-card"
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <FileText className="text-[#0097B2]" size={20} />
@@ -1623,7 +2032,10 @@ export default function CurrentApplication() {
                       ))}
 
                     {/* Active Breaks Guide */}
-                    <div className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      id="active-breaks-card"
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <FileText className="text-[#0097B2]" size={20} />
@@ -1736,7 +2148,7 @@ export default function CurrentApplication() {
                         {currentJob.instructions.map(
                           (instruction: string, index: number) => (
                             <li key={index} className="flex items-start gap-3">
-                              <div className="w-2 h-2 bg-[#0097B2] rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="w-2 h-2 bg-[#0097B2] rounded-full mt-2 shrink-0"></div>
                               <p className="text-gray-700 text-sm">
                                 {instruction}
                               </p>
@@ -1752,18 +2164,35 @@ export default function CurrentApplication() {
         </div>
 
         {/* Documents Management */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div
+          id="documents-section"
+          className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+        >
           <div className="bg-gray-50 border-b border-gray-200 p-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Documents</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Documents
+                </h2>
+                <button
+                  type="button"
+                  onClick={() =>
+                    selectedTab === "inboxes" ? startInboxesTour() : startTour()
+                  }
+                  aria-label="Mostrar guía de uso"
+                  className="p-1 rounded text-[#0097B2] hover:bg-blue-50 cursor-pointer"
+                >
+                  <HelpCircle size={18} />
+                </button>
+              </div>
               <div className="flex gap-2">
                 {showProofsTab && (
                   <button
                     onClick={() => setSelectedTab("proofs")}
                     className={`px-3 py-1 rounded-lg text-sm font-medium ${
                       selectedTab === "proofs"
-                        ? "bg-[#0097B2] text-white"
-                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                        ? "bg-[#0097B2] text-white cursor-pointer"
+                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 cursor-pointer"
                     }`}
                   >
                     Proofs
@@ -1774,8 +2203,8 @@ export default function CurrentApplication() {
                     onClick={() => setSelectedTab("inboxes")}
                     className={`px-3 py-1 rounded-lg text-sm font-medium ${
                       selectedTab === "inboxes"
-                        ? "bg-[#0097B2] text-white"
-                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                        ? "bg-[#0097B2] text-white cursor-pointer"
+                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 cursor-pointer"
                     }`}
                   >
                     Inboxes
@@ -1811,26 +2240,35 @@ export default function CurrentApplication() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Month
+                        Period
                       </label>
-                      <input
-                        type="text"
-                        value={currentMonth}
-                        disabled
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Year
-                      </label>
-                      <input
-                        type="text"
-                        value={currentYear}
-                        disabled
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                      />
+                      <select
+                        id="period-input"
+                        value={
+                          selectedPeriod
+                            ? `${selectedPeriod.year}-${String(
+                                months.indexOf(selectedPeriod.month) + 1
+                              ).padStart(2, "0")}`
+                            : `${currentYear}-${String(currentMonthIndex + 1).padStart(2, "0")}`
+                        }
+                        onChange={(e) => {
+                          const opt = periodOptions.find((o) => o.value === e.target.value);
+                          if (opt) {
+                            setSelectedPeriod({ month: opt.month, year: opt.year });
+                            setSelectedMonth(opt.month);
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                      >
+                        {periodOptions.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Allowed periods: current year up to {currentMonth}. Exception: December 2025.
+                      </p>
                     </div>
 
                     <div>
@@ -1840,10 +2278,18 @@ export default function CurrentApplication() {
                       <input
                         id="file-upload"
                         type="file"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        accept="image/*,application/pdf"
                         onChange={handleFileSelect}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                        className="hidden"
                       />
+                      <label
+                        id="file-upload-trigger"
+                        htmlFor="file-upload"
+                        className="flex items-center gap-2 w-full px-3 py-2 border border-dashed border-[#0097B2] rounded-lg text-[#0097B2] hover:bg-blue-50 cursor-pointer"
+                      >
+                        <Upload size={16} />
+                        Select the file to upload
+                      </label>
                     </div>
                   </div>
 
@@ -1856,9 +2302,10 @@ export default function CurrentApplication() {
                   )}
 
                   <button
+                    id="upload-proof-button"
                     onClick={handleNewProofUpload}
                     disabled={!selectedFile || !selectedMonth || uploading}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {uploading ? (
                       <>
@@ -1876,7 +2323,7 @@ export default function CurrentApplication() {
 
                 {/* Proofs List */}
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-3">
                     Uploaded Proofs
                   </h3>
 
@@ -1889,84 +2336,87 @@ export default function CurrentApplication() {
                       <p>No proofs uploaded yet</p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      {monthlyProofs.map((proof) => (
-                        <div
-                          key={proof.id}
-                          className="border border-gray-200 rounded-lg p-4"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center gap-2">
-                                <Calendar
-                                  size={20}
-                                  className="text-[#0097B2]"
-                                />
-                                <div>
-                                  <p className="font-medium text-gray-900">
-                                    {proof.month} {proof.year}
-                                  </p>
-                                  <p className="text-sm text-gray-500">
-                                    Uploaded on{" "}
-                                    {new Date(
-                                      proof.uploadDate
-                                    ).toLocaleDateString("en-US")}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="ml-4">
-                                {getStatusBadge(proof.status)}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="hidden md:grid grid-cols-12 gap-2 bg-gray-50 text-xs text-gray-500 px-3 py-2">
+                        <div className="col-span-4">Period</div>
+                        <div className="col-span-4">File</div>
+                        <div className="col-span-2">Status</div>
+                        <div className="col-span-2 text-right">Actions</div>
+                      </div>
+                      <div className="divide-y divide-gray-100">
+                        {monthlyProofs.map((proof) => (
+                          <div
+                            key={proof.id}
+                            className="grid grid-cols-12 gap-2 items-center px-3 py-2 text-sm hover:bg-gray-50"
+                          >
+                            <div className="col-span-12 md:col-span-4 flex items-center gap-2">
+                              <Calendar size={16} className="text-[#0097B2]" />
+                              <div>
+                                <p className="font-medium text-gray-900 leading-tight">
+                                  {proof.month} / {proof.year}
+                                </p>
+                                <p className="text-xs text-gray-600 flex items-center gap-1">
+                                  <Clock size={12} className="text-gray-500" />
+                                  Uploaded on{" "}
+                                  {new Date(
+                                    proof.uploadDate
+                                  ).toLocaleDateString("en-US")}
+                                </p>
                               </div>
                             </div>
-
-                            <div className="flex items-center gap-2">
+                            <div
+                              className="col-span-10 md:col-span-4 text-gray-700 truncate"
+                              title={proof.fileName}
+                            >
+                              {proof.fileName}
+                            </div>
+                            <div className="col-span-6 md:col-span-2">
+                              {getStatusBadge(proof.status)}
+                            </div>
+                            <div className="col-span-6 md:col-span-2 flex justify-start md:justify-end gap-2">
                               <button
                                 onClick={() =>
                                   window.open(proof.file, "_blank")
                                 }
-                                className="flex items-center gap-2 px-3 py-2 text-[#0097B2] border border-[#0097B2] rounded-lg hover:bg-blue-50 transition-colors"
+                                className="inline-flex items-center justify-center w-8 h-8 rounded border border-[#0097B2] text-[#0097B2] hover:bg-blue-50 cursor-pointer"
+                                title="View"
+                                aria-label="View proof"
                               >
                                 <Eye size={16} />
-                                View
                               </button>
                               <button
                                 onClick={() => {
                                   editingProofRef.current = proof;
                                   setShowEditModal(true);
                                 }}
-                                className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+                                className="inline-flex items-center justify-center w-8 h-8 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+                                title="Edit"
+                                aria-label="Edit proof"
                               >
                                 <Upload size={16} />
-                                Edit
                               </button>
                             </div>
-                          </div>
-
-                          <div className="mt-2 text-sm text-gray-600">
-                            <strong>File:</strong> {proof.fileName}
-                          </div>
-
-                          {proof.observacionesRevision && (
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
-                              <div className="flex items-start gap-2">
-                                <AlertCircle
-                                  size={16}
-                                  className="text-yellow-600 mt-0.5"
-                                />
-                                <div>
-                                  <p className="text-sm font-medium text-yellow-800">
-                                    Observations:
-                                  </p>
-                                  <p className="text-sm text-yellow-700 mt-1">
-                                    {proof.observacionesRevision}
-                                  </p>
+                            {proof.observacionesRevision && (
+                              <div className="col-span-12 mt-1">
+                                <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                                  <div className="flex items-start gap-2">
+                                    <AlertCircle
+                                      size={14}
+                                      className="text-yellow-600 mt-0.5"
+                                    />
+                                    <p className="text-xs text-yellow-800">
+                                      <span className="font-medium">
+                                        Observations:
+                                      </span>{" "}
+                                      {proof.observacionesRevision}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1983,7 +2433,63 @@ export default function CurrentApplication() {
                   </p>
                 </div>
 
+                {/* Self-generate inbox */}
                 <div
+                  id="inboxes-generate-section"
+                  className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                >
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">
+                    Generate Inbox
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Month
+                      </label>
+                      <select
+                        id="inboxes-generate-month"
+                        value={genMonth || currentMonth}
+                        onChange={(e) => setGenMonth(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                      >
+                        {allowedMonths.map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Year
+                      </label>
+                      <input
+                        type="text"
+                        value={currentYear}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <button
+                        id="inboxes-generate-button"
+                        onClick={handleGenerateInbox}
+                        className="w-full md:w-auto inline-flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors cursor-pointer"
+                      >
+                        <Download size={16} />
+                        Generate Inbox
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {isColombiaUser
+                      ? "You can generate an inbox for a past month of the current year. For Colombia, a monthly proof must be uploaded first."
+                      : "You can generate an inbox for any past month of the current year."}
+                  </p>
+                </div>
+
+                <div
+                  id="inboxes-list"
                   ref={setInboxScrollNode}
                   className="max-h-[60vh] overflow-y-auto custom-scrollbar border border-gray-200 rounded-lg"
                 >
@@ -2014,17 +2520,7 @@ export default function CurrentApplication() {
                               <strong>Amount:</strong> {item.currency} $
                               {item.amount.toLocaleString()}
                             </div>
-                            <div className="ml-4">
-                              {item.status === "PAID" ? (
-                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                                  Paid
-                                </span>
-                              ) : (
-                                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                                  Pending
-                                </span>
-                              )}
-                            </div>
+                            {/* Status removed per new self-generation flow */}
                           </div>
                           <div className="flex items-center gap-2">
                             <button
@@ -2079,7 +2575,7 @@ export default function CurrentApplication() {
                                   );
                                 }
                               }}
-                              className="flex items-center gap-2 px-3 py-2 text-[#0097B2] border border-[#0097B2] rounded-lg hover:bg-blue-50 transition-colors"
+                              className="flex items-center gap-2 px-3 py-2 text-[#0097B2] border border-[#0097B2] rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
                             >
                               <Eye size={16} />
                               View
@@ -2147,7 +2643,7 @@ export default function CurrentApplication() {
                                   );
                                 }
                               }}
-                              className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors"
+                              className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors cursor-pointer"
                             >
                               <Download size={16} />
                               Download
@@ -2171,7 +2667,7 @@ export default function CurrentApplication() {
                     }
                     className={`px-4 py-2 rounded ${
                       visibleInboxCount < inboxes.length || inboxNextCursor
-                        ? "bg-[#0097B2] text-white hover:bg-[#007B8F]"
+                        ? "bg-[#0097B2] text-white hover:bg-[#007B8F] cursor-pointer"
                         : "bg-gray-200 text-gray-500 cursor-not-allowed"
                     }`}
                   >
@@ -2296,7 +2792,7 @@ export default function CurrentApplication() {
       {/* Edit proof modal */}
       {showEditModal && editingProofRef.current && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.6)] z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl h-[75vh] flex flex-col overflow-hidden">
             <div className="flex justify-between items-center p-4 border-b">
               <h2 className="text-lg font-medium text-gray-800">Edit Proof</h2>
               <button
@@ -2306,23 +2802,31 @@ export default function CurrentApplication() {
                 <X size={20} />
               </button>
             </div>
-            <div className="flex-1 p-6">
+            <div className="flex-1 p-4">
               {/* Upload form for editing */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   New File
                 </label>
                 <input
+                  id="replacement-file-input"
                   type="file"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  accept="image/*,application/pdf"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
                       setReplacementFile(file);
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                  className="hidden"
                 />
+                <label
+                  htmlFor="replacement-file-input"
+                  className="flex items-center gap-2 w-full px-3 py-2 border border-dashed border-[#0097B2] rounded-lg text-[#0097B2] hover:bg-blue-50 cursor-pointer"
+                >
+                  <Upload size={16} />
+                  Select the file to upload
+                </label>
               </div>
 
               {/* Preview and confirm */}
@@ -2333,7 +2837,7 @@ export default function CurrentApplication() {
                   </h3>
                   <iframe
                     src={URL.createObjectURL(replacementFile)}
-                    className="w-full h-[300px] border border-gray-200 rounded-lg"
+                    className="w-full h-75 border border-gray-200 rounded-lg"
                     title="Proof Preview"
                   />
                 </div>
