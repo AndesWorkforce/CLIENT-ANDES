@@ -20,7 +20,12 @@ import {
   viewInboxPdfAction,
   downloadInboxPdfAction,
 } from "./actions/invoices.actions";
-import { getContracts } from "../../dashboard/contracts/actions/contracts.actions";
+import {
+  getContracts,
+  getEvaluacionesMensuales,
+} from "../../dashboard/contracts/actions/contracts.actions";
+import { getMonthlyPaymentsData } from "./actions/consolidated.actions";
+import { getFinalizedEmployees } from "./actions/finalized.actions";
 import {
   updateObservations,
   enableBulkPayments,
@@ -89,6 +94,22 @@ export default function PaymentsPage() {
   const [processingUsers, setProcessingUsers] = useState<Set<string>>(
     new Set()
   );
+  // Cache de documentos por periodo y proceso
+  const [periodDocs, setPeriodDocs] = useState<
+    Record<
+      string,
+      Record<
+        string,
+        {
+          exists: boolean;
+          url: string | null;
+          date: string | null;
+          evaluacionId: string | null;
+        }
+      >
+    >
+  >({});
+  const [docsLoading, setDocsLoading] = useState<Set<string>>(new Set());
 
   // Guided tour for this page
   const startPaymentsTour = () => {
@@ -330,55 +351,25 @@ export default function PaymentsPage() {
     const loadActiveContracts = async () => {
       setLoading(true);
       try {
-        const response = await getContracts(1, 1000, ""); // Traer todos los contratos
-
-        if (response.success && response.data) {
-          // Transformar ProcesoContratacion a UserContract
-          const transformedUsers: UserContract[] = response.data.resultados
-            .filter((contrato) => contrato.activo) // Solo contratos activos
-            .map((contrato) => ({
-              id: contrato.id, // Este es el ID del proceso de contratación
-              usuarioId: (contrato as any)?.postulacion?.candidatoId || null,
-              country: (contrato as any).pais || null,
-              firstName: contrato.nombreCompleto.split(" ")[0] || "",
-              lastName:
-                contrato.nombreCompleto.split(" ").slice(1).join(" ") || "",
-              email: contrato.correo,
-              documentUploadedThisMonth:
-                contrato.documentoSubidoEsteMes || false,
-              lastDocumentDate: contrato.fechaUltimoDocumento
-                ? new Date(contrato.fechaUltimoDocumento).toLocaleDateString()
-                : null,
-              documentImageUrl: contrato.urlDocumentoMesActual || null,
-              paymentEnabled: contrato.salarioPagado || false,
-              paymentEnabledDate: contrato.salarioPagado
-                ? new Date().toLocaleDateString()
-                : null,
-              // Datos para gestión de evaluaciones
-              evaluacionMensualId: contrato.evaluacionMensualId || null,
-              observacionesRevision: contrato.observacionesRevision || null,
-              documentoRevisado: contrato.documentoRevisado || false,
-              // Agregar campos para el mes anterior
-              mesAnteriorAprobado: contrato.mesAnteriorAprobado || false,
-              evaluacionMesAnteriorId: contrato.evaluacionMesAnteriorId || null,
-              // Información de la empresa/cliente
-              companyName: contrato.clienteNombre || null,
-              // Presencia de inbox del mes actual proveniente del backend
-              inboxMesActualId: (contrato as any).inboxMesActualId || null,
-              inboxMesActualAñoMes:
-                (contrato as any).inboxMesActualAñoMes || null,
-            }));
-
-          setUsers(transformedUsers);
-          setFilteredUsers(transformedUsers);
-
-          // Add some initial logs
+        const {
+          success,
+          users: consolidatedUsers,
+          periodDocs,
+        } = await getMonthlyPaymentsData(
+          selectedYear,
+          selectedMonth,
+          countryFilter
+        );
+        if (success) {
+          setUsers(consolidatedUsers);
+          setFilteredUsers(consolidatedUsers);
+          setPeriodDocs(periodDocs as any);
           setActionLogs([
             {
               id: "1",
               action: "Contracts loaded successfully",
               timestamp: new Date().toLocaleString(),
-              usersAffected: transformedUsers.length,
+              usersAffected: consolidatedUsers.length,
             },
           ]);
         }
@@ -390,7 +381,7 @@ export default function PaymentsPage() {
     };
 
     loadActiveContracts();
-  }, []);
+  }, [selectedYear, selectedMonth, countryFilter]);
 
   // Eliminado: ya no necesitamos cargar presencia de inbox en el cliente
 
@@ -412,6 +403,10 @@ export default function PaymentsPage() {
     return selectedYear === p.y && selectedMonth === p.m;
   }, [selectedYear, selectedMonth]);
 
+  // Period docs are now loaded server-side by getMonthlyPaymentsData
+
+  // Documents are evaluated per process; no cross‑process aggregation.
+
   // Evitar selección de meses futuros en el año actual
   useEffect(() => {
     const currY = now.getFullYear();
@@ -430,6 +425,9 @@ export default function PaymentsPage() {
   }, [selectedYear, selectedMonth]);
 
   const hasDocForPeriod = (user: UserContract) => {
+    const ym = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`;
+    const cached = periodDocs[user.id]?.[ym];
+    if (cached) return cached.exists;
     const isColombia = String(user.country || "").toLowerCase() === "colombia";
     if (isColombia) {
       if (isSelectedCurrentPeriod) return !!user.documentUploadedThisMonth;
@@ -553,17 +551,16 @@ export default function PaymentsPage() {
     setSelectedUsers(newSelected);
   };
 
-  const handleDocumentClick = (user: UserContract) => {
-    // Solo proceder si tiene documento del mes actual
-    if (!user.documentImageUrl) {
-      console.log("No document URL available for user:", user);
-      return;
-    }
-
+  const handleDocumentClick = (
+    imageUrl: string,
+    userName: string,
+    date?: string | null
+  ) => {
+    if (!imageUrl) return;
     setSelectedDocument({
-      imageUrl: user.documentImageUrl,
-      userName: `${user.firstName} ${user.lastName}`,
-      date: user.lastDocumentDate || "",
+      imageUrl,
+      userName,
+      date: date || "",
     });
     setShowDocumentModal(true);
   };
@@ -650,17 +647,27 @@ export default function PaymentsPage() {
         );
         return;
       }
-      // Obtener IDs de evaluaciones mensuales de los usuarios seleccionados
+      // Obtener IDs de evaluación para el periodo seleccionado
+      const ym = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`;
       const evaluacionIds = selectedUsersList
         .map((userId) => {
           const user = users.find((u) => u.id === userId);
-          return user?.evaluacionMensualId;
+          if (!user) return null;
+          const cachedEvalId = periodDocs[user.id]?.[ym]?.evaluacionId || null;
+          if (cachedEvalId) return cachedEvalId;
+          // Fallbacks por periodo
+          if (isSelectedCurrentPeriod) return user.evaluacionMensualId || null;
+          if (isSelectedPreviousPeriod)
+            return user.evaluacionMesAnteriorId || null;
+          return null;
         })
-        .filter((id): id is string => id !== null && id !== undefined);
+        .filter((id): id is string => !!id);
       if (evaluacionIds.length === 0) {
-        throw new Error(
-          "No se encontraron evaluaciones mensuales para los usuarios seleccionados"
+        addNotification(
+          `No evaluations found for period ${ym}. Select a period with uploaded documents.`,
+          "error"
         );
+        return;
       }
       const result = await enableBulkPayments(evaluacionIds, []);
 
@@ -1000,7 +1007,7 @@ export default function PaymentsPage() {
       </div>
     );
   };
-
+  console.log("[USERS]", filteredUsers);
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] p-4">
@@ -1563,39 +1570,58 @@ export default function PaymentsPage() {
                           </span>
                         );
                       }
+                      const ym = `${selectedYear}-${String(
+                        selectedMonth
+                      ).padStart(2, "0")}`;
+                      const cached = periodDocs[user.id]?.[ym];
+                      const viewUrl =
+                        cached?.url ||
+                        (isSelectedCurrentPeriod
+                          ? user.documentImageUrl
+                          : null);
+                      const viewDate =
+                        cached?.date ||
+                        (isSelectedCurrentPeriod
+                          ? user.lastDocumentDate
+                          : null);
+                      const clickable = !!viewUrl && hasDoc;
                       return (
                         <>
                           <div className="flex items-center">
                             {hasDoc ? (
                               <div
                                 className={`flex items-center text-green-600 ${
-                                  isSelectedCurrentPeriod &&
-                                  user.documentImageUrl
+                                  clickable
                                     ? "cursor-pointer hover:bg-gray-100 rounded p-1 -m-1 transition-colors"
                                     : ""
                                 }`}
                                 onClick={() =>
-                                  isSelectedCurrentPeriod &&
-                                  user.documentImageUrl
-                                    ? handleDocumentClick(user)
+                                  clickable
+                                    ? handleDocumentClick(
+                                        viewUrl as string,
+                                        `${user.firstName} ${user.lastName}`,
+                                        viewDate
+                                      )
                                     : undefined
                                 }
                                 title={
-                                  isSelectedCurrentPeriod &&
-                                  user.documentImageUrl
-                                    ? "Click to view document"
+                                  clickable
+                                    ? `Doc ${ym}${
+                                        cached?.evaluacionId
+                                          ? ` | evalId: ${cached.evaluacionId}`
+                                          : ""
+                                      }`
                                     : undefined
                                 }
                               >
                                 <FileCheck size={16} className="mr-2" />
                                 <span className="text-sm">Yes</span>
-                                {isSelectedCurrentPeriod &&
-                                  user.documentImageUrl && (
-                                    <Eye
-                                      size={14}
-                                      className="ml-2 text-blue-600"
-                                    />
-                                  )}
+                                {clickable && (
+                                  <Eye
+                                    size={14}
+                                    className="ml-2 text-blue-600"
+                                  />
+                                )}
                               </div>
                             ) : (
                               <div className="flex items-center text-red-600">
@@ -1604,9 +1630,9 @@ export default function PaymentsPage() {
                               </div>
                             )}
                           </div>
-                          {user.lastDocumentDate && isSelectedCurrentPeriod && (
+                          {viewDate && (
                             <div className="text-xs text-gray-500 mt-1">
-                              Last: {user.lastDocumentDate}
+                              Last: {viewDate}
                             </div>
                           )}
                         </>

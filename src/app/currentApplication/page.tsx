@@ -30,6 +30,10 @@ import {
   actualizarDocumentoEspecifico,
 } from "./actions/current-contract.actions";
 import { getCurrentContract } from "../pages/offers/actions/jobs.actions";
+import {
+  getActiveContractsForUser,
+  getUserContractById,
+} from "./actions/current-contract.actions";
 import { useAuthStore } from "@/store/auth.store";
 import {
   PoliticaPrevencionAcoso,
@@ -68,6 +72,12 @@ export default function CurrentApplication() {
     null
   );
   const [monthlyProofs, setMonthlyProofs] = useState<MonthlyProof[]>([]);
+  const [availableContracts, setAvailableContracts] = useState<
+    Pick<CurrentContractData, "id" | "company" | "jobPosition" | "startDate">[]
+  >([]);
+  const [selectedContractId, setSelectedContractId] = useState<string | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState<{
@@ -79,6 +89,8 @@ export default function CurrentApplication() {
   const [selectedTab, setSelectedTab] = useState<"proofs" | "inboxes">(
     "proofs"
   );
+  // Skeleton state for smoother contract switching UX
+  const [isSwitchingContract, setIsSwitchingContract] = useState(false);
   // Set initial tab based on user's country (Colombia -> proofs, others -> inboxes)
   useEffect(() => {
     setSelectedTab(isColombiaUser ? "proofs" : "inboxes");
@@ -405,7 +417,12 @@ export default function CurrentApplication() {
   const allowedMonths = months.slice(0, currentMonthIndex + 1);
   // Build combined period options for Proofs (adds Dec 2025 exception in 2026)
   const periodOptions = useMemo(() => {
-    const opts: { label: string; month: string; year: number; value: string }[] = [];
+    const opts: {
+      label: string;
+      month: string;
+      year: number;
+      value: string;
+    }[] = [];
     if (selectedTab === "proofs" && currentYear === 2026) {
       opts.push({
         label: "December 2025",
@@ -482,7 +499,11 @@ export default function CurrentApplication() {
     }
     const yearMonth = `${genYear}-${String(mIdx + 1).padStart(2, "0")}`;
     try {
-      const res = await generateUserInboxAction(user.id, yearMonth);
+      const res = await generateUserInboxAction(
+        user.id,
+        yearMonth,
+        selectedContractId || undefined
+      );
       if (!res.success) {
         addNotification(res.error || "Error generating inbox", "error");
         return;
@@ -615,6 +636,19 @@ export default function CurrentApplication() {
       if (response.success && response.data) {
         setCurrentJob(response.data);
         setMonthlyProofs(response.data.monthlyProofs || []);
+        setSelectedContractId(response.data.id);
+
+        // Fetch all active contracts to enable selector (non-blocking)
+        const listRes = await getActiveContractsForUser(user.id);
+        if (listRes.success && listRes.data) {
+          const items = (listRes.data || []).map((c) => ({
+            id: c.id,
+            company: c.company,
+            jobPosition: c.jobPosition,
+            startDate: c.startDate,
+          }));
+          setAvailableContracts(items);
+        }
 
         // 🚨 CARGAR DOCUMENTOS DIRECTAMENTE DEL PROCESO DE CONTRATACIÓN
         const initialReadState: { [key: string]: boolean } = {
@@ -657,6 +691,79 @@ export default function CurrentApplication() {
       currentContract();
     }
   }, [user]);
+
+  // Handle change of selected contract
+  const handleSelectContract = async (contractId: string) => {
+    if (!user?.id || !contractId || contractId === selectedContractId) return;
+    setIsSwitchingContract(true);
+    try {
+      const res = await getUserContractById(user.id, contractId);
+      if (res.success && res.data) {
+        setCurrentJob(res.data);
+        setMonthlyProofs(res.data.monthlyProofs || []);
+        setSelectedContractId(contractId);
+        // Reset inbox list state
+        setInboxes([]);
+        setVisibleInboxCount(6);
+        setInboxNextCursor(null);
+        // Keep selected tab, refetch inboxes if on inboxes tab
+        if (selectedTab === "inboxes") {
+          await fetchInboxesPage(false);
+        }
+      }
+    } finally {
+      setIsSwitchingContract(false);
+    }
+  };
+
+  // Skeleton component to display during contract switching
+  const SkeletonCurrentContract = () => (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <SimpleHeader title="Current Contract" />
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-[#0097B2] p-4">
+            <div className="h-5 w-48 bg-white/30 rounded animate-pulse" />
+            <div className="h-3 w-64 bg-white/20 rounded mt-2 animate-pulse" />
+          </div>
+          <div className="p-4">
+            <div className="mb-4">
+              <div className="h-9 w-full lg:w-1/2 bg-gray-200 rounded animate-pulse" />
+              <div className="h-3 w-72 bg-gray-200 rounded mt-2 animate-pulse" />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="h-6 w-64 bg-gray-200 rounded animate-pulse" />
+                <div className="h-4 w-28 bg-gray-200 rounded animate-pulse" />
+                <div className="h-6 w-56 bg-gray-200 rounded animate-pulse" />
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                <div className="h-6 w-40 bg-gray-200 rounded animate-pulse" />
+              </div>
+              <div className="space-y-3">
+                <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="h-28 w-full bg-gray-200 rounded animate-pulse" />
+                <div className="h-10 w-40 bg-gray-200 rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="h-5 w-40 bg-gray-200 rounded animate-pulse" />
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="p-4 border border-gray-300 rounded">
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                <div className="h-3 w-32 bg-gray-200 rounded mt-2 animate-pulse" />
+                <div className="h-3 w-20 bg-gray-200 rounded mt-2 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   // Efecto para manejar el scroll de documentos
   useEffect(() => {
@@ -1760,6 +1867,9 @@ export default function CurrentApplication() {
   }
 
   // Full view for signed contracts
+  if (isSwitchingContract) {
+    return <SkeletonCurrentContract />;
+  }
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <style jsx global>{`
@@ -1840,7 +1950,9 @@ export default function CurrentApplication() {
               <div>
                 <h1 className="text-xl font-bold">Current Contract</h1>
                 <p className="text-blue-100 mt-1">
-                  Job position information and documentation
+                  {availableContracts.length > 1
+                    ? "You have multiple active contracts. Use the selector to switch between them."
+                    : "Job position information and documentation"}
                 </p>
               </div>
               <button
@@ -1860,6 +1972,28 @@ export default function CurrentApplication() {
           </div>
 
           <div className="p-4">
+            {availableContracts.length > 1 && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Active Contract
+                </label>
+                <select
+                  className="w-full lg:w-1/2 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+                  value={selectedContractId || ""}
+                  onChange={(e) => handleSelectContract(e.target.value)}
+                >
+                  {availableContracts.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.jobPosition}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Choose the job you want to manage to upload documents and
+                  generate payment inboxes.
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Position Data */}
               <div id="position-details" className="space-y-3">
@@ -2249,12 +2383,19 @@ export default function CurrentApplication() {
                             ? `${selectedPeriod.year}-${String(
                                 months.indexOf(selectedPeriod.month) + 1
                               ).padStart(2, "0")}`
-                            : `${currentYear}-${String(currentMonthIndex + 1).padStart(2, "0")}`
+                            : `${currentYear}-${String(
+                                currentMonthIndex + 1
+                              ).padStart(2, "0")}`
                         }
                         onChange={(e) => {
-                          const opt = periodOptions.find((o) => o.value === e.target.value);
+                          const opt = periodOptions.find(
+                            (o) => o.value === e.target.value
+                          );
                           if (opt) {
-                            setSelectedPeriod({ month: opt.month, year: opt.year });
+                            setSelectedPeriod({
+                              month: opt.month,
+                              year: opt.year,
+                            });
                             setSelectedMonth(opt.month);
                           }
                         }}
@@ -2267,7 +2408,8 @@ export default function CurrentApplication() {
                         ))}
                       </select>
                       <p className="text-xs text-gray-500 mt-1">
-                        Allowed periods: current year up to {currentMonth}. Exception: December 2025.
+                        Allowed periods: current year up to {currentMonth}.
+                        Exception: December 2025.
                       </p>
                     </div>
 
