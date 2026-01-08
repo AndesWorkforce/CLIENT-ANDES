@@ -80,12 +80,14 @@ export async function downloadInboxPdfAction(inboxId: string) {
 
 export async function generateUserInboxAction(
   userId: string,
-  yearMonth?: string
+  yearMonth?: string,
+  processId?: string
 ) {
   try {
     const axios = await createServerAxios();
     const body: any = {};
     if (yearMonth) body.yearMonth = yearMonth;
+    if (processId) body.processId = processId;
     const url = `users/${userId}/inboxes/generate`;
     const response = await axios.post(url, body);
     return { success: true, data: response.data };

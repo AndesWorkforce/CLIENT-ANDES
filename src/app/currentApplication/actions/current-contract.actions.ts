@@ -164,6 +164,53 @@ export async function getCurrentContract(): Promise<{
   }
 }
 
+export async function getActiveContractsForUser(userId: string): Promise<{
+  success: boolean;
+  data?: CurrentContractData[];
+  error?: string;
+}> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.get(`/users/${userId}/active-contracts`);
+    const data = response.data?.data || response.data;
+    return { success: true, data };
+  } catch (error: any) {
+    const status = error?.response?.status;
+    const message =
+      error?.response?.data?.message || error?.message || "Request failed";
+    return {
+      success: false,
+      error: `HTTP ${status || ""} - ${String(message)}`,
+    };
+  }
+}
+
+export async function getUserContractById(
+  userId: string,
+  contractId: string
+): Promise<{
+  success: boolean;
+  data?: CurrentContractData;
+  error?: string;
+}> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.get(
+      `/users/${userId}/contracts/${contractId}`
+    );
+    const data = response.data?.data || response.data;
+    return { success: true, data };
+  } catch (error: any) {
+    const status = error?.response?.status;
+    const message =
+      error?.response?.data?.message || error?.message || "Request failed";
+    return {
+      success: false,
+      error: `HTTP ${status || ""} - ${String(message)}`,
+    };
+  }
+}
+
 export async function uploadMonthlyProof(
   contratoId: string,
   month: string,
@@ -177,17 +224,46 @@ export async function uploadMonthlyProof(
   try {
     const axios = await createServerAxios();
 
-    // Paso 1: Subir el archivo PDF
-    const formData = new FormData();
-    formData.append("pdf", file);
+    // Detectar tipo de archivo y subir como PDF o Imagen
+    const mime = (file as any).type ? String((file as any).type) : "";
+    const name = (file as any).name ? String((file as any).name) : "";
+    const ext = name.split(".").pop()?.toLowerCase() || "";
+    const isPdf = mime === "application/pdf" || ext === "pdf";
+    const isImage =
+      mime.startsWith("image/") ||
+      ["jpg", "jpeg", "png", "webp", "gif", "heic"].includes(ext);
 
-    const fileResponse = await axios.post("/files/upload/pdf", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    const fileUrl = fileResponse.data; // El endpoint retorna directamente la URL
+    let fileUrl: string = "";
+    if (isPdf) {
+      const formData = new FormData();
+      formData.append("pdf", file);
+      const fileResponse = await axios.post("/files/upload/pdf", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      fileUrl = fileResponse.data;
+    } else if (isImage) {
+      const typeSlug = (() => {
+        if (mime.startsWith("image/")) return mime.split("/")[1].toLowerCase();
+        if (ext === "jpg") return "jpeg";
+        return ext || "jpeg";
+      })();
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("folder", "monthly-proofs");
+      const fileResponse = await axios.post(
+        `/files/upload/image/${typeSlug}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      fileUrl = fileResponse.data;
+    } else {
+      return {
+        success: false,
+        error: "Tipo de archivo no soportado. Sube un PDF o una imagen.",
+      };
+    }
 
     // Crear cadena añoMes en formato YYYY-MM (mes con 2 dígitos)
     const monthIndex = [
