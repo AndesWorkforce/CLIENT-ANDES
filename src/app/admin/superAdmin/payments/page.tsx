@@ -1100,7 +1100,7 @@ export default function PaymentsPage() {
                   : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
-              Rest
+              Other Countries
             </button>
           </div>
         </div>

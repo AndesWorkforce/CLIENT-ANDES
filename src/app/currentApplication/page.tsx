@@ -298,7 +298,7 @@ export default function CurrentApplication() {
         steps.push({
           element: "#inboxes-list",
           popover: {
-            title: "Your Inboxes",
+            title: "Your Invoices",
             description:
               "Use View to open the PDF or Download to save it. More items load as you scroll.",
             side: "top",
@@ -312,7 +312,7 @@ export default function CurrentApplication() {
       console.error("Error starting inboxes tour", e);
     }
   };
-
+  console.log("[CURRENT CONTRACT]", currentJob);
   const [showTopHelpNudge, setShowTopHelpNudge] = useState(false);
   const startTopTour = () => {
     try {
@@ -441,7 +441,6 @@ export default function CurrentApplication() {
     });
     return opts;
   }, [selectedTab, currentYear, allowedMonths]);
-  // Tab visibility: show Inboxes to all users, and Proofs for Colombians
   const showProofsTab = isColombiaUser;
   const showInboxesTab = true;
 
@@ -1435,15 +1434,6 @@ export default function CurrentApplication() {
     currentJob.estadoContratacion === "DOCUMENTOS_COMPLETADOS" ||
     currentJob.estadoContratacion === "PENDIENTE_FIRMA_PROVEEDOR";
 
-  console.log("🔍 Calculated states:", {
-    showDocumentsModal,
-    estadoContratacion: currentJob?.estadoContratacion,
-    isContractFullySigned,
-    needsDocumentReading,
-    isWaitingForProviderSignature,
-    allDocumentsRead: allDocumentsRead(),
-  });
-
   const validContractStatuses = [
     "PENDING",
     "SIGNED",
@@ -2341,7 +2331,7 @@ export default function CurrentApplication() {
                         : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 cursor-pointer"
                     }`}
                   >
-                    Inboxes
+                    Invoices
                   </button>
                 )}
               </div>
@@ -2567,10 +2557,10 @@ export default function CurrentApplication() {
               <div className="space-y-4">
                 <div className="bg-gray-50 rounded-lg p-3">
                   <h3 className="text-base font-medium text-gray-900 mb-1">
-                    Inboxes
+                    Invoices
                   </h3>
                   <p className="text-xs text-gray-500">
-                    Recent payment inboxes (newest first). Auto-loads as you
+                    Recent payment invoices (newest first). Auto-loads as you
                     scroll; use the button to view more.
                   </p>
                 </div>
