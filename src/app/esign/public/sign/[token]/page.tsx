@@ -325,7 +325,8 @@ function PublicSignClient() {
     }
   };
 
-  if (loading || authLoading) return <div className="container mx-auto p-6">Loading...</div>;
+  if (loading || authLoading)
+    return <div className="container mx-auto p-6">Loading...</div>;
   if (!isAuthenticated)
     return <div className="container mx-auto p-6">Redirecting to login...</div>;
   if (error)
