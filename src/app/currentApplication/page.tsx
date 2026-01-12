@@ -262,7 +262,7 @@ export default function CurrentApplication() {
         steps.push({
           element: "#inboxes-generate-section",
           popover: {
-            title: "Generate Inbox",
+            title: "Generate Invoice",
             description:
               "Select the month (current year only) and click Generate to create your invoice/inbox.",
             side: "bottom",
@@ -533,8 +533,8 @@ export default function CurrentApplication() {
       }
       addNotification(
         res.data?.alreadyExists
-          ? "Inbox already exists for that month"
-          : "Inbox generated",
+          ? "Invoice already exists for that month"
+          : "Invoice generated",
         res.data?.alreadyExists ? "info" : "success"
       );
     } catch (e) {
@@ -2581,7 +2581,7 @@ export default function CurrentApplication() {
                   className="bg-gray-50 rounded-lg p-4 border border-gray-200"
                 >
                   <h4 className="text-sm font-medium text-gray-900 mb-3">
-                    Generate Inbox
+                    Generate Invoice
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
@@ -2619,7 +2619,7 @@ export default function CurrentApplication() {
                         className="w-full md:w-auto inline-flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors cursor-pointer"
                       >
                         <Download size={16} />
-                        Generate Inbox
+                        Generate Invoice
                       </button>
                     </div>
                   </div>

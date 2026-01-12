@@ -191,6 +191,14 @@ export default function LoginForm() {
           setAuthenticated(true);
           setToken(result.data?.accessToken);
 
+          // Verificar si hay una URL de redirección pendiente
+          const redirectAfterLogin = localStorage.getItem("redirectAfterLogin");
+          if (redirectAfterLogin) {
+            localStorage.removeItem("redirectAfterLogin");
+            safeRedirect(redirectAfterLogin);
+            return;
+          }
+
           const activeRole = effectiveUser?.rol;
           if (activeRole === "EMPRESA" || activeRole === "EMPLEADO_EMPRESA") {
             safeRedirect("/companies/dashboard");
