@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { axiosBase } from "@/services/axios.instance";
 import SignaturePad from "signature_pad";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useAuthStore } from "@/store/auth.store";
 import PdfSignViewer, { type PdfField } from "../components/PdfSignViewer";
 
 type Field = {
@@ -29,6 +30,7 @@ const getRoleDisplay = (role?: string) => {
 };
 
 function PublicSignClient() {
+  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
   // Prefer token from query string; fallback to pathname segment
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -74,6 +76,15 @@ function PublicSignClient() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const padRef = useRef<any | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("redirectAfterLogin", window.location.href);
+        router.push("/auth/login");
+      }
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   useEffect(() => {
     const fetchPayload = async () => {
@@ -127,6 +138,11 @@ function PublicSignClient() {
         setOverlays(res.data.signedOverlays || []);
         setLoading(false);
       } catch (e: any) {
+        if (e?.response?.status === 401) {
+          // Si el token es inválido o expiró, cerrar sesión para forzar re-login
+          useAuthStore.getState().logout();
+          return;
+        }
         setError(e?.response?.data?.message || "Error loading document");
         setLoading(false);
       }
@@ -309,7 +325,9 @@ function PublicSignClient() {
     }
   };
 
-  if (loading) return <div className="container mx-auto p-6">Loading...</div>;
+  if (loading || authLoading) return <div className="container mx-auto p-6">Loading...</div>;
+  if (!isAuthenticated)
+    return <div className="container mx-auto p-6">Redirecting to login...</div>;
   if (error)
     return <div className="container mx-auto p-6 text-red-600">{error}</div>;
   if (!doc || !recipient)
@@ -341,7 +359,10 @@ function PublicSignClient() {
             You have successfully signed <strong>{doc.titulo}</strong>.
           </p>
           <button
-            onClick={() => router.push("/currentApplication")}
+            onClick={() => {
+              localStorage.removeItem("redirectAfterLogin");
+              router.push("/currentApplication");
+            }}
             className="w-full bg-[#0097B2] hover:bg-[#00869e] text-white font-medium px-4 py-3 rounded-lg transition-colors"
           >
             Return to Dashboard
@@ -369,7 +390,10 @@ function PublicSignClient() {
                   You have already signed this document.
                 </div>
                 <button
-                  onClick={() => router.push("/currentApplication")}
+                  onClick={() => {
+                    localStorage.removeItem("redirectAfterLogin");
+                    router.push("/currentApplication");
+                  }}
                   className="text-[#0097B2] hover:underline font-medium"
                 >
                   Return to Dashboard
