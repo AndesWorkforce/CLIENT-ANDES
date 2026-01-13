@@ -819,7 +819,8 @@ export default function SignContractModal({
         const pdfData = getPDFData() as any;
         const oferta = pdfData.ofertaSalarial ?? 0;
         const moneda = pdfData.monedaSalario || "USD";
-        await esignUpdateProcessOffer(documentId, oferta, moneda);
+        const fechaInicio = pdfData.fechaInicioLabores; // MM/DD/YYYY
+        await esignUpdateProcessOffer(documentId, oferta, moneda, fechaInicio);
       } catch (e) {
         console.warn("Unable to update process offer salary after send:", e);
       }
