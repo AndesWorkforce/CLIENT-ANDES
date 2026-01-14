@@ -2925,7 +2925,7 @@ export default function CurrentApplication() {
       {showEditModal && editingProofRef.current && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.6)] z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl h-[75vh] flex flex-col overflow-hidden">
-            <div className="flex justify-between items-center p-4 border-b">
+            <div className="flex justify-between items-center p-4 border-b border-gray-300">
               <h2 className="text-lg font-medium text-gray-800">Edit Proof</h2>
               <button
                 onClick={() => setShowEditModal(false)}
@@ -2934,7 +2934,7 @@ export default function CurrentApplication() {
                 <X size={20} />
               </button>
             </div>
-            <div className="flex-1 p-4">
+            <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
               {/* Upload form for editing */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
