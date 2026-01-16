@@ -262,7 +262,7 @@ export default function CurrentApplication() {
         steps.push({
           element: "#inboxes-generate-section",
           popover: {
-            title: "Generate Inbox",
+            title: "Generate Invoice",
             description:
               "Select the month (current year only) and click Generate to create your invoice/inbox.",
             side: "bottom",
@@ -298,7 +298,7 @@ export default function CurrentApplication() {
         steps.push({
           element: "#inboxes-list",
           popover: {
-            title: "Your Inboxes",
+            title: "Your Invoices",
             description:
               "Use View to open the PDF or Download to save it. More items load as you scroll.",
             side: "top",
@@ -312,7 +312,7 @@ export default function CurrentApplication() {
       console.error("Error starting inboxes tour", e);
     }
   };
-
+  console.log("[CURRENT CONTRACT]", currentJob);
   const [showTopHelpNudge, setShowTopHelpNudge] = useState(false);
   const startTopTour = () => {
     try {
@@ -441,7 +441,6 @@ export default function CurrentApplication() {
     });
     return opts;
   }, [selectedTab, currentYear, allowedMonths]);
-  // Tab visibility: show Inboxes to all users, and Proofs for Colombians
   const showProofsTab = isColombiaUser;
   const showInboxesTab = true;
 
@@ -533,8 +532,8 @@ export default function CurrentApplication() {
       }
       addNotification(
         res.data?.alreadyExists
-          ? "Inbox already exists for that month"
-          : "Inbox generated",
+          ? "Invoice already exists for that month"
+          : "Invoice generated",
         res.data?.alreadyExists ? "info" : "success"
       );
     } catch (e) {
@@ -1435,15 +1434,6 @@ export default function CurrentApplication() {
     currentJob.estadoContratacion === "DOCUMENTOS_COMPLETADOS" ||
     currentJob.estadoContratacion === "PENDIENTE_FIRMA_PROVEEDOR";
 
-  console.log("🔍 Calculated states:", {
-    showDocumentsModal,
-    estadoContratacion: currentJob?.estadoContratacion,
-    isContractFullySigned,
-    needsDocumentReading,
-    isWaitingForProviderSignature,
-    allDocumentsRead: allDocumentsRead(),
-  });
-
   const validContractStatuses = [
     "PENDING",
     "SIGNED",
@@ -2341,7 +2331,7 @@ export default function CurrentApplication() {
                         : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 cursor-pointer"
                     }`}
                   >
-                    Inboxes
+                    Invoices
                   </button>
                 )}
               </div>
@@ -2567,10 +2557,10 @@ export default function CurrentApplication() {
               <div className="space-y-4">
                 <div className="bg-gray-50 rounded-lg p-3">
                   <h3 className="text-base font-medium text-gray-900 mb-1">
-                    Inboxes
+                    Invoices
                   </h3>
                   <p className="text-xs text-gray-500">
-                    Recent payment inboxes (newest first). Auto-loads as you
+                    Recent payment invoices (newest first). Auto-loads as you
                     scroll; use the button to view more.
                   </p>
                 </div>
@@ -2581,7 +2571,7 @@ export default function CurrentApplication() {
                   className="bg-gray-50 rounded-lg p-4 border border-gray-200"
                 >
                   <h4 className="text-sm font-medium text-gray-900 mb-3">
-                    Generate Inbox
+                    Generate Invoice
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
@@ -2619,7 +2609,7 @@ export default function CurrentApplication() {
                         className="w-full md:w-auto inline-flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors cursor-pointer"
                       >
                         <Download size={16} />
-                        Generate Inbox
+                        Generate Invoice
                       </button>
                     </div>
                   </div>
@@ -2935,7 +2925,7 @@ export default function CurrentApplication() {
       {showEditModal && editingProofRef.current && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.6)] z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl h-[75vh] flex flex-col overflow-hidden">
-            <div className="flex justify-between items-center p-4 border-b">
+            <div className="flex justify-between items-center p-4 border-b border-gray-300">
               <h2 className="text-lg font-medium text-gray-800">Edit Proof</h2>
               <button
                 onClick={() => setShowEditModal(false)}
@@ -2944,7 +2934,7 @@ export default function CurrentApplication() {
                 <X size={20} />
               </button>
             </div>
-            <div className="flex-1 p-4">
+            <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
               {/* Upload form for editing */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">

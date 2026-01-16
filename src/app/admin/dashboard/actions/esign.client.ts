@@ -111,11 +111,12 @@ export async function esignSendDocument(documentId: string) {
 export async function esignUpdateProcessOffer(
   documentId: string,
   ofertaSalarial: number | string,
-  monedaSalario?: string
+  monedaSalario?: string,
+  fechaInicioLabores?: string
 ) {
   const res = await axiosBase.patch(
     `esign/documents/${documentId}/proceso/oferta`,
-    { ofertaSalarial, monedaSalario }
+    { ofertaSalarial, monedaSalario, fechaInicioLabores }
   );
   return res.data;
 }
