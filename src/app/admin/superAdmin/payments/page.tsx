@@ -864,6 +864,10 @@ export default function PaymentsPage() {
   };
 
   const handleViewInvoice = async (inboxId: string, añoMes?: string | null) => {
+    if (!inboxId || typeof inboxId !== "string" || inboxId.trim() === "") {
+      addNotification("Invalid invoice ID", "error");
+      return;
+    }
     try {
       const res = await viewInboxPdfAction(inboxId);
       if (!res.success) {
@@ -897,6 +901,10 @@ export default function PaymentsPage() {
     inboxId: string,
     añoMes?: string | null
   ) => {
+    if (!inboxId || typeof inboxId !== "string" || inboxId.trim() === "") {
+      addNotification("Invalid invoice ID", "error");
+      return;
+    }
     try {
       const res = await downloadInboxPdfAction(inboxId);
 

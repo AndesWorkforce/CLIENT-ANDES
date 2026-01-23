@@ -449,36 +449,38 @@ export default function CurrentApplication() {
   const [loadingInboxes, setLoadingInboxes] = useState<boolean>(false);
 
   const mapInboxItems = (items: any[]): InboxItem[] => {
-    return (items || []).map((it) => {
-      const ym: string = String(it.añoMes || "");
-      const [yearStr, monthStr] = ym.split("-");
-      const mIdx = Math.max(0, Math.min(11, Number(monthStr || 1) - 1));
-      const rawStatus = String(
-        (it.status || it.estado || it.paymentStatus || "").toString()
-      ).toUpperCase();
-      const normalizedStatus: "PAID" | "PENDING" =
-        rawStatus === "PAID"
-          ? "PAID"
-          : rawStatus === "PENDING"
-          ? "PENDING"
-          : isColombiaUser
-          ? "PENDING"
-          : "PAID"; // Default: non-Colombia invoices are considered Paid
-      return {
-        id: it.id,
-        invoiceNumber: String(it.invoiceNumber || "#"),
-        month: months[mIdx],
-        year: Number(yearStr || new Date().getFullYear()),
-        amount: Number(it.amount || currentJob?.ofertaSalarial || 0),
-        currency: String(it.currency || currentJob?.monedaSalario || "USD"),
-        generatedAt: String(
-          it.createdAt || it.fechaCreacion || new Date().toISOString()
-        ),
-        status: normalizedStatus,
-        viewUrl: undefined,
-        downloadUrl: undefined,
-      } as InboxItem;
-    });
+    return (items || [])
+      .filter((it) => it.id && typeof it.id === "string" && it.id.trim() !== "")
+      .map((it) => {
+        const ym: string = String(it.añoMes || "");
+        const [yearStr, monthStr] = ym.split("-");
+        const mIdx = Math.max(0, Math.min(11, Number(monthStr || 1) - 1));
+        const rawStatus = String(
+          (it.status || it.estado || it.paymentStatus || "").toString()
+        ).toUpperCase();
+        const normalizedStatus: "PAID" | "PENDING" =
+          rawStatus === "PAID"
+            ? "PAID"
+            : rawStatus === "PENDING"
+            ? "PENDING"
+            : isColombiaUser
+            ? "PENDING"
+            : "PAID"; // Default: non-Colombia invoices are considered Paid
+        return {
+          id: it.id,
+          invoiceNumber: String(it.invoiceNumber || "#"),
+          month: months[mIdx],
+          year: Number(yearStr || new Date().getFullYear()),
+          amount: Number(it.amount || currentJob?.ofertaSalarial || 0),
+          currency: String(it.currency || currentJob?.monedaSalario || "USD"),
+          generatedAt: String(
+            it.createdAt || it.fechaCreacion || new Date().toISOString()
+          ),
+          status: normalizedStatus,
+          viewUrl: undefined,
+          downloadUrl: undefined,
+        } as InboxItem;
+      });
   };
 
   const handleGenerateInbox = async () => {
@@ -2657,6 +2659,13 @@ export default function CurrentApplication() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={async () => {
+                                if (!item.id) {
+                                  addNotification(
+                                    "Invoice ID not available",
+                                    "error"
+                                  );
+                                  return;
+                                }
                                 try {
                                   const res = await viewInboxPdfAction(item.id);
                                   if (!res.success) {
@@ -2707,13 +2716,21 @@ export default function CurrentApplication() {
                                   );
                                 }
                               }}
-                              className="flex items-center gap-2 px-3 py-2 text-[#0097B2] border border-[#0097B2] rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                              className="flex items-center gap-2 px-3 py-2 text-[#0097B2] border border-[#0097B2] rounded-lg hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={!item.id}
                             >
                               <Eye size={16} />
                               View
                             </button>
                             <button
                               onClick={async () => {
+                                if (!item.id) {
+                                  addNotification(
+                                    "Invoice ID not available",
+                                    "error"
+                                  );
+                                  return;
+                                }
                                 try {
                                   const res = await downloadInboxPdfAction(
                                     item.id
@@ -2775,7 +2792,8 @@ export default function CurrentApplication() {
                                   );
                                 }
                               }}
-                              className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors cursor-pointer"
+                              className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={!item.id}
                             >
                               <Download size={16} />
                               Download
