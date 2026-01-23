@@ -19,13 +19,79 @@ Se corrigió un error crítico que causaba errores HTTP 400 al intentar descarga
 - Logs del backend mostraban: `GET /api/users/inboxes/undefined/view - 400 Bad Request`
 
 ### Causa Raíz
-1. **Items sin ID válido**: Algunos items de inbox devueltos por el backend no tenían un `id` válido (podía ser `undefined`, `null`, o string vacío)
+
+**Causa Principal: Interceptor de Axios Reseteando Cookies Incorrectamente**
+
+El problema principal estaba en el interceptor de respuesta de `axios.server.ts`. Cuando ocurría un error 401 (token expirado o inválido), el interceptor intentaba:
+
+1. **Eliminar cookies de autenticación** (`auth_token`, `user_info`) fuera del contexto válido
+2. **Hacer redirect** a la página de logout forzado
+
+Esto causaba múltiples problemas:
+- ❌ Error: `Cookies can only be modified in a Server Action or Route Handler`
+- ❌ Error: `NEXT_REDIRECT` en contexto inválido
+- ❌ **Pérdida de sesión del usuario**: Las cookies se intentaban eliminar pero fallaba, dejando al usuario en un estado inconsistente
+- ❌ **Datos de usuario perdidos**: Al perder la sesión, el `userId` y otros datos críticos se perdían
+- ❌ **Items sin ID**: Al perder la sesión, las peticiones para obtener invoices fallaban o retornaban datos incompletos
+
+**Causas Secundarias:**
+1. **Items sin ID válido**: Algunos items de inbox devueltos por el backend no tenían un `id` válido (podía ser `undefined`, `null`, o string vacío) - posiblemente como consecuencia de la pérdida de sesión
 2. **Falta de validación**: El frontend no validaba que el `id` fuera válido antes de hacer las peticiones
 3. **Mapeo de datos**: La función `mapInboxItems` no filtraba items inválidos antes de mapearlos
 
 ---
 
 ## ✅ Solución Implementada
+
+### 0. Corrección del Interceptor de Axios (Causa Raíz)
+
+**Archivo:** `src/services/axios.server.ts`
+
+**Problema anterior:**
+```typescript
+// ANTES - Código problemático
+axiosServer.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      // ❌ Intentaba eliminar cookies fuera de contexto válido
+      cookieStore.delete(AUTH_COOKIE);
+      cookieStore.delete(USER_INFO_COOKIE);
+      
+      // ❌ Intentaba hacer redirect fuera de contexto válido
+      redirect('/auth/forced-logout?reason=session_expired');
+    }
+  }
+);
+```
+
+**Solución implementada:**
+```typescript
+// DESPUÉS - Código corregido
+axiosServer.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401 && !error.config?.url?.includes("auth/login")) {
+      console.log("[Axios] Interceptor de respuesta 401 - Error de autenticación");
+      // ✅ Solo propaga el error, no intenta modificar cookies ni hacer redirect
+      // El código que llama debe manejar el error 401 apropiadamente
+    }
+    return Promise.reject(error);
+  }
+);
+```
+
+**Beneficios:**
+- ✅ No más errores de "Cookies can only be modified"
+- ✅ No más errores de "NEXT_REDIRECT" en contexto inválido
+- ✅ **Sesión del usuario preservada**: Las cookies no se eliminan incorrectamente
+- ✅ **Datos de usuario intactos**: El `userId` y otros datos críticos se mantienen
+- ✅ **Requests válidos**: Las peticiones para obtener invoices ahora tienen contexto de usuario válido
+
+**Cambio adicional:**
+- Se crea una nueva instancia de axios para cada llamada, evitando que los interceptores se acumulen en una instancia compartida
+
+---
 
 ### 1. Filtrado de Items Inválidos en `mapInboxItems`
 
@@ -164,6 +230,12 @@ Se aplicaron las mismas validaciones en las server actions del admin.
 
 ## 📁 Archivos Modificados
 
+0. **`src/services/axios.server.ts`** ⚠️ **CRÍTICO - Causa Raíz**
+   - Removida lógica de eliminación de cookies en interceptor (línea 40-56)
+   - Removida lógica de redirect en interceptor
+   - Interceptor ahora solo propaga errores 401 sin modificar estado
+   - Creación de nueva instancia de axios por llamada (línea 23)
+
 1. **`src/app/currentApplication/page.tsx`**
    - Filtrado en `mapInboxItems` (línea 453)
    - Validación en botón View (línea 2662)
@@ -210,12 +282,20 @@ Se aplicaron las mismas validaciones en las server actions del admin.
 ## 📊 Impacto
 
 ### Antes
-- ❌ Errores 400 frecuentes en logs
+- ❌ **Errores de cookies**: `Cookies can only be modified in a Server Action or Route Handler`
+- ❌ **Errores de redirect**: `NEXT_REDIRECT` en contexto inválido
+- ❌ **Pérdida de sesión**: Cookies se intentaban eliminar incorrectamente, dejando al usuario sin sesión
+- ❌ **Datos perdidos**: `userId` y otros datos críticos se perdían
+- ❌ Errores 400 frecuentes en logs (`undefined` como ID)
 - ❌ Usuarios no podían descargar invoices
 - ❌ Experiencia de usuario degradada
 - ❌ Requests innecesarios al backend
 
 ### Después
+- ✅ **Sin errores de cookies**: El interceptor ya no intenta modificar cookies
+- ✅ **Sin errores de redirect**: El interceptor ya no intenta hacer redirect
+- ✅ **Sesión preservada**: Las cookies se mantienen correctamente
+- ✅ **Datos intactos**: `userId` y otros datos críticos se preservan
 - ✅ Sin errores 400 relacionados con invoices
 - ✅ Usuarios pueden descargar/visualizar invoices correctamente
 - ✅ Feedback visual claro (botones deshabilitados)
@@ -256,9 +336,17 @@ async viewInboxPdf(
 
 ## 📝 Notas Técnicas
 
-### ¿Por qué algunos items no tienen ID?
+### ¿Por qué algunos items no tenían ID?
 
-Posibles causas:
+**Causa Principal Identificada:**
+El interceptor de axios estaba intentando eliminar cookies cuando había un error 401, pero esto fallaba porque no se puede modificar cookies fuera de un Server Action o Route Handler. Esto causaba:
+
+1. **Pérdida de sesión del usuario**: Las cookies se intentaban eliminar pero fallaba, dejando al usuario en un estado inconsistente
+2. **Datos de usuario perdidos**: Al perder la sesión, el `userId` y otros datos críticos se perdían
+3. **Requests sin contexto**: Las peticiones para obtener invoices se hacían sin `userId` válido o con datos incompletos
+4. **Items sin ID**: El backend retornaba items sin ID válido porque no tenía contexto de usuario correcto
+
+**Otras posibles causas (secundarias):**
 1. Datos inconsistentes en la base de datos
 2. Items en proceso de creación (race condition)
 3. Items eliminados pero aún en caché
@@ -266,7 +354,9 @@ Posibles causas:
 
 ### Solución Preventiva
 
-El filtrado en `mapInboxItems` asegura que solo items con IDs válidos lleguen a la UI, independientemente de la causa raíz.
+1. **Corrección del interceptor**: Ya no intenta modificar cookies ni hacer redirect, preservando la sesión del usuario
+2. **Filtrado en mapeo**: El filtrado en `mapInboxItems` asegura que solo items con IDs válidos lleguen a la UI, como capa adicional de defensa
+3. **Validación en múltiples capas**: Validación en UI, server actions y mapeo para prevenir problemas futuros
 
 ---
 
@@ -284,4 +374,5 @@ El filtrado en `mapInboxItems` asegura que solo items con IDs válidos lleguen a
 Corrección implementada como parte de la resolución de errores críticos en producción.
 
 **Fecha de implementación:** Enero 2026
+
 
