@@ -16,6 +16,7 @@
 ### Síntomas
 - Errores HTTP 400 al descargar/visualizar invoices
 - Backend recibía `undefined` como ID → `Validation failed (uuid is expected)`
+- Items undefined causaban crash: `can't access property "invoiceNumber", item is undefined`
 - Usuarios no podían acceder a sus invoices
 
 ## Solución (5 capas de validación)
@@ -32,13 +33,49 @@ return Promise.reject(error); // ✅ Preserva sesión
 ```
 **Beneficio:** Sesión del usuario preservada, datos intactos, requests válidos
 
-### 1. Filtrado en Mapeo
+### 1. Filtrado con Logging en Mapeo
 ```typescript
-// Filtra items sin ID válido antes de mapearlos
-.filter((it) => it.id && typeof it.id === "string" && it.id.trim() !== "")
+// Filtra items sin ID válido con logging detallado
+const filtered = (items || []).filter((it) => {
+  const hasId = it && it.id && typeof it.id === "string" && it.id.trim() !== "";
+  if (!hasId) {
+    console.warn("[mapInboxItems] Filtering out item without valid ID:", it);
+  }
+  return hasId;
+});
+console.log("[mapInboxItems] Raw items from API:", items);
+console.log("[mapInboxItems] Filtered items:", filtered);
 ```
 
-### 2. Validación en Server Actions
+### 2. Validación Post-Mapeo
+```typescript
+// Filtra items después del mapeo en fetchInboxesPage
+const items = mapInboxItems(payload.data || payload.items || []).filter(
+  (item) => item && item.id && item.invoiceNumber
+);
+```
+
+### 3. Validación en Generación de Invoice
+```typescript
+// Valida item mapeado antes de agregar al estado
+const mappedItems = mapInboxItems([item]);
+const mapped = mappedItems[0];
+
+if (mapped && mapped.id) {
+  setInboxes((prev) => [...]);
+}
+```
+
+### 4. Validación en Render
+```typescript
+// Triple filtro antes de renderizar
+{inboxes
+  .filter((item) => item && item.id && item.invoiceNumber)
+  .slice(0, visibleInboxCount)
+  .map((item) => (...))}
+```
+
+### 5. Validación en Server Actions
 ```typescript
 // Valida antes de hacer HTTP request
 if (!inboxId || typeof inboxId !== "string" || inboxId.trim() === "") {
@@ -46,17 +83,14 @@ if (!inboxId || typeof inboxId !== "string" || inboxId.trim() === "") {
 }
 ```
 
-### 3. Validación en UI
+### 6. Validación en UI con Botones
 ```typescript
 // Valida antes de llamar a la función
 if (!item.id) {
   addNotification("Invoice ID not available", "error");
   return;
 }
-```
 
-### 4. Botones Deshabilitados
-```typescript
 // Feedback visual
 disabled={!item.id}
 className="... disabled:opacity-50 disabled:cursor-not-allowed"
@@ -74,6 +108,7 @@ className="... disabled:opacity-50 disabled:cursor-not-allowed"
 ✅ **Sesión del usuario preservada**  
 ✅ **Datos de usuario intactos**  
 ✅ Sin errores 400  
+✅ Sin crashes por items undefined  
 ✅ Usuarios pueden descargar/visualizar invoices  
 ✅ Validación en múltiples capas (defensa en profundidad)  
 ✅ Mejor UX (botones deshabilitados + mensajes claros)

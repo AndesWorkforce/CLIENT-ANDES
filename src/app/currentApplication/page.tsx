@@ -449,38 +449,52 @@ export default function CurrentApplication() {
   const [loadingInboxes, setLoadingInboxes] = useState<boolean>(false);
 
   const mapInboxItems = (items: any[]): InboxItem[] => {
-    return (items || [])
-      .filter((it) => it.id && typeof it.id === "string" && it.id.trim() !== "")
-      .map((it) => {
-        const ym: string = String(it.añoMes || "");
-        const [yearStr, monthStr] = ym.split("-");
-        const mIdx = Math.max(0, Math.min(11, Number(monthStr || 1) - 1));
-        const rawStatus = String(
-          (it.status || it.estado || it.paymentStatus || "").toString()
-        ).toUpperCase();
-        const normalizedStatus: "PAID" | "PENDING" =
-          rawStatus === "PAID"
-            ? "PAID"
-            : rawStatus === "PENDING"
-            ? "PENDING"
-            : isColombiaUser
-            ? "PENDING"
-            : "PAID"; // Default: non-Colombia invoices are considered Paid
-        return {
-          id: it.id,
-          invoiceNumber: String(it.invoiceNumber || "#"),
-          month: months[mIdx],
-          year: Number(yearStr || new Date().getFullYear()),
-          amount: Number(it.amount || currentJob?.ofertaSalarial || 0),
-          currency: String(it.currency || currentJob?.monedaSalario || "USD"),
-          generatedAt: String(
-            it.createdAt || it.fechaCreacion || new Date().toISOString()
-          ),
-          status: normalizedStatus,
-          viewUrl: undefined,
-          downloadUrl: undefined,
-        } as InboxItem;
-      });
+    console.log("[mapInboxItems] Raw items from API:", items);
+    
+    const filtered = (items || []).filter((it) => {
+      const hasId = it && it.id && typeof it.id === "string" && it.id.trim() !== "";
+      if (!hasId) {
+        console.warn("[mapInboxItems] Filtering out item without valid ID:", it);
+      }
+      return hasId;
+    });
+    
+    console.log("[mapInboxItems] Filtered items:", filtered);
+    
+    return filtered.map((it) => {
+      const ym: string = String(it.añoMes || "");
+      const [yearStr, monthStr] = ym.split("-");
+      const mIdx = Math.max(0, Math.min(11, Number(monthStr || 1) - 1));
+      const rawStatus = String(
+        (it.status || it.estado || it.paymentStatus || "").toString()
+      ).toUpperCase();
+      const normalizedStatus: "PAID" | "PENDING" =
+        rawStatus === "PAID"
+          ? "PAID"
+          : rawStatus === "PENDING"
+          ? "PENDING"
+          : isColombiaUser
+          ? "PENDING"
+          : "PAID"; // Default: non-Colombia invoices are considered Paid
+      
+      const mappedItem = {
+        id: it.id,
+        invoiceNumber: String(it.invoiceNumber || "#"),
+        month: months[mIdx],
+        year: Number(yearStr || new Date().getFullYear()),
+        amount: Number(it.amount || currentJob?.ofertaSalarial || 0),
+        currency: String(it.currency || currentJob?.monedaSalario || "USD"),
+        generatedAt: String(
+          it.createdAt || it.fechaCreacion || new Date().toISOString()
+        ),
+        status: normalizedStatus,
+        viewUrl: undefined,
+        downloadUrl: undefined,
+      } as InboxItem;
+      
+      console.log("[mapInboxItems] Mapped item:", mappedItem);
+      return mappedItem;
+    });
   };
 
   const handleGenerateInbox = async () => {
@@ -505,30 +519,39 @@ export default function CurrentApplication() {
         yearMonth,
         selectedContractId || undefined
       );
+      
+      console.log("[handleGenerateInbox] API response:", res);
+      
       if (!res.success) {
         addNotification(res.error || "Error generating inbox", "error");
         return;
       }
       const item = res.data?.data || res.data;
+      console.log("[handleGenerateInbox] Extracted item:", item);
+      
       if (item) {
-        const mapped = mapInboxItems([item])[0];
-        setInboxes((prev) => {
-          const exists = prev.some(
-            (p) => p.year === mapped.year && p.month === mapped.month
-          );
-          const next = exists ? prev : [mapped, ...prev];
-          return next.sort((a, b) =>
-            `${b.year}-${String(months.indexOf(b.month) + 1).padStart(
-              2,
-              "0"
-            )}`.localeCompare(
-              `${a.year}-${String(months.indexOf(a.month) + 1).padStart(
+        const mappedItems = mapInboxItems([item]);
+        const mapped = mappedItems[0];
+        
+        if (mapped && mapped.id) {
+          setInboxes((prev) => {
+            const exists = prev.some(
+              (p) => p.year === mapped.year && p.month === mapped.month
+            );
+            const next = exists ? prev : [mapped, ...prev];
+            return next.sort((a, b) =>
+              `${b.year}-${String(months.indexOf(b.month) + 1).padStart(
                 2,
                 "0"
-              )}`
-            )
-          );
-        });
+              )}`.localeCompare(
+                `${a.year}-${String(months.indexOf(a.month) + 1).padStart(
+                  2,
+                  "0"
+                )}`
+              )
+            );
+          });
+        }
       } else {
         await fetchInboxesPage(false);
       }
@@ -558,7 +581,9 @@ export default function CurrentApplication() {
         return;
       }
       const payload = res.data || {};
-      const items = mapInboxItems(payload.data || payload.items || []);
+      const items = mapInboxItems(payload.data || payload.items || []).filter(
+        (item) => item && item.id && item.invoiceNumber
+      );
       const nextCursor = payload.nextCursor || null;
       setInboxNextCursor(nextCursor);
       setInboxes((prev) => (append ? [...prev, ...items] : items));
@@ -2628,7 +2653,10 @@ export default function CurrentApplication() {
                   className="max-h-[60vh] overflow-y-auto custom-scrollbar border border-gray-200 rounded-lg"
                 >
                   <div className="p-4 space-y-4">
-                    {inboxes.slice(0, visibleInboxCount).map((item) => (
+                    {inboxes
+                      .filter((item) => item && item.id && item.invoiceNumber)
+                      .slice(0, visibleInboxCount)
+                      .map((item) => (
                       <div
                         key={item.id}
                         className="border border-gray-200 rounded-lg p-4"
