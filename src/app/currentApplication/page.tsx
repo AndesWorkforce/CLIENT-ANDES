@@ -57,7 +57,7 @@ import {
 
 export default function CurrentApplication() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
   const { addNotification } = useNotificationStore();
   const u: any = user;
   const isColombiaUser = (() => {
@@ -140,6 +140,9 @@ export default function CurrentApplication() {
 
   // Estado para mostrar/ocultar descripción completa
   const [showFullDescription, setShowFullDescription] = useState(false);
+
+  // Flag para controlar si el modal ya fue abierto automáticamente
+  const modalAutoOpenedRef = useRef(false);
 
   // Edit/replace proof modal states
   const [showEditModal, setShowEditModal] = useState(false);
@@ -645,7 +648,12 @@ export default function CurrentApplication() {
   }, [currentMonth, currentYear]);
 
   // Redirect to login if not authenticated
+  // IMPORTANTE: Solo redirigir si NO está cargando el estado de auth
   useEffect(() => {
+    // Esperar a que el auth store termine de cargar desde localStorage
+    if (authLoading) return;
+    
+    // Solo redirigir si definitivamente no está autenticado
     if (isAuthenticated === false || !user) {
       try {
         router.replace("/auth/login");
@@ -653,7 +661,7 @@ export default function CurrentApplication() {
         setIsLoading(false);
       }
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, authLoading]);
 
   const currentContract = async () => {
     if (!user?.id) return;
@@ -1406,27 +1414,34 @@ export default function CurrentApplication() {
   };
 
   // Auto-open documents modal if candidate signed but needs to read documents
+  // SOLO una vez por sesión para evitar reaperturas en cada recarga
   useEffect(() => {
     console.log("🔍 DEBUG - useEffect triggered:", {
       currentJob: !!currentJob,
       estadoContratacion: currentJob?.estadoContratacion,
+      modalAutoOpenedRef: modalAutoOpenedRef.current,
       shouldOpenModal:
         currentJob &&
         (currentJob.estadoContratacion === "FIRMADO_CANDIDATO" ||
-          currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA"),
+          currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA") &&
+        !modalAutoOpenedRef.current,
     });
 
+    // Solo abrir si no se ha abierto antes en esta sesión
     if (
       currentJob &&
       (currentJob.estadoContratacion === "FIRMADO_CANDIDATO" ||
-        currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA")
+        currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA") &&
+      !modalAutoOpenedRef.current
     ) {
       console.log("🚀 Opening documents modal automatically!");
+      modalAutoOpenedRef.current = true; // Marcar que ya se abrió
       openDocumentsModal();
     }
   }, [currentJob]);
 
-  if (isLoading) {
+  // Mostrar loading mientras se carga la autenticación o los datos
+  if (isLoading || authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
