@@ -449,19 +449,39 @@ export default function CurrentApplication() {
   const [loadingInboxes, setLoadingInboxes] = useState<boolean>(false);
 
   const mapInboxItems = (items: any[]): InboxItem[] => {
+    console.log("[mapInboxItems] ===== INICIO MAPEO =====");
     console.log("[mapInboxItems] Raw items from API:", items);
+    console.log("[mapInboxItems] Number of items:", items?.length || 0);
+    
+    // Log detallado de cada item antes del filtrado
+    (items || []).forEach((it, index) => {
+      console.log(`[mapInboxItems] Item ${index}:`, {
+        id: it?.id,
+        idType: typeof it?.id,
+        idValue: JSON.stringify(it?.id),
+        hasId: !!(it && it.id),
+        fullItem: it
+      });
+    });
     
     const filtered = (items || []).filter((it) => {
       const hasId = it && it.id && typeof it.id === "string" && it.id.trim() !== "";
       if (!hasId) {
-        console.warn("[mapInboxItems] Filtering out item without valid ID:", it);
+        console.warn("[mapInboxItems] ⚠️ Filtering out item without valid ID:", {
+          item: it,
+          id: it?.id,
+          idType: typeof it?.id,
+          idValue: JSON.stringify(it?.id)
+        });
       }
       return hasId;
     });
     
     console.log("[mapInboxItems] Filtered items:", filtered);
+    console.log("[mapInboxItems] Number of filtered items:", filtered.length);
     
-    return filtered.map((it) => {
+    return filtered.map((it, index) => {
+      console.log(`[mapInboxItems] Mapping item ${index} with ID:`, it.id);
       const ym: string = String(it.añoMes || "");
       const [yearStr, monthStr] = ym.split("-");
       const mIdx = Math.max(0, Math.min(11, Number(monthStr || 1) - 1));
@@ -492,7 +512,13 @@ export default function CurrentApplication() {
         downloadUrl: undefined,
       } as InboxItem;
       
-      console.log("[mapInboxItems] Mapped item:", mappedItem);
+      console.log("[mapInboxItems] ✅ Mapped item:", {
+        id: mappedItem.id,
+        idType: typeof mappedItem.id,
+        idValue: JSON.stringify(mappedItem.id),
+        invoiceNumber: mappedItem.invoiceNumber,
+        fullItem: mappedItem
+      });
       return mappedItem;
     });
   };
@@ -581,12 +607,53 @@ export default function CurrentApplication() {
         return;
       }
       const payload = res.data || {};
-      const items = mapInboxItems(payload.data || payload.items || []).filter(
+      console.log("[fetchInboxesPage] ===== INICIO FETCH =====");
+      console.log("[fetchInboxesPage] Payload received:", payload);
+      console.log("[fetchInboxesPage] Payload.data:", payload.data);
+      console.log("[fetchInboxesPage] Payload.items:", payload.items);
+      
+      const mappedItems = mapInboxItems(payload.data || payload.items || []);
+      console.log("[fetchInboxesPage] Mapped items after mapInboxItems:", mappedItems);
+      
+      // Log detallado de cada item mapeado
+      mappedItems.forEach((item, index) => {
+        console.log(`[fetchInboxesPage] Mapped item ${index}:`, {
+          id: item?.id,
+          idType: typeof item?.id,
+          idValue: JSON.stringify(item?.id),
+          invoiceNumber: item?.invoiceNumber,
+          fullItem: item
+        });
+      });
+      
+      const items = mappedItems.filter(
         (item) => item && item.id && item.invoiceNumber
       );
+      console.log("[fetchInboxesPage] Final filtered items:", items);
+      console.log("[fetchInboxesPage] Number of final items:", items.length);
+      
+      // Log detallado de cada item final
+      items.forEach((item, index) => {
+        console.log(`[fetchInboxesPage] Final item ${index}:`, {
+          id: item?.id,
+          idType: typeof item?.id,
+          idValue: JSON.stringify(item?.id),
+          invoiceNumber: item?.invoiceNumber
+        });
+      });
+      
       const nextCursor = payload.nextCursor || null;
       setInboxNextCursor(nextCursor);
-      setInboxes((prev) => (append ? [...prev, ...items] : items));
+      
+      console.log("[fetchInboxesPage] Setting inboxes state, append:", append);
+      setInboxes((prev) => {
+        const next = append ? [...prev, ...items] : items;
+        console.log("[fetchInboxesPage] Previous inboxes count:", prev.length);
+        console.log("[fetchInboxesPage] Next inboxes count:", next.length);
+        console.log("[fetchInboxesPage] Next inboxes IDs:", next.map(i => i?.id));
+        return next;
+      });
+      console.log("[fetchInboxesPage] ===== FIN FETCH =====");
       setVisibleInboxCount((prev) =>
         Math.min(append ? prev : 6, append ? prev + items.length : items.length)
       );
@@ -597,6 +664,36 @@ export default function CurrentApplication() {
       setLoadingInboxes(false);
     }
   };
+
+  // Monitorear cambios en el estado de inboxes para detectar items sin ID
+  useEffect(() => {
+    console.log("[useEffect inboxes] ===== MONITOREO ESTADO INBOXES =====");
+    console.log("[useEffect inboxes] Total inboxes:", inboxes.length);
+    
+    inboxes.forEach((item, index) => {
+      const hasValidId = item && item.id && typeof item.id === "string" && item.id.trim() !== "";
+      if (!hasValidId) {
+        console.error(`[useEffect inboxes] ⚠️ Item ${index} sin ID válido:`, {
+          item,
+          id: item?.id,
+          idType: typeof item?.id,
+          idValue: JSON.stringify(item?.id),
+          invoiceNumber: item?.invoiceNumber
+        });
+      } else {
+        console.log(`[useEffect inboxes] ✅ Item ${index} con ID válido:`, {
+          id: item.id,
+          invoiceNumber: item.invoiceNumber
+        });
+      }
+    });
+    
+    const itemsWithoutId = inboxes.filter(item => !item || !item.id || typeof item.id !== "string" || item.id.trim() === "");
+    if (itemsWithoutId.length > 0) {
+      console.error("[useEffect inboxes] ❌ ENCONTRADOS ITEMS SIN ID VÁLIDO:", itemsWithoutId);
+    }
+    console.log("[useEffect inboxes] ===== FIN MONITOREO =====");
+  }, [inboxes]);
 
   useEffect(() => {
     if (!currentJob || !user?.id) return;
@@ -2654,13 +2751,33 @@ export default function CurrentApplication() {
                 >
                   <div className="p-4 space-y-4">
                     {inboxes
-                      .filter((item) => item && item.id && item.invoiceNumber)
+                      .filter((item) => {
+                        const isValid = item && item.id && item.invoiceNumber;
+                        if (!isValid) {
+                          console.warn("[Render] ⚠️ Filtering out invalid item:", {
+                            item,
+                            hasItem: !!item,
+                            hasId: !!item?.id,
+                            idValue: item?.id,
+                            idType: typeof item?.id,
+                            hasInvoiceNumber: !!item?.invoiceNumber
+                          });
+                        }
+                        return isValid;
+                      })
                       .slice(0, visibleInboxCount)
-                      .map((item) => (
-                      <div
-                        key={item.id}
-                        className="border border-gray-200 rounded-lg p-4"
-                      >
+                      .map((item, index) => {
+                        console.log(`[Render] Rendering item ${index}:`, {
+                          id: item?.id,
+                          idType: typeof item?.id,
+                          idValue: JSON.stringify(item?.id),
+                          invoiceNumber: item?.invoiceNumber
+                        });
+                        return (
+                          <div
+                            key={item.id}
+                            className="border border-gray-200 rounded-lg p-4"
+                          >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
@@ -2687,7 +2804,20 @@ export default function CurrentApplication() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={async () => {
+                                console.log("[View Button] ===== CLICK VIEW =====");
+                                console.log("[View Button] Full item object:", item);
+                                console.log("[View Button] item.id:", item.id);
+                                console.log("[View Button] item.id type:", typeof item.id);
+                                console.log("[View Button] item.id value:", JSON.stringify(item.id));
+                                console.log("[View Button] item.id truthy:", !!item.id);
+                                
                                 if (!item.id) {
+                                  console.error("[View Button] ❌ Invalid item.id detected:", {
+                                    item,
+                                    id: item.id,
+                                    idType: typeof item.id,
+                                    idValue: JSON.stringify(item.id)
+                                  });
                                   addNotification(
                                     "Invoice ID not available",
                                     "error"
@@ -2695,6 +2825,7 @@ export default function CurrentApplication() {
                                   return;
                                 }
                                 try {
+                                  console.log("[View Button] ✅ Calling viewInboxPdfAction with ID:", item.id);
                                   const res = await viewInboxPdfAction(item.id);
                                   if (!res.success) {
                                     addNotification(
@@ -2752,7 +2883,20 @@ export default function CurrentApplication() {
                             </button>
                             <button
                               onClick={async () => {
+                                console.log("[Download Button] ===== CLICK DOWNLOAD =====");
+                                console.log("[Download Button] Full item object:", item);
+                                console.log("[Download Button] item.id:", item.id);
+                                console.log("[Download Button] item.id type:", typeof item.id);
+                                console.log("[Download Button] item.id value:", JSON.stringify(item.id));
+                                console.log("[Download Button] item.id truthy:", !!item.id);
+                                
                                 if (!item.id) {
+                                  console.error("[Download Button] ❌ Invalid item.id detected:", {
+                                    item,
+                                    id: item.id,
+                                    idType: typeof item.id,
+                                    idValue: JSON.stringify(item.id)
+                                  });
                                   addNotification(
                                     "Invoice ID not available",
                                     "error"
@@ -2760,6 +2904,7 @@ export default function CurrentApplication() {
                                   return;
                                 }
                                 try {
+                                  console.log("[Download Button] ✅ Calling downloadInboxPdfAction with ID:", item.id);
                                   const res = await downloadInboxPdfAction(
                                     item.id
                                   );
@@ -2829,7 +2974,8 @@ export default function CurrentApplication() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                        );
+                      })}
 
                     <div ref={setInboxEndSentinelNode} className="h-5" />
                   </div>

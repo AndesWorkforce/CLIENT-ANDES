@@ -48,7 +48,21 @@ export async function createServerAxios() {
         error.response?.status === 401 &&
         !error.config?.url?.includes("auth/login")
       ) {
-        console.log("[Axios] Interceptor de respuesta 401 - Error de autenticación");
+        // Solo loguear como warning, no como error crítico
+        // Los errores 401 son esperados cuando:
+        // - El token está expirado (normal en inicialización)
+        // - El usuario no está autenticado (normal en páginas públicas)
+        // - La sesión expiró (manejado por el código que llama)
+        const url = error.config?.url || "unknown";
+        const isExpectedEndpoint = 
+          url.includes("profile-status") || 
+          url.includes("current-contract") ||
+          url.includes("inboxes");
+        
+        if (!isExpectedEndpoint) {
+          // Solo loguear como error si NO es un endpoint que espera errores 401
+          console.warn("[Axios Server] ⚠️ ERROR 401 en endpoint inesperado:", url);
+        }
         // Simplemente rechazar la promesa con el error original
         // El código que llama debe manejar este error
       }
