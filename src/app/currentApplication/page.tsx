@@ -1045,9 +1045,16 @@ export default function CurrentApplication() {
     currentJob?.id,
   ]);
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        addNotification("The file must be smaller than 5MB", "error");
+        event.target.value = "";
+        return;
+      }
       setSelectedFile(file);
     }
   };
@@ -1130,11 +1137,20 @@ export default function CurrentApplication() {
         addNotification("File uploaded successfully", "success");
       } else {
         console.error("Error uploading file:", result.error);
-        addNotification(result.error || "Error uploading file", "error");
+        if (result.error === "FILE_TOO_LARGE") {
+          addNotification("File is too large. Maximum size allowed is 5MB.", "error");
+        } else {
+          addNotification(result.error || "Error uploading file", "error");
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading file:", error);
-      addNotification("Error uploading file", "error");
+      const errorMsg = error?.message || error?.toString() || "";
+      if (errorMsg.includes("Body exceeded") || errorMsg.includes("limit")) {
+        addNotification("The file must be smaller than 5MB", "error");
+      } else {
+        addNotification("Error uploading file", "error");
+      }
     } finally {
       setUploading(false);
     }
@@ -2661,24 +2677,27 @@ export default function CurrentApplication() {
                     </div>
                   )}
 
-                  <button
-                    id="upload-proof-button"
-                    onClick={handleNewProofUpload}
-                    disabled={!selectedFile || !selectedMonth || uploading || selectedPeriodHasProof}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {uploading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={16} />
-                        Upload Proof
-                      </>
-                    )}
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      id="upload-proof-button"
+                      onClick={handleNewProofUpload}
+                      disabled={!selectedFile || !selectedMonth || uploading || selectedPeriodHasProof}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {uploading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={16} />
+                          Upload Proof
+                        </>
+                      )}
+                    </button>
+                    <span className="text-xs text-gray-400 italic">PDF or image, up to 5MB</span>
+                  </div>
                 </div>
 
                 {/* Proofs List */}
