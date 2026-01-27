@@ -6,6 +6,7 @@
     "dev": "next dev",
     "dev:no-turbo": "cross-env NEXT_DISABLE_TURBOPACK=1 next dev -p 3002",
     "build": "next build",
+    "build:no-turbo": "cross-env NEXT_DISABLE_TURBOPACK=1 next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "node ./scripts/copy-pdf-worker.mjs || echo skip"

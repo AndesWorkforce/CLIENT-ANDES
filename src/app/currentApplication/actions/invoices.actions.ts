@@ -29,6 +29,13 @@ export async function getUserInboxesAction(
 }
 
 export async function viewInboxPdfAction(inboxId: string) {
+  if (!inboxId || typeof inboxId !== "string" || inboxId.trim() === "") {
+    return {
+      success: false,
+      error: "Invalid invoice ID",
+    };
+  }
+  
   try {
     const axios = await createServerAxios();
     const response = await axios.get(`users/inboxes/${inboxId}/view`, {
@@ -54,6 +61,13 @@ export async function viewInboxPdfAction(inboxId: string) {
 }
 
 export async function downloadInboxPdfAction(inboxId: string) {
+  if (!inboxId || typeof inboxId !== "string" || inboxId.trim() === "") {
+    return {
+      success: false,
+      error: "Invalid invoice ID",
+    };
+  }
+  
   try {
     const axios = await createServerAxios();
     const response = await axios.get(`users/inboxes/${inboxId}/download`, {
@@ -89,8 +103,18 @@ export async function generateUserInboxAction(
     if (yearMonth) body.yearMonth = yearMonth;
     if (processId) body.processId = processId;
     const url = `users/${userId}/inboxes/generate`;
+    
     const response = await axios.post(url, body);
-    return { success: true, data: response.data };
+    const backendResponse = response.data;
+    
+    if (backendResponse?.success === false) {
+      return {
+        success: false,
+        error: backendResponse?.message || "Error generating inbox",
+      };
+    }
+    
+    return { success: true, data: backendResponse };
   } catch (error: any) {
     const status = error?.response?.status;
     const message =

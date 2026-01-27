@@ -102,6 +102,7 @@ export interface CurrentContractData {
 
 export interface MonthlyProof {
   id: string;
+  procesoContratacionId: string; // ✅ Agregado para soportar múltiples contratos
   month: string;
   year: number;
   file: string;
@@ -293,10 +294,14 @@ export async function uploadMonthlyProof(
       }
     );
 
+    // ✅ CORREGIDO: Acceder correctamente a la respuesta del backend
+    // El backend devuelve { success: true, data: { id: "...", ... } }
+    const responseData = evaluationResponse.data?.data || evaluationResponse.data;
+    
     return {
       success: true,
       data: {
-        id: evaluationResponse.data.id,
+        id: responseData?.id,
         file: fileUrl,
       },
     };
@@ -427,20 +432,10 @@ export async function actualizarDocumentoEspecifico(
   error?: string;
 }> {
   try {
-    console.log("📤 Enviando actualización de documento", {
-      procesoContratacionId,
-      seccion,
-      datos,
-    });
-
     const axios = await createServerAxios();
     const url = `/admin/contratacion/${procesoContratacionId}/documento/${seccion}`;
 
-    console.log("🔗 URL de actualización:", url);
-
     const response = await axios.patch(url, datos);
-
-    console.log("📥 Respuesta del servidor:", response.data);
 
     return {
       success: true,

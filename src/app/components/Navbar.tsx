@@ -36,7 +36,7 @@ const navigation = [
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, isAuthenticated } = useAuthStore();
+  const { user, logout, isAuthenticated, isLoading } = useAuthStore();
   const { isNavbarExcluded } = useRouteExclusion();
   const { scrollRef, showLeftShadow, showRightShadow } = useScrollShadow();
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
@@ -134,13 +134,52 @@ export default function Navbar() {
     };
   }, [showMobileSidebar]);
 
+  // Hidratar el store desde cookies si está vacío (solo en cliente)
   useEffect(() => {
-    if (user) {
+    if (typeof window === "undefined") return;
+    
+    // Si el store está cargando o no hay usuario, intentar hidratar desde cookies
+    if (isLoading || (!user && !isAuthenticated)) {
+      try {
+        const raw = document.cookie
+          .split("; ")
+          .find((c) => c.startsWith("user_info="));
+        
+        if (raw) {
+          const value = raw.split("=")[1];
+          if (value) {
+            const decoded = decodeURIComponent(value);
+            const cookieUser = JSON.parse(decoded);
+            
+            // Si hay usuario en cookie pero no en store, hidratar
+            if (cookieUser && cookieUser.id && !user) {
+              useAuthStore.getState().setUser(cookieUser);
+              useAuthStore.getState().setAuthenticated(true);
+              useAuthStore.getState().setLoading(false);
+              console.log("[Navbar] Store hidratado desde cookie");
+            }
+          }
+        } else {
+          // No hay cookie de usuario, asegurar que el estado esté limpio
+          if (!isLoading) {
+            useAuthStore.getState().setLoading(false);
+          }
+        }
+      } catch (error) {
+        console.warn("[Navbar] Error hidratando desde cookie:", error);
+        useAuthStore.getState().setLoading(false);
+      }
+    }
+  }, [isLoading, user, isAuthenticated]);
+
+  useEffect(() => {
+    // Solo ejecutar si el usuario está autenticado y tiene ID
+    if (user && isAuthenticated && user.id) {
       // Solo ejecutar las funciones cuando el usuario cambia, no en cada pathname
       fetchAndUpdateProfileStatus();
       currentContract();
     }
-  }, [user]); // Removido pathname de las dependencias
+  }, [user, isAuthenticated]); // Agregar isAuthenticated para evitar llamadas con token expirado
 
   // Efecto separado para manejar redirecciones basadas en stepContract
   useEffect(() => {
@@ -284,7 +323,10 @@ export default function Navbar() {
 
           {/* Right: Auth area */}
           <div className="flex flex-col justify-center items-end text-right">
-            {!isAuthenticated ? (
+            {isLoading ? (
+              // Mostrar skeleton mientras se carga el estado de autenticación
+              <div className="w-full max-w-[100px] h-8 bg-gray-200 rounded-[5px] animate-pulse" />
+            ) : !isAuthenticated ? (
               <>
                 <button
                   type="button"

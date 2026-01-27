@@ -3,6 +3,12 @@
 import { createServerAxios } from "@/services/axios.server";
 
 export async function viewInboxPdfAction(inboxId: string) {
+  if (!inboxId || typeof inboxId !== "string" || inboxId.trim() === "") {
+    return {
+      success: false,
+      error: "Invalid invoice ID",
+    };
+  }
   try {
     const axios = await createServerAxios();
     const response = await axios.get(`users/inboxes/${inboxId}/view`, {
@@ -30,6 +36,12 @@ export async function viewInboxPdfAction(inboxId: string) {
 }
 
 export async function downloadInboxPdfAction(inboxId: string) {
+  if (!inboxId || typeof inboxId !== "string" || inboxId.trim() === "") {
+    return {
+      success: false,
+      error: "Invalid invoice ID",
+    };
+  }
   try {
     const axios = await createServerAxios();
     const response = await axios.get(`users/inboxes/${inboxId}/download`, {

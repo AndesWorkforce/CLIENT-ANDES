@@ -57,7 +57,7 @@ import {
 
 export default function CurrentApplication() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
   const { addNotification } = useNotificationStore();
   const u: any = user;
   const isColombiaUser = (() => {
@@ -97,6 +97,7 @@ export default function CurrentApplication() {
   }, [isColombiaUser]);
   type InboxItem = {
     id: string;
+    procesoContratacionId: string;
     invoiceNumber: string;
     month: string;
     year: number;
@@ -140,6 +141,9 @@ export default function CurrentApplication() {
 
   // Estado para mostrar/ocultar descripción completa
   const [showFullDescription, setShowFullDescription] = useState(false);
+
+  // Flag para controlar si el modal ya fue abierto automáticamente
+  const modalAutoOpenedRef = useRef(false);
 
   // Edit/replace proof modal states
   const [showEditModal, setShowEditModal] = useState(false);
@@ -312,7 +316,6 @@ export default function CurrentApplication() {
       console.error("Error starting inboxes tour", e);
     }
   };
-  console.log("[CURRENT CONTRACT]", currentJob);
   const [showTopHelpNudge, setShowTopHelpNudge] = useState(false);
   const startTopTour = () => {
     try {
@@ -415,6 +418,35 @@ export default function CurrentApplication() {
   const currentYear = currentDate.getFullYear();
   const currentMonthIndex = months.indexOf(currentMonth);
   const allowedMonths = months.slice(0, currentMonthIndex + 1);
+
+  // ✅ Helper: Normalizar mes a nombre (convierte "01", "1", 1 → "January")
+  const normalizeMonthToName = (month: string | number | undefined | null): string => {
+    if (!month) return 'Unknown';
+    
+    // Si ya es un nombre de mes válido, devolverlo
+    if (typeof month === 'string' && months.includes(month)) {
+      return month;
+    }
+    
+    // Si es un número o string numérico, convertir a nombre
+    const monthNum = typeof month === 'string' ? parseInt(month, 10) : month;
+    if (!isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
+      return months[monthNum - 1]; // 1 → January (index 0)
+    }
+    
+    return 'Unknown';
+  };
+
+  // ✅ Helper: Convertir añoMes "YYYY-MM" a nombre de mes
+  const getMonthNameFromAñoMes = (añoMes: string | undefined | null): string => {
+    if (!añoMes) return 'Unknown';
+    const parts = añoMes.split('-');
+    if (parts.length !== 2) return 'Unknown';
+    const monthNum = parseInt(parts[1], 10);
+    if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) return 'Unknown';
+    return months[monthNum - 1];
+  };
+
   // Build combined period options for Proofs (adds Dec 2025 exception in 2026)
   const periodOptions = useMemo(() => {
     const opts: {
@@ -444,12 +476,31 @@ export default function CurrentApplication() {
   const showProofsTab = isColombiaUser;
   const showInboxesTab = true;
 
+  // ✅ Calcular si ya existe un proof para el período seleccionado (reactivo)
+  const selectedPeriodHasProof = useMemo(() => {
+    if (!selectedPeriod) return false;
+    const contractId = availableContracts.length > 1 ? selectedContractId : currentJob?.id;
+    if (!contractId) return false;
+    return monthlyProofs.some(
+      (p) => 
+        p.procesoContratacionId === contractId && 
+        p.month === selectedPeriod.month && 
+        p.year === selectedPeriod.year
+    );
+  }, [monthlyProofs, selectedPeriod, selectedContractId, currentJob?.id, availableContracts.length]);
+
   // Load real inbox items for the logged-in user (paginated)
   const [inboxNextCursor, setInboxNextCursor] = useState<string | null>(null);
   const [loadingInboxes, setLoadingInboxes] = useState<boolean>(false);
 
   const mapInboxItems = (items: any[]): InboxItem[] => {
-    return (items || []).map((it) => {
+    const filtered = (items || []).filter((it) => {
+      const hasId = it && it.id && typeof it.id === "string" && it.id.trim() !== "";
+      const hasProcesoContratacionId = it && it.procesoContratacionId && typeof it.procesoContratacionId === "string" && it.procesoContratacionId.trim() !== "";
+      return hasId && hasProcesoContratacionId;
+    });
+    
+    return filtered.map((it) => {
       const ym: string = String(it.añoMes || "");
       const [yearStr, monthStr] = ym.split("-");
       const mIdx = Math.max(0, Math.min(11, Number(monthStr || 1) - 1));
@@ -463,9 +514,11 @@ export default function CurrentApplication() {
           ? "PENDING"
           : isColombiaUser
           ? "PENDING"
-          : "PAID"; // Default: non-Colombia invoices are considered Paid
+          : "PAID";
+      
       return {
         id: it.id,
+        procesoContratacionId: String(it.procesoContratacionId || ""),
         invoiceNumber: String(it.invoiceNumber || "#"),
         month: months[mIdx],
         year: Number(yearStr || new Date().getFullYear()),
@@ -479,6 +532,12 @@ export default function CurrentApplication() {
         downloadUrl: undefined,
       } as InboxItem;
     });
+  };
+
+  // Helper para obtener el nombre del contrato a partir del procesoContratacionId
+  const getContractNameById = (procesoContratacionId: string): string | null => {
+    const contract = availableContracts.find(c => c.id === procesoContratacionId);
+    return contract ? contract.jobPosition : null;
   };
 
   const handleGenerateInbox = async () => {
@@ -503,30 +562,45 @@ export default function CurrentApplication() {
         yearMonth,
         selectedContractId || undefined
       );
+      
       if (!res.success) {
         addNotification(res.error || "Error generating inbox", "error");
         return;
       }
+      
       const item = res.data?.data || res.data;
+      
+      if (!item || !item.id) {
+        addNotification("Invoice generation failed - no data returned", "error");
+        return;
+      }
+      
       if (item) {
-        const mapped = mapInboxItems([item])[0];
-        setInboxes((prev) => {
-          const exists = prev.some(
-            (p) => p.year === mapped.year && p.month === mapped.month
-          );
-          const next = exists ? prev : [mapped, ...prev];
-          return next.sort((a, b) =>
-            `${b.year}-${String(months.indexOf(b.month) + 1).padStart(
-              2,
-              "0"
-            )}`.localeCompare(
-              `${a.year}-${String(months.indexOf(a.month) + 1).padStart(
+        const mappedItems = mapInboxItems([item]);
+        const mapped = mappedItems[0];
+        
+        if (mapped && mapped.id) {
+          setInboxes((prev) => {
+            const exists = prev.some(
+              (p) => 
+                p.year === mapped.year && 
+                p.month === mapped.month && 
+                p.procesoContratacionId === mapped.procesoContratacionId
+            );
+            const next = exists ? prev : [mapped, ...prev];
+            return next.sort((a, b) =>
+              `${b.year}-${String(months.indexOf(b.month) + 1).padStart(
                 2,
                 "0"
-              )}`
-            )
-          );
-        });
+              )}`.localeCompare(
+                `${a.year}-${String(months.indexOf(a.month) + 1).padStart(
+                  2,
+                  "0"
+                )}`
+              )
+            );
+          });
+        }
       } else {
         await fetchInboxesPage(false);
       }
@@ -556,10 +630,18 @@ export default function CurrentApplication() {
         return;
       }
       const payload = res.data || {};
-      const items = mapInboxItems(payload.data || payload.items || []);
+      const mappedItems = mapInboxItems(payload.data || payload.items || []);
+      const items = mappedItems.filter(
+        (item) => item && item.id && item.invoiceNumber
+      );
+      
       const nextCursor = payload.nextCursor || null;
       setInboxNextCursor(nextCursor);
-      setInboxes((prev) => (append ? [...prev, ...items] : items));
+      
+      setInboxes((prev) => {
+        const next = append ? [...prev, ...items] : items;
+        return next;
+      });
       setVisibleInboxCount((prev) =>
         Math.min(append ? prev : 6, append ? prev + items.length : items.length)
       );
@@ -618,7 +700,12 @@ export default function CurrentApplication() {
   }, [currentMonth, currentYear]);
 
   // Redirect to login if not authenticated
+  // IMPORTANTE: Solo redirigir si NO está cargando el estado de auth
   useEffect(() => {
+    // Esperar a que el auth store termine de cargar desde localStorage
+    if (authLoading) return;
+    
+    // Solo redirigir si definitivamente no está autenticado
     if (isAuthenticated === false || !user) {
       try {
         router.replace("/auth/login");
@@ -626,19 +713,47 @@ export default function CurrentApplication() {
         setIsLoading(false);
       }
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, authLoading]);
 
   const currentContract = async () => {
     if (!user?.id) return;
     try {
       const response = await getCurrentContract(user?.id);
+      
+      // ✅ Manejo explícito de errores 401
+      // Nota: getCurrentContract (de jobs.actions) usa 'message', no 'error'
+      if (!response.success) {
+        const errorMsg = response.message || "";
+        if (errorMsg.includes("401") || errorMsg.includes("Unauthorized") || errorMsg.includes("Not authenticated")) {
+          addNotification("Session expired. Please login again.", "error");
+          router.push("/auth/login");
+          return;
+        }
+        // Otro tipo de error, mostrar mensaje genérico (no mostrar si es 404 normal)
+        if (!errorMsg.includes("404")) {
+          addNotification(errorMsg || "Error loading contract data", "error");
+        }
+        return;
+      }
+      
       if (response.success && response.data) {
         setCurrentJob(response.data);
-        setMonthlyProofs(response.data.monthlyProofs || []);
         setSelectedContractId(response.data.id);
 
         // Fetch all active contracts to enable selector (non-blocking)
         const listRes = await getActiveContractsForUser(user.id);
+        
+        // ✅ Manejo de error 401 en contratos activos
+        // Nota: getActiveContractsForUser usa 'error', no 'message'
+        if (!listRes.success) {
+          const errorMsg = listRes.error || "";
+          if (errorMsg.includes("401") || errorMsg.includes("Unauthorized")) {
+            addNotification("Session expired. Please login again.", "error");
+            router.push("/auth/login");
+            return;
+          }
+        }
+        
         if (listRes.success && listRes.data) {
           const items = (listRes.data || []).map((c) => ({
             id: c.id,
@@ -647,6 +762,40 @@ export default function CurrentApplication() {
             startDate: c.startDate,
           }));
           setAvailableContracts(items);
+          
+          // ✅ Combinar proofs de TODOS los contratos activos
+          const allProofs: MonthlyProof[] = [];
+          (listRes.data || []).forEach((contract) => {
+            if (contract.monthlyProofs && Array.isArray(contract.monthlyProofs)) {
+              contract.monthlyProofs.forEach((proof: any) => {
+                // ✅ Normalizar mes a nombre (convierte "01" → "January", etc.)
+                const monthName = proof.month 
+                  ? normalizeMonthToName(proof.month)
+                  : getMonthNameFromAñoMes(proof.añoMes);
+                
+                allProofs.push({
+                  id: proof.id,
+                  procesoContratacionId: proof.procesoContratacionId || contract.id,
+                  month: monthName,
+                  year: proof.year || parseInt(proof.añoMes?.split('-')[0] || new Date().getFullYear().toString()),
+                  file: proof.file || proof.documentoSubido || '',
+                  fileName: proof.fileName || `proof-${proof.añoMes || 'unknown'}.pdf`,
+                  uploadDate: proof.uploadDate || proof.fechaSubidaDocumento?.split('T')[0] || '',
+                  status: proof.status || 'PENDING',
+                  observacionesRevision: proof.observacionesRevision,
+                });
+              });
+            }
+          });
+          setMonthlyProofs(allProofs);
+        } else {
+          // Si no hay múltiples contratos, usar los proofs del contrato actual
+          // ✅ Normalizar los proofs antes de guardarlos
+          const normalizedProofs = (response.data.monthlyProofs || []).map((proof: any) => ({
+            ...proof,
+            month: proof.month ? normalizeMonthToName(proof.month) : getMonthNameFromAñoMes(proof.añoMes),
+          }));
+          setMonthlyProofs(normalizedProofs);
         }
 
         // 🚨 CARGAR DOCUMENTOS DIRECTAMENTE DEL PROCESO DE CONTRATACIÓN
@@ -697,10 +846,70 @@ export default function CurrentApplication() {
     setIsSwitchingContract(true);
     try {
       const res = await getUserContractById(user.id, contractId);
+      
+      // ✅ Manejo explícito de errores 401
+      if (!res.success) {
+        if (res.error?.includes("401") || res.error?.includes("Unauthorized")) {
+          addNotification("Session expired. Please login again.", "error");
+          router.push("/auth/login");
+          return;
+        }
+        addNotification(res.error || "Error loading contract", "error");
+        return;
+      }
+      
       if (res.success && res.data) {
         setCurrentJob(res.data);
-        setMonthlyProofs(res.data.monthlyProofs || []);
         setSelectedContractId(contractId);
+        
+        // ✅ CORREGIDO: Recargar TODOS los proofs de TODOS los contratos activos
+        // (No solo los del contrato seleccionado, para mantener consistencia)
+        const listRes = await getActiveContractsForUser(user.id);
+        
+        // ✅ Manejo de error 401 en contratos activos
+        if (!listRes.success) {
+          if (listRes.error?.includes("401") || listRes.error?.includes("Unauthorized")) {
+            addNotification("Session expired. Please login again.", "error");
+            router.push("/auth/login");
+            return;
+          }
+        }
+        
+        if (listRes.success && listRes.data) {
+          const allProofs: MonthlyProof[] = [];
+          (listRes.data || []).forEach((contract) => {
+            if (contract.monthlyProofs && Array.isArray(contract.monthlyProofs)) {
+              contract.monthlyProofs.forEach((proof: any) => {
+                // ✅ Normalizar mes a nombre (convierte "01" → "January", etc.)
+                const monthName = proof.month 
+                  ? normalizeMonthToName(proof.month)
+                  : getMonthNameFromAñoMes(proof.añoMes);
+                
+                allProofs.push({
+                  id: proof.id,
+                  procesoContratacionId: proof.procesoContratacionId || contract.id,
+                  month: monthName,
+                  year: proof.year || parseInt(proof.añoMes?.split('-')[0] || new Date().getFullYear().toString()),
+                  file: proof.file || proof.documentoSubido || '',
+                  fileName: proof.fileName || `proof-${proof.añoMes || 'unknown'}.pdf`,
+                  uploadDate: proof.uploadDate || proof.fechaSubidaDocumento?.split('T')[0] || '',
+                  status: proof.status || 'PENDING',
+                  observacionesRevision: proof.observacionesRevision,
+                });
+              });
+            }
+          });
+          setMonthlyProofs(allProofs);
+        } else {
+          // Fallback: si no hay múltiples contratos, usar los del contrato actual
+          // ✅ También normalizar estos proofs
+          const normalizedProofs = (res.data.monthlyProofs || []).map((proof: any) => ({
+            ...proof,
+            month: proof.month ? normalizeMonthToName(proof.month) : getMonthNameFromAñoMes(proof.añoMes),
+          }));
+          setMonthlyProofs(normalizedProofs);
+        }
+        
         // Reset inbox list state
         setInboxes([]);
         setVisibleInboxCount(6);
@@ -845,13 +1054,34 @@ export default function CurrentApplication() {
 
   // Upload a completely new proof (from the top form)
   const handleNewProofUpload = async () => {
-    if (!selectedFile || !selectedPeriod || !currentJob?.id) return;
+    // ✅ Usar selectedContractId (selector principal) si hay múltiples contratos, sino usar currentJob.id
+    const contractIdForProof = availableContracts.length > 1 
+      ? selectedContractId 
+      : currentJob?.id;
+    
+    if (!selectedFile || !selectedPeriod || !contractIdForProof) {
+      if (!contractIdForProof) {
+        addNotification("Please select a contract first", "error");
+      }
+      return;
+    }
+    
     const { month: effMonth, year: effYear } = selectedPeriod;
     const selIdx = months.indexOf(effMonth);
     if (selIdx < 0) {
       addNotification("Invalid month selected", "error");
       return;
     }
+    
+    // ✅ BLOQUEAR si ya existe un proof para este mes/contrato (usa el valor memoizado)
+    if (selectedPeriodHasProof) {
+      addNotification(
+        `A proof for ${effMonth} ${effYear} already exists. Please use the Edit button to replace it.`,
+        "error"
+      );
+      return;
+    }
+    
     const isDec2025 =
       selectedTab === "proofs" && effMonth === "December" && effYear === 2025;
     // Only allow past/current months in current year, or exactly Dec 2025
@@ -872,7 +1102,7 @@ export default function CurrentApplication() {
     setUploading(true);
     try {
       const result = await uploadMonthlyProof(
-        currentJob.id,
+        contractIdForProof,
         effMonth,
         effYear,
         selectedFile
@@ -880,6 +1110,7 @@ export default function CurrentApplication() {
       if (result.success) {
         const newProof: MonthlyProof = {
           id: result.data?.id || `proof-${Date.now()}`,
+          procesoContratacionId: contractIdForProof,
           month: effMonth,
           year: effYear,
           file: result.data?.file || URL.createObjectURL(selectedFile),
@@ -887,6 +1118,7 @@ export default function CurrentApplication() {
           uploadDate: new Date().toISOString().split("T")[0],
           status: "PENDING",
         };
+        // ✅ Agregar el nuevo proof (ya validamos que no existe)
         setMonthlyProofs((prev) => [...prev, newProof]);
         setSelectedFile(null);
         setSelectedMonth(currentMonth);
@@ -910,12 +1142,21 @@ export default function CurrentApplication() {
 
   // Replace an existing proof via modal
   const handleReplaceProof = async () => {
-    if (!replacementFile || !editingProofRef.current || !currentJob?.id) return;
+    if (!replacementFile || !editingProofRef.current) return;
+    
+    const proofToEdit = editingProofRef.current;
+    // ✅ Usar el procesoContratacionId del proof existente, o fallback a currentJob.id
+    const contractIdForProof = proofToEdit.procesoContratacionId || currentJob?.id;
+    
+    if (!contractIdForProof) {
+      addNotification("Cannot determine contract for this proof", "error");
+      return;
+    }
+    
     setUploading(true);
     try {
-      const proofToEdit = editingProofRef.current;
       const result = await uploadMonthlyProof(
-        currentJob.id,
+        contractIdForProof,
         proofToEdit.month,
         proofToEdit.year,
         replacementFile
@@ -950,12 +1191,10 @@ export default function CurrentApplication() {
 
   // Funciones para el modal de documentos
   const openDocumentsModal = async () => {
-    console.log("📖 Opening documents modal...");
     setShowDocumentsModal(true);
 
     // 🚨 CARGAR DOCUMENTOS DESDE LA BASE DE DATOS AUTOMÁTICAMENTE
     if (currentJob?.id) {
-      console.log("🔄 Cargando documentos desde BD...");
       try {
         const response = await obtenerDocumentosLeidos(currentJob.id);
         if (response.success && response.data) {
@@ -972,15 +1211,6 @@ export default function CurrentApplication() {
                 doc.completamenteLeido && doc.terminosAceptados;
               initialReadingTime[doc.seccionDocumento] = doc.tiempoTotalLectura;
             }
-          });
-
-          console.log("✅ Documentos cargados desde BD en modal:", {
-            filteredDocs: response.data.filter((doc) =>
-              frontendDocIds.includes(doc.seccionDocumento)
-            ),
-            readState: initialReadState,
-            readingTime: initialReadingTime,
-            frontendDocs: frontendDocIds,
           });
 
           setReadDocuments(initialReadState);
@@ -1024,8 +1254,6 @@ export default function CurrentApplication() {
   };
 
   const handleDocumentRead = async (documentId: string) => {
-    console.log("📖 User marked document as read:", documentId);
-
     // Calcular tiempo de lectura
     const currentTime = Date.now();
     const readingTime = Math.max(
@@ -1068,7 +1296,6 @@ export default function CurrentApplication() {
           );
 
           if (result.success) {
-            console.log("✅ Documento actualizado:", result.data);
             // Actualizar el currentJob para reflejar los cambios
             const updatedContract = await getCurrentContract(user.id);
             if (updatedContract.success && updatedContract.data) {
@@ -1085,25 +1312,12 @@ export default function CurrentApplication() {
   };
 
   const handleNextDocument = async () => {
-    console.log("🔄 handleNextDocument iniciado", {
-      currentDocumentIndex,
-      totalDocuments: contractDocuments.length,
-      currentDoc: contractDocuments[currentDocumentIndex],
-      currentJobId: currentJob?.id,
-      userId: user?.id,
-    });
-
     if (currentDocumentIndex < contractDocuments.length - 1) {
       // Actualizar el documento actual en la base de datos
       const currentDoc = contractDocuments[currentDocumentIndex];
       if (currentDoc && currentJob?.id && user?.id) {
         try {
           const section = documentToSection[currentDoc.id];
-          console.log("📝 Intentando actualizar documento", {
-            documentId: currentDoc.id,
-            section,
-            procesoId: currentJob.id,
-          });
 
           if (!section) {
             console.error("❌ Sección no válida:", currentDoc.id);
@@ -1119,8 +1333,6 @@ export default function CurrentApplication() {
             }
           );
 
-          console.log("✅ Resultado de actualización:", result);
-
           if (result.success) {
             setCurrentDocumentIndex((prev) => prev + 1);
             setHasReachedEnd(false);
@@ -1130,7 +1342,6 @@ export default function CurrentApplication() {
             const updatedContract = await getCurrentContract(user.id);
             if (updatedContract.success && updatedContract.data) {
               setCurrentJob(updatedContract.data);
-              console.log("✅ Contract actualizado:", updatedContract.data);
             }
           } else {
             console.error("❌ Error actualizando documento:", result.error);
@@ -1218,15 +1429,12 @@ export default function CurrentApplication() {
         todoCompletado: todoCompletado || allDocumentsRead(),
       };
 
-      console.log("💾 Updating documents in DB:", estadoDocumentos);
-
       const result = await actualizarDocumentosLeidos(
         currentJob.id,
         estadoDocumentos
       );
 
       if (result.success) {
-        console.log("✅ Documents updated in DB:", result.data);
 
         // Si se completó todo, actualizar el estado local del job
         if (result.data?.estadoContratacion) {
@@ -1238,13 +1446,6 @@ export default function CurrentApplication() {
                 }
               : null
           );
-
-          // If all documents completed, show success message
-          if (result.data.todoCompletado) {
-            console.log(
-              "🎉 All documents completed! Waiting for provider signature..."
-            );
-          }
         }
       } else {
         console.error("❌ Error updating documents:", result.error);
@@ -1379,27 +1580,34 @@ export default function CurrentApplication() {
   };
 
   // Auto-open documents modal if candidate signed but needs to read documents
+  // SOLO una vez por sesión para evitar reaperturas en cada recarga
   useEffect(() => {
     console.log("🔍 DEBUG - useEffect triggered:", {
       currentJob: !!currentJob,
       estadoContratacion: currentJob?.estadoContratacion,
+      modalAutoOpenedRef: modalAutoOpenedRef.current,
       shouldOpenModal:
         currentJob &&
         (currentJob.estadoContratacion === "FIRMADO_CANDIDATO" ||
-          currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA"),
+          currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA") &&
+        !modalAutoOpenedRef.current,
     });
 
+    // Solo abrir si no se ha abierto antes en esta sesión
     if (
       currentJob &&
       (currentJob.estadoContratacion === "FIRMADO_CANDIDATO" ||
-        currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA")
+        currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA") &&
+      !modalAutoOpenedRef.current
     ) {
       console.log("🚀 Opening documents modal automatically!");
+      modalAutoOpenedRef.current = true; // Marcar que ya se abrió
       openDocumentsModal();
     }
   }, [currentJob]);
 
-  if (isLoading) {
+  // Mostrar loading mientras se carga la autenticación o los datos
+  if (isLoading || authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -1968,9 +2176,10 @@ export default function CurrentApplication() {
                   Active Contract
                 </label>
                 <select
-                  className="w-full lg:w-1/2 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+                  className="w-full lg:w-1/2 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#0097B2] disabled:bg-gray-100 disabled:cursor-not-allowed"
                   value={selectedContractId || ""}
                   onChange={(e) => handleSelectContract(e.target.value)}
+                  disabled={uploading || isSwitchingContract}
                 >
                   {availableContracts.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -1979,8 +2188,9 @@ export default function CurrentApplication() {
                   ))}
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Choose the job you want to manage to upload documents and
-                  generate payment inboxes.
+                  {uploading 
+                    ? "⏳ Please wait while the file is uploading..."
+                    : "Choose the job you want to manage to upload documents and generate payment inboxes."}
                 </p>
               </div>
             )}
@@ -2413,14 +2623,21 @@ export default function CurrentApplication() {
                         accept="image/*,application/pdf"
                         onChange={handleFileSelect}
                         className="hidden"
+                        disabled={selectedPeriodHasProof}
                       />
                       <label
                         id="file-upload-trigger"
-                        htmlFor="file-upload"
-                        className="flex items-center gap-2 w-full px-3 py-2 border border-dashed border-[#0097B2] rounded-lg text-[#0097B2] hover:bg-blue-50 cursor-pointer"
+                        htmlFor={selectedPeriodHasProof ? undefined : "file-upload"}
+                        className={`flex items-center gap-2 w-full px-3 py-2 border border-dashed rounded-lg ${
+                          selectedPeriodHasProof
+                            ? "border-gray-300 text-gray-400 bg-gray-50 cursor-not-allowed"
+                            : "border-[#0097B2] text-[#0097B2] hover:bg-blue-50 cursor-pointer"
+                        }`}
                       >
                         <Upload size={16} />
-                        Select the file to upload
+                        {selectedPeriodHasProof 
+                          ? "File selection disabled (proof exists)"
+                          : "Select the file to upload"}
                       </label>
                     </div>
                   </div>
@@ -2433,10 +2650,21 @@ export default function CurrentApplication() {
                     </div>
                   )}
 
+                  {/* ✅ Mensaje informativo si ya existe un proof para el mes seleccionado */}
+                  {selectedPeriodHasProof && selectedPeriod && (
+                    <div className="bg-[#0097B2]/15 border border-[#0097B2] rounded-lg p-3 mb-4">
+                      <p className="text-sm text-[#006577]">
+                        <strong>✓ Proof for {selectedPeriod.month} {selectedPeriod.year} already uploaded.</strong>
+                        <br />
+                        Need to make changes? Use the <span className="font-semibold">Edit</span> button next to your proof below.
+                      </p>
+                    </div>
+                  )}
+
                   <button
                     id="upload-proof-button"
                     onClick={handleNewProofUpload}
-                    disabled={!selectedFile || !selectedMonth || uploading}
+                    disabled={!selectedFile || !selectedMonth || uploading || selectedPeriodHasProof}
                     className="flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {uploading ? (
@@ -2457,17 +2685,37 @@ export default function CurrentApplication() {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-3">
                     Uploaded Proofs
+                    {/* ✅ Mostrar info del contrato seleccionado si hay múltiples */}
+                    {availableContracts.length > 1 && selectedContractId && (
+                      <span className="text-sm font-normal text-gray-500 ml-2">
+                        — {getContractNameById(selectedContractId) || "Selected Contract"}
+                      </span>
+                    )}
                   </h3>
 
-                  {monthlyProofs.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <FileText
-                        size={48}
-                        className="mx-auto mb-4 text-gray-300"
-                      />
-                      <p>No proofs uploaded yet</p>
-                    </div>
-                  ) : (
+                  {(() => {
+                    // ✅ Filtrar proofs por contrato seleccionado (usa el selector principal)
+                    const filteredProofs = availableContracts.length > 1 && selectedContractId
+                      ? monthlyProofs.filter(p => p.procesoContratacionId === selectedContractId)
+                      : monthlyProofs;
+                    
+                    if (filteredProofs.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-gray-500">
+                          <FileText
+                            size={48}
+                            className="mx-auto mb-4 text-gray-300"
+                          />
+                          <p>
+                            {availableContracts.length > 1 && selectedContractId
+                              ? "No proofs uploaded yet for this contract"
+                              : "No proofs uploaded yet"}
+                          </p>
+                        </div>
+                      );
+                    }
+                    
+                    return (
                     <div className="border border-gray-200 rounded-lg overflow-hidden">
                       <div className="hidden md:grid grid-cols-12 gap-2 bg-gray-50 text-xs text-gray-500 px-3 py-2">
                         <div className="col-span-4">Period</div>
@@ -2476,7 +2724,7 @@ export default function CurrentApplication() {
                         <div className="col-span-2 text-right">Actions</div>
                       </div>
                       <div className="divide-y divide-gray-100">
-                        {monthlyProofs.map((proof) => (
+                        {filteredProofs.map((proof) => (
                           <div
                             key={proof.id}
                             className="grid grid-cols-12 gap-2 items-center px-3 py-2 text-sm hover:bg-gray-50"
@@ -2528,7 +2776,7 @@ export default function CurrentApplication() {
                                 <Upload size={16} />
                               </button>
                             </div>
-                            {proof.observacionesRevision && (
+                            {proof.observacionesRevision && proof.status !== "APPROVED" && (
                               <div className="col-span-12 mt-1">
                                 <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
                                   <div className="flex items-start gap-2">
@@ -2550,7 +2798,8 @@ export default function CurrentApplication() {
                         ))}
                       </div>
                     </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </>
             ) : (
@@ -2572,7 +2821,14 @@ export default function CurrentApplication() {
                 >
                   <h4 className="text-sm font-medium text-gray-900 mb-3">
                     Generate Invoice
+                    {/* Mostrar nombre del contrato seleccionado si hay múltiples */}
+                    {availableContracts.length > 1 && selectedContractId && (
+                      <span className="text-sm font-normal text-gray-500 ml-2">
+                        — {getContractNameById(selectedContractId) || "Selected Contract"}
+                      </span>
+                    )}
                   </h4>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -2626,12 +2882,39 @@ export default function CurrentApplication() {
                   className="max-h-[60vh] overflow-y-auto custom-scrollbar border border-gray-200 rounded-lg"
                 >
                   <div className="p-4 space-y-4">
-                    {inboxes.slice(0, visibleInboxCount).map((item) => (
-                      <div
-                        key={item.id}
-                        className="border border-gray-200 rounded-lg p-4"
-                      >
-                        <div className="flex items-center justify-between">
+                    {inboxes
+                      .filter((item) => {
+                        const isValid = item && item.id && item.invoiceNumber;
+                        if (!isValid) {
+                          console.warn("[Render] ⚠️ Filtering out invalid item:", {
+                            item,
+                            hasItem: !!item,
+                            hasId: !!item?.id,
+                            idValue: item?.id,
+                            idType: typeof item?.id,
+                            hasInvoiceNumber: !!item?.invoiceNumber
+                          });
+                        }
+                        return isValid;
+                      })
+                      .slice(0, visibleInboxCount)
+                      .map((item) => {
+                        const contractName = getContractNameById(item.procesoContratacionId);
+                        return (
+                          <div
+                            key={item.id}
+                            className="border border-gray-200 rounded-lg p-4"
+                          >
+                        <div className="flex flex-col gap-2">
+                          {/* Si hay múltiples contratos, mostrar a cuál pertenece */}
+                          {availableContracts.length > 1 && contractName && (
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                📋 {contractName}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
                               <Calendar size={20} className="text-[#0097B2]" />
@@ -2657,6 +2940,13 @@ export default function CurrentApplication() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={async () => {
+                                if (!item.id) {
+                                  addNotification(
+                                    "Invoice ID not available",
+                                    "error"
+                                  );
+                                  return;
+                                }
                                 try {
                                   const res = await viewInboxPdfAction(item.id);
                                   if (!res.success) {
@@ -2707,13 +2997,21 @@ export default function CurrentApplication() {
                                   );
                                 }
                               }}
-                              className="flex items-center gap-2 px-3 py-2 text-[#0097B2] border border-[#0097B2] rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                              className="flex items-center gap-2 px-3 py-2 text-[#0097B2] border border-[#0097B2] rounded-lg hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={!item.id}
                             >
                               <Eye size={16} />
                               View
                             </button>
                             <button
                               onClick={async () => {
+                                if (!item.id) {
+                                  addNotification(
+                                    "Invoice ID not available",
+                                    "error"
+                                  );
+                                  return;
+                                }
                                 try {
                                   const res = await downloadInboxPdfAction(
                                     item.id
@@ -2775,15 +3073,18 @@ export default function CurrentApplication() {
                                   );
                                 }
                               }}
-                              className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors cursor-pointer"
+                              className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={!item.id}
                             >
                               <Download size={16} />
                               Download
                             </button>
                           </div>
                         </div>
+                        </div>
                       </div>
-                    ))}
+                        );
+                      })}
 
                     <div ref={setInboxEndSentinelNode} className="h-5" />
                   </div>

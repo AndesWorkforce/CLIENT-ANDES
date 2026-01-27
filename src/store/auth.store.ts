@@ -78,8 +78,47 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
-      onRehydrateStorage: () => (state) => {
-        state?.setLoading(false);
+      onRehydrateStorage: (state) => {
+        // Siempre marcar como no cargando después de la rehidratación
+        // Usar setTimeout para asegurar que el store esté completamente inicializado
+        if (typeof window !== "undefined") {
+          setTimeout(() => {
+            try {
+              const store = useAuthStore.getState();
+              if (store && typeof store.setLoading === "function") {
+                store.setLoading(false);
+              }
+              
+              // Verificar cookies del servidor si el store está vacío
+              if (state && (!state.user || !state.isAuthenticated)) {
+                try {
+                  const raw = document.cookie
+                    .split("; ")
+                    .find((c) => c.startsWith("user_info="));
+                  
+                  if (raw) {
+                    const value = raw.split("=")[1];
+                    if (value) {
+                      const decoded = decodeURIComponent(value);
+                      const cookieUser = JSON.parse(decoded);
+                      
+                      if (cookieUser && cookieUser.id && store && typeof store.setUser === "function") {
+                        // Hidratar desde cookie si el store está vacío
+                        store.setUser(cookieUser);
+                        store.setAuthenticated(true);
+                        console.log("[AuthStore] Hidratado desde cookie durante rehydrate");
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.warn("[AuthStore] Error verificando cookies durante rehydrate:", error);
+                }
+              }
+            } catch (error) {
+              console.warn("[AuthStore] Error en onRehydrateStorage:", error);
+            }
+          }, 0);
+        }
       },
     }
   )
