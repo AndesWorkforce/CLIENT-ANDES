@@ -2776,7 +2776,7 @@ export default function CurrentApplication() {
                                 <Upload size={16} />
                               </button>
                             </div>
-                            {proof.observacionesRevision && (
+                            {proof.observacionesRevision && proof.status !== "APPROVED" && (
                               <div className="col-span-12 mt-1">
                                 <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
                                   <div className="flex items-start gap-2">
