@@ -97,6 +97,7 @@ export default function CurrentApplication() {
   }, [isColombiaUser]);
   type InboxItem = {
     id: string;
+    procesoContratacionId: string;
     invoiceNumber: string;
     month: string;
     year: number;
@@ -312,7 +313,6 @@ export default function CurrentApplication() {
       console.error("Error starting inboxes tour", e);
     }
   };
-  console.log("[CURRENT CONTRACT]", currentJob);
   const [showTopHelpNudge, setShowTopHelpNudge] = useState(false);
   const startTopTour = () => {
     try {
@@ -449,39 +449,13 @@ export default function CurrentApplication() {
   const [loadingInboxes, setLoadingInboxes] = useState<boolean>(false);
 
   const mapInboxItems = (items: any[]): InboxItem[] => {
-    console.log("[mapInboxItems] ===== INICIO MAPEO =====");
-    console.log("[mapInboxItems] Raw items from API:", items);
-    console.log("[mapInboxItems] Number of items:", items?.length || 0);
-    
-    // Log detallado de cada item antes del filtrado
-    (items || []).forEach((it, index) => {
-      console.log(`[mapInboxItems] Item ${index}:`, {
-        id: it?.id,
-        idType: typeof it?.id,
-        idValue: JSON.stringify(it?.id),
-        hasId: !!(it && it.id),
-        fullItem: it
-      });
-    });
-    
     const filtered = (items || []).filter((it) => {
       const hasId = it && it.id && typeof it.id === "string" && it.id.trim() !== "";
-      if (!hasId) {
-        console.warn("[mapInboxItems] ⚠️ Filtering out item without valid ID:", {
-          item: it,
-          id: it?.id,
-          idType: typeof it?.id,
-          idValue: JSON.stringify(it?.id)
-        });
-      }
-      return hasId;
+      const hasProcesoContratacionId = it && it.procesoContratacionId && typeof it.procesoContratacionId === "string" && it.procesoContratacionId.trim() !== "";
+      return hasId && hasProcesoContratacionId;
     });
     
-    console.log("[mapInboxItems] Filtered items:", filtered);
-    console.log("[mapInboxItems] Number of filtered items:", filtered.length);
-    
-    return filtered.map((it, index) => {
-      console.log(`[mapInboxItems] Mapping item ${index} with ID:`, it.id);
+    return filtered.map((it) => {
       const ym: string = String(it.añoMes || "");
       const [yearStr, monthStr] = ym.split("-");
       const mIdx = Math.max(0, Math.min(11, Number(monthStr || 1) - 1));
@@ -495,10 +469,11 @@ export default function CurrentApplication() {
           ? "PENDING"
           : isColombiaUser
           ? "PENDING"
-          : "PAID"; // Default: non-Colombia invoices are considered Paid
+          : "PAID";
       
-      const mappedItem = {
+      return {
         id: it.id,
+        procesoContratacionId: String(it.procesoContratacionId || ""),
         invoiceNumber: String(it.invoiceNumber || "#"),
         month: months[mIdx],
         year: Number(yearStr || new Date().getFullYear()),
@@ -511,16 +486,13 @@ export default function CurrentApplication() {
         viewUrl: undefined,
         downloadUrl: undefined,
       } as InboxItem;
-      
-      console.log("[mapInboxItems] ✅ Mapped item:", {
-        id: mappedItem.id,
-        idType: typeof mappedItem.id,
-        idValue: JSON.stringify(mappedItem.id),
-        invoiceNumber: mappedItem.invoiceNumber,
-        fullItem: mappedItem
-      });
-      return mappedItem;
     });
+  };
+
+  // Helper para obtener el nombre del contrato a partir del procesoContratacionId
+  const getContractNameById = (procesoContratacionId: string): string | null => {
+    const contract = availableContracts.find(c => c.id === procesoContratacionId);
+    return contract ? contract.jobPosition : null;
   };
 
   const handleGenerateInbox = async () => {
@@ -546,14 +518,17 @@ export default function CurrentApplication() {
         selectedContractId || undefined
       );
       
-      console.log("[handleGenerateInbox] API response:", res);
-      
       if (!res.success) {
         addNotification(res.error || "Error generating inbox", "error");
         return;
       }
+      
       const item = res.data?.data || res.data;
-      console.log("[handleGenerateInbox] Extracted item:", item);
+      
+      if (!item || !item.id) {
+        addNotification("Invoice generation failed - no data returned", "error");
+        return;
+      }
       
       if (item) {
         const mappedItems = mapInboxItems([item]);
@@ -562,7 +537,10 @@ export default function CurrentApplication() {
         if (mapped && mapped.id) {
           setInboxes((prev) => {
             const exists = prev.some(
-              (p) => p.year === mapped.year && p.month === mapped.month
+              (p) => 
+                p.year === mapped.year && 
+                p.month === mapped.month && 
+                p.procesoContratacionId === mapped.procesoContratacionId
             );
             const next = exists ? prev : [mapped, ...prev];
             return next.sort((a, b) =>
@@ -607,53 +585,18 @@ export default function CurrentApplication() {
         return;
       }
       const payload = res.data || {};
-      console.log("[fetchInboxesPage] ===== INICIO FETCH =====");
-      console.log("[fetchInboxesPage] Payload received:", payload);
-      console.log("[fetchInboxesPage] Payload.data:", payload.data);
-      console.log("[fetchInboxesPage] Payload.items:", payload.items);
-      
       const mappedItems = mapInboxItems(payload.data || payload.items || []);
-      console.log("[fetchInboxesPage] Mapped items after mapInboxItems:", mappedItems);
-      
-      // Log detallado de cada item mapeado
-      mappedItems.forEach((item, index) => {
-        console.log(`[fetchInboxesPage] Mapped item ${index}:`, {
-          id: item?.id,
-          idType: typeof item?.id,
-          idValue: JSON.stringify(item?.id),
-          invoiceNumber: item?.invoiceNumber,
-          fullItem: item
-        });
-      });
-      
       const items = mappedItems.filter(
         (item) => item && item.id && item.invoiceNumber
       );
-      console.log("[fetchInboxesPage] Final filtered items:", items);
-      console.log("[fetchInboxesPage] Number of final items:", items.length);
-      
-      // Log detallado de cada item final
-      items.forEach((item, index) => {
-        console.log(`[fetchInboxesPage] Final item ${index}:`, {
-          id: item?.id,
-          idType: typeof item?.id,
-          idValue: JSON.stringify(item?.id),
-          invoiceNumber: item?.invoiceNumber
-        });
-      });
       
       const nextCursor = payload.nextCursor || null;
       setInboxNextCursor(nextCursor);
       
-      console.log("[fetchInboxesPage] Setting inboxes state, append:", append);
       setInboxes((prev) => {
         const next = append ? [...prev, ...items] : items;
-        console.log("[fetchInboxesPage] Previous inboxes count:", prev.length);
-        console.log("[fetchInboxesPage] Next inboxes count:", next.length);
-        console.log("[fetchInboxesPage] Next inboxes IDs:", next.map(i => i?.id));
         return next;
       });
-      console.log("[fetchInboxesPage] ===== FIN FETCH =====");
       setVisibleInboxCount((prev) =>
         Math.min(append ? prev : 6, append ? prev + items.length : items.length)
       );
@@ -664,36 +607,6 @@ export default function CurrentApplication() {
       setLoadingInboxes(false);
     }
   };
-
-  // Monitorear cambios en el estado de inboxes para detectar items sin ID
-  useEffect(() => {
-    console.log("[useEffect inboxes] ===== MONITOREO ESTADO INBOXES =====");
-    console.log("[useEffect inboxes] Total inboxes:", inboxes.length);
-    
-    inboxes.forEach((item, index) => {
-      const hasValidId = item && item.id && typeof item.id === "string" && item.id.trim() !== "";
-      if (!hasValidId) {
-        console.error(`[useEffect inboxes] ⚠️ Item ${index} sin ID válido:`, {
-          item,
-          id: item?.id,
-          idType: typeof item?.id,
-          idValue: JSON.stringify(item?.id),
-          invoiceNumber: item?.invoiceNumber
-        });
-      } else {
-        console.log(`[useEffect inboxes] ✅ Item ${index} con ID válido:`, {
-          id: item.id,
-          invoiceNumber: item.invoiceNumber
-        });
-      }
-    });
-    
-    const itemsWithoutId = inboxes.filter(item => !item || !item.id || typeof item.id !== "string" || item.id.trim() === "");
-    if (itemsWithoutId.length > 0) {
-      console.error("[useEffect inboxes] ❌ ENCONTRADOS ITEMS SIN ID VÁLIDO:", itemsWithoutId);
-    }
-    console.log("[useEffect inboxes] ===== FIN MONITOREO =====");
-  }, [inboxes]);
 
   useEffect(() => {
     if (!currentJob || !user?.id) return;
@@ -756,13 +669,41 @@ export default function CurrentApplication() {
     if (!user?.id) return;
     try {
       const response = await getCurrentContract(user?.id);
+      
+      // ✅ Manejo explícito de errores 401
+      // Nota: getCurrentContract (de jobs.actions) usa 'message', no 'error'
+      if (!response.success) {
+        const errorMsg = response.message || "";
+        if (errorMsg.includes("401") || errorMsg.includes("Unauthorized") || errorMsg.includes("Not authenticated")) {
+          addNotification("Session expired. Please login again.", "error");
+          router.push("/auth/login");
+          return;
+        }
+        // Otro tipo de error, mostrar mensaje genérico (no mostrar si es 404 normal)
+        if (!errorMsg.includes("404")) {
+          addNotification(errorMsg || "Error loading contract data", "error");
+        }
+        return;
+      }
+      
       if (response.success && response.data) {
         setCurrentJob(response.data);
-        setMonthlyProofs(response.data.monthlyProofs || []);
         setSelectedContractId(response.data.id);
 
         // Fetch all active contracts to enable selector (non-blocking)
         const listRes = await getActiveContractsForUser(user.id);
+        
+        // ✅ Manejo de error 401 en contratos activos
+        // Nota: getActiveContractsForUser usa 'error', no 'message'
+        if (!listRes.success) {
+          const errorMsg = listRes.error || "";
+          if (errorMsg.includes("401") || errorMsg.includes("Unauthorized")) {
+            addNotification("Session expired. Please login again.", "error");
+            router.push("/auth/login");
+            return;
+          }
+        }
+        
         if (listRes.success && listRes.data) {
           const items = (listRes.data || []).map((c) => ({
             id: c.id,
@@ -771,6 +712,31 @@ export default function CurrentApplication() {
             startDate: c.startDate,
           }));
           setAvailableContracts(items);
+          
+          // ✅ Combinar proofs de TODOS los contratos activos
+          const allProofs: MonthlyProof[] = [];
+          (listRes.data || []).forEach((contract) => {
+            if (contract.monthlyProofs && Array.isArray(contract.monthlyProofs)) {
+              contract.monthlyProofs.forEach((proof: any) => {
+                // Asegurar que cada proof tenga el procesoContratacionId
+                allProofs.push({
+                  id: proof.id,
+                  procesoContratacionId: proof.procesoContratacionId || contract.id,
+                  month: proof.month || months[parseInt(proof.añoMes?.split('-')[1] || '1') - 1] || 'Unknown',
+                  year: proof.year || parseInt(proof.añoMes?.split('-')[0] || new Date().getFullYear().toString()),
+                  file: proof.file || proof.documentoSubido || '',
+                  fileName: proof.fileName || `proof-${proof.añoMes || 'unknown'}.pdf`,
+                  uploadDate: proof.uploadDate || proof.fechaSubidaDocumento?.split('T')[0] || '',
+                  status: proof.status || 'PENDING',
+                  observacionesRevision: proof.observacionesRevision,
+                });
+              });
+            }
+          });
+          setMonthlyProofs(allProofs);
+        } else {
+          // Si no hay múltiples contratos, usar los proofs del contrato actual
+          setMonthlyProofs(response.data.monthlyProofs || []);
         }
 
         // 🚨 CARGAR DOCUMENTOS DIRECTAMENTE DEL PROCESO DE CONTRATACIÓN
@@ -821,10 +787,60 @@ export default function CurrentApplication() {
     setIsSwitchingContract(true);
     try {
       const res = await getUserContractById(user.id, contractId);
+      
+      // ✅ Manejo explícito de errores 401
+      if (!res.success) {
+        if (res.error?.includes("401") || res.error?.includes("Unauthorized")) {
+          addNotification("Session expired. Please login again.", "error");
+          router.push("/auth/login");
+          return;
+        }
+        addNotification(res.error || "Error loading contract", "error");
+        return;
+      }
+      
       if (res.success && res.data) {
         setCurrentJob(res.data);
-        setMonthlyProofs(res.data.monthlyProofs || []);
         setSelectedContractId(contractId);
+        
+        // ✅ CORREGIDO: Recargar TODOS los proofs de TODOS los contratos activos
+        // (No solo los del contrato seleccionado, para mantener consistencia)
+        const listRes = await getActiveContractsForUser(user.id);
+        
+        // ✅ Manejo de error 401 en contratos activos
+        if (!listRes.success) {
+          if (listRes.error?.includes("401") || listRes.error?.includes("Unauthorized")) {
+            addNotification("Session expired. Please login again.", "error");
+            router.push("/auth/login");
+            return;
+          }
+        }
+        
+        if (listRes.success && listRes.data) {
+          const allProofs: MonthlyProof[] = [];
+          (listRes.data || []).forEach((contract) => {
+            if (contract.monthlyProofs && Array.isArray(contract.monthlyProofs)) {
+              contract.monthlyProofs.forEach((proof: any) => {
+                allProofs.push({
+                  id: proof.id,
+                  procesoContratacionId: proof.procesoContratacionId || contract.id,
+                  month: proof.month || months[parseInt(proof.añoMes?.split('-')[1] || '1') - 1] || 'Unknown',
+                  year: proof.year || parseInt(proof.añoMes?.split('-')[0] || new Date().getFullYear().toString()),
+                  file: proof.file || proof.documentoSubido || '',
+                  fileName: proof.fileName || `proof-${proof.añoMes || 'unknown'}.pdf`,
+                  uploadDate: proof.uploadDate || proof.fechaSubidaDocumento?.split('T')[0] || '',
+                  status: proof.status || 'PENDING',
+                  observacionesRevision: proof.observacionesRevision,
+                });
+              });
+            }
+          });
+          setMonthlyProofs(allProofs);
+        } else {
+          // Fallback: si no hay múltiples contratos, usar los del contrato actual
+          setMonthlyProofs(res.data.monthlyProofs || []);
+        }
+        
         // Reset inbox list state
         setInboxes([]);
         setVisibleInboxCount(6);
@@ -969,7 +985,18 @@ export default function CurrentApplication() {
 
   // Upload a completely new proof (from the top form)
   const handleNewProofUpload = async () => {
-    if (!selectedFile || !selectedPeriod || !currentJob?.id) return;
+    // ✅ Usar selectedContractId (selector principal) si hay múltiples contratos, sino usar currentJob.id
+    const contractIdForProof = availableContracts.length > 1 
+      ? selectedContractId 
+      : currentJob?.id;
+    
+    if (!selectedFile || !selectedPeriod || !contractIdForProof) {
+      if (!contractIdForProof) {
+        addNotification("Please select a contract first", "error");
+      }
+      return;
+    }
+    
     const { month: effMonth, year: effYear } = selectedPeriod;
     const selIdx = months.indexOf(effMonth);
     if (selIdx < 0) {
@@ -996,7 +1023,7 @@ export default function CurrentApplication() {
     setUploading(true);
     try {
       const result = await uploadMonthlyProof(
-        currentJob.id,
+        contractIdForProof,
         effMonth,
         effYear,
         selectedFile
@@ -1004,6 +1031,7 @@ export default function CurrentApplication() {
       if (result.success) {
         const newProof: MonthlyProof = {
           id: result.data?.id || `proof-${Date.now()}`,
+          procesoContratacionId: contractIdForProof, // ✅ Agregar el ID del contrato
           month: effMonth,
           year: effYear,
           file: result.data?.file || URL.createObjectURL(selectedFile),
@@ -1011,7 +1039,26 @@ export default function CurrentApplication() {
           uploadDate: new Date().toISOString().split("T")[0],
           status: "PENDING",
         };
-        setMonthlyProofs((prev) => [...prev, newProof]);
+        // ✅ Verificar si ya existe un proof para este contrato y mes antes de agregar
+        setMonthlyProofs((prev) => {
+          const exists = prev.some(
+            (p) => 
+              p.procesoContratacionId === contractIdForProof && 
+              p.month === effMonth && 
+              p.year === effYear
+          );
+          if (exists) {
+            // Si existe, actualizar en lugar de agregar
+            return prev.map((p) =>
+              p.procesoContratacionId === contractIdForProof && 
+              p.month === effMonth && 
+              p.year === effYear
+                ? newProof
+                : p
+            );
+          }
+          return [...prev, newProof];
+        });
         setSelectedFile(null);
         setSelectedMonth(currentMonth);
         setSelectedPeriod({ month: currentMonth, year: currentYear });
@@ -1034,12 +1081,21 @@ export default function CurrentApplication() {
 
   // Replace an existing proof via modal
   const handleReplaceProof = async () => {
-    if (!replacementFile || !editingProofRef.current || !currentJob?.id) return;
+    if (!replacementFile || !editingProofRef.current) return;
+    
+    const proofToEdit = editingProofRef.current;
+    // ✅ Usar el procesoContratacionId del proof existente, o fallback a currentJob.id
+    const contractIdForProof = proofToEdit.procesoContratacionId || currentJob?.id;
+    
+    if (!contractIdForProof) {
+      addNotification("Cannot determine contract for this proof", "error");
+      return;
+    }
+    
     setUploading(true);
     try {
-      const proofToEdit = editingProofRef.current;
       const result = await uploadMonthlyProof(
-        currentJob.id,
+        contractIdForProof,
         proofToEdit.month,
         proofToEdit.year,
         replacementFile
@@ -2092,9 +2148,10 @@ export default function CurrentApplication() {
                   Active Contract
                 </label>
                 <select
-                  className="w-full lg:w-1/2 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
+                  className="w-full lg:w-1/2 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#0097B2] disabled:bg-gray-100 disabled:cursor-not-allowed"
                   value={selectedContractId || ""}
                   onChange={(e) => handleSelectContract(e.target.value)}
+                  disabled={uploading || isSwitchingContract}
                 >
                   {availableContracts.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -2103,8 +2160,9 @@ export default function CurrentApplication() {
                   ))}
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Choose the job you want to manage to upload documents and
-                  generate payment inboxes.
+                  {uploading 
+                    ? "⏳ Please wait while the file is uploading..."
+                    : "Choose the job you want to manage to upload documents and generate payment inboxes."}
                 </p>
               </div>
             )}
@@ -2581,17 +2639,37 @@ export default function CurrentApplication() {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-3">
                     Uploaded Proofs
+                    {/* ✅ Mostrar info del contrato seleccionado si hay múltiples */}
+                    {availableContracts.length > 1 && selectedContractId && (
+                      <span className="text-sm font-normal text-gray-500 ml-2">
+                        — {getContractNameById(selectedContractId) || "Selected Contract"}
+                      </span>
+                    )}
                   </h3>
 
-                  {monthlyProofs.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <FileText
-                        size={48}
-                        className="mx-auto mb-4 text-gray-300"
-                      />
-                      <p>No proofs uploaded yet</p>
-                    </div>
-                  ) : (
+                  {(() => {
+                    // ✅ Filtrar proofs por contrato seleccionado (usa el selector principal)
+                    const filteredProofs = availableContracts.length > 1 && selectedContractId
+                      ? monthlyProofs.filter(p => p.procesoContratacionId === selectedContractId)
+                      : monthlyProofs;
+                    
+                    if (filteredProofs.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-gray-500">
+                          <FileText
+                            size={48}
+                            className="mx-auto mb-4 text-gray-300"
+                          />
+                          <p>
+                            {availableContracts.length > 1 && selectedContractId
+                              ? "No proofs uploaded yet for this contract"
+                              : "No proofs uploaded yet"}
+                          </p>
+                        </div>
+                      );
+                    }
+                    
+                    return (
                     <div className="border border-gray-200 rounded-lg overflow-hidden">
                       <div className="hidden md:grid grid-cols-12 gap-2 bg-gray-50 text-xs text-gray-500 px-3 py-2">
                         <div className="col-span-4">Period</div>
@@ -2600,7 +2678,7 @@ export default function CurrentApplication() {
                         <div className="col-span-2 text-right">Actions</div>
                       </div>
                       <div className="divide-y divide-gray-100">
-                        {monthlyProofs.map((proof) => (
+                        {filteredProofs.map((proof) => (
                           <div
                             key={proof.id}
                             className="grid grid-cols-12 gap-2 items-center px-3 py-2 text-sm hover:bg-gray-50"
@@ -2674,7 +2752,8 @@ export default function CurrentApplication() {
                         ))}
                       </div>
                     </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </>
             ) : (
@@ -2696,7 +2775,14 @@ export default function CurrentApplication() {
                 >
                   <h4 className="text-sm font-medium text-gray-900 mb-3">
                     Generate Invoice
+                    {/* Mostrar nombre del contrato seleccionado si hay múltiples */}
+                    {availableContracts.length > 1 && selectedContractId && (
+                      <span className="text-sm font-normal text-gray-500 ml-2">
+                        — {getContractNameById(selectedContractId) || "Selected Contract"}
+                      </span>
+                    )}
                   </h4>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -2766,19 +2852,23 @@ export default function CurrentApplication() {
                         return isValid;
                       })
                       .slice(0, visibleInboxCount)
-                      .map((item, index) => {
-                        console.log(`[Render] Rendering item ${index}:`, {
-                          id: item?.id,
-                          idType: typeof item?.id,
-                          idValue: JSON.stringify(item?.id),
-                          invoiceNumber: item?.invoiceNumber
-                        });
+                      .map((item) => {
+                        const contractName = getContractNameById(item.procesoContratacionId);
                         return (
                           <div
                             key={item.id}
                             className="border border-gray-200 rounded-lg p-4"
                           >
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-2">
+                          {/* Si hay múltiples contratos, mostrar a cuál pertenece */}
+                          {availableContracts.length > 1 && contractName && (
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                📋 {contractName}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
                               <Calendar size={20} className="text-[#0097B2]" />
@@ -2804,20 +2894,7 @@ export default function CurrentApplication() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={async () => {
-                                console.log("[View Button] ===== CLICK VIEW =====");
-                                console.log("[View Button] Full item object:", item);
-                                console.log("[View Button] item.id:", item.id);
-                                console.log("[View Button] item.id type:", typeof item.id);
-                                console.log("[View Button] item.id value:", JSON.stringify(item.id));
-                                console.log("[View Button] item.id truthy:", !!item.id);
-                                
                                 if (!item.id) {
-                                  console.error("[View Button] ❌ Invalid item.id detected:", {
-                                    item,
-                                    id: item.id,
-                                    idType: typeof item.id,
-                                    idValue: JSON.stringify(item.id)
-                                  });
                                   addNotification(
                                     "Invoice ID not available",
                                     "error"
@@ -2825,7 +2902,6 @@ export default function CurrentApplication() {
                                   return;
                                 }
                                 try {
-                                  console.log("[View Button] ✅ Calling viewInboxPdfAction with ID:", item.id);
                                   const res = await viewInboxPdfAction(item.id);
                                   if (!res.success) {
                                     addNotification(
@@ -2883,20 +2959,7 @@ export default function CurrentApplication() {
                             </button>
                             <button
                               onClick={async () => {
-                                console.log("[Download Button] ===== CLICK DOWNLOAD =====");
-                                console.log("[Download Button] Full item object:", item);
-                                console.log("[Download Button] item.id:", item.id);
-                                console.log("[Download Button] item.id type:", typeof item.id);
-                                console.log("[Download Button] item.id value:", JSON.stringify(item.id));
-                                console.log("[Download Button] item.id truthy:", !!item.id);
-                                
                                 if (!item.id) {
-                                  console.error("[Download Button] ❌ Invalid item.id detected:", {
-                                    item,
-                                    id: item.id,
-                                    idType: typeof item.id,
-                                    idValue: JSON.stringify(item.id)
-                                  });
                                   addNotification(
                                     "Invoice ID not available",
                                     "error"
@@ -2904,7 +2967,6 @@ export default function CurrentApplication() {
                                   return;
                                 }
                                 try {
-                                  console.log("[Download Button] ✅ Calling downloadInboxPdfAction with ID:", item.id);
                                   const res = await downloadInboxPdfAction(
                                     item.id
                                   );
@@ -2972,6 +3034,7 @@ export default function CurrentApplication() {
                               Download
                             </button>
                           </div>
+                        </div>
                         </div>
                       </div>
                         );

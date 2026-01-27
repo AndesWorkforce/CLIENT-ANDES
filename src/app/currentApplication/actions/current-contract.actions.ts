@@ -102,6 +102,7 @@ export interface CurrentContractData {
 
 export interface MonthlyProof {
   id: string;
+  procesoContratacionId: string; // ✅ Agregado para soportar múltiples contratos
   month: string;
   year: number;
   file: string;
@@ -293,10 +294,14 @@ export async function uploadMonthlyProof(
       }
     );
 
+    // ✅ CORREGIDO: Acceder correctamente a la respuesta del backend
+    // El backend devuelve { success: true, data: { id: "...", ... } }
+    const responseData = evaluationResponse.data?.data || evaluationResponse.data;
+    
     return {
       success: true,
       data: {
-        id: evaluationResponse.data.id,
+        id: responseData?.id,
         file: fileUrl,
       },
     };

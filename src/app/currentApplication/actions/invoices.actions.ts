@@ -29,22 +29,7 @@ export async function getUserInboxesAction(
 }
 
 export async function viewInboxPdfAction(inboxId: string) {
-  console.log("[viewInboxPdfAction] ===== SERVER ACTION VIEW =====");
-  console.log("[viewInboxPdfAction] Received inboxId parameter:", inboxId);
-  console.log("[viewInboxPdfAction] inboxId type:", typeof inboxId);
-  console.log("[viewInboxPdfAction] inboxId value:", JSON.stringify(inboxId));
-  console.log("[viewInboxPdfAction] inboxId truthy:", !!inboxId);
-  console.log("[viewInboxPdfAction] inboxId === 'undefined':", inboxId === "undefined");
-  console.log("[viewInboxPdfAction] inboxId === 'null':", inboxId === "null");
-  
   if (!inboxId || typeof inboxId !== "string" || inboxId.trim() === "") {
-    console.error("[viewInboxPdfAction] ❌ Validation failed:", {
-      inboxId,
-      hasInboxId: !!inboxId,
-      isString: typeof inboxId === "string",
-      trimmed: inboxId?.trim(),
-      isEmpty: inboxId?.trim() === ""
-    });
     return {
       success: false,
       error: "Invalid invoice ID",
@@ -52,7 +37,6 @@ export async function viewInboxPdfAction(inboxId: string) {
   }
   
   try {
-    console.log("[viewInboxPdfAction] ✅ Making request to:", `users/inboxes/${inboxId}/view`);
     const axios = await createServerAxios();
     const response = await axios.get(`users/inboxes/${inboxId}/view`, {
       responseType: "arraybuffer",
@@ -77,22 +61,7 @@ export async function viewInboxPdfAction(inboxId: string) {
 }
 
 export async function downloadInboxPdfAction(inboxId: string) {
-  console.log("[downloadInboxPdfAction] ===== SERVER ACTION DOWNLOAD =====");
-  console.log("[downloadInboxPdfAction] Received inboxId parameter:", inboxId);
-  console.log("[downloadInboxPdfAction] inboxId type:", typeof inboxId);
-  console.log("[downloadInboxPdfAction] inboxId value:", JSON.stringify(inboxId));
-  console.log("[downloadInboxPdfAction] inboxId truthy:", !!inboxId);
-  console.log("[downloadInboxPdfAction] inboxId === 'undefined':", inboxId === "undefined");
-  console.log("[downloadInboxPdfAction] inboxId === 'null':", inboxId === "null");
-  
   if (!inboxId || typeof inboxId !== "string" || inboxId.trim() === "") {
-    console.error("[downloadInboxPdfAction] ❌ Validation failed:", {
-      inboxId,
-      hasInboxId: !!inboxId,
-      isString: typeof inboxId === "string",
-      trimmed: inboxId?.trim(),
-      isEmpty: inboxId?.trim() === ""
-    });
     return {
       success: false,
       error: "Invalid invoice ID",
@@ -100,7 +69,6 @@ export async function downloadInboxPdfAction(inboxId: string) {
   }
   
   try {
-    console.log("[downloadInboxPdfAction] ✅ Making request to:", `users/inboxes/${inboxId}/download`);
     const axios = await createServerAxios();
     const response = await axios.get(`users/inboxes/${inboxId}/download`, {
       responseType: "arraybuffer",
@@ -135,8 +103,18 @@ export async function generateUserInboxAction(
     if (yearMonth) body.yearMonth = yearMonth;
     if (processId) body.processId = processId;
     const url = `users/${userId}/inboxes/generate`;
+    
     const response = await axios.post(url, body);
-    return { success: true, data: response.data };
+    const backendResponse = response.data;
+    
+    if (backendResponse?.success === false) {
+      return {
+        success: false,
+        error: backendResponse?.message || "Error generating inbox",
+      };
+    }
+    
+    return { success: true, data: backendResponse };
   } catch (error: any) {
     const status = error?.response?.status;
     const message =
