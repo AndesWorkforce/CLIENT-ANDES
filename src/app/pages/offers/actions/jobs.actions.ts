@@ -119,6 +119,14 @@ export async function userIsAppliedToOffer(userId: string) {
       data: data,
     };
   } catch (error) {
+    // No loguear errores 401 como errores críticos - son esperados cuando el token está expirado
+    if (error instanceof AxiosError && error.response?.status === 401) {
+      // Token expirado o no autenticado - esto es normal, no es un error crítico
+      return {
+        success: false,
+        message: "Not authenticated",
+      };
+    }
     console.error("Error fetching profile status:", error);
     return {
       success: false,
@@ -153,6 +161,14 @@ export async function getCurrentContract(userId: string) {
       data: data,
     };
   } catch (error) {
+    // No loguear errores 401 como errores críticos - son esperados cuando el token está expirado
+    if (error instanceof AxiosError && error.response?.status === 401) {
+      // Token expirado o no autenticado - esto es normal, no es un error crítico
+      return {
+        success: false,
+        message: "Not authenticated",
+      };
+    }
     console.error("Error fetching current contract:", error);
     return {
       success: false,
