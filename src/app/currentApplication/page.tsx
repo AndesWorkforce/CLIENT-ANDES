@@ -418,6 +418,34 @@ export default function CurrentApplication() {
   const currentYear = currentDate.getFullYear();
   const currentMonthIndex = months.indexOf(currentMonth);
   const allowedMonths = months.slice(0, currentMonthIndex + 1);
+
+  // ✅ Helper: Normalizar mes a nombre (convierte "01", "1", 1 → "January")
+  const normalizeMonthToName = (month: string | number | undefined | null): string => {
+    if (!month) return 'Unknown';
+    
+    // Si ya es un nombre de mes válido, devolverlo
+    if (typeof month === 'string' && months.includes(month)) {
+      return month;
+    }
+    
+    // Si es un número o string numérico, convertir a nombre
+    const monthNum = typeof month === 'string' ? parseInt(month, 10) : month;
+    if (!isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
+      return months[monthNum - 1]; // 1 → January (index 0)
+    }
+    
+    return 'Unknown';
+  };
+
+  // ✅ Helper: Convertir añoMes "YYYY-MM" a nombre de mes
+  const getMonthNameFromAñoMes = (añoMes: string | undefined | null): string => {
+    if (!añoMes) return 'Unknown';
+    const parts = añoMes.split('-');
+    if (parts.length !== 2) return 'Unknown';
+    const monthNum = parseInt(parts[1], 10);
+    if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) return 'Unknown';
+    return months[monthNum - 1];
+  };
   // Build combined period options for Proofs (adds Dec 2025 exception in 2026)
   const periodOptions = useMemo(() => {
     const opts: {
@@ -446,6 +474,19 @@ export default function CurrentApplication() {
   }, [selectedTab, currentYear, allowedMonths]);
   const showProofsTab = isColombiaUser;
   const showInboxesTab = true;
+
+  // ✅ Calcular si ya existe un proof para el período seleccionado (reactivo)
+  const selectedPeriodHasProof = useMemo(() => {
+    if (!selectedPeriod) return false;
+    const contractId = availableContracts.length > 1 ? selectedContractId : currentJob?.id;
+    if (!contractId) return false;
+    return monthlyProofs.some(
+      (p) => 
+        p.procesoContratacionId === contractId && 
+        p.month === selectedPeriod.month && 
+        p.year === selectedPeriod.year
+    );
+  }, [monthlyProofs, selectedPeriod, selectedContractId, currentJob?.id, availableContracts.length]);
 
   // Load real inbox items for the logged-in user (paginated)
   const [inboxNextCursor, setInboxNextCursor] = useState<string | null>(null);
@@ -726,11 +767,15 @@ export default function CurrentApplication() {
           (listRes.data || []).forEach((contract) => {
             if (contract.monthlyProofs && Array.isArray(contract.monthlyProofs)) {
               contract.monthlyProofs.forEach((proof: any) => {
-                // Asegurar que cada proof tenga el procesoContratacionId
+                // ✅ Normalizar mes a nombre (convierte "01" → "January", etc.)
+                const monthName = proof.month 
+                  ? normalizeMonthToName(proof.month)
+                  : getMonthNameFromAñoMes(proof.añoMes);
+                
                 allProofs.push({
                   id: proof.id,
                   procesoContratacionId: proof.procesoContratacionId || contract.id,
-                  month: proof.month || months[parseInt(proof.añoMes?.split('-')[1] || '1') - 1] || 'Unknown',
+                  month: monthName,
                   year: proof.year || parseInt(proof.añoMes?.split('-')[0] || new Date().getFullYear().toString()),
                   file: proof.file || proof.documentoSubido || '',
                   fileName: proof.fileName || `proof-${proof.añoMes || 'unknown'}.pdf`,
@@ -744,7 +789,12 @@ export default function CurrentApplication() {
           setMonthlyProofs(allProofs);
         } else {
           // Si no hay múltiples contratos, usar los proofs del contrato actual
-          setMonthlyProofs(response.data.monthlyProofs || []);
+          // ✅ Normalizar los proofs antes de guardarlos
+          const normalizedProofs = (response.data.monthlyProofs || []).map((proof: any) => ({
+            ...proof,
+            month: proof.month ? normalizeMonthToName(proof.month) : getMonthNameFromAñoMes(proof.añoMes),
+          }));
+          setMonthlyProofs(normalizedProofs);
         }
 
         // 🚨 CARGAR DOCUMENTOS DIRECTAMENTE DEL PROCESO DE CONTRATACIÓN
@@ -829,10 +879,15 @@ export default function CurrentApplication() {
           (listRes.data || []).forEach((contract) => {
             if (contract.monthlyProofs && Array.isArray(contract.monthlyProofs)) {
               contract.monthlyProofs.forEach((proof: any) => {
+                // ✅ Normalizar mes a nombre (convierte "01" → "January", etc.)
+                const monthName = proof.month 
+                  ? normalizeMonthToName(proof.month)
+                  : getMonthNameFromAñoMes(proof.añoMes);
+                
                 allProofs.push({
                   id: proof.id,
                   procesoContratacionId: proof.procesoContratacionId || contract.id,
-                  month: proof.month || months[parseInt(proof.añoMes?.split('-')[1] || '1') - 1] || 'Unknown',
+                  month: monthName,
                   year: proof.year || parseInt(proof.añoMes?.split('-')[0] || new Date().getFullYear().toString()),
                   file: proof.file || proof.documentoSubido || '',
                   fileName: proof.fileName || `proof-${proof.añoMes || 'unknown'}.pdf`,
@@ -846,7 +901,12 @@ export default function CurrentApplication() {
           setMonthlyProofs(allProofs);
         } else {
           // Fallback: si no hay múltiples contratos, usar los del contrato actual
-          setMonthlyProofs(res.data.monthlyProofs || []);
+          // ✅ También normalizar estos proofs
+          const normalizedProofs = (res.data.monthlyProofs || []).map((proof: any) => ({
+            ...proof,
+            month: proof.month ? normalizeMonthToName(proof.month) : getMonthNameFromAñoMes(proof.añoMes),
+          }));
+          setMonthlyProofs(normalizedProofs);
         }
         
         // Reset inbox list state
@@ -1011,6 +1071,16 @@ export default function CurrentApplication() {
       addNotification("Invalid month selected", "error");
       return;
     }
+    
+    // ✅ BLOQUEAR si ya existe un proof para este mes/contrato (usa el valor memoizado)
+    if (selectedPeriodHasProof) {
+      addNotification(
+        `A proof for ${effMonth} ${effYear} already exists. Please use the Edit button to replace it.`,
+        "error"
+      );
+      return;
+    }
+    
     const isDec2025 =
       selectedTab === "proofs" && effMonth === "December" && effYear === 2025;
     // Only allow past/current months in current year, or exactly Dec 2025
@@ -1039,7 +1109,7 @@ export default function CurrentApplication() {
       if (result.success) {
         const newProof: MonthlyProof = {
           id: result.data?.id || `proof-${Date.now()}`,
-          procesoContratacionId: contractIdForProof, // ✅ Agregar el ID del contrato
+          procesoContratacionId: contractIdForProof,
           month: effMonth,
           year: effYear,
           file: result.data?.file || URL.createObjectURL(selectedFile),
@@ -1047,26 +1117,8 @@ export default function CurrentApplication() {
           uploadDate: new Date().toISOString().split("T")[0],
           status: "PENDING",
         };
-        // ✅ Verificar si ya existe un proof para este contrato y mes antes de agregar
-        setMonthlyProofs((prev) => {
-          const exists = prev.some(
-            (p) => 
-              p.procesoContratacionId === contractIdForProof && 
-              p.month === effMonth && 
-              p.year === effYear
-          );
-          if (exists) {
-            // Si existe, actualizar en lugar de agregar
-            return prev.map((p) =>
-              p.procesoContratacionId === contractIdForProof && 
-              p.month === effMonth && 
-              p.year === effYear
-                ? newProof
-                : p
-            );
-          }
-          return [...prev, newProof];
-        });
+        // ✅ Agregar el nuevo proof (ya validamos que no existe)
+        setMonthlyProofs((prev) => [...prev, newProof]);
         setSelectedFile(null);
         setSelectedMonth(currentMonth);
         setSelectedPeriod({ month: currentMonth, year: currentYear });
@@ -2570,14 +2622,21 @@ export default function CurrentApplication() {
                         accept="image/*,application/pdf"
                         onChange={handleFileSelect}
                         className="hidden"
+                        disabled={selectedPeriodHasProof}
                       />
                       <label
                         id="file-upload-trigger"
-                        htmlFor="file-upload"
-                        className="flex items-center gap-2 w-full px-3 py-2 border border-dashed border-[#0097B2] rounded-lg text-[#0097B2] hover:bg-blue-50 cursor-pointer"
+                        htmlFor={selectedPeriodHasProof ? undefined : "file-upload"}
+                        className={`flex items-center gap-2 w-full px-3 py-2 border border-dashed rounded-lg ${
+                          selectedPeriodHasProof
+                            ? "border-gray-300 text-gray-400 bg-gray-50 cursor-not-allowed"
+                            : "border-[#0097B2] text-[#0097B2] hover:bg-blue-50 cursor-pointer"
+                        }`}
                       >
                         <Upload size={16} />
-                        Select the file to upload
+                        {selectedPeriodHasProof 
+                          ? "File selection disabled (proof exists)"
+                          : "Select the file to upload"}
                       </label>
                     </div>
                   </div>
@@ -2590,10 +2649,21 @@ export default function CurrentApplication() {
                     </div>
                   )}
 
+                  {/* ✅ Mensaje informativo si ya existe un proof para el mes seleccionado */}
+                  {selectedPeriodHasProof && selectedPeriod && (
+                    <div className="bg-[#0097B2]/15 border border-[#0097B2] rounded-lg p-3 mb-4">
+                      <p className="text-sm text-[#006577]">
+                        <strong>✓ Proof for {selectedPeriod.month} {selectedPeriod.year} already uploaded.</strong>
+                        <br />
+                        Need to make changes? Use the <span className="font-semibold">Edit</span> button next to your proof below.
+                      </p>
+                    </div>
+                  )}
+
                   <button
                     id="upload-proof-button"
                     onClick={handleNewProofUpload}
-                    disabled={!selectedFile || !selectedMonth || uploading}
+                    disabled={!selectedFile || !selectedMonth || uploading || selectedPeriodHasProof}
                     className="flex items-center gap-2 px-4 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {uploading ? (
