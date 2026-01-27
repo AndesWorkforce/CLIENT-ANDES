@@ -1130,12 +1130,10 @@ export default function CurrentApplication() {
 
   // Funciones para el modal de documentos
   const openDocumentsModal = async () => {
-    console.log("📖 Opening documents modal...");
     setShowDocumentsModal(true);
 
     // 🚨 CARGAR DOCUMENTOS DESDE LA BASE DE DATOS AUTOMÁTICAMENTE
     if (currentJob?.id) {
-      console.log("🔄 Cargando documentos desde BD...");
       try {
         const response = await obtenerDocumentosLeidos(currentJob.id);
         if (response.success && response.data) {
@@ -1152,15 +1150,6 @@ export default function CurrentApplication() {
                 doc.completamenteLeido && doc.terminosAceptados;
               initialReadingTime[doc.seccionDocumento] = doc.tiempoTotalLectura;
             }
-          });
-
-          console.log("✅ Documentos cargados desde BD en modal:", {
-            filteredDocs: response.data.filter((doc) =>
-              frontendDocIds.includes(doc.seccionDocumento)
-            ),
-            readState: initialReadState,
-            readingTime: initialReadingTime,
-            frontendDocs: frontendDocIds,
           });
 
           setReadDocuments(initialReadState);
@@ -1204,8 +1193,6 @@ export default function CurrentApplication() {
   };
 
   const handleDocumentRead = async (documentId: string) => {
-    console.log("📖 User marked document as read:", documentId);
-
     // Calcular tiempo de lectura
     const currentTime = Date.now();
     const readingTime = Math.max(
@@ -1248,7 +1235,6 @@ export default function CurrentApplication() {
           );
 
           if (result.success) {
-            console.log("✅ Documento actualizado:", result.data);
             // Actualizar el currentJob para reflejar los cambios
             const updatedContract = await getCurrentContract(user.id);
             if (updatedContract.success && updatedContract.data) {
@@ -1265,25 +1251,12 @@ export default function CurrentApplication() {
   };
 
   const handleNextDocument = async () => {
-    console.log("🔄 handleNextDocument iniciado", {
-      currentDocumentIndex,
-      totalDocuments: contractDocuments.length,
-      currentDoc: contractDocuments[currentDocumentIndex],
-      currentJobId: currentJob?.id,
-      userId: user?.id,
-    });
-
     if (currentDocumentIndex < contractDocuments.length - 1) {
       // Actualizar el documento actual en la base de datos
       const currentDoc = contractDocuments[currentDocumentIndex];
       if (currentDoc && currentJob?.id && user?.id) {
         try {
           const section = documentToSection[currentDoc.id];
-          console.log("📝 Intentando actualizar documento", {
-            documentId: currentDoc.id,
-            section,
-            procesoId: currentJob.id,
-          });
 
           if (!section) {
             console.error("❌ Sección no válida:", currentDoc.id);
@@ -1299,8 +1272,6 @@ export default function CurrentApplication() {
             }
           );
 
-          console.log("✅ Resultado de actualización:", result);
-
           if (result.success) {
             setCurrentDocumentIndex((prev) => prev + 1);
             setHasReachedEnd(false);
@@ -1310,7 +1281,6 @@ export default function CurrentApplication() {
             const updatedContract = await getCurrentContract(user.id);
             if (updatedContract.success && updatedContract.data) {
               setCurrentJob(updatedContract.data);
-              console.log("✅ Contract actualizado:", updatedContract.data);
             }
           } else {
             console.error("❌ Error actualizando documento:", result.error);
@@ -1398,15 +1368,12 @@ export default function CurrentApplication() {
         todoCompletado: todoCompletado || allDocumentsRead(),
       };
 
-      console.log("💾 Updating documents in DB:", estadoDocumentos);
-
       const result = await actualizarDocumentosLeidos(
         currentJob.id,
         estadoDocumentos
       );
 
       if (result.success) {
-        console.log("✅ Documents updated in DB:", result.data);
 
         // Si se completó todo, actualizar el estado local del job
         if (result.data?.estadoContratacion) {
@@ -1418,13 +1385,6 @@ export default function CurrentApplication() {
                 }
               : null
           );
-
-          // If all documents completed, show success message
-          if (result.data.todoCompletado) {
-            console.log(
-              "🎉 All documents completed! Waiting for provider signature..."
-            );
-          }
         }
       } else {
         console.error("❌ Error updating documents:", result.error);
@@ -1560,21 +1520,11 @@ export default function CurrentApplication() {
 
   // Auto-open documents modal if candidate signed but needs to read documents
   useEffect(() => {
-    console.log("🔍 DEBUG - useEffect triggered:", {
-      currentJob: !!currentJob,
-      estadoContratacion: currentJob?.estadoContratacion,
-      shouldOpenModal:
-        currentJob &&
-        (currentJob.estadoContratacion === "FIRMADO_CANDIDATO" ||
-          currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA"),
-    });
-
     if (
       currentJob &&
       (currentJob.estadoContratacion === "FIRMADO_CANDIDATO" ||
         currentJob.estadoContratacion === "DOCUMENTOS_EN_LECTURA")
     ) {
-      console.log("🚀 Opening documents modal automatically!");
       openDocumentsModal();
     }
   }, [currentJob]);

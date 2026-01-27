@@ -432,20 +432,10 @@ export async function actualizarDocumentoEspecifico(
   error?: string;
 }> {
   try {
-    console.log("📤 Enviando actualización de documento", {
-      procesoContratacionId,
-      seccion,
-      datos,
-    });
-
     const axios = await createServerAxios();
     const url = `/admin/contratacion/${procesoContratacionId}/documento/${seccion}`;
 
-    console.log("🔗 URL de actualización:", url);
-
     const response = await axios.patch(url, datos);
-
-    console.log("📥 Respuesta del servidor:", response.data);
 
     return {
       success: true,
