@@ -446,6 +446,7 @@ export default function CurrentApplication() {
     if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) return 'Unknown';
     return months[monthNum - 1];
   };
+
   // Build combined period options for Proofs (adds Dec 2025 exception in 2026)
   const periodOptions = useMemo(() => {
     const opts: {
@@ -2775,7 +2776,7 @@ export default function CurrentApplication() {
                                 <Upload size={16} />
                               </button>
                             </div>
-                            {proof.observacionesRevision && (
+                            {proof.observacionesRevision && proof.status !== "APPROVED" && (
                               <div className="col-span-12 mt-1">
                                 <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
                                   <div className="flex items-start gap-2">
