@@ -446,6 +446,7 @@ export default function CurrentApplication() {
     if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) return 'Unknown';
     return months[monthNum - 1];
   };
+
   // Build combined period options for Proofs (adds Dec 2025 exception in 2026)
   const periodOptions = useMemo(() => {
     const opts: {
