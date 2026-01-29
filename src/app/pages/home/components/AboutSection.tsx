@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 export default function AboutSection() {
@@ -17,6 +19,14 @@ export default function AboutSection() {
         <div className="text-center mt-12">
           <Link
             href="/pages/contact"
+            onClick={(e) => {
+              e.preventDefault();
+              if (typeof window !== 'undefined' && window.gtagSendEvent) {
+                window.gtagSendEvent('/pages/contact');
+              } else {
+                window.location.href = '/pages/contact';
+              }
+            }}
             className="inline-block bg-[#0097B2] text-white px-8 py-3 rounded-md text-lg font-medium hover:bg-[#007A8F] transition-colors"
           >
             Read More

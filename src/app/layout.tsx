@@ -142,6 +142,24 @@ export default function RootLayout({
             gtag('config', 'G-11VQNRYDS8');
           `}
         </Script>
+
+        {/* Google tag (gtag.js) event - delayed navigation helper */}
+        <Script id="gtag-conversion-helper" strategy="afterInteractive">
+          {`
+            function gtagSendEvent(url) {
+              var callback = function () {
+                if (typeof url === 'string') {
+                  window.location = url;
+                }
+              };
+              gtag('event', 'ads_conversion_Contact_1', {
+                'event_callback': callback,
+                'event_timeout': 2000,
+              });
+              return false;
+            }
+          `}
+        </Script>
       </head>
       <body className={inter.className}>
         <Navbar />

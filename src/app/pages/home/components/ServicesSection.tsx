@@ -1,3 +1,5 @@
+"use client";
+
 import { Zap, DollarSign, Shield, Clock, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
@@ -131,6 +133,14 @@ export default function ServicesSection() {
 
                 <Link
                   href="/pages/contact"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (typeof window !== 'undefined' && window.gtagSendEvent) {
+                      window.gtagSendEvent('/pages/contact');
+                    } else {
+                      window.location.href = '/pages/contact';
+                    }
+                  }}
                   className="inline-flex items-center justify-center bg-[#0097B2] hover:bg-[#00778E] text-white font-medium py-3 px-8 rounded-md transition-colors"
                 >
                   Contact Us
