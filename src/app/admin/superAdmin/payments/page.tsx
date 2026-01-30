@@ -313,9 +313,8 @@ export default function PaymentsPage() {
   // Función para usuarios ordenados
   const sortedUsers = useMemo(() => {
     if (!sortKey) {
-      // Default: place completed (paymentEnabled) at the end
       return [...filteredUsers].sort((a, b) =>
-        a.paymentEnabled === b.paymentEnabled ? 0 : a.paymentEnabled ? 1 : -1
+        a.paymentEnabled === b.paymentEnabled ? 0 : a.paymentEnabled ? -1 : 1
       );
     }
 
@@ -337,7 +336,12 @@ export default function PaymentsPage() {
       }
 
       if (typeof aValue === "boolean" && typeof bValue === "boolean") {
-        const comparison = aValue === bValue ? 0 : aValue ? 1 : -1;
+        // For boolean sorting, make it more intuitive:
+        // Ascending: true (enabled) first, false (disabled) last
+        // Descending: false (disabled) first, true (enabled) last
+        if (aValue === bValue) return 0;
+        // true = -1 (comes first in ascending), false = 1 (comes last in ascending)
+        const comparison = aValue ? -1 : 1;
         return sortDirection === "asc" ? comparison : -comparison;
       }
 
