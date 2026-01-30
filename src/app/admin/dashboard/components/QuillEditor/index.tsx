@@ -43,7 +43,6 @@ const QuillEditor = ({
         "underline",
         "strike",
         "list",
-        "bullet",
         "link",
       ],
     }),

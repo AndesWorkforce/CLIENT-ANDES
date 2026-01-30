@@ -250,6 +250,18 @@ export default function PaymentsPage() {
     }
   };
 
+  const getPaymentStatusRank = (user: UserContract) => {
+    const isColombia = String(user.country || "").toLowerCase() === "colombia";
+    if (isColombia) {
+      if (user.paymentEnabled) return 0; // Enabled
+      if (user.documentUploadedThisMonth) return 1; // In review
+      return 2; // Pending
+    }
+    // No-Colombia: usar presencia de inbox como estado "Invoice"
+    if (user.inboxMesActualId) return 0; // Invoice (equiv. Enabled)
+    return 2; // Pending
+  };
+
   // Función para exportar a Excel
   const exportToExcel = async () => {
     setIsExporting(true);
@@ -312,14 +324,21 @@ export default function PaymentsPage() {
 
   // Función para usuarios ordenados
   const sortedUsers = useMemo(() => {
+    // Crear una copia del array para no mutar el original
+    const usersToSort = [...filteredUsers];
+    
     if (!sortKey) {
-      // Default: place completed (paymentEnabled) at the end
-      return [...filteredUsers].sort((a, b) =>
-        a.paymentEnabled === b.paymentEnabled ? 0 : a.paymentEnabled ? 1 : -1
+      // Default: ordenar por estado de pago (Enabled/Invoice primero)
+      return usersToSort.sort(
+        (a, b) => getPaymentStatusRank(a) - getPaymentStatusRank(b)
       );
     }
 
-    return [...filteredUsers].sort((a, b) => {
+    return usersToSort.sort((a, b) => {
+      if (sortKey === "paymentEnabled") {
+        const comparison = getPaymentStatusRank(a) - getPaymentStatusRank(b);
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
       const aValue = a[sortKey];
       const bValue = b[sortKey];
 
@@ -337,7 +356,9 @@ export default function PaymentsPage() {
       }
 
       if (typeof aValue === "boolean" && typeof bValue === "boolean") {
-        const comparison = aValue === bValue ? 0 : aValue ? 1 : -1;
+        if (aValue === bValue) return 0;
+        // For boolean sorting: true = -1 (comes first in ascending), false = 1 (comes last in ascending)
+        const comparison = aValue ? -1 : 1;
         return sortDirection === "asc" ? comparison : -comparison;
       }
 
@@ -1497,8 +1518,16 @@ export default function PaymentsPage() {
               <th
                 className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
                 onClick={() => handleSort("paymentEnabled")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSort("paymentEnabled");
+                  }
+                }}
               >
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-1 pointer-events-none">
                   <span>Payment Status</span>
                   <div className="flex flex-col text-xs text-gray-400">
                     {sortKey === "paymentEnabled" && sortDirection === "asc" ? (
