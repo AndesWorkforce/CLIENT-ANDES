@@ -336,11 +336,7 @@ export default function PaymentsPage() {
       }
 
       if (typeof aValue === "boolean" && typeof bValue === "boolean") {
-        // For boolean sorting, make it more intuitive:
-        // Ascending: true (enabled) first, false (disabled) last
-        // Descending: false (disabled) first, true (enabled) last
         if (aValue === bValue) return 0;
-        // true = -1 (comes first in ascending), false = 1 (comes last in ascending)
         const comparison = aValue ? -1 : 1;
         return sortDirection === "asc" ? comparison : -comparison;
       }
