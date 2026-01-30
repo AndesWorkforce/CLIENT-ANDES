@@ -292,7 +292,7 @@ export default function CurrentApplication() {
           popover: {
             title: "Create",
             description:
-              "Press to create your inbox. In Colombia, you must upload your monthly proof first.",
+              "Press to create your invoice for the selected month.",
             side: "left",
             align: "start",
           },
@@ -2871,8 +2871,8 @@ export default function CurrentApplication() {
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
                     {isColombiaUser
-                      ? "You can generate an inbox for a past month of the current year. For Colombia, a monthly proof must be uploaded first."
-                      : "You can generate an inbox for any past month of the current year."}
+                      ? "You can generate an invoice for any past month of the current year."
+                      : "You can generate an invoice for any past month of the current year."}
                   </p>
                 </div>
 
