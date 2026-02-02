@@ -309,6 +309,14 @@ export async function uploadMonthlyProof(
   } catch (error: any) {
     console.error("Error uploading monthly proof:", error);
 
+    const status = error.response?.status;
+    if (status === 413) {
+      return {
+        success: false,
+        error: "FILE_TOO_LARGE",
+      };
+    }
+
     return {
       success: false,
       error: error.response?.data?.message || "Error al subir el archivo",
