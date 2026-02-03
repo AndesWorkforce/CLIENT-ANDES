@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/auth.store";
-import { getHolidaysForCountry, formatHolidayDate, CountryHolidays } from "@/data/holidays";
+import { getHolidaysForCountry, Holiday } from "@/services/holidays.service";
 
 export default function BonificationsPage() {
   const { user, isAuthenticated } = useAuthStore();
-  const [holidays, setHolidays] = useState<CountryHolidays | null>(null);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -163,7 +163,7 @@ export default function BonificationsPage() {
               relevant holidays.
             </p>
           </div>
-        ) : holidays ? (
+        ) : holidays.length > 0 ? (
           <div className="max-w-2xl mx-auto">
             <div className="overflow-hidden rounded-lg border border-gray-300 bg-white">
               <table className="w-full">
@@ -173,15 +173,15 @@ export default function BonificationsPage() {
                       colSpan={2} 
                       className="px-6 py-4 text-center text-2xl font-bold text-black"
                     >
-                      {holidays.country}
+                      {user.pais} - Public Holidays {new Date().getFullYear()}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {holidays.holidays.map((holiday, index) => (
+                  {holidays.map((holiday, index) => (
                     <tr key={index}>
                       <td className="px-6 py-1.5 text-center font-medium text-base w-1/3">
-                        {holiday.date}
+                        {holiday.dateFormatted}
                       </td>
                       <td className="px-6 py-1.5 text-center text-base w-2/3">
                         {holiday.name}
@@ -191,12 +191,6 @@ export default function BonificationsPage() {
                 </tbody>
               </table>
             </div>
-
-            {holidays.compensationNote && (
-              <p className="text-sm text-center text-black mt-6 leading-relaxed">
-                {holidays.compensationNote}
-              </p>
-            )}
           </div>
         ) : (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
