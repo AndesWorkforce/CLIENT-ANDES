@@ -21,6 +21,7 @@ export interface User {
   token: string;
   empresaId?: string; // ID de la empresa si el usuario es una empresa
   empleadoEmpresa?: EmpleadoEmpresa;
+  pais?: string;
 }
 
 interface AuthState {
