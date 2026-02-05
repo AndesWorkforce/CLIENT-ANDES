@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/auth.store";
-import { getHolidaysForCountry, Holiday } from "@/services/holidays.service";
+
+interface Holiday {
+  id: string;
+  nombre: string;
+  fecha: string;
+  año: number;
+  tipo: string;
+}
 
 export default function BonificationsPage() {
   const { user, isAuthenticated } = useAuthStore();
@@ -10,16 +17,17 @@ export default function BonificationsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadHolidays = () => {
+    const loadHolidays = async () => {
       if (!isAuthenticated || !user?.pais) {
         setIsLoading(false);
         return;
       }
 
       try {
-        // Obtener holidays basados en el país del usuario
-        const countryHolidays = getHolidaysForCountry(user.pais);
-        setHolidays(countryHolidays);
+        // TODO: Implementar llamada a API para obtener holidays desde la base de datos
+        // const response = await getHolidaysByCountry(user.pais);
+        // setHolidays(response.data);
+        setHolidays([]);
       } catch (error) {
         console.error("Error loading holidays:", error);
       } finally {
@@ -178,13 +186,17 @@ export default function BonificationsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {holidays.map((holiday, index) => (
-                    <tr key={index}>
+                  {holidays.map((holiday) => (
+                    <tr key={holiday.id}>
                       <td className="px-6 py-1.5 text-center font-medium text-base w-1/3">
-                        {holiday.dateFormatted}
+                        {new Date(holiday.fecha).toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: '2-digit', 
+                          year: 'numeric' 
+                        })}
                       </td>
                       <td className="px-6 py-1.5 text-center text-base w-2/3">
-                        {holiday.name}
+                        {holiday.nombre}
                       </td>
                     </tr>
                   ))}
