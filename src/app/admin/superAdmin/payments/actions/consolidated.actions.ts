@@ -73,7 +73,7 @@ export async function getMonthlyPaymentsData(
     for (const u of backendUsers) {
       const procesos = Array.isArray(u?.procesos) ? u.procesos : [];
       for (const p of procesos) {
-        const nombre = String(u?.nombre || "").trim();
+        const nombre = String(p?.nombreCompleto || u?.nombre || "").trim();
         const [first, ...rest] = nombre.split(" ");
         const evalPeriodo = p?.evaluacionPeriodo || null;
         const inboxPeriodo = p?.inboxPeriodo || null;

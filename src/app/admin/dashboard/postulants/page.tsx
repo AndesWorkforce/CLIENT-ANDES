@@ -97,7 +97,7 @@ export default function PostulantsPage() {
   const [isSignContractModalOpen, setIsSignContractModalOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(
-    null
+    null,
   );
   const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
 
@@ -118,7 +118,7 @@ export default function PostulantsPage() {
         applicantsPerPage,
         searchValue,
         stageFilter,
-        applicantStatusFilter
+        applicantStatusFilter,
       );
 
       if (response.success) {
@@ -126,6 +126,13 @@ export default function PostulantsPage() {
         setTotalPages(response.totalPages || 1);
       } else {
         console.error("Error in getApplicants:", response.message);
+
+        // Si es 401, disparar evento para desloguear
+        if ((response as any).statusCode === 401) {
+          console.warn("[Postulants] 401 detectado en getApplicants");
+          window.dispatchEvent(new CustomEvent("unauthorized"));
+        }
+
         setApplicants([]);
         setTotalPages(1);
       }
@@ -155,7 +162,7 @@ export default function PostulantsPage() {
   };
 
   const handleItemsPerPageChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     setApplicantsPerPage(Number(e.target.value));
     setCurrentPage(1);
@@ -167,7 +174,7 @@ export default function PostulantsPage() {
   };
 
   const handleApplicantStatusFilterChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     setApplicantStatusFilter(e.target.value);
     setCurrentPage(1);
@@ -213,7 +220,7 @@ export default function PostulantsPage() {
   const handleChangeCompanyStatus = async (
     candidateId: string,
     status: CandidateStatus,
-    notes?: string
+    notes?: string,
   ): Promise<{ success: boolean; message?: string }> => {
     const candidate = applicants.find((c) => c.id === candidateId);
 
@@ -230,8 +237,8 @@ export default function PostulantsPage() {
         prev.map((applicant) =>
           applicant.id === candidateId
             ? { ...applicant, clasificacionGlobal: status }
-            : applicant
-        )
+            : applicant,
+        ),
       );
 
       setRecentlyUpdated(candidateId);
@@ -244,7 +251,7 @@ export default function PostulantsPage() {
       if (response.success) {
         addNotification(
           `Status of ${candidateName} updated to ${status}`,
-          "success"
+          "success",
         );
         return { success: true };
       } else {
@@ -256,8 +263,8 @@ export default function PostulantsPage() {
                   ...applicant,
                   clasificacionGlobal: candidate.clasificacionGlobal,
                 }
-              : applicant
-          )
+              : applicant,
+          ),
         );
         addNotification(response.message || "Error updating status", "error");
         return {
@@ -275,8 +282,8 @@ export default function PostulantsPage() {
                 ...applicant,
                 clasificacionGlobal: candidate.clasificacionGlobal,
               }
-            : applicant
-        )
+            : applicant,
+        ),
       );
       addNotification("Error updating candidate status", "error");
       return { success: false, message: "Error updating candidate status" };
@@ -407,7 +414,7 @@ export default function PostulantsPage() {
 
   const renderClickableStageStatusBadge = (
     stage: StageStatus,
-    applicant: ExtendedCandidate
+    applicant: ExtendedCandidate,
   ) => {
     const canUpdate =
       hasActiveApplication(applicant) &&
@@ -432,7 +439,7 @@ export default function PostulantsPage() {
 
   // Nueva función para renderizar Applicant Status
   const renderApplicantStatus = (
-    applicant: ExtendedCandidate
+    applicant: ExtendedCandidate,
   ): ApplicantStatus => {
     // Usar clasificacionGlobal - tanto INACTIVE como BLACKLIST se consideran INACTIVE
     return applicant.clasificacionGlobal === "INACTIVE" ||
@@ -471,7 +478,7 @@ export default function PostulantsPage() {
           {applicant.fechaEntrevistaPreliminar && (
             <span className="text-xs text-gray-500">
               {new Date(
-                applicant.fechaEntrevistaPreliminar
+                applicant.fechaEntrevistaPreliminar,
               ).toLocaleDateString()}
             </span>
           )}
@@ -485,7 +492,7 @@ export default function PostulantsPage() {
             handlePreliminaryInterview(
               applicant.id,
               `${applicant.nombre} ${applicant.apellido}`,
-              applicant.correo
+              applicant.correo,
             )
           }
         >
@@ -513,14 +520,14 @@ export default function PostulantsPage() {
           // Actualizar el estado del candidato a inactivo
           setApplicants((prev) =>
             prev.map((a) =>
-              a.id === selectedCandidateId ? { ...a, activo: false } : a
-            )
+              a.id === selectedCandidateId ? { ...a, activo: false } : a,
+            ),
           );
           addNotification(`Candidate ${candidateName} successfully`, "success");
         } else {
           addNotification(
             response.message || "Error deleting candidate",
-            "error"
+            "error",
           );
         }
       } else {
@@ -531,17 +538,17 @@ export default function PostulantsPage() {
           // Actualizar el estado del candidato a activo
           setApplicants((prev) =>
             prev.map((a) =>
-              a.id === selectedCandidateId ? { ...a, activo: true } : a
-            )
+              a.id === selectedCandidateId ? { ...a, activo: true } : a,
+            ),
           );
           addNotification(
             `Candidate ${candidateName} successfully activated`,
-            "success"
+            "success",
           );
         } else {
           addNotification(
             response.message || "Error activating candidate",
-            "error"
+            "error",
           );
         }
       }
@@ -567,8 +574,8 @@ export default function PostulantsPage() {
         prev.map((applicant) =>
           applicant.id === candidateId
             ? { ...applicant, favorite: newFavoriteStatus }
-            : applicant
-        )
+            : applicant,
+        ),
       );
 
       const response = await toggleFavorite(candidateId);
@@ -579,13 +586,13 @@ export default function PostulantsPage() {
           prev.map((applicant) =>
             applicant.id === candidateId
               ? { ...applicant, favorite: response.data.favorite }
-              : applicant
-          )
+              : applicant,
+          ),
         );
 
         addNotification(
           response.message ?? "Estado favorito actualizado exitosamente",
-          "success"
+          "success",
         );
       } else {
         // Revertir cambio optimista si hay error
@@ -593,12 +600,12 @@ export default function PostulantsPage() {
           prev.map((applicant) =>
             applicant.id === candidateId
               ? { ...applicant, favorite: candidate.favorite }
-              : applicant
-          )
+              : applicant,
+          ),
         );
         addNotification(
           response.message || "Error al actualizar estado favorito",
-          "error"
+          "error",
         );
       }
     } catch (error) {
@@ -608,8 +615,8 @@ export default function PostulantsPage() {
         prev.map((applicant) =>
           applicant.id === candidateId
             ? { ...applicant, favorite: candidate.favorite }
-            : applicant
-        )
+            : applicant,
+        ),
       );
       addNotification("Error al actualizar estado favorito", "error");
     } finally {
@@ -636,7 +643,7 @@ export default function PostulantsPage() {
     ) {
       addNotification(
         "This candidate doesn't have an active application",
-        "error"
+        "error",
       );
       return;
     }
@@ -675,7 +682,7 @@ export default function PostulantsPage() {
   const handlePreliminaryInterview = async (
     candidateId: string,
     candidateName: string,
-    candidateEmail: string
+    candidateEmail: string,
   ) => {
     try {
       // Actualización optimista del estado local
@@ -687,8 +694,8 @@ export default function PostulantsPage() {
                 entrevistaPreliminar: true,
                 fechaEntrevistaPreliminar: new Date().toISOString(),
               }
-            : applicant
-        )
+            : applicant,
+        ),
       );
 
       // Primero marcar en base de datos que se envió la invitación
@@ -698,18 +705,18 @@ export default function PostulantsPage() {
         // Si se marcó exitosamente en DB, enviar el email
         const emailResponse = await sendInterviewInvitation(
           candidateName,
-          candidateEmail
+          candidateEmail,
         );
 
         if (emailResponse && emailResponse.success) {
           addNotification(
             "Preliminary interview invitation sent successfully",
-            "success"
+            "success",
           );
         } else {
           addNotification(
             "Database updated but error sending email invitation",
-            "warning"
+            "warning",
           );
         }
       } else {
@@ -722,12 +729,12 @@ export default function PostulantsPage() {
                   entrevistaPreliminar: false,
                   fechaEntrevistaPreliminar: undefined,
                 }
-              : applicant
-          )
+              : applicant,
+          ),
         );
         addNotification(
           dbResponse.message || "Error updating preliminary interview status",
-          "error"
+          "error",
         );
       }
     } catch (error) {
@@ -741,12 +748,12 @@ export default function PostulantsPage() {
                 entrevistaPreliminar: false,
                 fechaEntrevistaPreliminar: undefined,
               }
-            : applicant
-        )
+            : applicant,
+        ),
       );
       addNotification(
         "Error sending preliminary interview invitation",
-        "error"
+        "error",
       );
     }
   };
@@ -956,7 +963,7 @@ export default function PostulantsPage() {
                         <div className="mt-1">
                           {renderClickableStageStatusBadge(
                             renderStageStatus(applicant),
-                            applicant
+                            applicant,
                           )}
                         </div>
                       </div>
@@ -968,7 +975,7 @@ export default function PostulantsPage() {
                         <span className="text-gray-500">Applicant Status:</span>
                         <div className="mt-1">
                           {renderApplicantStatusBadge(
-                            renderApplicantStatus(applicant)
+                            renderApplicantStatus(applicant),
                           )}
                         </div>
                       </div>
@@ -1088,7 +1095,7 @@ export default function PostulantsPage() {
                               {pageNumber}
                             </button>
                           );
-                        }
+                        },
                       )}
                       <button
                         className={`px-3 py-1 text-[#0097B2] border-l border-gray-300 ${
@@ -1253,8 +1260,8 @@ export default function PostulantsPage() {
                                 {applicant.lastRelevantPostulacion?.titulo
                                   ? applicant.lastRelevantPostulacion.titulo
                                   : applicant.puestoTrabajo
-                                  ? applicant.puestoTrabajo
-                                  : "Sin aplicación"}
+                                    ? applicant.puestoTrabajo
+                                    : "Sin aplicación"}
                               </div>
                             </td>
                             <td className="py-4 px-4 text-center align-middle">
@@ -1266,7 +1273,7 @@ export default function PostulantsPage() {
                                   {applicant.fechaEntrevistaPreliminar && (
                                     <span className="text-xs text-gray-500">
                                       {new Date(
-                                        applicant.fechaEntrevistaPreliminar
+                                        applicant.fechaEntrevistaPreliminar,
                                       ).toLocaleDateString()}
                                     </span>
                                   )}
@@ -1278,7 +1285,7 @@ export default function PostulantsPage() {
                                     handlePreliminaryInterview(
                                       applicant.id,
                                       `${applicant.nombre} ${applicant.apellido}`,
-                                      applicant.correo
+                                      applicant.correo,
                                     )
                                   }
                                 >
@@ -1291,7 +1298,7 @@ export default function PostulantsPage() {
                             <td className="py-4 px-4 text-center align-middle">
                               {renderClickableStageStatusBadge(
                                 renderStageStatus(applicant),
-                                applicant
+                                applicant,
                               )}
                             </td>
 
@@ -1299,7 +1306,7 @@ export default function PostulantsPage() {
                             <td className="py-4 px-4 text-center align-middle">
                               <div className="flex items-center gap-2">
                                 {renderApplicantStatusBadge(
-                                  renderApplicantStatus(applicant)
+                                  renderApplicantStatus(applicant),
                                 )}
                                 <button
                                   onClick={() =>
@@ -1483,7 +1490,7 @@ export default function PostulantsPage() {
                             >
                               {it}
                             </button>
-                          )
+                          ),
                         );
                       })()}
 
@@ -1603,7 +1610,7 @@ export default function PostulantsPage() {
           currentStatus={selectedStatusUpdate.currentStatus}
           candidatoName={selectedStatusUpdate.candidatoName}
           applicant={applicants.find(
-            (a) => a.id === selectedStatusUpdate.candidatoId
+            (a) => a.id === selectedStatusUpdate.candidatoId,
           )}
           onUpdate={handleStatusUpdateWithEmail}
         />

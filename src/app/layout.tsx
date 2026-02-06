@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toast } from "@/components/ui/Toast";
+import { AuthValidator } from "@/components/AuthValidator";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import "react-quill/dist/quill.snow.css";
@@ -162,6 +163,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={inter.className}>
+        <AuthValidator />
         <Navbar />
         {children}
         <Footer />

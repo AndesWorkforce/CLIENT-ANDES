@@ -10,7 +10,7 @@ export async function getLatestNotifications(limit = 7) {
   } catch (error: any) {
     console.error(
       "getLatestNotifications error",
-      error?.response?.data || error
+      error?.response?.data || error,
     );
     return { success: false, error: error?.response?.data || String(error) };
   }
@@ -24,7 +24,7 @@ export async function getUnreadNotificationsCount() {
   } catch (error: any) {
     console.error(
       "getUnreadNotificationsCount error",
-      error?.response?.data || error
+      error?.response?.data || error,
     );
     return { success: false, error: error?.response?.data || String(error) };
   }
@@ -38,7 +38,7 @@ export async function markNotificationAsRead(id: string) {
   } catch (error: any) {
     console.error(
       "markNotificationAsRead error",
-      error?.response?.data || error
+      error?.response?.data || error,
     );
     return { success: false, error: error?.response?.data || String(error) };
   }
@@ -52,7 +52,7 @@ export async function markAllNotificationsAsRead() {
   } catch (error: any) {
     console.error(
       "markAllNotificationsAsRead error",
-      error?.response?.data || error
+      error?.response?.data || error,
     );
     return { success: false, error: error?.response?.data || String(error) };
   }
