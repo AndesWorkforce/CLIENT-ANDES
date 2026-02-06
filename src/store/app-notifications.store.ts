@@ -50,6 +50,10 @@ export const useAppNotificationsStore = create<State & Actions>((set, get) => ({
       if (res?.success) {
         const { items, unreadCount } = res.data || {};
         set({ items: items || [], unread: unreadCount || 0 });
+      } else if (res?.error?.statusCode === 401) {
+        // Token expirado, disparar evento para desloguear
+        console.warn("[NotificationsStore] 401 detectado en fetchLatest");
+        window.dispatchEvent(new CustomEvent("unauthorized"));
       }
     } catch (e) {
       // swallow to avoid UI crash
@@ -64,6 +68,10 @@ export const useAppNotificationsStore = create<State & Actions>((set, get) => ({
       const res = await getUnreadNotificationsCount();
       if (res?.success) {
         set({ unread: res.data?.unread ?? 0 });
+      } else if (res?.error?.statusCode === 401) {
+        // Token expirado, disparar evento para desloguear
+        console.warn("[NotificationsStore] 401 detectado en refreshUnread");
+        window.dispatchEvent(new CustomEvent("unauthorized"));
       }
     } catch (e) {
       console.error("refreshUnread failed", e);

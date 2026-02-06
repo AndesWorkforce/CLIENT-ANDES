@@ -18,18 +18,30 @@ axiosClient.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 axiosClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response && error.response.status === 401) {
-      console.log("[Axios] Interceptor de respuesta 401");
+      console.log(
+        "[Axios] Interceptor de respuesta 401 - Token expirado o inválido",
+      );
+
+      // Limpiar el store de Zustand
       useAuthStore.getState().logout();
+
+      // Mostrar mensaje al usuario
+      if (typeof window !== "undefined") {
+        // Opcional: podrías agregar un toast aquí
+        console.warn(
+          "[Axios] Sesión expirada. Por favor, inicie sesión nuevamente.",
+        );
+      }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export { axiosClient };

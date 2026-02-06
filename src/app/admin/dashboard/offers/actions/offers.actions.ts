@@ -21,7 +21,7 @@ export async function createOffer(formData: FormData) {
       console.error(
         "[Offers] API error status:",
         response.status,
-        response.statusText
+        response.statusText,
       );
       console.error("[Offers] API error body:", responseData);
 
@@ -57,7 +57,7 @@ export async function getApplicants(
   limit = 10,
   search = "",
   stageFilter = "all",
-  applicantStatusFilter = "all"
+  applicantStatusFilter = "all",
 ) {
   const axiosInstance = await createServerAxios();
   try {
@@ -115,16 +115,21 @@ export async function getApplicants(
     };
   } catch (error) {
     console.error("[Offers] Error en getApplicants:", error);
+
+    // Verificar si es un error 401
+    const is401 = (error as any)?.response?.status === 401;
+
     return {
       success: false,
       message: "Error en getApplicants: " + error,
+      statusCode: is401 ? 401 : undefined,
     };
   }
 }
 
 export const assignOfferToCompanies = async (
   offerId: string,
-  empresaIds: string[]
+  empresaIds: string[],
 ) => {
   const axios = await createServerAxios();
   try {
@@ -152,7 +157,11 @@ export const assignOfferToCompanies = async (
 
 export async function getApplicantsHistory(
   offerId: string,
-  options?: { includeAll?: boolean; limit?: number; estadoPostulacion?: string }
+  options?: {
+    includeAll?: boolean;
+    limit?: number;
+    estadoPostulacion?: string;
+  },
 ) {
   const axios = await createServerAxios();
   try {
@@ -201,8 +210,8 @@ export async function getApplicantsHistory(
       Array.isArray(payload?.data) && typeof payload?.total === "number"
         ? payload.total
         : typeof api?.total === "number"
-        ? api.total
-        : undefined;
+          ? api.total
+          : undefined;
 
     return {
       success: true,
