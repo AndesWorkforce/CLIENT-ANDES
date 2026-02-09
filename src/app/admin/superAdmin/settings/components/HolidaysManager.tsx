@@ -365,7 +365,7 @@ export default function HolidaysManager() {
                               {holiday.dia}
                             </td>
                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(2000, holiday.mes - 1).toLocaleDateString("es-ES", {
+                              {new Date(2000, holiday.mes - 1).toLocaleDateString("en-US", {
                                 month: "long",
                               })}
                             </td>

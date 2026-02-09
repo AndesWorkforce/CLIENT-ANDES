@@ -2,14 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/auth.store";
-
-interface Holiday {
-  id: string;
-  nombre: string;
-  fecha: string;
-  año: number;
-  tipo: string;
-}
+import { getHolidaysByCountry, type Holiday } from "../admin/superAdmin/settings/actions/holidays.actions";
 
 export default function BonificationsPage() {
   const { user, isAuthenticated } = useAuthStore();
@@ -24,12 +17,15 @@ export default function BonificationsPage() {
       }
 
       try {
-        // TODO: Implementar llamada a API para obtener holidays desde la base de datos
-        // const response = await getHolidaysByCountry(user.pais);
-        // setHolidays(response.data);
-        setHolidays([]);
+        const response = await getHolidaysByCountry(user.pais);
+        if (response.success && response.data?.data) {
+          setHolidays(response.data.data);
+        } else {
+          setHolidays([]);
+        }
       } catch (error) {
         console.error("Error loading holidays:", error);
+        setHolidays([]);
       } finally {
         setIsLoading(false);
       }
@@ -189,10 +185,9 @@ export default function BonificationsPage() {
                   {holidays.map((holiday) => (
                     <tr key={holiday.id}>
                       <td className="px-6 py-1.5 text-center font-medium text-base w-1/3">
-                        {new Date(holiday.fecha).toLocaleDateString('en-US', { 
+                        {new Date(new Date().getFullYear(), holiday.mes - 1, holiday.dia).toLocaleDateString('en-US', { 
                           month: 'long', 
-                          day: '2-digit', 
-                          year: 'numeric' 
+                          day: '2-digit'
                         })}
                       </td>
                       <td className="px-6 py-1.5 text-center text-base w-2/3">

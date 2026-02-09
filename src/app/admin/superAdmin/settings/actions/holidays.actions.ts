@@ -203,3 +203,45 @@ export async function getCountries(): Promise<ApiResponse> {
     };
   }
 }
+
+export async function getHolidaysByCountry(
+  countryName: string
+): Promise<GetHolidaysResponse> {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.get(`holidays/by-country/${encodeURIComponent(countryName)}`, {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
+
+    if (response.status === 200) {
+      const backendData = response.data?.data || response.data;
+      
+      return {
+        success: true,
+        message: "Holidays fetched successfully",
+        data: {
+          data: Array.isArray(backendData) ? backendData : [],
+          pagination: {
+            total: Array.isArray(backendData) ? backendData.length : 0,
+            page: 1,
+            limit: Array.isArray(backendData) ? backendData.length : 0,
+            totalPages: 1,
+          },
+        },
+      };
+    }
+
+    return {
+      success: false,
+      message: "Error fetching holidays",
+    };
+  } catch (error) {
+    console.error("[HOLIDAYS] Error al obtener festivos por país:", error);
+    return {
+      success: false,
+      message: "Error fetching holidays",
+    };
+  }
+}
