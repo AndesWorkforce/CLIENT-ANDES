@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { getHolidaysByCountry, type Holiday } from "../admin/superAdmin/settings/actions/holidays.actions";
+import { HOLIDAY_MULTIPLIERS, getHolidayCompensationMessage } from "@/data/holidayCompensation";
 
 export default function BonificationsPage() {
   const { user, isAuthenticated } = useAuthStore();
@@ -198,6 +199,15 @@ export default function BonificationsPage() {
                 </tbody>
               </table>
             </div>
+            
+            {/* Compensation Description */}
+            {HOLIDAY_MULTIPLIERS[user.pais] && (
+              <div className="mt-6 p-6 bg-white rounded-lg">
+                <p className="text-center text-sm text-gray-700 leading-relaxed">
+                  {getHolidayCompensationMessage(user.pais)}
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
