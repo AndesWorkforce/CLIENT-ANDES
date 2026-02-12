@@ -265,7 +265,7 @@ export default function Navbar() {
           onClick={() => setShowUserMenu(false)}
         >
           <Briefcase size={16} className="mr-2 text-[#0097B2]" />
-          Additional Incentives
+          Incentives & Holidays
         </Link>
       )}
 
@@ -628,7 +628,7 @@ export default function Navbar() {
                         onClick={() => setShowMobileSidebar(false)}
                       >
                         <Briefcase size={20} className="mr-2 text-[#0097B2]" />
-                        Additional Incentives
+                        Incentives & Holidays
                       </Link>
                     )}
                   </>
