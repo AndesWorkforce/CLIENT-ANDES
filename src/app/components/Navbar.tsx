@@ -326,7 +326,7 @@ export default function Navbar() {
                   className="text-[#0097B2] hover:text-[#007a94] transition-colors"
                   aria-label={social.label}
                 >
-                  <social.icon size={16} />
+                  <social.icon size={16} strokeWidth={3} />
                 </a>
               ))}
             </div>
@@ -335,7 +335,7 @@ export default function Navbar() {
             <div className="flex items-center gap-[20px]">
               {contactInfo.map((info, index) => (
                 <div key={index} className="flex items-center gap-[5px]">
-                  <info.icon size={16} className="text-[#0097B2]" />
+                  <info.icon size={16} strokeWidth={1.5} className="text-[#0097B2]" />
                   <span className="text-[12px] font-normal text-black">
                     {info.text}
                   </span>
