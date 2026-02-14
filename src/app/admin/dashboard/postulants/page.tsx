@@ -66,6 +66,9 @@ interface ExtendedCandidate extends CandidatoWithPostulationId {
   perfilCompleto?: string; // ✅ AGREGADO: Campo del estado del perfil desde backend
   entrevistaPreliminar?: boolean; // ✅ AGREGADO: Campo de entrevista preliminar
   fechaEntrevistaPreliminar?: string; // ✅ AGREGADO: Fecha de entrevista preliminar
+  assessmentUrl?: string | null;
+  fotoCedulaFrente?: string | null; 
+  fotoCedulaDorso?: string | null;
   logs: {
     date: string;
     action: string;
@@ -306,7 +309,10 @@ export default function PostulantsPage() {
       return "PROFILE_INCOMPLETE";
     }
 
-    // 3. Si el perfil está completo pero no tiene aplicación activa = AVAILABLE
+    if (!applicant.assessmentUrl) {
+      return "PROFILE_INCOMPLETE";
+    }
+
     if (!hasActiveApplication(applicant)) {
       return "AVAILABLE";
     }

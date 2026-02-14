@@ -69,18 +69,29 @@ export default function ProfileModal({
 
   if (!isOpen) return null;
 
-  const isProfileIncomplete =
-    !profile?.datosPersonales.nombre ||
-    !profile?.datosPersonales.apellido ||
-    !profile?.datosPersonales.telefono ||
-    !profile?.datosPersonales.correo ||
-    !profile?.datosFormulario ||
-    !profile?.educacion.length ||
-    !profile?.experiencia.length ||
-    !profile?.habilidades.length ||
-    !profile?.archivos.videoPresentacion ||
-    !profile?.archivos.imagenTestVelocidad ||
-    !profile?.archivos.imagenRequerimientosPC;
+  // Función para obtener los campos faltantes
+  const getMissingFields = (): string[] => {
+    const missingFields: string[] = [];
+    
+    if (!profile?.datosPersonales.nombre) missingFields.push("Nombre");
+    if (!profile?.datosPersonales.apellido) missingFields.push("Apellido");
+    if (!profile?.datosPersonales.telefono) missingFields.push("Teléfono");
+    if (!profile?.datosPersonales.correo) missingFields.push("Correo");
+    if (!profile?.datosFormulario) missingFields.push("Formulario");
+    if (!profile?.educacion.length) missingFields.push("Educación (al menos 1)");
+    if (!profile?.experiencia.length) missingFields.push("Experiencia (al menos 1)");
+    if (!profile?.habilidades.length) missingFields.push("Habilidades (al menos 1)");
+    if (!profile?.archivos.videoPresentacion) missingFields.push("Video de presentación");
+    if (!profile?.archivos.imagenTestVelocidad) missingFields.push("Imagen test de velocidad");
+    if (!profile?.archivos.imagenRequerimientosPC) missingFields.push("Imagen requerimientos PC");
+    if (!profile?.archivos.fotoCedulaFrente) missingFields.push("Foto cédula frente");
+    if (!profile?.archivos.fotoCedulaDorso) missingFields.push("Foto cédula dorso");
+    
+    return missingFields;
+  };
+
+  const missingFields = getMissingFields();
+  const isProfileIncomplete = missingFields.length > 0;
 
   if (isLoading || !profile) {
     return <ProfileModalSkeleton isOpen={isOpen} onClose={onClose} />;
@@ -106,7 +117,15 @@ export default function ProfileModal({
               {/* Mensaje de perfil incompleto */}
               {isProfileIncomplete && (
                 <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-2">
-                  Profile incomplete: Missing data.
+                  <div className="font-medium mb-2">Profile incomplete: Missing data.</div>
+                  <div className="text-sm">
+                    <p className="font-medium mb-1">Campos faltantes:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {missingFields.map((field, index) => (
+                        <li key={index}>{field}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               )}
               {/* Contact Info Card */}
