@@ -307,3 +307,53 @@ export async function toggleFavorite(
     };
   }
 }
+
+export async function updateFavoriteRating(
+  candidateId: string,
+  rating: number
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+  try {
+    // Validar que el rating esté en el rango válido
+    if (rating < 0 || rating > 3 || !Number.isInteger(rating)) {
+      return {
+        success: false,
+        message: "El rating debe ser un número entero entre 0 y 3",
+      };
+    }
+
+    // Asegurar que API_URL termine con /
+    const baseUrl = API_URL?.endsWith("/") ? API_URL : `${API_URL}/`;
+    const endpoint = `${baseUrl}usuarios/${candidateId}/update-favorite-rating`;
+
+    const response = await axios.patch(endpoint, { rating });
+
+    // Revalidar la ruta para actualizar los datos
+    revalidatePath("/admin/dashboard/postulants");
+
+    return {
+      success: true,
+      message: response.data.message || "Rating updated successfully",
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error actualizando rating:", error);
+
+    if (error instanceof AxiosError) {
+      const errorMessage =
+        error.response?.data?.message || "Error updating rating";
+
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data,
+      };
+    }
+
+    return {
+      success: false,
+      message: "Error updating rating",
+      error: error,
+    };
+  }
+}

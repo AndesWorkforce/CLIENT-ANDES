@@ -326,21 +326,47 @@ export default function CandidateProfileModal({
     return <ProfileModalSkeleton isOpen={isOpen} onClose={onClose} />;
   }
 
-  const isProfileIncomplete =
-    !profile?.datosPersonales.nombre ||
-    !profile?.datosPersonales.apellido ||
-    !profile?.datosPersonales.telefono ||
-    !profile?.datosPersonales.residencia ||
-    !profile?.datosPersonales.correo ||
-    !profile?.datosFormulario ||
-    !profile?.educacion.length ||
-    !profile?.experiencia.length ||
-    !profile?.habilidades.length ||
-    !profile?.archivos.videoPresentacion ||
-    !profile?.archivos.imagenTestVelocidad ||
-    !profile?.archivos.imagenRequerimientosPC ||
-    !profile?.archivos.fotoCedulaFrente ||
-    !profile?.archivos.fotoCedulaDorso;
+  // Función para obtener los campos faltantes (requeridos y opcionales)
+  const getMissingFields = (): {
+    required: string[];
+    optional: string[];
+  } => {
+    const required: string[] = [];
+    const optional: string[] = [];
+    
+    // Campos requeridos
+    if (!profile?.datosPersonales.nombre) required.push("Nombre");
+    if (!profile?.datosPersonales.apellido) required.push("Apellido");
+    if (!profile?.datosPersonales.telefono) required.push("Teléfono");
+    if (!profile?.datosPersonales.residencia) required.push("Residencia");
+    if (!profile?.datosPersonales.correo) required.push("Correo");
+    if (!profile?.datosFormulario) required.push("Formulario");
+    if (!profile?.educacion.length) required.push("Educación (al menos 1)");
+    if (!profile?.experiencia.length) required.push("Experiencia (al menos 1)");
+    if (!profile?.habilidades.length) required.push("Habilidades (al menos 1)");
+    if (!profile?.archivos.videoPresentacion) required.push("Video de presentación");
+    if (!profile?.archivos.imagenTestVelocidad) required.push("Imagen test de velocidad");
+    if (!profile?.archivos.imagenRequerimientosPC) required.push("Imagen requerimientos PC");
+    const assessmentUrl = profile?.assessmentUrl;
+    const hasValidAssessment = assessmentUrl && 
+      typeof assessmentUrl === 'string' && 
+      assessmentUrl.trim() !== "";
+    
+    if (!hasValidAssessment) {
+      required.push("Assessment");
+    }
+    
+    // Campos opcionales (fotos del ID)
+    if (!profile?.archivos.fotoCedulaFrente) optional.push("Front ID photo");
+    if (!profile?.archivos.fotoCedulaDorso) optional.push("Back ID photo");
+    
+    return { required, optional };
+  };
+
+  const { required: missingRequired, optional: missingOptional } = getMissingFields();
+  const isProfileIncomplete = missingRequired.length > 0;
+  const hasAssessment = profile?.assessmentUrl && typeof profile.assessmentUrl === 'string' && profile.assessmentUrl.trim() !== "";
+  const hasOptionalMissing = hasAssessment && missingOptional.length > 0;
 
   // Renderizado del modo de edición
   if (isEditMode) {
@@ -802,10 +828,61 @@ export default function CandidateProfileModal({
               {/* Mensaje de perfil incompleto y botón de edición */}
               {!isCompanyUser && (
                 <>
-                  {isProfileIncomplete && (
+                  {(isProfileIncomplete || hasOptionalMissing) && (
                     <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-2">
-                      <div className="flex justify-between items-center">
-                        <span>Incomplete profile: Missing data.</span>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="font-medium mb-2">Incomplete profile: Missing data.</div>
+                          <div className="text-sm">
+                            {isProfileIncomplete && (
+                              <>
+                                <p className="font-medium mb-1">Missing Fields:</p>
+                                {missingOptional.length > 0 && (
+                                  <div className="mb-2">
+                                    <p className="font-medium text-xs text-gray-600 mb-1">Optionals:</p>
+                                    <ul className="list-disc list-inside space-y-1 ml-2">
+                                      {missingOptional.map((field, index) => (
+                                        <li key={index}>{field}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="font-medium text-xs text-gray-600 mb-1">Required:</p>
+                                  <ul className="list-disc list-inside space-y-1 ml-2">
+                                    {missingRequired.map((field, index) => (
+                                      <li key={index}>{field}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </>
+                            )}
+                            {!isProfileIncomplete && hasOptionalMissing && (
+                              <>
+                                <p className="font-medium mb-1">Missing Fields:</p>
+                                <div className="mb-2">
+                                  <p className="font-medium text-xs text-gray-600 mb-1">Optionals:</p>
+                                  <ul className="list-disc list-inside space-y-1 ml-2">
+                                    {missingOptional.map((field, index) => (
+                                      <li key={index}>{field}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                {/* Solo mostrar "Required: Assessment" si realmente falta Assessment */}
+                                {missingRequired.length > 0 && (
+                                  <div>
+                                    <p className="font-medium text-xs text-gray-600 mb-1">Required:</p>
+                                    <ul className="list-disc list-inside space-y-1 ml-2">
+                                      {missingRequired.map((field, index) => (
+                                        <li key={index}>{field}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
                         <button
                           onClick={() => setIsEditMode(true)}
                           className="ml-2 flex items-center text-[#0097B2] hover:text-[#007d8a] px-2"

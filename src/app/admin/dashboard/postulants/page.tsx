@@ -18,6 +18,7 @@ import {
   removeCandidate,
   activateCandidate,
   toggleFavorite,
+  updateFavoriteRating,
   sendPreliminaryInterviewInvitation,
 } from "../actions/update.clasification.actions";
 import CandidateActionModal from "../components/CandidateActionModal";
@@ -61,11 +62,14 @@ interface ExtendedCandidate extends CandidatoWithPostulationId {
   puestoTrabajo?: string;
   applicationStatus?: string;
   clasificacionGlobal: CandidateStatus;
-  favorite?: boolean;
+  favorite?: number; // 0 = sin estrellas, 1 = 1 estrella, 2 = 2 estrellas, 3 = 3 estrellas
   activo?: boolean;
   perfilCompleto?: string; // ✅ AGREGADO: Campo del estado del perfil desde backend
   entrevistaPreliminar?: boolean; // ✅ AGREGADO: Campo de entrevista preliminar
   fechaEntrevistaPreliminar?: string; // ✅ AGREGADO: Fecha de entrevista preliminar
+  assessmentUrl?: string | null;
+  fotoCedulaFrente?: string | null; 
+  fotoCedulaDorso?: string | null;
   logs: {
     date: string;
     action: string;
@@ -306,7 +310,10 @@ export default function PostulantsPage() {
       return "PROFILE_INCOMPLETE";
     }
 
-    // 3. Si el perfil está completo pero no tiene aplicación activa = AVAILABLE
+    if (!applicant.assessmentUrl) {
+      return "PROFILE_INCOMPLETE";
+    }
+
     if (!hasActiveApplication(applicant)) {
       return "AVAILABLE";
     }
@@ -558,7 +565,7 @@ export default function PostulantsPage() {
     }
   };
 
-  const handleToggleFavorite = async (candidateId: string) => {
+  const handleUpdateFavoriteRating = async (candidateId: string, rating: number) => {
     const candidate = applicants.find((c) => c.id === candidateId);
     if (!candidate) return;
 
@@ -568,57 +575,25 @@ export default function PostulantsPage() {
     setFavoriteLoading(candidateId);
 
     try {
-      // Actualización optimista del estado local
-      const newFavoriteStatus = !candidate.favorite;
-      setApplicants((prev) =>
-        prev.map((applicant) =>
-          applicant.id === candidateId
-            ? { ...applicant, favorite: newFavoriteStatus }
-            : applicant,
-        ),
-      );
-
-      const response = await toggleFavorite(candidateId);
+      const response = await updateFavoriteRating(candidateId, rating);
 
       if (response.success) {
-        // Actualizar con el estado real del servidor
-        setApplicants((prev) =>
-          prev.map((applicant) =>
-            applicant.id === candidateId
-              ? { ...applicant, favorite: response.data.favorite }
-              : applicant,
-          ),
-        );
+        // Refrescar la lista completa para mostrar el estado actualizado desde el servidor
+        await fetchApplicants(currentPage, search);
 
         addNotification(
-          response.message ?? "Estado favorito actualizado exitosamente",
+          response.message ?? "Rating actualizado exitosamente",
           "success",
         );
       } else {
-        // Revertir cambio optimista si hay error
-        setApplicants((prev) =>
-          prev.map((applicant) =>
-            applicant.id === candidateId
-              ? { ...applicant, favorite: candidate.favorite }
-              : applicant,
-          ),
-        );
         addNotification(
-          response.message || "Error al actualizar estado favorito",
+          response.message || "Error al actualizar rating",
           "error",
         );
       }
     } catch (error) {
-      console.error("Error al alternar favorito:", error);
-      // Revertir cambio optimista si hay error
-      setApplicants((prev) =>
-        prev.map((applicant) =>
-          applicant.id === candidateId
-            ? { ...applicant, favorite: candidate.favorite }
-            : applicant,
-        ),
-      );
-      addNotification("Error al actualizar estado favorito", "error");
+      console.error("Error al actualizar rating:", error);
+      addNotification("Error al actualizar rating", "error");
     } finally {
       setFavoriteLoading(null);
     }
@@ -758,8 +733,6 @@ export default function PostulantsPage() {
     }
   };
 
-  console.log("\n\n [VER AQUÏ]", applicants);
-
   return (
     <CandidateProfileProvider>
       <div className="container mx-auto px-2 md:px-4 mt-6 flex flex-col min-h-screen">
@@ -781,22 +754,11 @@ export default function PostulantsPage() {
               className="border border-gray-300 rounded-md px-3 py-2 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
             >
               <option value="all">All Stages</option>
-              <option value="favorites">Favorites</option>
+              <option value="1-star">1 Star</option>
+              <option value="2-stars">2 Stars</option>
+              <option value="3-stars">3 Stars</option>
               <option value="PROFILE_INCOMPLETE">Profile Incomplete</option>
-              <option value="FIRST_INTERVIEW_PENDING">
-                First Interview Pending
-              </option>
-              <option value="FIRST_INTERVIEW_COMPLETED">
-                First Interview Completed
-              </option>
-              <option value="SECOND_INTERVIEW_PENDING">
-                Second Interview Pending
-              </option>
-              <option value="SECOND_INTERVIEW_COMPLETED">
-                Second Interview Completed
-              </option>
               <option value="FINALIST">Finalist</option>
-              <option value="HIRED">Hired</option>
               <option value="AVAILABLE">Available</option>
               <option value="TERMINATED">Terminated</option>
               <option value="BLACKLIST">Blacklist</option>
@@ -890,24 +852,35 @@ export default function PostulantsPage() {
                           {`${applicant.nombre} ${applicant.apellido}`}
                         </span>
                       </div>
-                      <button
-                        onClick={() => handleToggleFavorite(applicant.id)}
-                        className={`cursor-pointer transition-transform ${
-                          favoriteLoading === applicant.id
-                            ? "opacity-50 cursor-not-allowed"
-                            : "hover:scale-110"
-                        }`}
-                        disabled={favoriteLoading === applicant.id}
-                      >
-                        <Star
-                          size={20}
-                          className={`${
-                            applicant.favorite
-                              ? "text-yellow-500 fill-yellow-500"
-                              : "text-gray-400"
-                          }`}
-                        />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3].map((starRating) => (
+                          <button
+                            key={starRating}
+                            onClick={() =>
+                              handleUpdateFavoriteRating(
+                                applicant.id,
+                                applicant.favorite === starRating ? 0 : starRating
+                              )
+                            }
+                            className={`cursor-pointer transition-transform ${
+                              favoriteLoading === applicant.id
+                                ? "opacity-50 cursor-not-allowed"
+                                : "hover:scale-110"
+                            }`}
+                            disabled={favoriteLoading === applicant.id}
+                            title={`${starRating} ${starRating === 1 ? "estrella" : "estrellas"}`}
+                          >
+                            <Star
+                              size={16}
+                              className={`${
+                                (applicant.favorite ?? 0) >= starRating
+                                  ? "text-yellow-500 fill-yellow-500"
+                                  : "text-gray-400"
+                              }`}
+                            />
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     {/* Información principal - Email */}
@@ -1224,26 +1197,35 @@ export default function PostulantsPage() {
                                 <span className="font-medium truncate max-w-[200px] inline-block">
                                   {`${applicant.nombre} ${applicant.apellido}`}
                                 </span>
-                                <button
-                                  onClick={() =>
-                                    handleToggleFavorite(applicant.id)
-                                  }
-                                  className={`cursor-pointer transition-transform ${
-                                    favoriteLoading === applicant.id
-                                      ? "opacity-50 cursor-not-allowed"
-                                      : "hover:scale-110"
-                                  }`}
-                                  disabled={favoriteLoading === applicant.id}
-                                >
-                                  <Star
-                                    size={16}
-                                    className={`${
-                                      applicant.favorite
-                                        ? "text-yellow-500 fill-yellow-500"
-                                        : "text-gray-400"
-                                    }`}
-                                  />
-                                </button>
+                                <div className="flex items-center gap-1">
+                                  {[1, 2, 3].map((starRating) => (
+                                    <button
+                                      key={starRating}
+                                      onClick={() =>
+                                        handleUpdateFavoriteRating(
+                                          applicant.id,
+                                          applicant.favorite === starRating ? 0 : starRating
+                                        )
+                                      }
+                                      className={`cursor-pointer transition-transform ${
+                                        favoriteLoading === applicant.id
+                                          ? "opacity-50 cursor-not-allowed"
+                                          : "hover:scale-110"
+                                      }`}
+                                      disabled={favoriteLoading === applicant.id}
+                                      title={`${starRating} ${starRating === 1 ? "estrella" : "estrellas"}`}
+                                    >
+                                      <Star
+                                        size={14}
+                                        className={`${
+                                          (applicant.favorite ?? 0) >= starRating
+                                            ? "text-yellow-500 fill-yellow-500"
+                                            : "text-gray-400"
+                                        }`}
+                                      />
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
                             </td>
 

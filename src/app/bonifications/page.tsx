@@ -1,8 +1,44 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useAuthStore } from "@/store/auth.store";
+import { getHolidaysByCountry, type Holiday } from "../admin/superAdmin/settings/actions/holidays.actions";
+import { HOLIDAY_MULTIPLIERS, getHolidayCompensationMessage } from "@/data/holidayCompensation";
+
 export default function BonificationsPage() {
+  const { user, isAuthenticated } = useAuthStore();
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadHolidays = async () => {
+      if (!isAuthenticated || !user?.pais) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await getHolidaysByCountry(user.pais);
+        if (response.success && response.data?.data) {
+          setHolidays(response.data.data);
+        } else {
+          setHolidays([]);
+        }
+      } catch (error) {
+        console.error("Error loading holidays:", error);
+        setHolidays([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadHolidays();
+  }, [isAuthenticated, user?.pais]);
+
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-semibold text-[#08252A] mb-6">
-        Table of Additional Incentives for Contractors
+        Incentives & Holidays
       </h1>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
@@ -105,6 +141,85 @@ export default function BonificationsPage() {
       <p className="text-xs text-gray-500 mt-4">
         Note: This page is for informational purposes for contractors.
       </p>
+
+      {/* Holidays Section */}
+      <div className="mt-8">
+        {isLoading ? (
+          <div className="text-center py-8">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#0097B2] border-r-transparent"></div>
+            <p className="mt-2 text-gray-600">Loading holidays...</p>
+          </div>
+        ) : !isAuthenticated ? (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+            <h3 className="text-lg font-semibold text-[#08252A] mb-2">
+              Login to see holidays
+            </h3>
+            <p className="text-gray-600">
+              Please log in to see the public holidays for your country.
+            </p>
+          </div>
+        ) : !user?.pais ? (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <h3 className="text-lg font-semibold text-[#08252A] mb-2">
+              Complete your profile
+            </h3>
+            <p className="text-gray-600">
+              Please update your country information in your profile to see
+              relevant holidays.
+            </p>
+          </div>
+        ) : holidays.length > 0 ? (
+          <div className="max-w-2xl mx-auto">
+            <div className="overflow-hidden rounded-lg border border-gray-300 bg-white">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-[#0097B2]">
+                    <th 
+                      colSpan={2} 
+                      className="px-6 py-4 text-center text-2xl font-bold text-black"
+                    >
+                      {user.pais} - Public Holidays {new Date().getFullYear()}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {holidays.map((holiday) => (
+                    <tr key={holiday.id}>
+                      <td className="px-6 py-1.5 text-center font-medium text-base w-1/3">
+                        {new Date(new Date().getFullYear(), holiday.mes - 1, holiday.dia).toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: '2-digit'
+                        })}
+                      </td>
+                      <td className="px-6 py-1.5 text-center text-base w-2/3">
+                        {holiday.nombre}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Compensation Description */}
+            {HOLIDAY_MULTIPLIERS[user.pais] && (
+              <div className="mt-6 p-6 bg-white rounded-lg">
+                <p className="text-center text-sm text-gray-700 leading-relaxed">
+                  {getHolidayCompensationMessage(user.pais)}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+            <h3 className="text-lg font-semibold text-[#08252A] mb-2">
+              Holidays not available
+            </h3>
+            <p className="text-gray-600">
+              Holiday information for {user?.pais} is not available yet.
+            </p>
+          </div>
+        )}
+      </div>
     </main>
   );
 }

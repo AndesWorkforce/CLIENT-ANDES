@@ -12,6 +12,11 @@ import {
   Settings,
   LayoutDashboard,
   Briefcase,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Phone,
+  Mail,
 } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
@@ -31,6 +36,17 @@ const navigation = [
   { name: "Open Contracts", href: "/pages/offers" },
   { name: "Contact", href: "/pages/contact" },
   { name: "Privacy Policy", href: "/pages/privacy-policy" },
+];
+
+const socialLinks = [
+  { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61553675729226&mibextid=LQQJ4d", label: "Facebook" },
+  { icon: Instagram, href: "https://www.instagram.com/andesworkforce/", label: "Instagram" },
+  { icon: Linkedin, href: "https://www.linkedin.com/company/andes-workforce/posts/?feedView=all", label: "LinkedIn" },
+];
+
+const contactInfo = [
+  { icon: Phone, text: "+1 7572373612 - +1 3057030023" },
+  { icon: Mail, text: "info@andes-workforce.com" },
 ];
 
 export default function Navbar() {
@@ -265,7 +281,7 @@ export default function Navbar() {
           onClick={() => setShowUserMenu(false)}
         >
           <Briefcase size={16} className="mr-2 text-[#0097B2]" />
-          Additional Incentives
+          Incentives & Holidays
         </Link>
       )}
 
@@ -294,9 +310,45 @@ export default function Navbar() {
   );
 
   return (
-    <header className="w-full bg-[#FCFEFF] shadow-sm z-10">
+    <header className="w-full bg-white z-10 shadow-[0px_4px_4px_0px_rgba(210,210,210,0.25)]">
+      {/* Top Header - Contact & Social */}
+      <div className="hidden md:block bg-white border-b border-[rgba(210,210,210,0.5)]">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-[25px]">
+            {/* Social Media Links */}
+            <div className="flex items-center gap-[10px]">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#0097B2] hover:text-[#007a94] transition-colors"
+                  aria-label={social.label}
+                >
+                  <social.icon size={16} strokeWidth={3} />
+                </a>
+              ))}
+            </div>
+
+            {/* Contact Info */}
+            <div className="flex items-center gap-[20px]">
+              {contactInfo.map((info, index) => (
+                <div key={index} className="flex items-center gap-[5px]">
+                  <info.icon size={16} strokeWidth={1.5} className="text-[#0097B2]" />
+                  <span className="text-[12px] font-normal text-black">
+                    {info.text}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Header - Navigation */}
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 items-center h-20">
+        <div className="flex items-center justify-between h-[45px] md:h-[60px]">
           {/* Left: Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
@@ -305,48 +357,41 @@ export default function Navbar() {
           </div>
 
           {/* Center: Navigation */}
-          <div className="hidden md:flex items-center justify-center space-x-8">
+          <nav className="hidden md:flex items-center justify-center h-full">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`text-[16px] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors relative ${
+                className={`h-full flex items-center justify-center px-[15px] text-[16px] font-normal transition-colors relative ${
                   isActive(item.href)
-                    ? "text-[#0097B2] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#0097B2]"
-                    : "text-[#08252A]"
+                    ? "text-[#0097B2] border-b-[3px] border-[#0097B2]"
+                    : "text-black hover:text-[#0097B2]"
                 }`}
               >
                 {item.name}
               </Link>
             ))}
-          </div>
+          </nav>
 
           {/* Right: Auth area */}
-          <div className="flex flex-col justify-center items-end text-right">
+          <div className="flex items-center gap-[10px]">
             {isLoading ? (
-              // Mostrar skeleton mientras se carga el estado de autenticación
-              <div className="w-full max-w-[100px] h-8 bg-gray-200 rounded-[5px] animate-pulse" />
+              <div className="w-[97px] h-[34px] bg-gray-200 rounded-[15px] animate-pulse" />
             ) : !isAuthenticated ? (
               <>
+                <Link
+                  href="/auth/register"
+                  className="hidden md:flex items-center justify-center h-[45px] px-[15px] text-[16px] text-black hover:text-[#0097B2] font-normal transition-colors"
+                >
+                  Register
+                </Link>
                 <button
                   type="button"
-                  className="bg-[#0097B2] text-white w-full max-w-[100px] py-1 px-1 rounded-[5px] text-[16px] hover:underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer m-0"
+                  className="bg-[#0097B2] text-white h-[34px] px-[25px] py-[5px] rounded-[15px] text-[16px] font-normal hover:bg-[#007a94] transition-colors cursor-pointer"
                   onClick={() => router.push("/auth/login")}
                 >
                   Login
                 </button>
-
-                <div className="w-full md:w-auto text-right">
-                  <p className="flex flex-col text-[10px] text-[#B6B4B4] m-0 mt-1">
-                    Don&apos;t have an account?{" "}
-                    <Link
-                      href="/auth/register"
-                      className="text-[#0097B2] font-[600] text-[12px] hover:underline"
-                    >
-                      Create account
-                    </Link>
-                  </p>
-                </div>
               </>
             ) : (
               <>
@@ -355,11 +400,9 @@ export default function Navbar() {
                     <div className="relative hidden md:block" ref={userMenuRef}>
                       <button
                         onClick={() => setShowUserMenu(!showUserMenu)}
-                        className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                        className="flex items-center justify-center h-[45px] px-[15px] text-[16px] text-[#0097B2] hover:text-[#007a94] font-normal transition-colors cursor-pointer"
                       >
-                        <span>{`${user?.nombre || ""} ${
-                          user?.apellido || ""
-                        }`}</span>
+                        {`${user?.nombre || ""} ${user?.apellido || ""}`}
                       </button>
                       {showUserMenu && (
                         <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
@@ -370,11 +413,9 @@ export default function Navbar() {
                     <div className="md:hidden">
                       <button
                         onClick={() => setShowMobileSidebar(true)}
-                        className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                        className="text-[16px] text-[#0097B2] hover:text-[#007a94] px-3 py-2 font-normal transition-colors cursor-pointer"
                       >
-                        <span>{`${user?.nombre || ""} ${
-                          user?.apellido || ""
-                        }`}</span>
+                        {`${user?.nombre || ""} ${user?.apellido || ""}`}
                       </button>
                     </div>
                   </>
@@ -383,11 +424,9 @@ export default function Navbar() {
                     <div className="relative hidden md:block" ref={userMenuRef}>
                       <button
                         onClick={() => setShowUserMenu(!showUserMenu)}
-                        className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                        className="flex items-center justify-center h-[45px] px-[15px] text-[16px] text-[#0097B2] hover:text-[#007a94] font-normal transition-colors cursor-pointer"
                       >
-                        <span>{`${user?.nombre || ""} ${
-                          user?.apellido || ""
-                        }`}</span>
+                        {`${user?.nombre || ""} ${user?.apellido || ""}`}
                       </button>
                       {showUserMenu && (
                         <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
@@ -482,11 +521,9 @@ export default function Navbar() {
                     <div className="md:hidden">
                       <button
                         onClick={() => setShowMobileSidebar(true)}
-                        className="text-[16px] text-[#0097B2] hover:text-[#0097B2] px-3 py-2 text-sm font-[600] transition-colors flex items-center gap-1 cursor-pointer"
+                        className="text-[16px] text-[#0097B2] hover:text-[#007a94] px-3 py-2 font-normal transition-colors cursor-pointer"
                       >
-                        <span>{`${user?.nombre || ""} ${
-                          user?.apellido || ""
-                        }`}</span>
+                        {`${user?.nombre || ""} ${user?.apellido || ""}`}
                       </button>
                     </div>
                   </>
@@ -496,25 +533,26 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="md:hidden relative">
+        {/* Mobile Navigation */}
+        <div className="md:hidden relative pb-2">
           {showLeftShadow && (
             <div className="absolute top-0 left-0 w-8 h-full z-10 scroll-shadow-left" />
           )}
 
           <div
             ref={scrollRef}
-            className="overflow-x-auto scrollbar-hide pb-4 pt-2 -mx-4 px-4"
+            className="overflow-x-auto scrollbar-hide -mx-4 px-4"
           >
             <div className="flex space-x-2 min-w-max">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center justify-center px-4 py-1.5 border text-sm font-medium transition-colors whitespace-nowrap ${
+                  className={`flex items-center justify-center px-4 py-1.5 border text-sm font-medium transition-colors whitespace-nowrap rounded-md ${
                     isActive(item.href)
-                      ? "bg-gray-300 text-white border-gray-300"
-                      : "bg-[#FCFEFF] text-[#08252A] border-gray-200 hover:text-[#0097B2] hover:border-[#0097B2]"
-                  } rounded-md`}
+                      ? "bg-[#0097B2] text-white border-[#0097B2]"
+                      : "bg-white text-black border-gray-200 hover:text-[#0097B2] hover:border-[#0097B2]"
+                  }`}
                 >
                   {item.name}
                 </Link>
@@ -628,7 +666,7 @@ export default function Navbar() {
                         onClick={() => setShowMobileSidebar(false)}
                       >
                         <Briefcase size={20} className="mr-2 text-[#0097B2]" />
-                        Additional Incentives
+                        Incentives & Holidays
                       </Link>
                     )}
                   </>
