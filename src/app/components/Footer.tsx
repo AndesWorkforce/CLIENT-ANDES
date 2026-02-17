@@ -15,10 +15,10 @@ const navigation = [
   { name: "Data Privacy Policy", href: "/politica-datos" },
 ];
 
-export default function Footer() {
+export default function Footer({ forceRender = false }: { forceRender?: boolean } = {}) {
   const { isFooterExcluded } = useRouteExclusion();
 
-  if (isFooterExcluded) {
+  if (isFooterExcluded && !forceRender) {
     return null;
   }
 
