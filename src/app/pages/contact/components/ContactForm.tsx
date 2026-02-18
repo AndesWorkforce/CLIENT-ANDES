@@ -44,8 +44,24 @@ export default function ContactForm() {
   // Cuando cambie cualquiera de los dos inputs, actualizar el valor en el formulario
   useEffect(() => {
     // Concatenar código de país y número
-    setValue("phone", `${countryCode}${phoneNumber}` || "");
+    setValue("phone", `${countryCode}${phoneNumber}` || "", {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   }, [countryCode, phoneNumber, setValue]);
+
+  const fieldLabels: Record<string, string> = {
+    firstName: "First Name",
+    lastName: "Last Name",
+    email: "Email",
+    phone: "Phone Number",
+    service: "Select a Service",
+    message: "Message",
+  };
+
+  const invalidFields = Object.keys(errors)
+    .filter((field) => field !== "smsConsent")
+    .map((field) => fieldLabels[field] ?? field);
 
   const onSubmit = async (data: ContactFormValues) => {
     setIsSubmitting(true);
@@ -65,10 +81,10 @@ export default function ContactForm() {
 
       if (response.success) {
         // Track Google Ads conversion event
-        if (typeof window !== 'undefined' && window.gtag) {
-          window.gtag('event', 'ads_conversion_Contact_1', {});
+        if (typeof window !== "undefined" && window.gtag) {
+          window.gtag("event", "ads_conversion_Contact_1", {});
         }
-        
+
         reset();
         setCountryCode("");
         setPhoneNumber("");
@@ -92,6 +108,10 @@ export default function ContactForm() {
           Get in Touch!
         </h1>
         <p className="text-[#08252A]">We are here for you! How can we help?</p>
+        <p className="text-sm text-[#B6B4B4] mt-2">
+          Fields marked with <span className="text-red-600">*</span> are
+          required.
+        </p>
       </div>
 
       {formResponse && (
@@ -117,11 +137,13 @@ export default function ContactForm() {
             htmlFor="firstName"
             className="block text-[#0097B2] font-medium mb-1"
           >
-            First Name
+            First Name <span className="text-red-600">*</span>
           </label>
           <input
             type="text"
             id="firstName"
+            required
+            aria-invalid={!!errors.firstName}
             placeholder="Enter your first name"
             className={`w-full px-3 py-2 border-b ${
               errors.firstName ? "border-red-500" : "border-gray-300"
@@ -141,11 +163,13 @@ export default function ContactForm() {
             htmlFor="lastName"
             className="block text-[#0097B2] font-medium mb-1"
           >
-            Last Name
+            Last Name <span className="text-red-600">*</span>
           </label>
           <input
             type="text"
             id="lastName"
+            required
+            aria-invalid={!!errors.lastName}
             placeholder="Enter your last name"
             className={`w-full px-3 py-2 border-b ${
               errors.lastName ? "border-red-500" : "border-gray-300"
@@ -165,11 +189,13 @@ export default function ContactForm() {
             htmlFor="email"
             className="block text-[#0097B2] font-medium mb-1"
           >
-            Email
+            Email <span className="text-red-600">*</span>
           </label>
           <input
             type="email"
             id="email"
+            required
+            aria-invalid={!!errors.email}
             placeholder="Enter your email"
             className={`w-full px-3 py-2 border-b ${
               errors.email ? "border-red-500" : "border-gray-300"
@@ -187,29 +213,34 @@ export default function ContactForm() {
             htmlFor="phone"
             className="block text-[#0097B2] font-medium mb-1"
           >
-            Phone Number
+            Phone Number <span className="text-[#B6B4B4]">(optional)</span>
           </label>
           <div className="flex">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <input
                 type="text"
+                aria-invalid={!!errors.phone}
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
-                placeholder="+54"
+                placeholder="+1"
                 className="w-14 px-3 py-2 border-b border-gray-300 mr-2 focus:outline-none focus:border-b-2 focus:border-[#0097B2]"
               />
             </div>
             <input
               type="tel"
               id="phone"
+              aria-invalid={!!errors.phone}
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Enter your phone number"
-              className={`flex-grow px-3 py-2 border-b ${
+              placeholder="Example: 757 237 3612"
+              className={`grow px-3 py-2 border-b ${
                 errors.phone ? "border-red-500" : "border-gray-300"
               } focus:outline-none focus:border-b-2 focus:border-[#0097B2]`}
             />
           </div>
+          <p className="mt-1 text-xs text-[#B6B4B4]">
+            US example: +1 757 237 3612
+          </p>
           {errors.phone && (
             <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
           )}
@@ -221,7 +252,7 @@ export default function ContactForm() {
                 {...register("smsConsent")}
               />
               <span className="ml-2 text-[#B6B4B4]">
-                Opt-in to receive sms messages
+                Opt-in to receive sms messages (optional)
               </span>
             </label>
           </div>
@@ -230,7 +261,7 @@ export default function ContactForm() {
         {/* Selección de servicio - abarca dos columnas en móvil */}
         <div className="md:col-span-2">
           <p className="block text-[#0097B2] font-medium mb-2">
-            Select a Service
+            Select a Service <span className="text-red-600">*</span>
           </p>
           <div className="space-y-2">
             <label className="inline-flex items-center">
@@ -275,11 +306,13 @@ export default function ContactForm() {
                 htmlFor="message"
                 className="block text-[#0097B2] font-medium mb-1"
               >
-                Message
+                Message <span className="text-red-600">*</span>
               </label>
               <textarea
                 id="message"
                 rows={6}
+                required
+                aria-invalid={!!errors.message}
                 placeholder="In a few words please explain your requirement"
                 className={`w-full px-3 py-2 border ${
                   errors.message ? "border-red-500" : "border-gray-300"
@@ -351,6 +384,14 @@ export default function ContactForm() {
                   </>
                 )}
               </button>
+              {!isSubmitting && !isValid && (
+                <p className="mt-2 text-sm text-red-600">
+                  Complete all required fields (*) to enable Send Information
+                  {invalidFields.length > 0
+                    ? `: ${invalidFields.join(", ")}.`
+                    : "."}
+                </p>
+              )}
             </div>
 
             {/* Texto de consentimiento - mismo ancho que textarea */}
