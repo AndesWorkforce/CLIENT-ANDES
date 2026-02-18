@@ -8,9 +8,7 @@ const contactFormSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Invalid email"),
-  phone: z.string().regex(/^[+]?[\d\s()-]+$/, {
-    message: "Phone number can only contain digits, spaces, and +()-",
-  }),
+  phone: z.string(),
   smsConsent: z.boolean(),
   service: z.enum(["talent", "job"]),
   message: z.string().min(10, "Message must be at least 10 characters"),
@@ -45,8 +43,8 @@ export async function submitContactFormMicrosoft(data: ContactFormValues) {
     const emailHtml = `
       <h2>New contact message</h2>
       <p><strong>Name:</strong> ${validatedData.firstName} ${
-      validatedData.lastName
-    }</p>
+        validatedData.lastName
+      }</p>
       <p><strong>Email:</strong> ${validatedData.email}</p>
       <p><strong>Phone:</strong> ${validatedData.phone}</p>
       <p><strong>SMS Consent:</strong> ${
@@ -105,7 +103,7 @@ export type ContractSignatureEmailData = {
 };
 
 export async function sendContractSignatureEmail(
-  data: ContractSignatureEmailData
+  data: ContractSignatureEmailData,
 ) {
   try {
     // Validar que el contrato no esté firmado

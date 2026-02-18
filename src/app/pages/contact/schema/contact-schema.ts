@@ -9,15 +9,8 @@ export const contactFormSchema = z.object({
     .string()
     .min(2, { message: "Last name must be at least 2 characters" })
     .max(50, { message: "Last name cannot exceed 50 characters" }),
-  email: z
-    .string()
-    .email({ message: "Please enter a valid email address" }),
-  phone: z
-    .string()
-    .regex(/^[+]?[\d\s()-]+$/, {
-      message: "Phone number can only contain digits, spaces, and +()-",
-    })
-    .default(""),
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  phone: z.string().default(""),
   smsConsent: z.boolean().default(false),
   service: z.enum(["talent", "job"], {
     required_error: "Please select a service",
