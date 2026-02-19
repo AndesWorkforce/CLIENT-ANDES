@@ -151,7 +151,7 @@ export default function PaymentsPage() {
         {
           element: "#filter-document",
           popover: {
-            title: "Document (Period)",
+            title: "PROOFS",
             description:
               "Filter by delivered or missing for the selected period. For non‑Colombia, documents are not required.",
             side: "bottom",
@@ -1498,7 +1498,7 @@ export default function PaymentsPage() {
                 onClick={() => handleSort("documentUploadedThisMonth")}
               >
                 <div className="flex items-center space-x-1">
-                  <span id="col-document-header">Document (Period)</span>
+                  <span id="col-document-header">PROOFS</span>
                   <div className="flex flex-col text-xs text-gray-400">
                     {sortKey === "documentUploadedThisMonth" &&
                     sortDirection === "asc" ? (
