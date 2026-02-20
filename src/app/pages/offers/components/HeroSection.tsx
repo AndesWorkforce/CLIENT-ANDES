@@ -44,12 +44,12 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
 
         {/* Buttons */}
         <div className="flex gap-[10px] items-center">
-          <button className="bg-[#0097b2] hover:bg-[#007A8F] text-white px-8 py-3 rounded-full text-base font-medium transition-colors cursor-pointer">
+          <button className="bg-[#0097b2] hover:bg-[#007A8F] text-white px-15 py-3 rounded-[20px] text-base font-medium transition-colors cursor-pointer w-fit">
             Register Now
           </button>
           <button
             onClick={onContactClick}
-            className="bg-white hover:bg-gray-100 text-[#0097b2] px-8 py-3 rounded-full text-base font-medium transition-colors cursor-pointer"
+            className="bg-white hover:bg-gray-100 text-[#0097b2] px-15 py-3 rounded-[20px] text-base font-medium transition-colors cursor-pointer w-fit"
           >
             Contact Us
           </button>

@@ -16,7 +16,7 @@ export default function OffersLandingPage() {
   };
 
   return (
-    <main className="relative w-full h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth">
+    <div className="relative w-full h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth">
       {/* Hero Section */}
       <div className="snap-start snap-always">
         <HeroSection onContactClick={scrollToContact} />
@@ -41,6 +41,6 @@ export default function OffersLandingPage() {
       <div className="snap-start">
         <Footer forceRender />
       </div>
-    </main>
+    </div>
   );
 }

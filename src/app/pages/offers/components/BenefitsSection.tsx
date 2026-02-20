@@ -65,7 +65,7 @@ export default function BenefitsSection({ onContactClick }: BenefitsSectionProps
           {/* CTA Button */}
           <button
             onClick={onContactClick}
-            className="bg-[#0097b2] hover:bg-[#007A8F] text-white px-8 py-3 rounded-full text-base font-medium transition-colors cursor-pointer w-fit"
+            className="bg-[#0097b2] hover:bg-[#007A8F] text-white px-15 py-3 rounded-[20px] text-base font-medium transition-colors cursor-pointer w-fit"
           >
             Contact Us
           </button>

@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
+
+interface Country {
+  name: { common: string };
+  flags: { png: string };
+  cca3: string;
+}
 
 export default function ContactFormSection() {
   const [formData, setFormData] = useState({
@@ -11,6 +17,30 @@ export default function ContactFormSection() {
     phone: "",
     country: "",
   });
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      setLoadingCountries(true);
+      try {
+        const response = await fetch(
+          "https://restcountries.com/v3.1/all?fields=name,cca3,flags"
+        );
+        if (!response.ok) throw new Error("Error fetching countries");
+        const data = await response.json();
+        const sorted = data.sort((a: Country, b: Country) =>
+          a.name.common.localeCompare(b.name.common)
+        );
+        setCountries(sorted);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      } finally {
+        setLoadingCountries(false);
+      }
+    };
+    fetchCountries();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +56,7 @@ export default function ContactFormSection() {
       {/* Left side - Image with gradient overlay */}
       <div className="relative w-1/2 h-full">
         <Image
-          src="/images/office-workspace.jpg"
+          src="/contactus_offers.jpg"
           alt="Office workspace"
           fill
           className="object-cover"
@@ -35,8 +65,7 @@ export default function ContactFormSection() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(90.31deg, rgb(0, 151, 178) 5.218%, rgb(0, 100, 118) 99.736%)",
-            opacity: 0.85,
+              "linear-gradient(to right, rgba(0,151,178,0) 50%, #0097b2 100%)",
           }}
         />
       </div>
@@ -66,7 +95,7 @@ export default function ContactFormSection() {
               <label className="text-white text-base font-medium block">Full Name</label>
               <input
                 type="text"
-                placeholder="Ex: John Doe"
+                placeholder="Ex: Alexander Hamilton"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#0097b2]"
@@ -79,7 +108,7 @@ export default function ContactFormSection() {
               <label className="text-white text-base font-medium block">Email Address</label>
               <input
                 type="email"
-                placeholder="Ex: example@email.com"
+                placeholder="Ex: alexander@company.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#0097b2]"
@@ -98,30 +127,37 @@ export default function ContactFormSection() {
                     onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                     className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#0097b2] cursor-pointer"
                     required
+                    disabled={loadingCountries}
                   >
                     <option value="">Select option here...</option>
-                    <option value="US">United States</option>
-                    <option value="CO">Colombia</option>
-                    <option value="MX">Mexico</option>
-                    <option value="other">Other</option>
+                    {countries.map((country) => (
+                      <option key={country.cca3} value={country.name.common}>
+                        {country.name.common}
+                      </option>
+                    ))}
                   </select>
-                  <ChevronDown
-                    size={16}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
-                  />
+                  {loadingCountries ? (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <div className="animate-spin h-4 w-4 border-2 border-[#0097b2] border-t-transparent rounded-full" />
+                    </div>
+                  ) : (
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
+                    />
+                  )}
                 </div>
               </div>
 
               {/* Phone Field */}
               <div className="space-y-2">
-                <label className="text-white text-base font-medium block">Phone Number</label>
+                <label className="text-white text-base font-medium block">Phone (Optional)</label>
                 <input
                   type="tel"
-                  placeholder="Ex: +1 234 567 8900"
+                  placeholder="+1 (555) 123-4567"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#0097b2]"
-                  required
                 />
               </div>
             </div>
@@ -129,7 +165,7 @@ export default function ContactFormSection() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-[#0097b2] hover:bg-[#007A8F] text-white px-8 py-3 rounded-2xl font-medium transition-colors cursor-pointer"
+              className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF] text-[#0097b2] px-8 py-3 rounded-2xl font-medium transition-colors cursor-pointer"
             >
               Submit
             </button>
