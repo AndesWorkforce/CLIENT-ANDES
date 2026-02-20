@@ -310,7 +310,8 @@ export default function Navbar() {
   );
 
   return (
-    <header className="w-full bg-white z-10 shadow-[0px_4px_4px_0px_rgba(210,210,210,0.25)]">
+    <>
+    <header className="w-full bg-white z-50 shadow-[0px_4px_4px_0px_rgba(210,210,210,0.25)] fixed top-0 left-0">
       {/* Top Header - Contact & Social */}
       <div className="hidden md:block bg-white border-b border-[rgba(210,210,210,0.5)]">
         <div className="container mx-auto px-4">
@@ -748,5 +749,8 @@ export default function Navbar() {
         </div>
       )}
     </header>
+    {/* Spacer to prevent content from being hidden behind fixed navbar */}
+    <div className="h-[45px] md:h-[85px]" />
+    </>
   );
 }

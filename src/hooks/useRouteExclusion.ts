@@ -38,6 +38,7 @@ export const excludedRoutes = {
     "/companies/dashboard/employees/new",
     "/companies/account",
     "/currentApplication",
+    "/pages/offers",
   ],
 };
 

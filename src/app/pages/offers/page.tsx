@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import FilterModal from "./components/FilterModal";
 import OffersAccessGuard from "./components/OffersAccessGuard";
+import OffersLandingPage from "./components/OffersLandingPage";
 
 import type { FilterValues } from "./components/FilterModal";
 import {
@@ -21,6 +22,18 @@ import { ApplicationWarningModal } from "@/components/ui/application-warning-mod
 import { ApplicationHistoryStatus } from "@/interfaces/jobs.types";
 
 export default function JobOffersPage() {
+  const { user } = useAuthStore();
+
+  // Show landing page for non-authenticated users
+  if (!user) {
+    return <OffersLandingPage />;
+  }
+
+  // Authenticated users see the job offers system below
+  return <AuthenticatedOffersPage />;
+}
+
+function AuthenticatedOffersPage() {
   const { user } = useAuthStore();
   const { addNotification } = useNotificationStore();
   const router = useRouter();
@@ -362,7 +375,7 @@ export default function JobOffersPage() {
       });
 
       const results = await Promise.all(historyPromises);
-      const newHistoryMap = new Map();
+      const newHistoryMap = new Map<string, ApplicationHistoryStatus>();
 
       results.forEach((result) => {
         if (result) {
@@ -543,103 +556,6 @@ export default function JobOffersPage() {
               </div>
             </div>
           )}
-
-          {/* Servicios Requeridos y Filtros */}
-          <div className="mt-2 px-4 py-2 flex justify-between items-center">
-            {/* <h1 className="text-lg font-semibold text-[#08252A]">
-              Required Services
-            </h1> */}
-            {/* OCULTAMOS EL BOTON DE FILTROS POR AHORA */}
-            {/* <button
-          className="flex items-center bg-white border-[#B6B4B4] border rounded-[10px] px-3 py-1 text-sm font-[500] cursor-pointer"
-          onClick={() => setShowFilters(true)}
-        >
-          <span className="mr-2">Filtros</span>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <g clipPath="url(#clip0_616_13233)">
-              <path
-                d="M13.625 13L9.25 13"
-                stroke="#0097B2"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M6.75 13L2.375 13"
-                stroke="#0097B2"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M13.625 8L8 8"
-                stroke="#0097B2"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M5.5 8L2.375 8"
-                stroke="#0097B2"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M13.625 3L10.5 3"
-                stroke="#0097B2"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M8 3L2.375 3"
-                stroke="#0097B2"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M9.25 14.875L9.25 11.125"
-                stroke="#0097B2"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M5.5 9.875L5.5 6.125"
-                stroke="#0097B2"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M10.5 4.875L10.5 1.125"
-                stroke="#0097B2"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </g>
-            <defs>
-              <clipPath id="clip0_616_13233">
-                <rect
-                  width="15"
-                  height="15"
-                  fill="white"
-                  transform="translate(0.5 15.5) rotate(-90)"
-                />
-              </clipPath>
-            </defs>
-          </svg>
-        </button> */}
-          </div>
 
           {/* Modales */}
           <FilterModal
