@@ -45,6 +45,7 @@ export async function getMonthlyPaymentsData(
   success: boolean;
   users: ConsolidatedUser[];
   periodDocs: PeriodDocs;
+  availableYears: number[];
 }> {
   const ym = `${year}-${String(month).padStart(2, "0")}`;
   const users: ConsolidatedUser[] = [];
@@ -68,6 +69,9 @@ export async function getMonthlyPaymentsData(
     const data = response.data?.data || response.data;
     const backendUsers = Array.isArray(data?.users) ? data.users : [];
     const backendPeriodDocs = data?.periodDocs || {};
+    const availableYears = Array.isArray(data?.availableYears)
+      ? data.availableYears
+      : [];
 
     // Map backend users + processes into ConsolidatedUser (one per proceso)
     for (const u of backendUsers) {
@@ -127,9 +131,19 @@ export async function getMonthlyPaymentsData(
       }
     }
 
-    return { success: true, users: filtered, periodDocs };
+    return {
+      success: true,
+      users: filtered,
+      periodDocs,
+      availableYears,
+    };
   } catch (error) {
     console.error("Error fetching consolidated monthly payments:", error);
-    return { success: false, users: [], periodDocs: {} } as any;
+    return {
+      success: false,
+      users: [],
+      periodDocs: {},
+      availableYears: [],
+    } as any;
   }
 }
