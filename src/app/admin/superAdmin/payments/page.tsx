@@ -85,6 +85,10 @@ export default function PaymentsPage() {
   const [selectedMonth, setSelectedMonth] = useState<number>(
     now.getMonth() + 1
   ); // 1-12
+  /** Años con datos en EvaluacionPagoMensual; se llenan con la respuesta de getMonthlyPaymentsData. */
+  const [availableYears, setAvailableYears] = useState<number[]>([
+    now.getFullYear(),
+  ]);
   const [loading, setLoading] = useState<boolean>(true);
   const [enablingPayments, setEnablingPayments] = useState<boolean>(false);
   const [preparingInvoices, setPreparingInvoices] = useState<boolean>(false);
@@ -143,7 +147,7 @@ export default function PaymentsPage() {
           popover: {
             title: "Period (Year/Month)",
             description:
-              "Choose year and month. Future months are disabled and selection auto-clamps when needed.",
+              "Choose year and month to filter payments by period.",
             side: "bottom",
             align: "start",
           },
@@ -151,7 +155,7 @@ export default function PaymentsPage() {
         {
           element: "#filter-document",
           popover: {
-            title: "Document (Period)",
+            title: "PROOFS",
             description:
               "Filter by delivered or missing for the selected period. For non‑Colombia, documents are not required.",
             side: "bottom",
@@ -376,6 +380,7 @@ export default function PaymentsPage() {
           success,
           users: consolidatedUsers,
           periodDocs,
+          availableYears: yearsFromBackend,
         } = await getMonthlyPaymentsData(
           selectedYear,
           selectedMonth,
@@ -385,6 +390,14 @@ export default function PaymentsPage() {
           setUsers(consolidatedUsers);
           setFilteredUsers(consolidatedUsers);
           setPeriodDocs(periodDocs as any);
+          if (yearsFromBackend.length > 0) {
+            setAvailableYears(yearsFromBackend);
+            const currentInList = yearsFromBackend.includes(selectedYear);
+            if (!currentInList) {
+              const maxYear = Math.max(...yearsFromBackend);
+              setSelectedYear(maxYear);
+            }
+          }
           setActionLogs([
             {
               id: "1",
@@ -427,23 +440,6 @@ export default function PaymentsPage() {
   // Period docs are now loaded server-side by getMonthlyPaymentsData
 
   // Documents are evaluated per process; no cross‑process aggregation.
-
-  // Evitar selección de meses futuros en el año actual
-  useEffect(() => {
-    const currY = now.getFullYear();
-    const currM = now.getMonth() + 1;
-    const prev = getPreviousYearMonth(currY, currM);
-    // Clamp future month in current year
-    if (selectedYear === currY && selectedMonth > currM) {
-      setSelectedMonth(currM);
-      return;
-    }
-    // When previous year is selected, clamp to the actual previous month
-    if (selectedYear === prev.y && selectedMonth !== prev.m) {
-      setSelectedMonth(prev.m);
-      return;
-    }
-  }, [selectedYear, selectedMonth]);
 
   const hasDocForPeriod = (user: UserContract) => {
     const ym = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`;
@@ -1142,10 +1138,14 @@ export default function PaymentsPage() {
             className="px-2 py-1.5 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 cursor-pointer"
             title="Select year"
           >
-            <option value={now.getFullYear()}>{now.getFullYear()}</option>
-            <option value={now.getFullYear() - 1}>
-              {now.getFullYear() - 1}
-            </option>
+            {(availableYears.length > 0
+              ? availableYears
+              : [now.getFullYear()]
+            ).map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
           </select>
           <select
             value={selectedMonth}
@@ -1153,186 +1153,24 @@ export default function PaymentsPage() {
             className="px-2 py-1.5 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 cursor-pointer"
             title="Select month"
           >
-            <option
-              value={1}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  1 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  1 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Jan
-            </option>
-            <option
-              value={2}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  2 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  2 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Feb
-            </option>
-            <option
-              value={3}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  3 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  3 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Mar
-            </option>
-            <option
-              value={4}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  4 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  4 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Apr
-            </option>
-            <option
-              value={5}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  5 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  5 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              May
-            </option>
-            <option
-              value={6}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  6 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  6 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Jun
-            </option>
-            <option
-              value={7}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  7 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  7 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Jul
-            </option>
-            <option
-              value={8}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  8 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  8 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Aug
-            </option>
-            <option
-              value={9}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  9 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  9 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Sep
-            </option>
-            <option
-              value={10}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  10 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  10 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Oct
-            </option>
-            <option
-              value={11}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  11 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  11 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Nov
-            </option>
-            <option
-              value={12}
-              disabled={
-                (selectedYear === now.getFullYear() &&
-                  12 > now.getMonth() + 1) ||
-                (selectedYear ===
-                  getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                    .y &&
-                  12 !==
-                    getPreviousYearMonth(now.getFullYear(), now.getMonth() + 1)
-                      .m)
-              }
-            >
-              Dec
-            </option>
+            {[
+              { v: 1, label: "Jan" },
+              { v: 2, label: "Feb" },
+              { v: 3, label: "Mar" },
+              { v: 4, label: "Apr" },
+              { v: 5, label: "May" },
+              { v: 6, label: "Jun" },
+              { v: 7, label: "Jul" },
+              { v: 8, label: "Aug" },
+              { v: 9, label: "Sep" },
+              { v: 10, label: "Oct" },
+              { v: 11, label: "Nov" },
+              { v: 12, label: "Dec" },
+            ].map(({ v, label }) => (
+              <option key={v} value={v}>
+                {label}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -1498,7 +1336,7 @@ export default function PaymentsPage() {
                 onClick={() => handleSort("documentUploadedThisMonth")}
               >
                 <div className="flex items-center space-x-1">
-                  <span id="col-document-header">Document (Period)</span>
+                  <span id="col-document-header">PROOFS</span>
                   <div className="flex flex-col text-xs text-gray-400">
                     {sortKey === "documentUploadedThisMonth" &&
                     sortDirection === "asc" ? (
