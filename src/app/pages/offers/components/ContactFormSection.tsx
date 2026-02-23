@@ -56,7 +56,7 @@ export default function ContactFormSection() {
       {/* Left side - Image with gradient overlay */}
       <div className="relative w-1/2 h-full">
         <Image
-          src="/contactus_offers.jpg"
+          src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/contactus_offers.jpg"
           alt="Office workspace"
           fill
           className="object-cover"
