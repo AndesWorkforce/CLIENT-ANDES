@@ -346,8 +346,7 @@ export default function SendAnnexModal({
     workingTemplates.push({
       id: "extension-addendum",
       name: "ADDENDUM FOR EXTENSION",
-      description:
-        "Addendum for extension and amendment to the service agreement. Requires only Contractor signature.",
+      description:"Description of the services to be provided",
       subject: "Addendum for Extension - {{nombreCompleto}}",
       component: "ExtensionAddendumAnnexPDF",
       category: "Contract Amendment",
@@ -357,10 +356,8 @@ export default function SendAnnexModal({
         "cedula",
         "paisDocumento",
         "fechaInicioContratoOriginal",
-        "montoUltimoPago",
-        "fechaInicioExtension",
-        "fechaFinExtension",
         "nuevoValorContrato",
+        "descripcionServicios",
       ],
     });
 
@@ -784,10 +781,8 @@ export default function SendAnnexModal({
                       "serialNumber",
                       "paisDocumento",
                       "fechaInicioContratoOriginal",
-                      "montoUltimoPago",
-                      "fechaInicioExtension",
-                      "fechaFinExtension",
                       "nuevoValorContrato",
+                      "descripcionServicios",
                     ].map(
                       (field) =>
                         selectedTemplate.variables.includes(field) && (
