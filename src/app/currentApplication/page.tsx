@@ -2279,7 +2279,7 @@ export default function CurrentApplication() {
 
                   <div>
                     <label className="text-sm font-medium text-gray-500">
-                      Salary
+                        Compensation
                     </label>
                     <p className="text-gray-900 font-medium">
                       {currentJob.ofertaSalarial
