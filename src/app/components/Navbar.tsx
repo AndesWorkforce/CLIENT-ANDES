@@ -281,7 +281,7 @@ export default function Navbar() {
           onClick={() => setShowUserMenu(false)}
         >
           <Briefcase size={16} className="mr-2 text-[#0097B2]" />
-          Incentives & Holidays
+          Additional Incentives & Holidays
         </Link>
       )}
 
@@ -405,7 +405,7 @@ export default function Navbar() {
                         {`${user?.nombre || ""} ${user?.apellido || ""}`}
                       </button>
                       {showUserMenu && (
-                        <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                        <div className="absolute right-0 mt-2 min-w-[280px] w-max bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                           {renderUserMenu()}
                         </div>
                       )}
@@ -429,7 +429,7 @@ export default function Navbar() {
                         {`${user?.nombre || ""} ${user?.apellido || ""}`}
                       </button>
                       {showUserMenu && (
-                        <div className="absolute right-0 mt-2 w-60 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                        <div className="absolute right-0 mt-2 min-w-[280px] w-max bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                           <div className="px-4 py-3 border-b border-gray-100">
                             <p className="text-[#0097B2] font-medium text-sm cursor-default">
                               {user?.nombre || ""} {user?.apellido || ""}
@@ -666,7 +666,7 @@ export default function Navbar() {
                         onClick={() => setShowMobileSidebar(false)}
                       >
                         <Briefcase size={20} className="mr-2 text-[#0097B2]" />
-                        Incentives & Holidays
+                        Additional Incentives & Holidays
                       </Link>
                     )}
                   </>
