@@ -10,6 +10,8 @@ export interface ConsolidatedUser {
   lastName: string;
   email: string;
   companyName?: string | null;
+  discretionaryBonusType?: string | null;
+  paidHolidays?: boolean | null;
   documentUploadedThisMonth: boolean;
   lastDocumentDate: string | null;
   documentImageUrl: string | null;
@@ -89,6 +91,9 @@ export async function getMonthlyPaymentsData(
           firstName: first || "",
           lastName: rest.join(" ") || "",
           email: u?.correo || "",
+          discretionaryBonusType: p?.discretionaryBonusType ?? null,
+          paidHolidays:
+            typeof p?.paidHolidays === "boolean" ? p.paidHolidays : null,
           documentUploadedThisMonth: !!evalPeriodo?.documentoSubido,
           lastDocumentDate: evalPeriodo?.fechaSubidaDocumento
             ? new Date(evalPeriodo.fechaSubidaDocumento).toLocaleDateString()
