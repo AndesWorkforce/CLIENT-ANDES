@@ -46,6 +46,45 @@ export const updateObservations = async (
   }
 };
 
+export async function updateBonusAndHolidays(
+  procesoContratacionId: string,
+  discretionaryBonusType: string | null,
+  paidHolidays: boolean | null
+): Promise<
+  ApiResponse<{
+    id: string;
+    discretionaryBonusType: string | null;
+    paidHolidays: boolean | null;
+  }>
+> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.patch(
+      `/admin/monthly-payments/contracts/${procesoContratacionId}/bonus-holidays`,
+      {
+        discretionaryBonusType,
+        paidHolidays,
+      }
+    );
+
+    revalidatePath("/admin/superAdmin/payments");
+
+    return {
+      success: true,
+      message: "Bonus and holidays updated successfully",
+      data: response.data,
+    };
+  } catch (error: any) {
+    console.error("Error updating bonus/holidays:", error);
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        "Failed to update discretionary bonus / holidays",
+    };
+  }
+}
+
 export async function enableBulkPayments(
   evaluacionIds: string[],
   procesoContratacionIds?: string[]

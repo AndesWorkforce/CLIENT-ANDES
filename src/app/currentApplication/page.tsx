@@ -1595,6 +1595,22 @@ export default function CurrentApplication() {
     }
   };
 
+  const getDiscretionaryBonusLabel = (type: string | null | undefined): string => {
+    if (!type) return "Not eligible for annual bonus";
+    switch (type) {
+      case "NONE":
+        return "Not eligible for annual bonus";
+      case "HALF_MONTH_ONCE_DECEMBER":
+        return "Half month's pay once a year in December";
+      case "FULL_MONTH_ONCE_DECEMBER":
+        return "Full month's pay once a year in December";
+      case "FULL_MONTH_TWICE_JUNE_DECEMBER":
+        return "Full month's pay twice per year (June and December)";
+      default:
+        return type;
+    }
+  };
+
   // Auto-open documents modal if candidate signed but needs to read documents
   // SOLO una vez por sesión para evitar reaperturas en cada recarga
   useEffect(() => {
@@ -1876,6 +1892,24 @@ export default function CurrentApplication() {
                         {new Date(currentJob.startDate).toLocaleDateString(
                           "en-US"
                         )}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Discretionary bonus
+                      </label>
+                      <p className="text-gray-900">
+                        {getDiscretionaryBonusLabel(
+                          currentJob.discretionaryBonusType ?? null
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Paid holidays
+                      </label>
+                      <p className="text-gray-900">
+                        {currentJob.paidHolidays ? "Yes" : "No"}
                       </p>
                     </div>
                   </div>
@@ -2264,6 +2298,25 @@ export default function CurrentApplication() {
                     <div className="mt-1">
                       {getContractStatusBadge(displayContractStatus)}
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Discretionary bonus
+                    </label>
+                    <p className="text-gray-900">
+                      {getDiscretionaryBonusLabel(
+                        currentJob.discretionaryBonusType ?? null
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Paid holidays
+                    </label>
+                    <p className="text-gray-900">
+                      {currentJob.paidHolidays ? "Yes" : "No"}
+                    </p>
                   </div>
                 </div>
 

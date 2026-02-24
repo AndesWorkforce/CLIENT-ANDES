@@ -31,6 +31,7 @@ import {
   enableBulkPayments,
   resetToPending,
   getInboxesPresenceBulk,
+  updateBonusAndHolidays,
 } from "./actions/observations.actions";
 import { useNotificationStore } from "@/store/notifications.store";
 
@@ -41,6 +42,8 @@ type UserContract = {
   lastName: string;
   email: string;
   country?: string | null;
+   discretionaryBonusType?: string | null;
+   paidHolidays?: boolean | null;
   documentUploadedThisMonth: boolean;
   lastDocumentDate: string | null;
   documentImageUrl: string | null;
@@ -114,6 +117,9 @@ export default function PaymentsPage() {
     >
   >({});
   const [docsLoading, setDocsLoading] = useState<Set<string>>(new Set());
+  const [updatingBonusHolidays, setUpdatingBonusHolidays] = useState<
+    Set<string>
+  >(new Set());
 
   // Guided tour for this page
   const startPaymentsTour = () => {
@@ -217,6 +223,86 @@ export default function PaymentsPage() {
       .replace(/\s+/g, " ")
       .trim();
 
+  const getAdminDiscretionaryBonusLabel = (
+    type: string | null | undefined
+  ): string => {
+    if (!type || type === "NONE") return "None";
+    switch (type) {
+      case "HALF_MONTH_ONCE_DECEMBER":
+        return "Half month once a year";
+      case "FULL_MONTH_ONCE_DECEMBER":
+        return "Full month once a year";
+      case "FULL_MONTH_TWICE_JUNE_DECEMBER":
+        return "Full month twice a year";
+      default:
+        return type;
+    }
+  };
+
+  const handleBonusHolidaysChange = async (
+    user: UserContract,
+    newBonusType: string | null,
+    newPaidHolidays: boolean | null
+  ) => {
+    const userId = user.id;
+    setUpdatingBonusHolidays((prev) => new Set(prev).add(userId));
+    try {
+      const result = await updateBonusAndHolidays(
+        userId,
+        newBonusType,
+        newPaidHolidays
+      );
+
+      if (!result.success) {
+        throw new Error(result.error || "Error updating bonus / holidays");
+      }
+
+      const updatedBonus = result.data?.discretionaryBonusType ?? newBonusType;
+      const updatedHolidays = result.data?.paidHolidays ?? newPaidHolidays;
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? {
+                ...u,
+                discretionaryBonusType: updatedBonus,
+                paidHolidays: updatedHolidays,
+              }
+            : u
+        )
+      );
+
+      setFilteredUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? {
+                ...u,
+                discretionaryBonusType: updatedBonus,
+                paidHolidays: updatedHolidays,
+              }
+            : u
+        )
+      );
+
+      addNotification(
+        "Discretionary bonus / holidays updated successfully",
+        "success"
+      );
+    } catch (error) {
+      console.error("Error updating bonus/holidays:", error);
+      addNotification(
+        "Error updating discretionary bonus / holidays",
+        "error"
+      );
+    } finally {
+      setUpdatingBonusHolidays((prev) => {
+        const next = new Set(prev);
+        next.delete(userId);
+        return next;
+      });
+    }
+  };
+
   // Estados para sorting
   const [sortKey, setSortKey] = useState<keyof UserContract | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -275,6 +361,10 @@ export default function PaymentsPage() {
         "Full Name": `${user.firstName} ${user.lastName}`,
         Email: user.email,
         Company: user.companyName || "N/A",
+        "Discretionary Bonus": getAdminDiscretionaryBonusLabel(
+          user.discretionaryBonusType ?? null
+        ),
+        Holidays: user.paidHolidays ? "Yes" : "No",
         "Document This Month": user.documentUploadedThisMonth ? "Yes" : "No",
         "Last Document Date": user.lastDocumentDate || "N/A",
         "Payment Enabled": user.paymentEnabled ? "Yes" : "No",
@@ -297,6 +387,8 @@ export default function PaymentsPage() {
         { wch: 25 }, // Full Name
         { wch: 30 }, // Email
         { wch: 25 }, // Company
+        { wch: 25 }, // Discretionary Bonus
+        { wch: 12 }, // Holidays
         { wch: 20 }, // Document This Month
         { wch: 18 }, // Last Document Date
         { wch: 15 }, // Payment Enabled
@@ -1382,6 +1474,12 @@ export default function PaymentsPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
                 <span id="col-invoices-header">Invoices</span>
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
+                Discretionary Bonus
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
+                Paid Holidays
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -1631,6 +1729,48 @@ export default function PaymentsPage() {
                         </button>
                       </div>
                     )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <select
+                      className="text-sm text-[#17323A] border border-gray-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                      value={user.discretionaryBonusType || "NONE"}
+                      disabled={updatingBonusHolidays.has(user.id)}
+                      onChange={(e) =>
+                        handleBonusHolidaysChange(
+                          user,
+                          e.target.value,
+                          user.paidHolidays ?? false
+                        )
+                      }
+                    >
+                      <option value="NONE">None</option>
+                      <option value="HALF_MONTH_ONCE_DECEMBER">
+                        Half month once a year
+                      </option>
+                      <option value="FULL_MONTH_ONCE_DECEMBER">
+                        Full month once a year
+                      </option>
+                      <option value="FULL_MONTH_TWICE_JUNE_DECEMBER">
+                        Full month twice a year
+                      </option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <select
+                      className="text-sm text-[#17323A] border border-gray-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                      value={user.paidHolidays ? "true" : "false"}
+                      disabled={updatingBonusHolidays.has(user.id)}
+                      onChange={(e) =>
+                        handleBonusHolidaysChange(
+                          user,
+                          user.discretionaryBonusType ?? "NONE",
+                          e.target.value === "true"
+                        )
+                      }
+                    >
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
                   </td>
                 </tr>
               ))
