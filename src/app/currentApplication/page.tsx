@@ -1903,12 +1903,12 @@ export default function CurrentApplication() {
                           currentJob.discretionaryBonusType ?? null
                         )}
                       </p>
-                      <p className="text-xs text-gray-500 mt-2 italic">
-                        The incentive described is discretionary, do not
-                        constitute salary, and do not create acquired rights.
-                        This granting depends on the evaluation and decision of
-                        the company and/or the firm.
-                      </p>
+                      <p className="text-[11.5px] text-gray-500 mt-1">
+                      Note: The incentive described is discretionary, do not
+                      constitute salary, and do not create acquired rights.
+                      This granting depends on the evaluation and decision of the
+                      company and/or the firm.
+                    </p>
                     </div>
                   </div>
                 </div>
