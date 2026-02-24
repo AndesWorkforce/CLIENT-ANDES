@@ -37,6 +37,7 @@ import {
 } from "./actions/experience.actions";
 import { addEducation, deleteEducation } from "./actions/education.actions";
 import IdentificationModal from "./components/IdentificationModal";
+import ProfilePhotoModal from "./components/ProfilePhotoModal";
 import BankInfoModal from "./components/BankInfoModal";
 import { aceptarPoliticaDatos } from "./actions/politica-actions";
 
@@ -92,6 +93,8 @@ export default function ProfilePage() {
   const [showIdentificationModal, setShowIdentificationModal] =
     useState<boolean>(false);
   const [showBankInfoModal, setShowBankInfoModal] = useState<boolean>(false);
+  const [showProfilePhotoModal, setShowProfilePhotoModal] =
+    useState<boolean>(false);
 
   // Helpers robustos para validar el estado del formulario (puede venir como string JSON, objeto o null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1000,6 +1003,50 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+
+        {/* Profile Photo card */}
+        <div
+          className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+          style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+        >
+          <span className="text-gray-800 font-medium">Profile Photo</span>
+          <div className="flex items-center justify-center gap-4">
+            {profile.datosPersonales.fotoPerfil ? (
+              <div className="flex items-center gap-2">
+                <Edit
+                  className="cursor-pointer"
+                  onClick={() => setShowProfilePhotoModal(true)}
+                />
+              </div>
+            ) : (
+              <svg
+                width="35"
+                height="35"
+                viewBox="0 0 25 25"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="cursor-pointer"
+                onClick={() => setShowProfilePhotoModal(true)}
+              >
+                <circle cx="12.5" cy="12.5" r="12.5" fill="#0097B2" />
+                <path
+                  d="M12.5 13.5C14.1569 13.5 15.5 12.1569 15.5 10.5C15.5 8.84315 14.1569 7.5 12.5 7.5C10.8431 7.5 9.5 8.84315 9.5 10.5C9.5 12.1569 10.8431 13.5 12.5 13.5Z"
+                  stroke="#FCFEFF"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M7.5 19C7.5 16.2386 9.73858 14 12.5 14C15.2614 14 17.5 16.2386 17.5 19"
+                  stroke="#FCFEFF"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Tabs mobile view */}
@@ -1762,6 +1809,61 @@ export default function ProfilePage() {
                   </div>
                 </div>
               )}
+
+            {/* Profile Photo card — desktop */}
+            <div
+              className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+              style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-gray-800 font-medium">Profile Photo</span>
+                {profile.datosPersonales.fotoPerfil && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={profile.datosPersonales.fotoPerfil}
+                    alt="Profile"
+                    className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                  />
+                )}
+              </div>
+              <div className="flex items-center justify-center gap-4">
+                {profile.datosPersonales.fotoPerfil ? (
+                  <div className="flex items-center gap-2">
+                    <Edit
+                      className="cursor-pointer"
+                      onClick={() => setShowProfilePhotoModal(true)}
+                    />
+                  </div>
+                ) : (
+                  <svg
+                    width="35"
+                    height="35"
+                    viewBox="0 0 25 25"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="cursor-pointer"
+                    onClick={() => setShowProfilePhotoModal(true)}
+                  >
+                    <circle cx="12.5" cy="12.5" r="12.5" fill="#0097B2" />
+                    <path
+                      d="M12.5 13.5C14.1569 13.5 15.5 12.1569 15.5 10.5C15.5 8.84315 14.1569 7.5 12.5 7.5C10.8431 7.5 9.5 8.84315 9.5 10.5C9.5 12.1569 10.8431 13.5 12.5 13.5Z"
+                      stroke="#FCFEFF"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M7.5 19C7.5 16.2386 9.73858 14 12.5 14C15.2614 14 17.5 16.2386 17.5 19"
+                      stroke="#FCFEFF"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+
             {(profile.gating?.hasActiveProcess ||
               profile.gating?.hasFinalizedContract) && (
               <div
@@ -2322,6 +2424,12 @@ export default function ProfilePage() {
       <ContactoModal
         isOpen={showEditContactoModal}
         onClose={() => setShowEditContactoModal(false)}
+      />
+
+      {/* Modal de Foto de Perfil */}
+      <ProfilePhotoModal
+        isOpen={showProfilePhotoModal}
+        onClose={() => setShowProfilePhotoModal(false)}
       />
 
       {/* Modal de Identificación */}
