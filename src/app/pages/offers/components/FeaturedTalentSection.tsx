@@ -11,7 +11,7 @@ type TalentCard = {
   id: string;
   name: string;
   position: string;
-  client: string;
+  profesion: string;
   country: string;
   fotoPerfil: string | null;
   paisImagen: string | null;
@@ -63,7 +63,7 @@ function mapProfileToCard(profile: FeaturedProfile): TalentCard {
     id: profile.id,
     name: `${profile.nombre ?? ""} ${profile.apellido ?? ""}`.trim(),
     position: profile.position ?? "",
-    client: profile.client ?? "",
+    profesion: profile.profesion ?? "",
     country: profile.pais ?? "",
     fotoPerfil: profile.fotoPerfil ?? null,
     paisImagen: profile.paisImagen ?? null,
@@ -198,7 +198,7 @@ export default function FeaturedTalentSection() {
                       {talent.position}
                     </p>
                     <p className="font-medium text-[14px] text-[#676565] break-words">
-                      {talent.client}
+                      {talent.profesion}
                     </p>
                   </div>
                 </div>

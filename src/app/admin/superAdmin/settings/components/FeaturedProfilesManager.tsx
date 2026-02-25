@@ -57,6 +57,7 @@ interface Member {
   country?: string;
   position: string;
   firm?: string;
+  profesion?: string;
   contractStatus?: string;
 }
 
@@ -95,6 +96,7 @@ export default function FeaturedProfilesManager() {
               position: offer.titulo,
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               firm: (offer as any).empresaOferta?.nombre || "",
+              profesion: p.candidato.profesion || "",
               contractStatus: "ACTIVE",
             }))
         );
@@ -145,7 +147,7 @@ export default function FeaturedProfilesManager() {
     .filter((m) =>
       search
         ? m.fullName.toLowerCase().includes(search.toLowerCase()) ||
-          (m.firm || "").toLowerCase().includes(search.toLowerCase())
+          (m.profesion || "").toLowerCase().includes(search.toLowerCase())
         : true
     )
     .sort((a, b) => {
@@ -189,7 +191,7 @@ export default function FeaturedProfilesManager() {
                     {profile.position ?? "—"}
                   </p>
                   <p className="text-gray-500 text-xs truncate">
-                    {profile.client ?? "—"}
+                    {profile.profesion ?? "—"}
                   </p>
                   <p className="text-gray-400 text-xs">{profile.pais ?? "—"}</p>
                 </div>
@@ -203,7 +205,7 @@ export default function FeaturedProfilesManager() {
       <div className="mb-4 flex flex-col md:flex-row gap-3 items-start md:items-center">
         <input
           type="text"
-          placeholder="Search by name or client..."
+          placeholder="Search by name or profession..."
           className="border rounded px-3 py-2 text-sm w-full md:w-72"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -224,7 +226,7 @@ export default function FeaturedProfilesManager() {
           <table className="min-w-full text-sm">
             <thead className="border-b bg-white">
               <tr>
-                {["Full Name", "Position", "Client", "Country", "Featured"].map(
+                {["Full Name", "Position", "Profession", "Country", "Featured"].map(
                   (col) => (
                     <th
                       key={col}
@@ -254,7 +256,7 @@ export default function FeaturedProfilesManager() {
                       {member.position}
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                      {member.firm || "—"}
+                      {member.profesion || "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
                       {member.country || "—"}
@@ -348,7 +350,7 @@ export default function FeaturedProfilesManager() {
                   {member.position} · {member.country || "—"}
                 </p>
                 <p className="text-xs text-gray-400">
-                  Client: {member.firm || "—"}
+                  Profession: {member.profesion || "—"}
                 </p>
               </div>
             );

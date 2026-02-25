@@ -13,6 +13,7 @@ export type Candidato = {
   telefono?: string;
   pais?: string;
   residencia?: string;
+  profesion?: string;
   empresaNombre?: string; // Para el endpoint global, nombre de la firma
 };
 
