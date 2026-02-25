@@ -1,5 +1,6 @@
 "use client";
 
+import type { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
@@ -19,7 +20,7 @@ interface FooterProps {
   forceRender?: boolean;
 }
 
-export default function Footer({ forceRender = false }: FooterProps) {
+const Footer: FC<FooterProps> = ({ forceRender = false }) => {
   const { isFooterExcluded } = useRouteExclusion();
 
   if (isFooterExcluded && !forceRender) {
@@ -107,4 +108,6 @@ export default function Footer({ forceRender = false }: FooterProps) {
       </footer>
     </>
   );
-}
+};
+
+export default Footer;
