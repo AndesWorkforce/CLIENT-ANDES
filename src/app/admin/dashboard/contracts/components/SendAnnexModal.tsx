@@ -376,9 +376,9 @@ export default function SendAnnexModal({
       (contract as any).emailCandidato ||
       "email@example.com", // Ensure email is available
     cedula: "123456789",
-    telefono: "+57 300 123 4567",
+    telefono: contract.telefono ?? "+57 300 123 4567",
     nacionalidad: "Colombian",
-    direccionCompleta: "Calle 123 # 45-67, Bogota",
+    direccionCompleta: contract.residencia ?? "Calle 123 # 45-67, Bogota",
     cityCountry: "Bogota, Colombia",
     laptopModel: "Dell Latitude 5420",
     serialNumber: "SN-PENDING",
