@@ -9,7 +9,7 @@ export type FeaturedProfile = {
   paisImagen: string | null;
   fotoPerfil: string | null;
   position: string | null;
-  client: string | null;
+  profesion: string | null;
 };
 
 export type FeaturedProfilesResponse =
