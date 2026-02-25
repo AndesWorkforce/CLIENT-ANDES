@@ -1,5 +1,6 @@
 "use client";
 
+import type { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
@@ -15,10 +16,14 @@ const navigation = [
   { name: "Data Privacy Policy", href: "/politica-datos" },
 ];
 
-export default function Footer() {
+interface FooterProps {
+  forceRender?: boolean;
+}
+
+const Footer: FC<FooterProps> = ({ forceRender = false }) => {
   const { isFooterExcluded } = useRouteExclusion();
 
-  if (isFooterExcluded) {
+  if (isFooterExcluded && !forceRender) {
     return null;
   }
 
@@ -103,4 +108,6 @@ export default function Footer() {
       </footer>
     </>
   );
-}
+};
+
+export default Footer;
