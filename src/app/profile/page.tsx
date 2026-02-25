@@ -38,6 +38,7 @@ import {
 import { addEducation, deleteEducation } from "./actions/education.actions";
 import IdentificationModal from "./components/IdentificationModal";
 import ProfilePhotoModal from "./components/ProfilePhotoModal";
+import ProfesionModal from "./components/ProfesionModal";
 import BankInfoModal from "./components/BankInfoModal";
 import { aceptarPoliticaDatos } from "./actions/politica-actions";
 
@@ -94,6 +95,8 @@ export default function ProfilePage() {
     useState<boolean>(false);
   const [showBankInfoModal, setShowBankInfoModal] = useState<boolean>(false);
   const [showProfilePhotoModal, setShowProfilePhotoModal] =
+    useState<boolean>(false);
+  const [showProfesionModal, setShowProfesionModal] =
     useState<boolean>(false);
 
   // Helpers robustos para validar el estado del formulario (puede venir como string JSON, objeto o null)
@@ -1047,6 +1050,25 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+
+        {/* Profession card — mobile */}
+        <div
+          className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+          style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+        >
+          <div>
+            <span className="text-gray-800 font-medium">Profession</span>
+            {profile.datosPersonales.profesion && (
+              <p className="text-sm text-gray-500 mt-0.5">
+                {profile.datosPersonales.profesion}
+              </p>
+            )}
+          </div>
+          <Edit
+            className="cursor-pointer"
+            onClick={() => setShowProfesionModal(true)}
+          />
+        </div>
       </div>
 
       {/* Tabs mobile view */}
@@ -1810,6 +1832,25 @@ export default function ProfilePage() {
                 </div>
               )}
 
+            {/* Profession card — desktop */}
+            <div
+              className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+              style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+            >
+              <div>
+                <span className="text-gray-800 font-medium">Profession</span>
+                {profile.datosPersonales.profesion && (
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    {profile.datosPersonales.profesion}
+                  </p>
+                )}
+              </div>
+              <Edit
+                className="cursor-pointer"
+                onClick={() => setShowProfesionModal(true)}
+              />
+            </div>
+
             {/* Profile Photo card — desktop */}
             <div
               className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
@@ -2430,6 +2471,12 @@ export default function ProfilePage() {
       <ProfilePhotoModal
         isOpen={showProfilePhotoModal}
         onClose={() => setShowProfilePhotoModal(false)}
+      />
+
+      {/* Modal de Profesión */}
+      <ProfesionModal
+        isOpen={showProfesionModal}
+        onClose={() => setShowProfesionModal(false)}
       />
 
       {/* Modal de Identificación */}
