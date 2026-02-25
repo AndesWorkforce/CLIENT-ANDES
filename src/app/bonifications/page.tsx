@@ -38,7 +38,7 @@ export default function BonificationsPage() {
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-semibold text-[#08252A] mb-6">
-        Incentives & Holidays
+        Additional Incentives & Holidays
       </h1>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
@@ -139,7 +139,7 @@ export default function BonificationsPage() {
       </div>
 
       <p className="text-xs text-gray-500 mt-4">
-        Note: This page is for informational purposes for contractors.
+        Note: The incentives described are discretionary, do not constitute salary, and do not create acquired rights. Their granting depends on the evaluation and decision of the company and/or the firm.
       </p>
 
       {/* Holidays Section */}

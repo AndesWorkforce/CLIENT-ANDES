@@ -87,15 +87,20 @@ interface ExtensionAddendumData {
   montoUltimoPago?: string;
   fechaInicioExtension?: string;
   fechaFinExtension?: string;
+  signContractDate?: string;
 }
 
 const ExtensionAddendumAnnexPDF: React.FC<{
   data: ExtensionAddendumData;
 }> = ({ data }) => {
   const currentDate = new Date();
-  const day = currentDate.getDate();
-  const month = currentDate.toLocaleString("en-US", { month: "long" });
-  const year = currentDate.getFullYear();
+  const parsed =
+    data.signContractDate && !Number.isNaN(Date.parse(data.signContractDate))
+      ? new Date(data.signContractDate)
+      : currentDate;
+  const day = parsed.getDate();
+  const month = parsed.toLocaleString("en-US", { month: "long" });
+  const year = parsed.getFullYear();
 
   return (
     <Document>

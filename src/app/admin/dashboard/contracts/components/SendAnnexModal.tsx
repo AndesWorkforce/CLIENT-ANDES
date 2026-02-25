@@ -72,6 +72,7 @@ const getFieldLabel = (field: string): string => {
     fechaInicioExtension: "Extension Start Date",
     fechaFinExtension: "Extension End Date",
     nuevoValorContrato: "New Contract Value",
+    signContractDate: "Sign Contract Date",
   };
 
   const requiredFields = [
@@ -89,6 +90,7 @@ const getFieldLabel = (field: string): string => {
     "fechaInicioExtension",
     "fechaFinExtension",
     "nuevoValorContrato",
+    "signContractDate",
   ];
   const label = labels[field] || field.charAt(0).toUpperCase() + field.slice(1);
 
@@ -108,6 +110,7 @@ const getFieldPlaceholder = (field: string): string => {
     fechaInicioExtension: "e.g., May 1, 2024",
     fechaFinExtension: "e.g., August 31, 2024",
     nuevoValorContrato: "e.g., 1200",
+    signContractDate: "e.g., June 30, 2025",
     telefono: "e.g., +1 (555) 123-4567",
     direccionCompleta: "e.g., 123 Main St, City, State, ZIP",
     nacionalidad: "e.g., Colombian, American, etc.",
@@ -358,6 +361,7 @@ export default function SendAnnexModal({
         "fechaInicioContratoOriginal",
         "nuevoValorContrato",
         "descripcionServicios",
+      "signContractDate",
       ],
     });
 
@@ -386,6 +390,11 @@ export default function SendAnnexModal({
     fechaInicioExtension: "May 1, 2024",
     fechaFinExtension: "August 31, 2024",
     nuevoValorContrato: contract.ofertaSalarial?.toString() || "1200",
+    signContractDate: new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
 
     // Datos del puesto
     puestoTrabajo: contract.puestoTrabajo || "Administrative Assistant",
@@ -783,6 +792,7 @@ export default function SendAnnexModal({
                       "fechaInicioContratoOriginal",
                       "nuevoValorContrato",
                       "descripcionServicios",
+                      "signContractDate",
                     ].map(
                       (field) =>
                         selectedTemplate.variables.includes(field) && (

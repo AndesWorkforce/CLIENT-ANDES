@@ -69,6 +69,9 @@ export interface CurrentContractData {
     descripcion?: string | null;
   };
 
+  discretionaryBonusType?: string | null;
+  paidHolidays?: boolean | null;
+
   // Documentos leídos (desde la base de datos)
   documentosLeidos?: {
     id: string;

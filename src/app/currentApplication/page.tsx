@@ -1595,6 +1595,22 @@ export default function CurrentApplication() {
     }
   };
 
+  const getDiscretionaryBonusLabel = (type: string | null | undefined): string => {
+    if (!type) return "Not eligible for annual bonus";
+    switch (type) {
+      case "NONE":
+        return "Not eligible for annual bonus";
+      case "HALF_MONTH_ONCE_DECEMBER":
+        return "Half month's pay once a year in December";
+      case "FULL_MONTH_ONCE_DECEMBER":
+        return "Full month's pay once a year in December";
+      case "FULL_MONTH_TWICE_JUNE_DECEMBER":
+        return "Full month's pay twice per year (June and December)";
+      default:
+        return type;
+    }
+  };
+
   // Auto-open documents modal if candidate signed but needs to read documents
   // SOLO una vez por sesión para evitar reaperturas en cada recarga
   useEffect(() => {
@@ -1877,6 +1893,22 @@ export default function CurrentApplication() {
                           "en-US"
                         )}
                       </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Discretionary bonus
+                      </label>
+                      <p className="text-gray-900">
+                        {getDiscretionaryBonusLabel(
+                          currentJob.discretionaryBonusType ?? null
+                        )}
+                      </p>
+                      <p className="text-[11.5px] text-gray-500 mt-1">
+                      Note: The incentive described is discretionary, do not
+                      constitute salary, and do not create acquired rights.
+                      This granting depends on the evaluation and decision of the
+                      company and/or the firm.
+                    </p>
                     </div>
                   </div>
                 </div>
@@ -2247,7 +2279,7 @@ export default function CurrentApplication() {
 
                   <div>
                     <label className="text-sm font-medium text-gray-500">
-                      Salary
+                        Compensation
                     </label>
                     <p className="text-gray-900 font-medium">
                       {currentJob.ofertaSalarial
@@ -2264,6 +2296,23 @@ export default function CurrentApplication() {
                     <div className="mt-1">
                       {getContractStatusBadge(displayContractStatus)}
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Discretionary bonus
+                    </label>
+                    <p className="text-gray-900">
+                      {getDiscretionaryBonusLabel(
+                        currentJob.discretionaryBonusType ?? null
+                      )}
+                    </p>
+                    <p className="text-[11.5px] text-gray-500 mt-1">
+                      Note: The incentive described is discretionary, do not
+                      constitute salary, and do not create acquired rights.
+                      This granting depends on the evaluation and decision of the
+                      company and/or the firm.
+                    </p>
                   </div>
                 </div>
 
