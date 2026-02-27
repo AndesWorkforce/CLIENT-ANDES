@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
+import { submitContactFormMicrosoft } from "@/app/pages/contact/actions/microsoft-email-actions";
 
 interface Country {
   name: { common: string };
@@ -10,15 +14,33 @@ interface Country {
   cca3: string;
 }
 
+const offersContactSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  phone: z.string().optional(),
+  country: z.string().min(1, "Please select a country"),
+});
+
+type OffersContactValues = z.infer<typeof offersContactSchema>;
+
 export default function ContactFormSection() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    country: "",
-  });
   const [countries, setCountries] = useState<Country[]>([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
+  const [formResponse, setFormResponse] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<OffersContactValues>({
+    resolver: zodResolver(offersContactSchema),
+    defaultValues: { name: "", email: "", phone: "", country: "" },
+  });
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -42,10 +64,42 @@ export default function ContactFormSection() {
     fetchCountries();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement form submission logic
-    console.log("Form submitted:", formData);
+  const onSubmit = async (data: OffersContactValues) => {
+    setIsSubmitting(true);
+    setFormResponse(null);
+
+    // Split name into firstName / lastName for the shared action
+    const parts = data.name.trim().split(/\s+/);
+    const firstName = parts[0] ?? data.name;
+    const lastName = parts.slice(1).join(" ") || firstName;
+
+    try {
+      const response = await submitContactFormMicrosoft({
+        firstName,
+        lastName,
+        email: data.email,
+        phone: data.phone || "",
+        smsConsent: false,
+        service: "talent",
+        message: `Contact from Open Contracts page. Country: ${data.country}`,
+      });
+
+      setFormResponse(response);
+      if (response.success) {
+        reset();
+        if (typeof window !== "undefined" && window.gtag) {
+          window.gtag("event", "ads_conversion_Contact_1", {});
+        }
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setFormResponse({
+        success: false,
+        message: "An error occurred while sending the form. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -89,44 +143,57 @@ export default function ContactFormSection() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+            {formResponse && (
+              <div
+                className={`p-3 rounded-lg text-sm font-medium ${
+                  formResponse.success
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {formResponse.message}
+              </div>
+            )}
+
             {/* Name Field */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="text-white text-base font-medium block">Full Name</label>
               <input
                 type="text"
                 placeholder="Ex: Alexander Hamilton"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                {...register("name")}
                 className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#0097b2]"
-                required
               />
+              {errors.name && (
+                <p className="text-red-200 text-xs">{errors.name.message}</p>
+              )}
             </div>
 
             {/* Email Field */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="text-white text-base font-medium block">Email Address</label>
               <input
                 type="email"
                 placeholder="Ex: alexander@company.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                {...register("email")}
                 className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#0097b2]"
-                required
               />
+              {errors.email && (
+                <p className="text-red-200 text-xs">{errors.email.message}</p>
+              )}
             </div>
 
             {/* Country and Phone Row */}
             <div className="grid grid-cols-2 gap-4">
               {/* Country Select */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="text-white text-base font-medium block">Country</label>
                 <div className="relative">
                   <select
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    {...register("country")}
                     className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#0097b2] cursor-pointer"
-                    required
                     disabled={loadingCountries}
                   >
                     <option value="">Select option here...</option>
@@ -147,16 +214,18 @@ export default function ContactFormSection() {
                     />
                   )}
                 </div>
+                {errors.country && (
+                  <p className="text-red-200 text-xs">{errors.country.message}</p>
+                )}
               </div>
 
               {/* Phone Field */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="text-white text-base font-medium block">Phone (Optional)</label>
                 <input
                   type="tel"
                   placeholder="+1 (555) 123-4567"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  {...register("phone")}
                   className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#0097b2]"
                 />
               </div>
@@ -165,9 +234,10 @@ export default function ContactFormSection() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF] text-[#0097b2] px-8 py-3 rounded-2xl font-medium transition-colors cursor-pointer"
+              disabled={isSubmitting}
+              className="w-full bg-[#FFFFFF] hover:bg-gray-100 text-[#0097b2] px-8 py-3 rounded-2xl font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Submit
+              {isSubmitting ? "Sending..." : "Submit"}
             </button>
           </form>
         </div>
