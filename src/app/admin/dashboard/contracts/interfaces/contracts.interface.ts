@@ -73,6 +73,8 @@ export interface ProcesoContratacion {
   fechaFinalizacion?: Date | null;
   nombreCompleto: string;
   correo: string;
+  telefono?: string | null;
+  residencia?: string | null;
   puestoTrabajo: string;
   ofertaSalarial: number;
   monedaSalario: string;
