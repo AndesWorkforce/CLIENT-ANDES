@@ -8,7 +8,7 @@ interface HeroSectionProps {
 
 export default function HeroSection({ onContactClick }: HeroSectionProps) {
   return (
-    <section className="relative w-full h-screen flex items-end justify-start px-8 md:px-16 py-[108px]">
+    <section className="relative w-full h-[70vh] flex items-end justify-start px-8 md:px-16 py-[60px]">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image

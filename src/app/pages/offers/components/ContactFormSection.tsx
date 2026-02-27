@@ -51,7 +51,7 @@ export default function ContactFormSection() {
   return (
     <section
       id="contact-form"
-      className="relative w-full h-screen flex items-center"
+      className="relative w-full h-[70vh] flex items-center"
     >
       {/* Left side - Image with gradient overlay */}
       <div className="relative w-1/2 h-full">
