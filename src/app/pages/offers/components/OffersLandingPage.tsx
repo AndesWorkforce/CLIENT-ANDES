@@ -16,7 +16,7 @@ export default function OffersLandingPage() {
   };
 
   return (
-    <div className="relative w-full h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth">
+    <div className="relative w-full h-[calc(100vh-var(--navbar-height))] overflow-y-scroll overscroll-y-contain snap-y snap-mandatory scroll-smooth">
       {/* Hero Section */}
       <div className="snap-start snap-always">
         <HeroSection onContactClick={scrollToContact} />

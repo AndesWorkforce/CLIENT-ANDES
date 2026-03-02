@@ -9,6 +9,7 @@ interface DatosPersonales {
   telefono: string;
   residencia: string;
   fotoPerfil: string | null;
+  profesion?: string | null;
 }
 
 interface RequisitosDispositivo {
