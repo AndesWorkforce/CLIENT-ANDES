@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import * as XLSX from "xlsx";
 import { getApplicants } from "../offers/actions/offers.actions";
 import { Mail, Edit, Bookmark, FileText, Star } from "lucide-react";
 import type { Candidato } from "@/app/types/offers";
@@ -733,6 +734,45 @@ export default function PostulantsPage() {
     }
   };
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const response = await getApplicants(
+        1,
+        9999,
+        search,
+        stageFilter,
+        applicantStatusFilter,
+      );
+
+      const allApplicants: ExtendedCandidate[] =
+        response.success ? (response.data?.resultados ?? []) : applicants;
+
+      const exportRows = allApplicants.map((applicant) => ({
+        "Full Name": `${applicant.nombre} ${applicant.apellido}`,
+        Email: applicant.correo || "",
+        Phone: applicant.telefono || "",
+        Country: applicant.pais || "",
+        Active: applicant.activo ? "Yes" : "No",
+        Classification: applicant.clasificacionGlobal || "",
+        "Rating (Stars)": applicant.favorite ?? 0,
+        Stage: renderStageStatus(applicant),
+        "Application Status": (applicant as any).estadoPostulacion || "",
+        Position: applicant.lastRelevantPostulacion?.titulo || "",
+        "Preliminary Interview": applicant.entrevistaPreliminar ? "Yes" : "No",
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportRows, { skipHeader: false });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Postulants");
+      XLSX.writeFile(wb, "postulants.xlsx");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <CandidateProfileProvider>
       <div className="container mx-auto px-2 md:px-4 mt-6 flex flex-col min-h-screen">
@@ -775,12 +815,21 @@ export default function PostulantsPage() {
               <option value="INACTIVE">Inactive</option>
             </select>
           </div>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="bg-[#0097B2] text-white px-4 py-2 rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer w-full md:w-auto"
-          >
-            Create Applicant
-          </button>
+          <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+            <button
+              onClick={handleExportExcel}
+              disabled={isExporting}
+              className="bg-white border border-[#0097B2] text-[#0097B2] px-4 py-2 rounded-md hover:bg-[#0097B2] hover:text-white transition-colors cursor-pointer w-full md:w-auto disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isExporting ? "Exporting..." : "Export to Excel"}
+            </button>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="bg-[#0097B2] text-white px-4 py-2 rounded-md hover:bg-[#007a8f] transition-colors cursor-pointer w-full md:w-auto"
+            >
+              Create Applicant
+            </button>
+          </div>
         </div>
 
         {/* View Mobile */}
