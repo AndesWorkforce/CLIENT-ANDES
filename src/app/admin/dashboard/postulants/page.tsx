@@ -32,6 +32,7 @@ import { EstadoPostulacion } from "../types/application-status.types";
 interface CandidatoWithPostulationId extends Candidato {
   postulationId: string;
   estadoPostulacion?: string; // ✅ AGREGADO: Campo estadoPostulacion directamente
+  pais?: string;
 }
 
 export type CandidateStatus = "ACTIVE" | "BLACKLIST" | "DISMISS" | "INACTIVE";
@@ -759,7 +760,7 @@ export default function PostulantsPage() {
         Classification: applicant.clasificacionGlobal || "",
         "Rating (Stars)": applicant.favorite ?? 0,
         Stage: renderStageStatus(applicant),
-        "Application Status": (applicant as any).estadoPostulacion || "",
+        "Application Status": applicant.estadoPostulacion || "",
         Position: applicant.lastRelevantPostulacion?.titulo || "",
         "Preliminary Interview": applicant.entrevistaPreliminar ? "Yes" : "No",
       }));
