@@ -1089,7 +1089,6 @@ export default function AdminDashboardPage() {
             })) || []
           }
           onUpdate={fetchPublishedOffers}
-          disableStatusChange={true}
         />
       )}
 
