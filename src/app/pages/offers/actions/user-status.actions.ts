@@ -25,15 +25,21 @@ export async function checkUserContractStatus(): Promise<{
 
     const response = await axios.get("/users/current-contract");
 
+    const { id, estadoContratacion, puestoTrabajo, activo } = response.data;
+
+    console.log(
+      `[checkUserContractStatus] Contrato recibido | id=${id} | estadoContratacion=${estadoContratacion} | activo=${activo} | hasActiveContract=true`,
+    );
+
     return {
       success: true,
       data: {
         hasActiveContract: true,
         contractDetails: {
-          id: response.data.id,
-          estadoContratacion: response.data.estadoContratacion,
-          puestoTrabajo: response.data.puestoTrabajo,
-          activo: response.data.activo,
+          id,
+          estadoContratacion,
+          puestoTrabajo,
+          activo,
         },
       },
     };
@@ -41,6 +47,9 @@ export async function checkUserContractStatus(): Promise<{
   } catch (error: any) {
     // Si devuelve 404, significa que no tiene contrato activo
     if (error.response?.status === 404) {
+      console.log(
+        `[checkUserContractStatus] 404 recibido de /users/current-contract → hasActiveContract=false`,
+      );
       return {
         success: true,
         data: {
