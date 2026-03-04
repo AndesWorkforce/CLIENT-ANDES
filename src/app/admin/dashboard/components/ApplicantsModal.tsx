@@ -9,6 +9,7 @@ import {
   currentStageStatus,
   rejectStage,
   directStageJump,
+  updateStageManual,
 } from "../actions/stage.actions";
 import { useAuthStore } from "@/store/auth.store";
 import {
@@ -26,7 +27,11 @@ import {
   confirmInterviewDate,
   rescheduleInterview,
 } from "../actions/applicants.actions";
-import { EstadoPostulacion } from "../types/application-status.types";
+import {
+  AVAILABLE_STATUSES,
+  EstadoPostulacion,
+  STATUS_TRANSLATIONS,
+} from "../types/application-status.types";
 import VideoModal from "./VideoModal";
 import CandidateProfileModal from "./CandidateProfileModal";
 import { CandidateProfileProvider } from "../context/CandidateProfileContext";
@@ -1342,8 +1347,12 @@ export default function ApplicantsModal({
   console.log("\n\n\n [ApplicantsModal] onUpdate", onUpdate, "\n\n\n");
   const { addNotification } = useNotificationStore();
   const { user } = useAuthStore();
+  const normalizedRole = (user?.rol || "").toUpperCase();
   const isCompanyUser =
-    user?.rol === "EMPRESA" || user?.rol === "EMPLEADO_EMPRESA";
+    normalizedRole === "EMPRESA" || normalizedRole === "EMPLEADO_EMPRESA";
+  const isAdminUser = ["ADMIN", "EMPLEADO_ADMIN", "ADMIN_RECLUTAMIENTO"].includes(
+    normalizedRole
+  );
   const [applicants, setApplicants] = useState<ExtendedApplicant[]>([]);
   const [isLoadingApplicants, setIsLoadingApplicants] = useState(false);
   console.log("\n\n\n [ApplicantsModal] applicants", applicants, "\n\n\n");
@@ -1653,6 +1662,52 @@ export default function ApplicantsModal({
     }
   };
 
+  const [updatingStage, setUpdatingStage] = useState<Record<string, boolean>>(
+    {}
+  );
+
+  const handleStageSelectChange = async (
+    applicant: ExtendedApplicant,
+    newStatus: EstadoPostulacion
+  ) => {
+    if (applicant.estadoPostulacion === newStatus) return;
+
+    setUpdatingStage((prev) => ({ ...prev, [applicant.id]: true }));
+
+    try {
+      const response = await updateStageManual(
+        applicant.postulationId,
+        applicant.id,
+        newStatus
+      );
+
+      if (!response?.success) {
+        addNotification(
+          response?.message || "Error updating candidate stage",
+          "error"
+        );
+        return;
+      }
+
+      setApplicants((prev) =>
+        prev.map((a) =>
+          a.id === applicant.id ? { ...a, estadoPostulacion: newStatus } : a
+        )
+      );
+
+      if (typeof onUpdate === "function") {
+        await onUpdate();
+      }
+
+      addNotification("Application status updated successfully", "success");
+    } catch (error) {
+      console.error("[ApplicantsModal] Error updating stage:", error);
+      addNotification("Error updating candidate stage", "error");
+    } finally {
+      setUpdatingStage((prev) => ({ ...prev, [applicant.id]: false }));
+    }
+  };
+
   const renderClickableStageStatusBadge = (
     stage: StageStatus,
     applicant: ExtendedApplicant
@@ -1661,21 +1716,31 @@ export default function ApplicantsModal({
       stage !== "PROFILE_INCOMPLETE" &&
       stage !== "BLACKLIST" &&
       !disableStatusChange &&
-      !isCompanyUser; // ✅ Los usuarios company (clientes) no pueden modificar estados
-
-    const badgeElement = renderStageStatusBadge(stage);
+      isAdminUser;
 
     if (canUpdate) {
       return (
-        <button
-          onClick={() => handleOpenUpdateStatusModal(applicant)}
-          className="transition-all duration-200 hover:scale-105 hover:shadow-md cursor-pointer"
+        <select
+          className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[#0097B2] focus:border-[#0097B2] bg-white"
+          value={applicant.estadoPostulacion}
+          onChange={(e) =>
+            handleStageSelectChange(
+              applicant,
+              e.target.value as EstadoPostulacion
+            )
+          }
+          disabled={!!updatingStage[applicant.id]}
         >
-          {badgeElement}
-        </button>
+          {AVAILABLE_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {STATUS_TRANSLATIONS[status]}
+            </option>
+          ))}
+        </select>
       );
     }
 
+    const badgeElement = renderStageStatusBadge(stage);
     return badgeElement;
   };
 

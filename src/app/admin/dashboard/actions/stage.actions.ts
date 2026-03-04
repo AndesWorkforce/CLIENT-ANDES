@@ -320,3 +320,45 @@ export async function rejectStage(postulationId: string, candidateId: string) {
     };
   }
 }
+
+export async function updateStageManual(
+  postulationId: string,
+  candidateId: string,
+  targetStage: EstadoPostulacion,
+  notes?: string
+) {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.patch(
+      `admin/postulaciones/${postulationId}/candidate/${candidateId}/status`,
+      {
+        estadoPostulacion: targetStage,
+        ...(notes ? { notasInternas: notes } : {}),
+      }
+    );
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: "Error updating stage",
+      };
+    }
+
+    revalidatePath(`/admin/dashboard`);
+    revalidatePath(`/admin/dashboard/postulants`);
+
+    return {
+      success: true,
+      message: "Stage updated successfully",
+      nextStage: targetStage,
+    };
+  } catch (error) {
+    console.error("[updateStageManual] Error:", error);
+    revalidatePath(`/admin/dashboard`);
+    revalidatePath(`/admin/dashboard/postulants`);
+    return {
+      success: false,
+      message: "Error updating stage",
+    };
+  }
+}
