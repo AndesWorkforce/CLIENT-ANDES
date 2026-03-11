@@ -18,22 +18,22 @@ export default function OffersLandingPage() {
   return (
     <div className="relative w-full h-[calc(100vh-var(--navbar-height))] overflow-y-scroll overscroll-y-contain snap-y snap-mandatory scroll-smooth">
       {/* Hero Section */}
-      <div className="snap-start snap-always">
+      <div className="snap-start snap-always min-h-[60vh] md:h-[70vh] overflow-hidden">
         <HeroSection onContactClick={scrollToContact} />
       </div>
 
       {/* Featured Talent Section */}
-      <div className="snap-start snap-always">
+      <div className="snap-start snap-always min-h-[60vh] md:h-[70vh] overflow-hidden">
         <FeaturedTalentSection />
       </div>
 
       {/* Contact Form Section */}
-      <div className="snap-start snap-always">
+      <div className="snap-start snap-always min-h-[60vh] md:h-[70vh] overflow-hidden">
         <ContactFormSection />
       </div>
 
       {/* Benefits Section */}
-      <div className="snap-start snap-always">
+      <div className="snap-start snap-always min-h-[60vh] md:h-[70vh] overflow-hidden">
         <BenefitsSection onContactClick={scrollToContact} />
       </div>
 

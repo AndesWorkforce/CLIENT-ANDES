@@ -9,7 +9,7 @@ interface BenefitsSectionProps {
 
 export default function BenefitsSection({ onContactClick }: BenefitsSectionProps) {
   return (
-    <section className="relative w-full flex flex-col md:flex-row bg-white">
+    <section className="relative w-full h-full flex flex-col md:flex-row bg-white">
       {/* Left side - Content */}
       <div className="w-full md:w-[55%] px-6 sm:px-12 md:px-[73px] py-12 md:py-[81px] flex items-center">
           <div className="flex flex-col gap-8 md:gap-[50px] py-0 md:py-[40px] max-w-[645px]">

@@ -139,7 +139,7 @@ export default function FeaturedTalentSection() {
   const duration = Math.max(18, featuredTalent.length * 6);
 
   return (
-    <section className="relative w-full flex flex-col items-center justify-center bg-white py-12 md:py-16 lg:py-20">
+    <section className="relative w-full h-full flex flex-col items-center justify-center bg-white py-12 md:py-16 lg:py-20">
       {/* Scoped keyframes for the marquee */}
       <style>{`
         @keyframes talent-marquee {

@@ -105,7 +105,7 @@ export default function ContactFormSection() {
   return (
     <section
       id="contact-form"
-      className="relative w-full min-h-[70vh] flex flex-col md:flex-row items-stretch"
+      className="relative w-full h-full flex flex-col md:flex-row items-stretch"
     >
       {/* Left side - Image with gradient overlay */}
       <div className="relative hidden md:block w-1/2 min-h-[70vh]">
