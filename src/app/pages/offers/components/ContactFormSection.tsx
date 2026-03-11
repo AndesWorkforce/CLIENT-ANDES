@@ -105,10 +105,10 @@ export default function ContactFormSection() {
   return (
     <section
       id="contact-form"
-      className="relative w-full h-[70vh] flex items-center"
+      className="relative w-full h-full flex flex-col md:flex-row items-stretch"
     >
       {/* Left side - Image with gradient overlay */}
-      <div className="relative w-1/2 h-full">
+      <div className="relative hidden md:block w-1/2 min-h-[70vh]">
         <Image
           src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/contactus_offers.jpg"
           alt="Office workspace"
@@ -126,7 +126,7 @@ export default function ContactFormSection() {
 
       {/* Right side - Form */}
       <div
-        className="w-1/2 h-full flex items-center justify-center px-16"
+        className="w-full md:w-1/2 flex items-center justify-center px-6 sm:px-10 md:px-16 py-12 md:py-0"
         style={{
           background:
             "linear-gradient(90.31deg, rgb(0, 151, 178) 5.218%, rgb(0, 100, 118) 99.736%)",
@@ -138,7 +138,7 @@ export default function ContactFormSection() {
             <h2 className="text-3xl md:text-4xl font-bold">Contact Us</h2>
             <p className="text-sm">
               Fill out the form for a consultation. Our Andes Workforce team typically
-              reaches out<br />within 24 hours.
+              reaches out within 24 hours.
             </p>
           </div>
 
@@ -186,7 +186,7 @@ export default function ContactFormSection() {
             </div>
 
             {/* Country and Phone Row */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Country Select */}
               <div className="space-y-1">
                 <label className="text-white text-base font-medium block">Country</label>
