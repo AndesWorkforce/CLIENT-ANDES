@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import HeroSection from "./HeroSection";
 import FeaturedTalentSection from "./FeaturedTalentSection";
 import ContactFormSection from "./ContactFormSection";
@@ -7,16 +8,19 @@ import BenefitsSection from "./BenefitsSection";
 import Footer from "@/app/components/Footer";
 
 export default function OffersLandingPage() {
-  // Smooth scroll to contact form
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll within the snap container only (avoids scrolling the window and losing the navbar)
   const scrollToContact = () => {
     const contactSection = document.getElementById("contact-form");
-    if (contactSection) {
-      contactSection.scrollIntoView({ behavior: "smooth" });
+    const container = scrollContainerRef.current;
+    if (contactSection && container) {
+      container.scrollTo({ top: contactSection.offsetTop, behavior: "smooth" });
     }
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-var(--navbar-height))] overflow-y-scroll overscroll-y-contain snap-y snap-mandatory scroll-smooth">
+    <div ref={scrollContainerRef} className="relative w-full h-[calc(100vh-var(--navbar-height))] overflow-y-scroll overscroll-y-contain snap-y snap-mandatory scroll-smooth">
       {/* Hero Section */}
       <div className="snap-start snap-always min-h-[60vh] md:h-[70vh] overflow-hidden">
         <HeroSection onContactClick={scrollToContact} />
