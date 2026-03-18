@@ -134,7 +134,6 @@ const STATIC_TALENT: TalentCard[] = [
     paisImagen: null,
   },
 ];
-
 // Cards cloned on each side to enable seamless looping (must equal max visibleCount)
 export default function FeaturedTalentSection() {
   const [featuredTalent, setFeaturedTalent] = useState<TalentCard[]>([]);
