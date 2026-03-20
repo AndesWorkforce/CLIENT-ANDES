@@ -11,7 +11,7 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
   const router = useRouter();
 
   return (
-    <section className="relative w-full h-[70vh] flex items-end justify-start px-8 md:px-16 py-[60px]">
+    <section className="relative w-full h-auto min-h-[60vh] md:h-[70vh] flex items-end justify-start px-6 sm:px-8 md:px-16 py-10 md:py-[60px]">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -27,10 +27,10 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-[620px] flex flex-col gap-[30px]">
-        <div className="flex flex-col gap-[20px] text-white">
-          {/* Title */}
-          <h1 className="text-[48px] font-bold leading-normal font-[family-name:var(--font-outfit)]">
+      <div className="relative z-10 w-full max-w-[620px] flex flex-col gap-5 md:gap-[30px]">
+          <div className="flex flex-col gap-3 md:gap-[20px] text-white">
+          {/* Title */} 
+            <h1 className="text-[28px] sm:text-[36px] md:text-[48px] font-bold leading-tight md:leading-normal font-[family-name:var(--font-outfit)]">
             Hire <span className="text-[#00e5ff]">Top-Tier Talent</span>{" "}
             Tailored to Your Needs
           </h1>
@@ -39,14 +39,13 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
           <p className="text-base leading-normal tracking-[0.16px]">
             <span className="font-bold text-[#00e5ff]">Browse expert profiles</span> and hire
             securely with{" "}
-            <span className="font-bold text-[#00e5ff]">dedicated support</span>
-            <br />
+            <span className="font-bold text-[#00e5ff]">dedicated support</span>{" "}
             from Andes Workforce
           </p>
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-[10px] items-center">
+        <div className="flex flex-wrap gap-3 items-center">
           <button
             onClick={() => router.push("/auth/register")}
             className="bg-[#0097b2] hover:bg-[#007A8F] text-white px-15 py-3 rounded-[20px] text-base font-medium transition-colors cursor-pointer w-fit">

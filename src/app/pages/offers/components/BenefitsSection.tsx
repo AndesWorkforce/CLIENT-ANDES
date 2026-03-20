@@ -9,17 +9,17 @@ interface BenefitsSectionProps {
 
 export default function BenefitsSection({ onContactClick }: BenefitsSectionProps) {
   return (
-    <section className="relative w-full h-[700px] flex bg-white">
+    <section className="relative w-full h-full flex flex-col md:flex-row bg-white">
       {/* Left side - Content */}
-      <div className="w-[55%] px-[73px] py-[81px] flex items-center">
-        <div className="flex flex-col gap-[50px] py-[40px] max-w-[645px]">
+      <div className="w-full md:w-[55%] px-6 sm:px-12 md:px-[73px] py-12 md:py-[81px] flex items-center">
+          <div className="flex flex-col gap-8 md:gap-[50px] py-0 md:py-[40px] max-w-[645px]">
           {/* Title */}
-          <h2 className="text-[40px] font-bold text-black leading-normal">
-            Elevate Your Team with<br />World-Class Talent
+          <h2 className="text-[28px] sm:text-[34px] md:text-[40px] font-bold text-black leading-tight md:leading-normal">
+            Elevate Your Team with World-Class Talent
           </h2>
 
           {/* Benefits List */}
-          <div className="flex flex-col gap-[30px] max-w-[572px]">
+          <div className="flex flex-col gap-6 md:gap-[30px] max-w-[572px]">
             {/* Benefit 1 */}
             <div className="flex gap-[10px] items-start">
               <div className="flex-shrink-0">
@@ -73,7 +73,7 @@ export default function BenefitsSection({ onContactClick }: BenefitsSectionProps
       </div>
 
       {/* Right side - Image */}
-      <div className="w-[45%] relative">
+      <div className="hidden md:block w-full md:w-[45%] min-h-[350px] relative">
         <Image
           src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/Rectangle%203.png"
           alt="Professional working"
