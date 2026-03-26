@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useAuthStore } from "@/store/auth.store";
 import { getHolidaysByCountry, type Holiday } from "../admin/superAdmin/settings/actions/holidays.actions";
 import { HOLIDAY_MULTIPLIERS, getHolidayCompensationMessage } from "@/data/holidayCompensation";
@@ -41,104 +42,71 @@ export default function BonificationsPage() {
         Additional Incentives & Holidays
       </h1>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="bg-[#1f497d] text-white">
-              <th className="px-4 py-3 text-left font-semibold">Bonus</th>
-              <th className="px-4 py-3 text-left font-semibold">Description</th>
-              <th className="px-4 py-3 text-left font-semibold">
-                Eligibility Criteria
-              </th>
-              <th className="px-4 py-3 text-left font-semibold">
-                Estimated Amount or Percentage
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            <tr>
-              <td className="px-4 py-3 font-medium">Referral</td>
-              <td className="px-4 py-3">
-                Bonus awarded to a contractor who successfully refers another
-                contractor.
-              </td>
-              <td className="px-4 py-3">
-                The referred contractor must remain with the company for at
-                least 90 days.
-              </td>
-              <td className="px-4 py-3">$100</td>
-            </tr>
-            <tr>
-              <td className="px-4 py-3 font-medium">Individual Performance</td>
-              <td className="px-4 py-3">
-                Bonus awarded to a contractor for achieving individual or team
-                goals, as contractually agreed. Paid in June and December.
-              </td>
-              <td className="px-4 py-3">
-                Achievement of goals or results agreed upon with the company.
-              </td>
-              <td className="px-4 py-3">
-                5% of the monthly payment, accumulated semiannually (e.g., for
-                $1,000 → $50)
-              </td>
-            </tr>
-            <tr>
-              <td className="px-4 py-3 font-medium">Discretionary Bonus</td>
-              <td className="px-4 py-3">
-                Bonus awarded at the company’s discretion as an annual
-                incentive.
-              </td>
-              <td className="px-4 py-3">All contractors.</td>
-              <td className="px-4 py-3">
-                Equivalent to half or a full month’s payment, pro-rated based on
-                length of service.
-              </td>
-            </tr>
-            <tr>
-              <td className="px-4 py-3 font-medium">Seniority</td>
-              <td className="px-4 py-3">
-                Bonus awarded as recognition for years of service with the
-                company. Paid monthly.
-              </td>
-              <td className="px-4 py-3">
-                Length of service (e.g., 2, 3 years).
-              </td>
-              <td className="px-4 py-3">
-                25% of one month’s payment, divided into 12 installments (e.g.,
-                for $1,000 → $250 annually).
-              </td>
-            </tr>
-            <tr>
-              <td className="px-4 py-3 font-medium">Recognition</td>
-              <td className="px-4 py-3">
-                Bonus for exceptional achievements, innovation, or leadership in
-                assigned projects.
-              </td>
-              <td className="px-4 py-3">
-                Awarded at the company’s discretion.
-              </td>
-              <td className="px-4 py-3">
-                Estimated value according to internal policy.
-              </td>
-            </tr>
-            <tr>
-              <td className="px-4 py-3 font-medium">Non-Monetary Benefits</td>
-              <td className="px-4 py-3">
-                Complementary benefits awarded at the company’s discretion
-                (e.g., travel allowances, gifts, awards, experiences).
-              </td>
-              <td className="px-4 py-3">
-                Awarded at the company’s discretion.
-              </td>
-              <td className="px-4 py-3">
-                Estimated value according to internal policy.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div className="rounded-lg border border-gray-300 bg-white overflow-hidden">
+        {/* Title + Logo */}
+        <div className="flex items-center justify-between px-8 py-4 border-b border-gray-300">
+          <div className="flex-1 text-center">
+            <h2 className="text-xl font-bold text-[#0097B2]">
+              Table of Additional Incentives
+            </h2>
+          </div>
+          <div className="relative w-[130px] h-[55px] shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Andes Workforce"
+              fill
+              className="object-contain object-right"
+            />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-[#0070C0] text-white">
+                <th className="px-6 py-5 text-center font-bold border border-[#005999] w-[15%]">Bonus</th>
+                <th className="px-6 py-5 text-center font-bold border border-[#005999] w-[30%]">Description</th>
+                <th className="px-6 py-5 text-center font-bold border border-[#005999] w-[27%]">Eligibility Criteria</th>
+                <th className="px-6 py-5 text-center font-bold border border-[#005999] w-[28%]">Estimated Amount or Percentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-gray-300">
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Referral</td>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Bonus awarded to a contractor who successfully refers another contractor.</td>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">The referred contractor must remain with the company for at least 90 days.</td>
+                <td className="px-4 py-5 text-center text-gray-800">$100</td>
+              </tr>
+              <tr className="border-b border-gray-300">
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Individual Performance</td>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Bonus awarded to a contractor for achieving individual or team goals, as contractually agreed. Paid in June and December.</td>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Achievement of goals or results agreed upon with the company.</td>
+                <td className="px-4 py-5 text-center text-gray-800">5% of the monthly payment, accumulated semiannually (e.g., for $1,000 &rarr; $50)</td>
+              </tr>
+              <tr className="border-b border-gray-300">
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Discretionary Bonus</td>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Bonus awarded at the company&apos;s discretion as an annual incentive.</td>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">All contractors.</td>
+                <td className="px-4 py-5 text-center text-gray-800">Equivalent to half or a full month&apos;s payment, pro-rated based on length of service.</td>
+              </tr>
+              <tr className="border-b border-gray-300">
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Seniority</td>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Bonus awarded as recognition for years of service with the company. Paid monthly.</td>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Length of service (e.g., 2, 3 years).</td>
+                <td className="px-4 py-5 text-center text-gray-800">25% of one month&apos;s payment, divided into 12 installments (e.g., for $1,000 &rarr; $250 annually).</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Paid Holidays</td>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Contractors will receive payment for local public holidays in accordance with the applicable legislation in their country of residence.</td>
+                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">All contractors.</td>
+                <td className="px-4 py-5 text-center text-gray-800">According to the country Hr Rate Holidays (e.g. Col x2, Mex x3)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <p className="text-xs text-gray-500 mt-4">
+      <p className="text-sm text-[#0097B2] mt-4 text-center">
         Note: The incentives described are discretionary, do not constitute salary, and do not create acquired rights. Their granting depends on the evaluation and decision of the company and/or the firm.
       </p>
 
