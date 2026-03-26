@@ -1128,6 +1128,7 @@ export default function AdminDashboardPage() {
           onClose={() => setIsHistoryOpen(false)}
           offerId={selectedJob.id as string}
           serviceTitle={selectedJob.titulo}
+          includeAll={true}
         />
       )}
 

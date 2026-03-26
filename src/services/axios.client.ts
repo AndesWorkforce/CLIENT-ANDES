@@ -11,9 +11,31 @@ axiosClient.interceptors.request.use(
       .find((row) => row.startsWith("auth_token="))
       ?.split("=")[1];
     const zustandToken = useAuthStore.getState().token;
+    const effectiveToken = token || zustandToken || "";
+
     console.log("[Axios] Interceptor de solicitud", token, zustandToken);
-    if (token || zustandToken) {
-      config.headers.Authorization = `Bearer ${token || zustandToken}`;
+
+    if (effectiveToken) {
+      config.headers.Authorization = `Bearer ${effectiveToken}`;
+
+      try {
+        const parts = effectiveToken.split(".");
+        if (parts.length === 3) {
+          const payloadB64 = parts[1]
+            .replace(/-/g, "+")
+            .replace(/_/g, "/");
+          const payloadJson = JSON.parse(
+            atob(payloadB64)
+          ) as Record<string, unknown>;
+          console.log("[Axios] JWT payload:", payloadJson);
+        } else {
+          console.warn(
+            "[Axios] Token no parece un JWT estándar (no tiene 3 partes).",
+          );
+        }
+      } catch (e) {
+        console.warn("[Axios] No se pudo decodificar el JWT", e);
+      }
     }
 
     return config;
