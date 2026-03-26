@@ -49,7 +49,7 @@ const OffersAccessGuard: React.FC<OffersAccessGuardProps> = ({ children }) => {
       }
 
       // Si es admin o empleado admin, permitir acceso
-      if (user.rol?.includes("ADMIN") || user.rol?.includes("EMPLEADO_ADMIN")) {
+      if (user.rol.includes("ADMIN") || user.rol.includes("EMPLEADO_ADMIN")) {
         setIsCheckingAccess(false);
         return;
       }
@@ -76,8 +76,8 @@ const OffersAccessGuard: React.FC<OffersAccessGuardProps> = ({ children }) => {
       isAuthenticated: isAuthenticated && !!user,
       hasActiveContract: contractStatus?.hasActiveContract || false,
       isAdmin:
-        user?.rol?.includes("ADMIN") ||
-        user?.rol?.includes("EMPLEADO_ADMIN") ||
+        user?.rol.includes("ADMIN") ||
+        user?.rol.includes("EMPLEADO_ADMIN") ||
         false,
       isLoading: isCheckingAccess,
       contractDetails: contractStatus?.contractDetails,
