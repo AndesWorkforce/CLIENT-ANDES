@@ -140,7 +140,28 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
               Data Privacy Policy
             </Link>
           </div>
-          <div className="hidden md:block md:w-[250px] shrink-0" />
+          <div className="flex md:justify-end md:w-[250px] shrink-0">
+            <Link
+              href="https://appwiseinnovations.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-[6px] bg-white rounded-[20px] pl-[10px] pr-[12px] py-[5px] w-fit hover:opacity-90 transition-opacity"
+            >
+              <Image
+                src="https://appwiseinnovations.dev/r2-appwise/appwise/logo_appwise.png"
+                alt="AppWise Innovations"
+                width={35}
+                height={35}
+                className="rounded-full object-cover flex-shrink-0"
+              />
+              <div className="flex flex-col justify-center leading-none">
+                <span className="text-[12px] font-normal text-black">by</span>
+                <span className="text-[10px] font-extrabold text-black whitespace-nowrap font-['Inter',sans-serif]">
+                  APPWISE INNOVATIONS
+                </span>
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
