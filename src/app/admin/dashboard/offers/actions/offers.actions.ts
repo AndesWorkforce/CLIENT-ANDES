@@ -172,7 +172,8 @@ export async function getApplicantsHistory(
     const { includeAll = true, limit = 300, estadoPostulacion } = options || {};
 
     const params = new URLSearchParams();
-    if (includeAll) params.append("includeAll", String(includeAll));
+    // Siempre enviar includeAll: en el backend `undefined` es falsy y filtra solo activo: true
+    params.append("includeAll", includeAll ? "true" : "false");
     if (limit) params.append("limit", String(limit));
     if (estadoPostulacion && estadoPostulacion.trim()) {
       params.append("estadoPostulacion", estadoPostulacion.trim());

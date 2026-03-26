@@ -9,6 +9,8 @@ type Props = {
   onClose: () => void;
   offerId: string;
   serviceTitle?: string;
+  /** Incluir postulaciones inactivas en el historial (debe coincidir con el backend `includeAll`). Por defecto true. */
+  includeAll?: boolean;
 };
 
 type Application = {
@@ -29,6 +31,7 @@ export default function ApplicantsHistoryModal({
   onClose,
   offerId,
   serviceTitle,
+  includeAll = true,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +56,7 @@ export default function ApplicantsHistoryModal({
       setError(null);
       try {
         const resp = await getApplicantsHistory(offerId, {
-          includeAll: true,
+          includeAll,
           limit: 300,
           estadoPostulacion: estadoForFilter,
         });
@@ -75,7 +78,7 @@ export default function ApplicantsHistoryModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, offerId, estadoForFilter]);
+  }, [isOpen, offerId, estadoForFilter, includeAll]);
 
   const filtered = useMemo(() => {
     const safeRows = Array.isArray(rows) ? rows : [];

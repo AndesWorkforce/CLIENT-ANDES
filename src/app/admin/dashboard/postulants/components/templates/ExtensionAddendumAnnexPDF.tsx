@@ -88,6 +88,7 @@ interface ExtensionAddendumData {
   fechaInicioExtension?: string;
   fechaFinExtension?: string;
   signContractDate?: string;
+  proposal?: string;
 }
 
 const ExtensionAddendumAnnexPDF: React.FC<{
@@ -185,9 +186,11 @@ const ExtensionAddendumAnnexPDF: React.FC<{
           <View style={styles.listItem}>
             <Text style={styles.listBullet}>4.</Text>
             <Text style={styles.listContent}>
-              Description of New Services: The new services covered by this
-              extension are as follows:
-              {" "}
+            Description of New Services: The new position is{" "}
+              <Text style={styles.bold}>
+                {data.proposal || "{NEW POSITION TITLE}"}
+              </Text>
+              . And the new services covered by this extension are as follows:{" "}
               <Text style={styles.bold}>
                 {data.descripcionServicios ||
                   "{DESCRIPTION OF THE NEW SERVICES ASSIGNED TO THE CONTRACTOR}"}

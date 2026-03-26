@@ -1,5 +1,5 @@
 "use client";
-import { axiosBase } from "@/services/axios.instance";
+import { axiosClient } from "@/services/axios.client";
 
 export async function esignCreateDocumentBase64(payload: {
   titulo: string;
@@ -8,7 +8,7 @@ export async function esignCreateDocumentBase64(payload: {
   procesoContratacionId?: string;
   nombreArchivo?: string;
 }) {
-  const res = await axiosBase.post("esign/documents/base64", payload);
+  const res = await axiosClient.post("esign/documents/base64", payload);
   return res.data;
 }
 
@@ -16,7 +16,7 @@ export async function filesUploadPdf(pdfBlob: Blob): Promise<string> {
   const form = new FormData();
   const filename = `contract-${Date.now()}.pdf`;
   form.append("pdf", pdfBlob, filename);
-  const res = await axiosBase.post("files/upload/pdf", form, {
+  const res = await axiosClient.post("files/upload/pdf", form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 
@@ -32,7 +32,7 @@ export async function filesUploadPdfWithKey(
   form.append("pdf", pdfBlob, filename);
   form.append("key", key);
   form.append("folder", "documents/esign");
-  const res = await axiosBase.post("files/upload/pdf", form, {
+  const res = await axiosClient.post("files/upload/pdf", form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;
@@ -45,7 +45,7 @@ export async function esignCreateDocument(payload: {
   procesoContratacionId?: string;
   isAnnex?: boolean;
 }) {
-  const res = await axiosBase.post("esign/documents", payload);
+  const res = await axiosClient.post("esign/documents", payload);
 
   const data = res.data;
   return data && data.id ? { document: data } : data;
@@ -55,7 +55,7 @@ export async function esignUpdateDocumentSource(
   documentId: string,
   archivoOrigenUrl: string
 ) {
-  const res = await axiosBase.post(`esign/documents/${documentId}/source`, {
+  const res = await axiosClient.post(`esign/documents/${documentId}/source`, {
     archivoOrigenUrl,
   });
   return res.data;
@@ -73,7 +73,7 @@ export async function esignAddRecipients(
     }>;
   }
 ) {
-  const res = await axiosBase.post(
+  const res = await axiosClient.post(
     `esign/documents/${documentId}/recipients`,
     payload
   );
@@ -96,7 +96,7 @@ export async function esignAddFields(
     }>;
   }
 ) {
-  const res = await axiosBase.post(
+  const res = await axiosClient.post(
     `esign/documents/${documentId}/fields`,
     payload
   );
@@ -104,7 +104,7 @@ export async function esignAddFields(
 }
 
 export async function esignSendDocument(documentId: string) {
-  const res = await axiosBase.post(`esign/documents/${documentId}/send`);
+  const res = await axiosClient.post(`esign/documents/${documentId}/send`);
   return res.data;
 }
 
@@ -114,7 +114,7 @@ export async function esignUpdateProcessOffer(
   monedaSalario?: string,
   fechaInicioLabores?: string
 ) {
-  const res = await axiosBase.patch(
+  const res = await axiosClient.patch(
     `esign/documents/${documentId}/proceso/oferta`,
     { ofertaSalarial, monedaSalario, fechaInicioLabores }
   );
@@ -122,6 +122,38 @@ export async function esignUpdateProcessOffer(
 }
 
 export async function esignGetDocument(documentId: string) {
-  const res = await axiosBase.get(`esign/documents/${documentId}`);
+  const res = await axiosClient.get(`esign/documents/${documentId}`);
+  return res.data;
+}
+
+export async function adminUpdateContratoYPostulacionClient(payload: {
+  procesoContratacionId: string;
+  propuestaId?: string;
+  puestoTrabajo?: string;
+  ofertaSalarial?: number | string;
+  monedaSalario?: string;
+  /** Actualiza ProcesoContratacion.fechaInicio (no fechaInicioLabores). */
+  fechaInicio?: string;
+}) {
+  const {
+    procesoContratacionId,
+    propuestaId,
+    puestoTrabajo,
+    ofertaSalarial,
+    monedaSalario,
+    fechaInicio,
+  } = payload;
+
+  const body: any = {};
+  if (propuestaId !== undefined) body.propuestaId = propuestaId;
+  if (puestoTrabajo !== undefined) body.puestoTrabajo = puestoTrabajo;
+  if (ofertaSalarial !== undefined) body.ofertaSalarial = ofertaSalarial;
+  if (monedaSalario !== undefined) body.monedaSalario = monedaSalario;
+  if (fechaInicio !== undefined) body.fechaInicio = fechaInicio;
+
+  const res = await axiosClient.patch(
+    `admin/contratacion/${procesoContratacionId}/admin-update`,
+    body
+  );
   return res.data;
 }
