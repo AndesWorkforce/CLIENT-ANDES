@@ -162,14 +162,15 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} flex flex-col min-h-screen`}>
         <AuthValidator />
         <Navbar />
-        {children}
+        <main className="flex-1 pt-[85px]">
+          {children}
+        </main>
         <Footer />
         <Toast />
       </body>
-      <Script src="/appwise-banner.js" />
     </html>
   );
 }

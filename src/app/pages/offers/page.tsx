@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import FilterModal from "./components/FilterModal";
 import OffersAccessGuard from "./components/OffersAccessGuard";
 import OffersLandingPage from "./components/OffersLandingPage";
-
 import type { FilterValues } from "./components/FilterModal";
 import {
   applyToOffer,
@@ -444,7 +443,7 @@ function AuthenticatedOffersPage() {
       {/* Pantalla completa para usuarios no logueados */}
       {!user ? (
         <div
-          className="min-h-screen flex items-center justify-center text-white relative"
+          className="min-h-[calc(100vh-105px)] flex items-center justify-center text-white relative"
           style={{
             backgroundImage: "url('/images/teamwork.jpg')",
             backgroundSize: "cover",
@@ -495,7 +494,7 @@ function AuthenticatedOffersPage() {
           </div>
         </div>
       ) : (
-        <div className="container mx-auto bg-white min-h-screen">
+        <div className="container mx-auto bg-white">
           {!isValidProfileUserState && showInfoMessage && (
             <div className="bg-blue-50 m-4 rounded-lg p-4">
               <div className="flex items-start justify-between gap-2">
