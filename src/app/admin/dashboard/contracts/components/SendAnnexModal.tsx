@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { X, FileText, Send, Eye } from "lucide-react";
+import { X, FileText, Send, Eye, ChevronDown } from "lucide-react";
 import StatementOfWorkPDF from "../../postulants/components/templates/StatementOfWorkPDF";
 import StatementOfWorkEnglishPDF from "../../postulants/components/templates/StatementOfWorkEnglishPDF";
 import NewStatementOfWorkEnglishPDF from "../../postulants/components/templates/NewStatementOfWorkEnglishPDF";
@@ -24,7 +24,9 @@ import {
   esignAddFields,
   esignSendDocument,
   esignUpdateDocumentSource,
+  adminUpdateContratoYPostulacionClient,
 } from "@/app/admin/dashboard/actions/esign.client";
+import { getPublishedOffers } from "@/app/admin/dashboard/actions/offers.actions";
 
 interface SendAnnexModalProps {
   isOpen: boolean;
@@ -433,6 +435,13 @@ export default function SendAnnexModal({
   }));
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [proposals, setProposals] = useState<{ id: string; titulo: string }[]>(
+    []
+  );
+  const [selectedProposalId, setSelectedProposalId] = useState<string>("");
+  const [proposalSearch, setProposalSearch] = useState<string>("");
+  const [showProposalDropdown, setShowProposalDropdown] =
+    useState<boolean>(false);
 
   useEffect(() => {
     if (isOpen && contractTemplates.length > 0) {
@@ -443,6 +452,48 @@ export default function SendAnnexModal({
       }));
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const loadProposals = async () => {
+      try {
+        const response = await getPublishedOffers(1, 1000, "");
+        if (response.success && response.data?.data) {
+          const rows = response.data.data as any[];
+          const mapped = rows.map((offer: any) => ({
+            id: offer.id as string,
+            titulo: offer.titulo as string,
+          }));
+          setProposals(mapped);
+          // Preseleccionar una propuesta cuyo título coincida con el puesto actual, si existe
+          const match = mapped.find(
+            (p) => p.titulo === contract.puestoTrabajo
+          );
+          if (match) {
+            setSelectedProposalId(match.id);
+            setProposalSearch(match.titulo);
+            setContractData((prev) => ({
+              ...prev,
+              puestoTrabajo: match.titulo,
+            }));
+          }
+        } else {
+          setProposals([]);
+        }
+      } catch (e) {
+        console.error("[SendAnnexModal] Error loading proposals", e);
+        setProposals([]);
+      }
+    };
+
+    loadProposals();
+    // Reset búsqueda cuando se abre el modal si no hay match
+    if (!contract.puestoTrabajo) {
+      setProposalSearch("");
+      setSelectedProposalId("");
+    }
+  }, [isOpen, contract.puestoTrabajo]);
 
   const handleTemplateChange = (template: ContractTemplate) => {
     setShowPreview(false);
@@ -484,6 +535,7 @@ export default function SendAnnexModal({
   const getPDFData = () => {
     return {
       ...contractData,
+      proposal: proposalSearch || contractData.puestoTrabajo || "Current Position",
       nombreCompleto: contractData.nombreCompleto || "Contractor Name",
       correoElectronico:
         contractData.correoElectronico || "contractor@email.com",
@@ -559,6 +611,74 @@ export default function SendAnnexModal({
     sendingRef.current = true;
     setIsLoading(true);
     try {
+      // Si es un Addendum for Extension, primero actualizamos contrato y postulación en backend
+      if (selectedTemplate.id === "extension-addendum") {
+        if (!selectedProposalId) {
+          setValidationErrors((prev) => [
+            ...prev,
+            "Proposal (Position) is required for Extension Addendum",
+          ]);
+          setIsLoading(false);
+          sendingRef.current = false;
+          return;
+        }
+
+        // Para el Addendum for Extension, la nueva oferta salarial debe salir del valor que
+        // el admin escribe en el modal (Annex Data). Usamos primero `nuevoValorContrato`,
+        // luego `ofertaSalarial` del propio formulario.
+        let ofertaSalarialNumber: number | undefined;
+        if (contractData.nuevoValorContrato) {
+          const parsed = Number(contractData.nuevoValorContrato);
+          if (!Number.isNaN(parsed)) {
+            ofertaSalarialNumber = parsed;
+          }
+        } else if (contractData.ofertaSalarial) {
+          const parsed = Number(contractData.ofertaSalarial);
+          if (!Number.isNaN(parsed)) {
+            ofertaSalarialNumber = parsed;
+          }
+        } else if (typeof contract.ofertaSalarial === "number") {
+          ofertaSalarialNumber = contract.ofertaSalarial;
+        }
+
+        // Backend: actualizar fechaInicio del proceso (no fechaInicioLabores).
+        // El input del formulario sigue siendo contractData.fechaInicioLabores (etiqueta Annex).
+        let fechaInicioIso: string | undefined;
+        if (
+          contractData.fechaInicioLabores &&
+          typeof contractData.fechaInicioLabores === "string"
+        ) {
+          const parsed = new Date(contractData.fechaInicioLabores);
+          if (!Number.isNaN(parsed.getTime())) {
+            fechaInicioIso = parsed.toISOString();
+          }
+        }
+        if (!fechaInicioIso && contract.fechaInicio) {
+          if (contract.fechaInicio instanceof Date) {
+            fechaInicioIso = contract.fechaInicio.toISOString();
+          } else if (typeof contract.fechaInicio === "string") {
+            const parsed = new Date(contract.fechaInicio);
+            if (!Number.isNaN(parsed.getTime())) {
+              fechaInicioIso = parsed.toISOString();
+            }
+          }
+        }
+
+        const puestoTrabajoParaBackend =
+          (selectedProposalId && proposalSearch.trim()) ||
+          contractData.puestoTrabajo?.trim() ||
+          contract.puestoTrabajo;
+
+        await adminUpdateContratoYPostulacionClient({
+          procesoContratacionId: contract.id,
+          propuestaId: selectedProposalId,
+          puestoTrabajo: puestoTrabajoParaBackend,
+          ofertaSalarial: ofertaSalarialNumber,
+          monedaSalario: contractData.monedaSalario || contract.monedaSalario,
+          fechaInicio: fechaInicioIso,
+        });
+      }
+
       const { pdf } = await import("@react-pdf/renderer");
       const pdfData = getPDFData();
       let pdfDocument;
@@ -791,9 +911,100 @@ export default function SendAnnexModal({
                       "paisDocumento",
                       "fechaInicioContratoOriginal",
                       "nuevoValorContrato",
-                      "descripcionServicios",
-                      "signContractDate",
                     ].map(
+                      (field) =>
+                        selectedTemplate.variables.includes(field) && (
+                          <div key={field} className="mb-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              {getFieldLabel(field)}
+                            </label>
+                            <input
+                              type="text"
+                              value={
+                                contractData[
+                                  field as keyof typeof contractData
+                                ] || ""
+                              }
+                              onChange={(e) =>
+                                handleInputChange(field, e.target.value)
+                              }
+                              className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                              placeholder={getFieldPlaceholder(field)}
+                            />
+                          </div>
+                        )
+                    )}
+
+                    {/* Selector de propuesta - entre New Contract Value y Service Description */}
+                    {selectedTemplate.variables.includes("descripcionServicios") && (
+                      <div className="mb-2 relative">
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          Proposal (Position) *
+                        </label>
+                        <div
+                          className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm flex items-center justify-between cursor-text focus-within:ring-1 focus-within:ring-[#0097B2]"
+                          onClick={() => setShowProposalDropdown(true)}
+                        >
+                          <input
+                            type="text"
+                            value={proposalSearch}
+                            onChange={(e) => {
+                              setProposalSearch(e.target.value);
+                              setShowProposalDropdown(true);
+                            }}
+                            placeholder="Search proposal by title"
+                            className="flex-1 outline-none bg-transparent text-sm"
+                          />
+                          <ChevronDown
+                            size={14}
+                            className="ml-2 text-gray-400 pointer-events-none"
+                          />
+                        </div>
+                        {showProposalDropdown && (
+                          <div className="absolute z-30 mt-1 w-full max-h-60 overflow-auto bg-white border border-gray-200 rounded-md shadow-lg text-sm">
+                            {proposals
+                              .filter((p) =>
+                                p.titulo
+                                  .toLowerCase()
+                                  .includes(proposalSearch.toLowerCase())
+                              )
+                              .map((proposal) => (
+                                <button
+                                  key={proposal.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedProposalId(proposal.id);
+                                    setProposalSearch(proposal.titulo);
+                                    setContractData((prev) => ({
+                                      ...prev,
+                                      puestoTrabajo: proposal.titulo,
+                                    }));
+                                    setShowProposalDropdown(false);
+                                  }}
+                                  className={`w-full text-left px-3 py-1.5 hover:bg-[#E6F7FA] ${
+                                    proposal.id === selectedProposalId
+                                      ? "bg-[#E6F7FA]"
+                                      : ""
+                                  }`}
+                                >
+                                  {proposal.titulo}
+                                </button>
+                              ))}
+                            {proposals.filter((p) =>
+                              p.titulo
+                                .toLowerCase()
+                                .includes(proposalSearch.toLowerCase())
+                            ).length === 0 && (
+                              <div className="px-3 py-2 text-xs text-gray-500">
+                                No proposals found
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {["descripcionServicios", "signContractDate"].map(
                       (field) =>
                         selectedTemplate.variables.includes(field) && (
                           <div key={field} className="mb-2">
