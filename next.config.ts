@@ -14,11 +14,6 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "appwiseinnovations.dev",
-        pathname: "/r2-appwise/**",
-      },
-      {
-        protocol: "https",
         hostname: "andes-workforce-s3.s3.us-east-2.amazonaws.com",
         pathname: "/clientes/**",
       },
