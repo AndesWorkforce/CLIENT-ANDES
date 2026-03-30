@@ -87,7 +87,7 @@ const OffersAccessGuard: React.FC<OffersAccessGuardProps> = ({ children }) => {
   // Pantalla de carga
   if (isCheckingAccess) {
     return (
-      <div className="container mx-auto bg-white min-h-screen flex items-center justify-center">
+      <div className="container mx-auto bg-white min-h-[calc(100vh-105px)] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#0097B2] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading offers...</p>
@@ -99,8 +99,8 @@ const OffersAccessGuard: React.FC<OffersAccessGuardProps> = ({ children }) => {
   // Usuario con contrato activo - bloquear acceso completo
   if (contractStatus?.hasActiveContract) {
     return (
-      <div className="container mx-auto bg-white min-h-screen">
-        <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="container mx-auto bg-white">
+        <div className="flex items-center justify-center min-h-[calc(100vh-105px)] p-4">
           <div className="max-w-md w-full text-center">
             <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-md">
               <div className="mb-6">
