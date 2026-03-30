@@ -309,6 +309,13 @@ export default function PaymentsPage() {
 
   // Estados para exportación
   const [isExporting, setIsExporting] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFromYearMonth, setExportFromYearMonth] = useState(
+    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
+  );
+  const [exportToYearMonth, setExportToYearMonth] = useState(
+    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
+  );
 
   console.log(!!actionLogs);
 
@@ -353,30 +360,140 @@ export default function PaymentsPage() {
   };
 
   // Función para exportar a Excel
-  const exportToExcel = async () => {
+  const exportToExcel = async (fromInput: string, toInput: string) => {
     setIsExporting(true);
     try {
-      // Usar todos los usuarios (no solo los filtrados)
-      const dataToExport = users.map((user) => ({
-        "Full Name": `${user.firstName} ${user.lastName}`,
-        Email: user.email,
-        Company: user.companyName || "N/A",
-        "Discretionary Bonus": getAdminDiscretionaryBonusLabel(
-          user.discretionaryBonusType ?? null
-        ),
-        Holidays: user.paidHolidays ? "Yes" : "No",
-        "Document This Month": user.documentUploadedThisMonth ? "Yes" : "No",
-        "Last Document Date": user.lastDocumentDate || "N/A",
-        "Payment Enabled": user.paymentEnabled ? "Yes" : "No",
-        "Payment Enabled Date": user.paymentEnabledDate || "N/A",
-        Observations: user.observacionesRevision || "None",
-        "Document Reviewed": user.documentoRevisado ? "Yes" : "No",
-        "Previous Month Approved": user.mesAnteriorAprobado ? "Yes" : "No",
-        "Has Evaluation ID": user.evaluacionMensualId ? "Yes" : "No",
-        "Has Previous Month Evaluation": user.evaluacionMesAnteriorId
-          ? "Yes"
-          : "No",
+      const formatYearMonth = (year: number, month: number) =>
+        `${year}-${String(month).padStart(2, "0")}`;
+
+      const parseYearMonth = (value: string) => {
+        const normalized = value.trim();
+        const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(normalized);
+        if (!match) return null;
+        return {
+          year: Number(match[1]),
+          month: Number(match[2]),
+          ym: normalized,
+        };
+      };
+
+      const compareYearMonth = (
+        start: { year: number; month: number },
+        end: { year: number; month: number }
+      ) => start.year - end.year || start.month - end.month;
+
+      const buildYearMonthRange = (
+        start: { year: number; month: number },
+        end: { year: number; month: number }
+      ) => {
+        const months: Array<{ year: number; month: number; ym: string }> = [];
+        let year = start.year;
+        let month = start.month;
+
+        while (year < end.year || (year === end.year && month <= end.month)) {
+          months.push({ year, month, ym: formatYearMonth(year, month) });
+          if (month === 12) {
+            year += 1;
+            month = 1;
+          } else {
+            month += 1;
+          }
+        }
+
+        return months;
+      };
+
+      const fromPeriod = parseYearMonth(fromInput);
+      const toPeriod = parseYearMonth(toInput);
+
+      if (!fromPeriod || !toPeriod) {
+        addNotification("Use valid periods in YYYY-MM format", "error");
+        return false;
+      }
+
+      if (compareYearMonth(fromPeriod, toPeriod) > 0) {
+        addNotification("The start period must be before the end period", "error");
+        return false;
+      }
+
+      const periods = buildYearMonthRange(fromPeriod, toPeriod);
+      const monthlyData = await Promise.all(
+        periods.map(async ({ year, month, ym }) => {
+          const result = await getMonthlyPaymentsData(year, month, countryFilter);
+          if (!result.success) {
+            throw new Error(`Failed to load monthly payments for ${ym}`);
+          }
+          return {
+            ym,
+            users: result.users,
+            periodDocs: result.periodDocs,
+          };
+        })
+      );
+
+      const periodColumns = periods.map(({ ym }) => ({
+        ym,
+        invoiceColumn: `Invoice ${ym}`,
+        proofColumn: `Proof ${ym}`,
       }));
+      const rowsByProcessId = new Map<string, Record<string, string>>();
+
+      const createBaseRow = (user: UserContract) => {
+        const isColombia = String(user.country || "").toLowerCase() === "colombia";
+        const row: Record<string, string> = {
+          "Full Name": `${user.firstName} ${user.lastName}`.trim(),
+          Email: user.email || "N/A",
+          Company: user.companyName || "N/A",
+          Country: user.country || "N/A",
+          "Discretionary Bonus": getAdminDiscretionaryBonusLabel(
+            user.discretionaryBonusType ?? null
+          ),
+          Holidays: user.paidHolidays ? "Si" : "No",
+        };
+
+        periodColumns.forEach(({ invoiceColumn, proofColumn }) => {
+          row[invoiceColumn] = "No";
+          row[proofColumn] = isColombia ? "No" : "No corresponde";
+        });
+
+        return row;
+      };
+
+      for (const { ym, users: monthUsers, periodDocs: monthPeriodDocs } of monthlyData) {
+        for (const user of monthUsers) {
+          if (!rowsByProcessId.has(user.id)) {
+            rowsByProcessId.set(user.id, createBaseRow(user));
+          }
+
+          const row = rowsByProcessId.get(user.id);
+          if (!row) continue;
+
+          const isColombia =
+            String(user.country || "").toLowerCase() === "colombia";
+          const hasProof =
+            monthPeriodDocs[user.id]?.[ym]?.exists ?? user.documentUploadedThisMonth;
+          const hasInvoice = !!user.inboxMesActualId;
+          const periodColumn = periodColumns.find((column) => column.ym === ym);
+          if (!periodColumn) continue;
+
+          row[periodColumn.invoiceColumn] = hasInvoice ? "Si" : "No";
+
+          row[periodColumn.proofColumn] = isColombia
+            ? hasProof
+              ? "Si"
+              : "No"
+            : "No corresponde";
+        }
+      }
+
+      const dataToExport = Array.from(rowsByProcessId.values()).sort((a, b) =>
+        a["Full Name"].localeCompare(b["Full Name"])
+      );
+
+      if (dataToExport.length === 0) {
+        addNotification("No users found for the selected range", "error");
+        return false;
+      }
 
       const worksheet = XLSX.utils.json_to_sheet(dataToExport);
       const workbook = XLSX.utils.book_new();
@@ -387,34 +504,44 @@ export default function PaymentsPage() {
         { wch: 25 }, // Full Name
         { wch: 30 }, // Email
         { wch: 25 }, // Company
+        { wch: 18 }, // Country
         { wch: 25 }, // Discretionary Bonus
         { wch: 12 }, // Holidays
-        { wch: 20 }, // Document This Month
-        { wch: 18 }, // Last Document Date
-        { wch: 15 }, // Payment Enabled
-        { wch: 18 }, // Payment Enabled Date
-        { wch: 40 }, // Observations
-        { wch: 18 }, // Document Reviewed
-        { wch: 22 }, // Previous Month Approved
-        { wch: 18 }, // Has Evaluation ID
-        { wch: 25 }, // Has Previous Month Evaluation
+        ...periodColumns.flatMap(() => [{ wch: 16 }, { wch: 16 }]),
       ];
       worksheet["!cols"] = columnWidths;
 
-      const fileName = `monthly-payments-${
-        new Date().toISOString().split("T")[0]
-      }.xlsx`;
+      const fileName = `monthly-payments-${fromPeriod.ym}-to-${toPeriod.ym}.xlsx`;
       XLSX.writeFile(workbook, fileName);
 
       addNotification(
         `Excel file exported successfully: ${fileName}`,
         "success"
       );
+      return true;
     } catch (error) {
       console.error("Error exporting to Excel:", error);
       addNotification("Error exporting to Excel", "error");
+      return false;
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const openExportModal = () => {
+    const currentYearMonth = `${selectedYear}-${String(selectedMonth).padStart(
+      2,
+      "0"
+    )}`;
+    setExportFromYearMonth(currentYearMonth);
+    setExportToYearMonth(currentYearMonth);
+    setShowExportModal(true);
+  };
+
+  const handleExportConfirm = async () => {
+    const success = await exportToExcel(exportFromYearMonth, exportToYearMonth);
+    if (success) {
+      setShowExportModal(false);
     }
   };
 
@@ -1146,7 +1273,7 @@ export default function PaymentsPage() {
         </h1>
         <div className="flex items-center space-x-4">
           <button
-            onClick={exportToExcel}
+            onClick={openExportModal}
             disabled={isExporting}
             className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
               isExporting
@@ -1844,6 +1971,79 @@ export default function PaymentsPage() {
           </ul>
         </div>
       </div> */}
+
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div>
+                <h3 className="text-lg font-medium text-[#17323A]">
+                  Export To Excel
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Select the month range to include in the export.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowExportModal(false)}
+                disabled={isExporting}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Desde
+                </label>
+                <input
+                  type="month"
+                  value={exportFromYearMonth}
+                  onChange={(e) => setExportFromYearMonth(e.target.value)}
+                  max={exportToYearMonth || undefined}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Hasta
+                </label>
+                <input
+                  type="month"
+                  value={exportToYearMonth}
+                  onChange={(e) => setExportToYearMonth(e.target.value)}
+                  min={exportFromYearMonth || undefined}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 p-4 border-t">
+              <button
+                onClick={() => setShowExportModal(false)}
+                disabled={isExporting}
+                className="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExportConfirm}
+                disabled={isExporting}
+                className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
+                  isExporting
+                    ? "bg-blue-300 cursor-not-allowed"
+                    : "bg-[#0097B2] hover:bg-[#007B8F]"
+                }`}
+              >
+                {isExporting ? "Exporting..." : "Export"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Document Modal */}
       {showDocumentModal && selectedDocument && (
