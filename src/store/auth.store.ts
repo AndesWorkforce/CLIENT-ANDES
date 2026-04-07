@@ -57,8 +57,7 @@ export const useAuthStore = create<AuthState>()(
             credentials: "include",
           });
 
-          // Actualizar el estado local de Zustand
-          set({ user: null, isAuthenticated: false });
+          set({ user: null, isAuthenticated: false, token: null });
 
           // Redirigir al home (opcional, esto puede manejarse en el componente)
           if (typeof window !== "undefined") {
@@ -67,7 +66,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error("Error during logout:", error);
           // Si hay un error, intentamos limpiar el estado de Zustand de todos modos
-          set({ user: null, isAuthenticated: false });
+          set({ user: null, isAuthenticated: false, token: null });
         }
       },
       setToken: (token) => set({ token }),
@@ -78,6 +77,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
+        token: state.token,
       }),
       onRehydrateStorage: (state) => {
         // Siempre marcar como no cargando después de la rehidratación
