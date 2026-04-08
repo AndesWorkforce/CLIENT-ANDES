@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { teamMembers } from "../team/team.data";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { TeamMember } from "../team/team.data";
 
 export default function AboutPage() {
@@ -10,6 +10,89 @@ export default function AboutPage() {
   const allMembers = teamMembers.filter((m) => m.group !== "Pet Family");
   const petMembers = teamMembers.filter((m) => m.group === "Pet Family");
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [visibleCount, setVisibleCount] = useState(5);
+  const [trackIndex, setTrackIndex] = useState(5); // offset by visibleCount (clonesBefore)
+  const [transitionOn, setTransitionOn] = useState(true);
+  const petIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const visibleCountRef = useRef(5);
+  const trackIndexRef = useRef(5);
+
+  const total = petMembers.length;
+  // Extended array: [last vc items] + [real items] + [first vc items]
+  const extendedPets = [
+    ...petMembers.slice(-visibleCount),
+    ...petMembers,
+    ...petMembers.slice(0, visibleCount),
+  ];
+  // Current real index for dots
+  const realIndex = ((trackIndex - visibleCount) % total + total) % total;
+
+  const handleTransitionEnd = () => {
+    const ti = trackIndexRef.current;
+    const vc = visibleCountRef.current;
+    if (ti >= vc + total) {
+      const newTi = vc + (ti - vc - total);
+      trackIndexRef.current = newTi;
+      setTransitionOn(false);
+      setTrackIndex(newTi);
+    } else if (ti < vc) {
+      const newTi = vc + total - (vc - ti);
+      trackIndexRef.current = newTi;
+      setTransitionOn(false);
+      setTrackIndex(newTi);
+    }
+  };
+
+  // Re-enable transition after an instant jump (2 rAFs to ensure DOM settled)
+  useEffect(() => {
+    if (!transitionOn) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setTransitionOn(true));
+      });
+    }
+  }, [transitionOn]);
+
+  const nav = (dir: 1 | -1) => {
+    setTransitionOn(true);
+    setTrackIndex((t) => {
+      const newT = t + dir;
+      trackIndexRef.current = newT;
+      return newT;
+    });
+  };
+
+  const startPetAutoPlay = () => {
+    if (petIntervalRef.current) clearInterval(petIntervalRef.current);
+    petIntervalRef.current = setInterval(() => nav(1), 3500);
+  };
+
+  useEffect(() => {
+    const update = () => {
+      const count =
+        window.innerWidth >= 1024 ? 5 : window.innerWidth >= 640 ? 3 : 2;
+      const diff = count - visibleCountRef.current;
+      visibleCountRef.current = count;
+      setTransitionOn(false);
+      setTrackIndex((t) => {
+        const newT = t + diff;
+        trackIndexRef.current = newT;
+        return newT;
+      });
+      setVisibleCount(count);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (petMembers.length > 1) startPetAutoPlay();
+    return () => {
+      if (petIntervalRef.current) clearInterval(petIntervalRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="min-h-screen">
@@ -186,46 +269,130 @@ export default function AboutPage() {
             ))}
           </div>
 
-          {/* Pet Family Section */}
+          {/* Pet Family Carousel Section */}
           {petMembers.length > 0 && (
             <div className="mt-14 md:mt-20">
-              <h2 className="text-2xl md:text-3xl font-bold text-[#08252A] mb-6 text-center">
-                🐾 Pet Family
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-6xl mx-auto">
-                {petMembers.map((pet) => (
-                  <div
-                    key={pet.id}
-                    className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
-                  >
-                    {/* Pet Photo */}
-                    <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
-                      {pet.image ? (
-                        <Image
-                          src={pet.image}
-                          alt={pet.name}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className={pet.imageClass || "object-cover"}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          No Image
-                        </div>
-                      )}
-                    </div>
+              {/* Section Header */}
+              <div className="text-center mb-8 md:mb-10">
+                <span className="text-5xl block mb-3">🐾</span>
+                <h2 className="text-2xl md:text-3xl font-bold text-[#0097B2] mb-2">
+                  Our Pet Family
+                </h2>
+                <p className="text-gray-500 text-sm md:text-base max-w-sm mx-auto">
+                  The furry co-workers who make every day a little brighter.
+                </p>
+              </div>
 
-                    {/* Name and Role */}
-                    <div className="p-4 text-center bg-white">
-                      <h3 className="text-lg md:text-xl font-bold text-[#08252A] mb-1">
-                        {pet.name}
-                      </h3>
-                      <p className="text-xs text-gray-600 font-medium">
-                        {pet.role}
-                      </p>
-                    </div>
+              {/* Carousel Wrapper */}
+              <div
+                className="py-10 px-4 md:px-8"
+                onMouseEnter={() => {
+                  if (petIntervalRef.current) {
+                    clearInterval(petIntervalRef.current);
+                    petIntervalRef.current = null;
+                  }
+                }}
+                onMouseLeave={startPetAutoPlay}
+              >
+                {/* Track container */}
+                <div className="relative overflow-hidden">
+                  {/* Extended sliding track with clones for infinite loop */}
+                  <div
+                    className={`flex ${
+                      transitionOn
+                        ? "transition-transform duration-500 ease-in-out"
+                        : ""
+                    }`}
+                    style={{
+                      transform: `translateX(-${trackIndex * (100 / visibleCount)}%)`,
+                    }}
+                    onTransitionEnd={handleTransitionEnd}
+                  >
+                    {extendedPets.map((pet, idx) => (
+                      <div
+                        key={`${pet.id}-${idx}`}
+                        className="flex-shrink-0 px-3"
+                        style={{ width: `${100 / visibleCount}%` }}
+                      >
+                        <div className="py-5 px-3 flex flex-col items-center text-center">
+                          {/* Circular Image */}
+                          <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-[#0097B2] shadow-md mb-3 flex-shrink-0">
+                            {pet.image ? (
+                              <Image
+                                src={pet.image}
+                                alt={pet.name}
+                                fill
+                                sizes="96px"
+                                className={pet.imageClass || "object-cover"}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-[#0097B2] flex items-center justify-center text-3xl">
+                                🐾
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <h3 className="text-sm font-bold text-[#08252A] mb-0.5 leading-tight">
+                            {pet.name}
+                          </h3>
+                          <p className="text-[#0097B2] font-semibold text-xs mb-2 leading-tight">
+                            {pet.role}
+                          </p>
+                          {pet.bullets.length > 0 && (
+                            <p className="text-gray-400 text-xs leading-relaxed italic line-clamp-2">
+                              &ldquo;{pet.bullets[0]}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+
+                  {/* Prev Button */}
+                  <button
+                    onClick={() => { nav(-1); startPetAutoPlay(); }}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#0097B2] transition-all group z-10"
+                    aria-label="Previous pets"
+                  >
+                    <svg className="w-5 h-5 text-gray-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Next Button */}
+                  <button
+                    onClick={() => { nav(1); startPetAutoPlay(); }}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#0097B2] transition-all group z-10"
+                    aria-label="Next pets"
+                  >
+                    <svg className="w-5 h-5 text-gray-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Dots - one per real pet */}
+                <div className="flex justify-center gap-2 mt-6">
+                  {petMembers.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        const newTi = visibleCountRef.current + idx;
+                        trackIndexRef.current = newTi;
+                        setTransitionOn(true);
+                        setTrackIndex(newTi);
+                        startPetAutoPlay();
+                      }}
+                      aria-label={`Go to pet ${idx + 1}`}
+                      className={`transition-all duration-300 rounded-full ${
+                        idx === realIndex
+                          ? "w-6 h-3 bg-[#0097B2]"
+                          : "w-3 h-3 bg-[#0097B2]/30 hover:bg-[#0097B2]/60"
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -359,6 +526,8 @@ export default function AboutPage() {
             .animate-scaleIn {
               animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             }
+
+
           `}</style>
         </div>
       )}
