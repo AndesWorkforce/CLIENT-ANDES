@@ -1,9 +1,9 @@
 import HeroSection from "./components/HeroSection";
 import AboutSection from "./components/AboutSection";
 import PartnersSection from "./components/PartnersSection";
-import ServicesSection from "./components/ServicesSection";
 import TestimonialsSection from "./components/TestimonialsSection";
 import PersonnelTypes from "./components/PersonnelTypes";
+import CTASection from "./components/CTASection";
 
 export default function HomePage() {
   return (
@@ -17,14 +17,14 @@ export default function HomePage() {
       {/* Personnel Types Section */}
       <PersonnelTypes />
 
-      {/* Services Section */}
-      <ServicesSection />
-
       {/* Testimonials Section */}
       <TestimonialsSection />
 
       {/* About Section */}
       <AboutSection />
+
+      {/* CTA Section */}
+      <CTASection />
     </>
   );
 }

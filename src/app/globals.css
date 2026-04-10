@@ -99,7 +99,7 @@ body {
 }
 
 .animate-scroll-infinite {
-  animation: scroll-infinite 30s linear infinite;
+  animation: scroll-infinite 18s linear infinite;
 }
 
 /* Pausar animación al hacer hover */

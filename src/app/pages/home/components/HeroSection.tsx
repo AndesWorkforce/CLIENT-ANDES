@@ -1,67 +1,63 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 export default function HeroSection() {
   return (
-    <section className="relative bg-gradient-to-br from-[#1a365d] via-[#2d5a87] to-[#4a90a4] py-12 md:py-6 overflow-hidden min-h-[80vh] flex items-center">
-      {/* Background Decorative Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-white/3 rounded-full blur-3xl"></div>
-      </div>
+    <section className="bg-[#00224d] h-[600px] overflow-hidden relative">
+      <div className="container mx-auto w-full h-full grid grid-cols-1 md:grid-cols-2">
+        {/* Left: Logo + Headline + Subtitle + CTA */}
+        <div className="flex flex-col gap-5 justify-center text-center md:text-left px-6 md:px-12 lg:px-20">
+            {/* Color logo */}
+            <div className="flex justify-center md:justify-start">
+              <Image
+                src="/logo-andes.png"
+                alt="Andes Workforce"
+                width={180}
+                height={46}
+                className="h-auto"
+                priority
+              />
+            </div>
 
-      {/* Content Container: 2 columns */}
-      <div className="container mx-auto px-6 md:px-8 lg:px-12 relative z-10 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-10 items-center gap-10">
-          {/* Left: Texts */}
-          <div className="text-white text-center md:text-left md:col-span-6 max-w-none mx-auto md:mx-0">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-1 leading-tight">
-              <span className="inline md:whitespace-nowrap">
-                Elevate Your Business
-              </span>
+            {/* Headline */}
+            <h1 className="text-white font-bold text-3xl md:text-4xl leading-[1.35]">
+              Work with{" "}
+              <span className="text-[#0097b2]">top talent</span>
               <br />
-              <span className="md:text-5xl text-[#00ffff]">
-                with Skilled Professionals{" "}
-              </span>
-              <br />
-              <span className="md:text-5xl text-[#00ffff] ">
-                from Latin America
-              </span>
+              from{" "}
+              <span className="text-[#0097b2]">Latin America</span>
             </h1>
 
-            <p className="text-lg md:text-xl lg:text-2xl mb-2 leading-relaxed text-gray-100">
-              Connect with top-tier professionals{" "}
-              <span className="text-[#00ffff]">
-                reducing overhead costs by up to 60%
-              </span>{" "}
-              <br />
-              while maintaining exceptional quality and seamless collaboration.
+            {/* Subtitle */}
+            <p className="text-white text-base md:text-lg leading-relaxed tracking-[0.2px]">
+              Connect with{" "}
+              <span className="text-[#0097b2]">highly skilled professionals</span>
+              {" "}and cut operating costs by up to{" "}
+              <span className="text-[#0097b2]">60%</span>
+              , without compromising quality or efficiency
             </p>
 
-            {/* Buttons */}
-            <div className="flex flex-wrap gap-4 sm:gap-6 justify-center md:justify-start">
+            {/* CTA */}
+            <div className="flex justify-center md:justify-start">
               <Link
                 href="/pages/offers"
-                className="inline-flex items-center bg-white text-[#0097B2] border-2 border-transparent px-4 sm:px-7 py-3 sm:py-3.5 rounded-lg font-semibold text-sm sm:text-base transition-all hover:shadow-xl hover:bg-white hover:text-[#0097B2] transform hover:scale-[1.02]"
+                className="inline-flex items-center bg-[#0097b2] text-white px-6 py-3 rounded-[20px] font-medium text-base shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] transition-all hover:bg-[#007a91]"
               >
                 Find Talent Now
-              </Link>
-              <Link
-                href="/auth/register"
-                className="inline-flex items-center border-2 bg-[#0097B2] border-[#0097B2] text-white px-4 sm:px-7 py-3 sm:py-3.5 rounded-lg font-semibold text-sm sm:text-base transition-all hover:shadow-xl hover:bg-white hover:text-[#0097B2] transform hover:scale-[1.02]"
-              >
-                Join Network
               </Link>
             </div>
           </div>
 
-          {/* Right: White logo - hidden on mobile */}
-          <div className="hidden md:flex justify-start md:justify-start md:col-span-4 relative md:-mt-26 md:-ml-20">
-            <img
-              src="/LOGO_ANDES_BLANCO_TRANSPARENTE.png"
-              alt="Andes Workforce"
-              className="w-full max-w-[680px] md:max-w-[780px] lg:max-w-[880px] opacity-70 object-cover"
+        {/* Right: imagen cortada por el borde derecho */}
+        <div className="hidden md:block h-full relative">
+          <div className="absolute inset-y-10 left-8 -right-6 rounded-l-[25px] overflow-hidden -rotate-2">
+            <Image
+              src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/andes_hero_home.jpg"
+              alt="Andes Workforce Team"
+              fill
+              className="object-cover"
             />
           </div>
         </div>
