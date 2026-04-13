@@ -395,3 +395,32 @@ export async function reenviarContratoAlProveedor(
     );
   }
 }
+
+export async function deleteContractAnnex(
+  procesoContratacionId: string,
+  signatureDocumentId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const axios = await createServerAxios();
+    await axios.delete(
+      `/users/contratos/${procesoContratacionId}/anexos/${signatureDocumentId}`
+    );
+    return { success: true };
+  } catch (error: unknown) {
+    const message =
+      error &&
+      typeof error === "object" &&
+      "response" in error &&
+      (error as { response?: { data?: { message?: string | string[] } } })
+        .response?.data?.message;
+    const text = Array.isArray(message)
+      ? message.join(", ")
+      : typeof message === "string"
+        ? message
+        : error instanceof Error
+          ? error.message
+          : "Error al eliminar el anexo";
+    console.error("[deleteContractAnnex]", text);
+    return { success: false, error: text };
+  }
+}

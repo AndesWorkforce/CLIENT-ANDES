@@ -60,7 +60,12 @@ export interface Anexo {
   id: string;
   titulo: string;
   descripcion?: string;
-  archivoFirmadoUrl?: string;
+  /** PDF firmado (preferido para vista cuando existe). */
+  archivoFirmadoUrl?: string | null;
+  /** PDF generado antes de firma. */
+  archivoGeneradoUrl?: string | null;
+  /** Plantilla / origen subido. */
+  archivoOrigenUrl?: string | null;
   estado: string;
   createdAt: string;
 }

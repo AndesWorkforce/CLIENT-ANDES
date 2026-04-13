@@ -1973,7 +1973,20 @@ export default function ContractsPage() {
             setSelectedContractForAnnexList(null);
           }}
           candidateName={selectedContractForAnnexList.nombreCompleto}
+          procesoContratacionId={selectedContractForAnnexList.id}
           annexes={selectedContractForAnnexList.anexos || []}
+          onAnnexDeleted={(annexId) => {
+            void loadContracts();
+            setSelectedContractForAnnexList((prev) => {
+              if (!prev) return null;
+              const next = (prev.anexos || []).filter((a) => a.id !== annexId);
+              if (next.length === 0) {
+                setIsAnnexListModalOpen(false);
+                return null;
+              }
+              return { ...prev, anexos: next };
+            });
+          }}
         />
       )}
     </div>
