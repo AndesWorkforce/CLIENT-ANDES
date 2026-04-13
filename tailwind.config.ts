@@ -49,6 +49,19 @@ const config: Config = {
           "0%": { opacity: "1" },
           "100%": { opacity: "0" },
         },
+        "icon-sway": {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "25%": { transform: "rotate(-10deg)" },
+          "75%": { transform: "rotate(10deg)" },
+        },
+        "icon-float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-7px)" },
+        },
+        "icon-pulse-scale": {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.15)" },
+        },
       },
       animation: {
         "slide-in-right": "slide-in-right 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -62,6 +75,9 @@ const config: Config = {
           "slide-out-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         "fade-in": "fade-in 0.3s ease-in-out",
         "fade-out": "fade-out 0.3s ease-in-out",
+        "icon-sway": "icon-sway 2.5s ease-in-out infinite",
+        "icon-float": "icon-float 2.5s ease-in-out infinite",
+        "icon-pulse-scale": "icon-pulse-scale 2.5s ease-in-out infinite",
       },
     },
   },

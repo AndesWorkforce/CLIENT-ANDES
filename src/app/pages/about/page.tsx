@@ -275,7 +275,7 @@ export default function AboutPage() {
               {/* Section Header */}
               <div className="text-center mb-8 md:mb-10">
                 <span className="text-5xl block mb-3">🐾</span>
-                <h2 className="text-2xl md:text-3xl font-bold text-[#0097B2] mb-2">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#08252A] mb-2">
                   Our Pet Family
                 </h2>
                 <p className="text-gray-500 text-sm md:text-base max-w-sm mx-auto">

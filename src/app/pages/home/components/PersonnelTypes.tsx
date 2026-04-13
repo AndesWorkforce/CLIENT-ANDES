@@ -1,117 +1,81 @@
-import { Scale, BarChart, Building2 } from "lucide-react";
 import Link from "next/link";
 
-const serviceCategories = [
-  {
-    title: "Legal & Compliance",
-    icon: Scale,
-    color: "border-t-teal-500",
-    iconColor: "text-teal-500",
-    services: [
-      "Legal assistants",
-      "Case managers",
-      "Intake specialists",
-      "Document processing",
-    ],
-  },
-  {
-    title: "Data & Administration",
-    icon: BarChart,
-    color: "border-t-blue-500",
-    iconColor: "text-blue-500",
-    services: [
-      "Database administrators",
-      "Mail sorting specialists",
-      "Data entry and processing",
-      "Records management",
-    ],
-  },
-  {
-    title: "Business Operations",
-    icon: Building2,
-    color: "border-t-purple-500",
-    iconColor: "text-purple-500",
-    services: [
-      "Virtual assistants",
-      "Customer support",
-      "Data analysts",
-      "Project management",
-    ],
-  },
-];
+const S3 = "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/";
+
+const icons = {
+  legal:    `${S3}b3d671d7a9f7c7b5e3e1f8370ac01f43ac7afd57.gif`,
+  data:     `${S3}evolution.gif`,
+  business: `${S3}corporate-culture.gif`,
+};
 
 export default function PersonnelTypes() {
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
-        {/* Header with gradient background */}
-        <div className="bg-gradient-to-r from-[#0097B2] to-[#4A90E2] rounded-lg text-center mb-12 py-8 px-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Our Services
-          </h2>
-          <p className="text-lg text-gray-100 max-w-3xl mx-auto">
+    <section className="bg-[#00224d] py-16">
+      <div className="max-w-5xl mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-white mb-3">Our Services</h2>
+          <p className="text-gray-300 text-sm leading-relaxed">
             Comprehensive workforce solutions tailored to your business needs
           </p>
         </div>
 
-        {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {serviceCategories.map((category, index) => {
-            const IconComponent = category.icon;
-            return (
-              <div
-                key={index}
-                className={`bg-white rounded-lg shadow-lg overflow-hidden border-t-4 ${category.color}`}
-              >
-                {/* Card Header */}
-                <div className="p-6 text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <IconComponent
-                      className={`w-8 h-8 ${category.iconColor}`}
-                    />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {category.title}
-                  </h3>
-                </div>
+        {/* Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
 
-                {/* Services List */}
-                <div className="px-6 pb-6">
-                  <ul className="space-y-2">
-                    {category.services.map((service, serviceIndex) => (
-                      <li key={serviceIndex} className="flex items-start">
-                        <span className="text-gray-400 mr-2">•</span>
-                        <span className="text-gray-700 text-sm">{service}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            );
-          })}
+          {/* Card 1 — Legal & Compliance */}
+          <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 cursor-default">
+            <img src={icons.legal} alt="Legal & Compliance icon" className="w-14 h-14 object-contain" />
+            <h3 className="text-lg font-bold text-[#0097b2]">Legal & Compliance</h3>
+            <ul className="flex flex-col gap-2">
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Legal assistants</li>
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Case managers</li>
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Intake specialists</li>
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Document processing</li>
+            </ul>
+          </div>
+
+          {/* Card 2 — Data & Administration */}
+          <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 cursor-default">
+            <img src={icons.data} alt="Data & Administration icon" className="w-14 h-14 object-contain" />
+            <h3 className="text-lg font-bold text-[#0097b2]">Data & Administration</h3>
+            <ul className="flex flex-col gap-2">
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Database administrators</li>
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Mail sorting specialists</li>
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Data entry and processing</li>
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Records management</li>
+            </ul>
+          </div>
+
+          {/* Card 3 — Business Operations */}
+          <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 cursor-default">
+            <img src={icons.business} alt="Business Operations icon" className="w-14 h-14 object-contain" />
+            <h3 className="text-lg font-bold text-[#0097b2]">Business Operations</h3>
+            <ul className="flex flex-col gap-2">
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Virtual assistants</li>
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Customer support</li>
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Data analysts</li>
+              <li className="flex items-center gap-2 text-sm text-gray-700"><span className="text-[#0097b2]">→</span>Project management</li>
+            </ul>
+          </div>
+
         </div>
 
-        {/* Bottom Call to Action */}
-        <div className="text-center mt-12 max-w-4xl mx-auto">
-          <p className="text-gray-700 text-lg">
-            🔍{" "}
-            <span className="font-semibold">
-              Looking for something specific?
-            </span>{" "}
-            We can find talent for any special requirement you have!{" "}
-            <span className="font-semibold text-[#0097B2]">
-              Just let us know what you need.
-            </span>{" "}
-            ✨
+        {/* Bottom CTA */}
+        <div className="text-center flex flex-col items-center gap-5">
+          <p className="text-white text-sm leading-relaxed">
+            Looking for something specific? We can find talent for any special requirement you have!
           </p>
           <Link
             href="/pages/services"
-            className="font-semibold text-[#0097B2] mt-4 inline-block"
+            className="inline-flex items-center bg-[#0097b2] text-white px-8 py-3 rounded-[20px] font-medium text-base transition-all hover:bg-[#007a91]"
           >
-            Learn More...
+            Read More
           </Link>
         </div>
       </div>
     </section>
   );
 }
+
+

@@ -1,20 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useEffect, useState } from "react";
 
 export default function PartnersSection() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoError, setVideoError] = useState(false);
-
-  // Efecto para manejar la carga del video
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.addEventListener("error", () => {
-        setVideoError(true);
-      });
-    }
-  }, []);
 
   const partners = [
     // {
@@ -80,93 +68,85 @@ export default function PartnersSection() {
   ];
 
   return (
-    <section className="py-8 bg-[#FCFEFF]">
-      <div className="container mx-auto px-5">
-        {/* Título */}
-        <h2 className="text-xl font-bold text-center text-[#17323A] mb-6">
-          Trusted By
-        </h2>
+    <>
+      <section className="py-10 bg-white">
+        <div className="container mx-auto px-5">
+          {/* Título */}
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-[#00224d]">
+              Trusted By
+            </h2>
+            <p className="text-sm text-[#676565] mt-1">
+              Backed by world-class companies
+            </p>
+          </div>
 
-        {/* Carrusel infinito auto-scroll */}
-        <div className="relative overflow-hidden">
-          {/* Contenedor con animación */}
-          <div className="flex animate-scroll-infinite">
-            {/* Primera copia de los logos */}
-            {partners.map((partner, index) => (
+          {/* Carrusel infinito auto-scroll */}
+          <div className="relative overflow-hidden">
+            <div className="flex animate-scroll-infinite">
+              {partners.map((partner, index) => (
+                <div
+                  key={`original-${index}`}
+                  className="flex-shrink-0 mx-6 md:mx-10 flex items-center justify-center"
+                >
+                  <Image
+                    src={partner.logo}
+                    alt={partner.name}
+                    width={partner.width * 1.5}
+                    height={partner.height * 1.5}
+                    className="object-contain"
+                  />
+                </div>
+              ))}
+              {partners.map((partner, index) => (
+                <div
+                  key={`duplicate-${index}`}
+                  className="flex-shrink-0 mx-6 md:mx-10 flex items-center justify-center"
+                >
+                  <Image
+                    src={partner.logo}
+                    alt={partner.name}
+                    width={partner.width * 1.5}
+                    height={partner.height * 1.5}
+                    className="object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us */}
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-5">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold text-[#00224d]">Why Choose Us?</h2>
+            <p className="text-sm text-[#676565] mt-2">
+              We make offshore staffing simple, reliable, and results-driven
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {[
+              { stat: "48h", title: "Fast Hiring", desc: "Pre-evaluated expert talent ready to join your team today" },
+              { stat: "60%", title: "Cost Effective", desc: "Reduce your payroll costs by hiring elite professionals" },
+              { stat: "3%", title: "Quality Assured", desc: "Our rigorous process selects only the best" },
+              { stat: "0", title: "Hour Difference", desc: "Fluid collaboration working in your same time zone" },
+              { stat: "100%", title: "Cybersecurity", desc: "Full protection under international protocols" },
+            ].map((item) => (
               <div
-                key={`original-${index}`}
-                className="flex-shrink-0 mx-6 md:mx-10 flex items-center justify-center"
+                key={item.title}
+                className="border border-gray-200 rounded-2xl p-6 flex flex-col gap-2"
               >
-                <Image
-                  src={partner.logo}
-                  alt={partner.name}
-                  width={partner.width * 1.2}
-                  height={partner.height * 1.2}
-                  className="object-contain"
-                />
-              </div>
-            ))}
-            {/* Segunda copia para efecto infinito */}
-            {partners.map((partner, index) => (
-              <div
-                key={`duplicate-${index}`}
-                className="flex-shrink-0 mx-6 md:mx-10 flex items-center justify-center"
-              >
-                <Image
-                  src={partner.logo}
-                  alt={partner.name}
-                  width={partner.width * 1.2}
-                  height={partner.height * 1.2}
-                  className="object-contain"
-                />
+                <span className="text-4xl font-bold text-[#0097b2]">{item.stat}</span>
+                <h3 className="text-base font-bold text-[#00224d]">{item.title}</h3>
+                <p className="text-sm text-[#676565] leading-snug">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Video de presentación */}
-        <div className="mt-12 max-w-4xl mx-auto">
-          {!videoError ? (
-            <div className="relative w-full h-0 pb-[56.25%] bg-gray-100 rounded-lg overflow-hidden shadow-md">
-              <video
-                ref={videoRef}
-                className="absolute inset-0 w-full h-full object-cover"
-                controls
-                preload="metadata"
-                poster="https://appwiseinnovations.dev/Andes/video-poster.jpg"
-                playsInline
-                autoPlay
-                muted
-              >
-                <source
-                  src="https://appwiseinnovations.dev/Andes/andes-video.mp4"
-                  type="video/mp4"
-                />
-                Tu navegador no soporta videos HTML5.
-              </video>
-            </div>
-          ) : (
-            <div className="relative w-full h-0 pb-[56.25%] bg-gray-100 rounded-lg overflow-hidden shadow-md flex items-center justify-center">
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                <p className="text-lg font-medium text-gray-800 mb-2">
-                  El video no está disponible en este momento
-                </p>
-                <a
-                  href="https://appwiseinnovations.dev/Andes/andes-video.mp4"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#0097B2] underline hover:text-[#00404C]"
-                >
-                  Ver video directamente
-                </a>
-              </div>
-            </div>
-          )}
-          {/* <p className="text-sm text-center text-gray-500 mt-2">
-            © 2023 Andes Workforce - Todos los derechos reservados
-          </p> */}
-        </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
