@@ -3,15 +3,17 @@
 import type { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Facebook, Instagram, Linkedin, Phone, Mail } from "lucide-react";
+import { Phone, Mail } from "lucide-react";
+import { FaSquareFacebook, FaLinkedin } from "react-icons/fa6";
+import { AiFillInstagram, AiFillTikTok } from "react-icons/ai";
 import useRouteExclusion from "@/hooks/useRouteExclusion";
 
 const platformLinks = [
   { name: "Home", href: "/pages/home" },
-  { name: "About", href: "/pages/about" },
-  { name: "Services", href: "/pages/services" },
-  { name: "Open Contracts", href: "/pages/offers" },
-  { name: "Contact", href: "/pages/contact" },
+  { name: "About Us", href: "/pages/about" },
+  { name: "Our Services", href: "/pages/services" },
+  { name: "Join Our Team", href: "/pages/offers" },
+  { name: "Contact Us", href: "/pages/contact" },
 ];
 
 interface FooterProps {
@@ -26,15 +28,15 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
   }
 
   return (
-    <footer className="bg-[#0097B2]">
-      <div className="max-w-auto mx-auto px-10 py-[45px] flex flex-col gap-[45px]">
+    <footer className="bg-[#00224d]">
+      <div className="container mx-auto px-4 py-[45px] flex flex-col gap-[45px]">
         {/* Top section - 3 columns */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-10 md:gap-0">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-10 md:gap-8 lg:gap-0">
           {/* Column 1: Logo + Description + Social */}
-          <div className="flex flex-col gap-[35px] md:w-[462px] shrink-0">
+          <div className="flex flex-col gap-[35px] md:flex-1 md:max-w-[462px] shrink-0">
             <div className="relative w-[200px] h-[50px]">
               <Image
-                src="/LOGO_ANDES_BLANCO_TRANSPARENTE.png"
+                src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Group+858+(2).png"
                 alt="Andes Workforce Logo"
                 fill
                 className="object-contain object-left"
@@ -52,35 +54,44 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
-                  className="text-white hover:text-white/80"
+                  className="hover:opacity-80 transition-opacity"
                 >
-                  <Facebook size={24} />
+                  <FaSquareFacebook size={24} color="white" />
                 </Link>
                 <Link
                   href="https://www.instagram.com/andesworkforce/"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
-                  className="text-white hover:text-white/80"
+                  className="hover:opacity-80 transition-opacity"
                 >
-                  <Instagram size={24} />
+                  <AiFillInstagram size={24} color="white" />
                 </Link>
                 <Link
                   href="https://www.linkedin.com/company/andes-workforce/posts/?feedView=all"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="LinkedIn"
-                  className="text-white hover:text-white/80"
+                  className="hover:opacity-80 transition-opacity"
                 >
-                  <Linkedin size={24} />
+                  <FaLinkedin size={24} color="white" />
+                </Link>
+                <Link
+                  href="https://www.tiktok.com/@andesworkforce?_r=1&_t=ZS-95Qs2ALJBau"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="TikTok"
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <AiFillTikTok size={24} color="white" />
                 </Link>
               </div>
             </div>
           </div>
 
           {/* Column 2: Platform */}
-          <div className="flex flex-col gap-[15px] md:w-[105px] shrink-0">
-            <h3 className="text-white text-[14px] font-bold font-['Outfit',sans-serif]">
+          <div className="flex flex-col gap-[15px] shrink-0">
+            <h3 className="text-white text-[12px] font-bold font-['Inter',sans-serif]">
               PLATFORM
             </h3>
             <nav className="flex flex-col gap-[10px]">
@@ -88,7 +99,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-white text-[14px] font-['Outfit',sans-serif] hover:text-white/80 whitespace-nowrap"
+                  className="text-white text-[12px] font-['Inter',sans-serif] hover:text-white/80 whitespace-nowrap"
                 >
                   {item.name}
                 </Link>
@@ -97,22 +108,22 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
           </div>
 
           {/* Column 3: Contact Us */}
-          <div className="flex flex-col gap-[15px] md:w-[300px] shrink-0">
-            <h3 className="text-white text-[14px] font-bold font-['Outfit',sans-serif]">
+          <div className="flex flex-col gap-[15px] md:max-w-[300px] shrink-0">
+            <h3 className="text-white text-[12px] font-bold font-['Inter',sans-serif]">
               CONTACT US
             </h3>
             <div className="flex flex-col gap-[10px]">
               <div className="flex items-start gap-[5px]">
-                <Phone size={16} className="text-white shrink-0 mt-0.5" />
-                <span className="text-white text-[14px] font-['Outfit',sans-serif]">
+                <Phone size={16} className="text-[#0097b2] shrink-0 mt-0.5" />
+                <span className="text-white text-[12px] font-['Inter',sans-serif]">
                   +1 7572373612 - +1 3057030023
                 </span>
               </div>
               <div className="flex items-start gap-[5px]">
-                <Mail size={16} className="text-white shrink-0 mt-0.5" />
+                <Mail size={16} className="text-[#0097b2] shrink-0 mt-0.5" />
                 <Link
                   href="mailto:info@andes-workforce.com"
-                  className="text-white text-[14px] font-['Outfit',sans-serif] hover:text-white/80"
+                  className="text-white text-[12px] font-['Inter',sans-serif] hover:text-white/80"
                 >
                   info@andes-workforce.com
                 </Link>
@@ -122,25 +133,25 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
         </div>
 
         {/* Bottom bar */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-0 mt-4 md:mt-0">
-          <p className="text-white text-[12px] font-['Outfit',sans-serif] text-center md:text-left whitespace-nowrap md:w-[250px] shrink-0">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4 lg:gap-0 mt-4 md:mt-0">
+          <p className="text-white text-[12px] font-['Inter',sans-serif] text-center md:text-left md:shrink-0">
             &copy;2023 Andes Workforce All Rights Reserved
           </p>
           <div className="flex flex-wrap gap-[25px] justify-center md:justify-center flex-1">
             <Link
               href="/pages/privacy-policy"
-              className="text-white text-[12px] font-['Outfit',sans-serif] hover:text-white/80 whitespace-nowrap"
+              className="text-white text-[12px] font-['Inter',sans-serif] hover:text-white/80 whitespace-nowrap"
             >
               Privacy Policy
             </Link>
             <Link
               href="/politica-datos"
-              className="text-white text-[12px] font-['Outfit',sans-serif] hover:text-white/80 whitespace-nowrap"
+              className="text-white text-[12px] font-['Inter',sans-serif] hover:text-white/80 whitespace-nowrap"
             >
               Data Privacy Policy
             </Link>
           </div>
-          <div className="flex md:justify-end md:w-[250px] shrink-0">
+          <div className="flex justify-center md:justify-end md:shrink-0">
             <Link
               href="https://appwiseinnovations.com"
               target="_blank"
