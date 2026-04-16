@@ -20,7 +20,7 @@ export default function CTASection() {
                 window.location.href = "/pages/contact";
               }
             }}
-            className="inline-flex items-center justify-center bg-[#0097b2] text-white text-[16px] font-medium px-[25px] py-[12px] rounded-[20px] shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] hover:bg-[#007a8f] transition-colors"
+            className="inline-flex items-center justify-center bg-[#0097b2] text-white text-[18px] font-medium px-[25px] py-[12px] rounded-[20px] shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] hover:bg-[#007a8f] transition-colors"
           >
             Contact Us
           </Link>

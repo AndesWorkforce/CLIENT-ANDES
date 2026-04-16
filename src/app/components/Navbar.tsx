@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import { useAuthStore } from "@/store/auth.store";
 import { usePathname, useRouter } from "next/navigation";
@@ -12,12 +13,11 @@ import {
   Settings,
   LayoutDashboard,
   Briefcase,
-  Facebook,
-  Instagram,
-  Linkedin,
   Phone,
   Mail,
 } from "lucide-react";
+import { FaSquareFacebook, FaLinkedin } from "react-icons/fa6";
+import { AiFillInstagram, AiFillTikTok } from "react-icons/ai";
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
@@ -31,21 +31,30 @@ import {
 
 const navigation = [
   { name: "Home", href: "/pages/home" },
-  { name: "About", href: "/pages/about" },
-  { name: "Services", href: "/pages/services" },
-  { name: "Open Contracts", href: "/pages/offers" },
-  { name: "Contact", href: "/pages/contact" },
-  { name: "Privacy Policy", href: "/pages/privacy-policy" },
+  { name: "About Us", href: "/pages/about" },
+  { name: "Our Services", href: "/pages/services" },
+  { name: "Join Our Team", href: "/pages/offers" },
+  { name: "Contact Us", href: "/pages/contact" },
 ];
 
 const socialLinks = [
-  { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61553675729226&mibextid=LQQJ4d", label: "Facebook" },
-  { icon: Instagram, href: "https://www.instagram.com/andesworkforce/", label: "Instagram" },
-  { icon: Linkedin, href: "https://www.linkedin.com/company/andes-workforce/posts/?feedView=all", label: "LinkedIn" },
+  { icon: FaSquareFacebook, href: "https://www.facebook.com/profile.php?id=61553675729226&mibextid=LQQJ4d", label: "Facebook" },
+  { icon: AiFillInstagram, href: "https://www.instagram.com/andesworkforce/", label: "Instagram" },
+  { icon: FaLinkedin, href: "https://www.linkedin.com/company/andes-workforce/posts/?feedView=all", label: "LinkedIn" },
+  { icon: AiFillTikTok, href: "https://www.tiktok.com/@andesworkforce?_r=1&_t=ZS-95Qs2ALJBau", label: "TikTok" },
 ];
 
-const contactInfo = [
-  { icon: Phone, text: "+1 7572373612 - +1 3057030023" },
+const contactInfo: { icon: typeof Phone; text: React.ReactNode }[] = [
+  {
+    icon: Phone,
+    text: (
+      <>
+        +1 7572373612{" "}
+        <span className="text-[#0097B2]">-</span>
+        {" "}+1 3057030023
+      </>
+    ),
+  },
   { icon: Mail, text: "info@andes-workforce.com" },
 ];
 
@@ -323,10 +332,10 @@ export default function Navbar() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#0097B2] hover:text-[#007a94] transition-colors"
+                  className="text-[#005a70] hover:text-[#003d4d] transition-colors"
                   aria-label={social.label}
                 >
-                  <social.icon size={16} strokeWidth={3} />
+                  <social.icon size={16} />
                 </a>
               ))}
             </div>
@@ -383,7 +392,7 @@ export default function Navbar() {
                   href="/auth/register"
                   className="hidden md:flex items-center justify-center h-[45px] px-[15px] text-[16px] text-black hover:text-[#0097B2] font-normal transition-colors"
                 >
-                  Register
+                  Sign Up
                 </Link>
                 <button
                   type="button"
