@@ -23,10 +23,10 @@ export default function AboutSection() {
       <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center gap-16 md:gap-[104px]">
         {/* Left: text */}
         <div className="flex flex-col gap-[35px] md:w-[450px] shrink-0">
-          <h2 className="text-white font-bold text-[24px] leading-tight">
+          <h2 className="text-white font-bold text-[30px] leading-tight">
             About Us
           </h2>
-          <p className="text-white text-[14px] leading-[25px] text-justify">
+          <p className="text-white text-[16px] leading-[28px] text-justify">
             We bridge the gap between global opportunity and local excellence.
             Our mission is to empower Latin American professionals while
             providing world-class infrastructure for global enterprises.
@@ -41,7 +41,7 @@ export default function AboutSection() {
                 window.location.href = "/pages/contact";
               }
             }}
-            className="inline-flex items-center justify-center bg-[#0097b2] text-white text-[16px] font-medium px-[25px] py-[12px] rounded-[20px] shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] w-fit hover:bg-[#007a8f] transition-colors"
+            className="inline-flex items-center justify-center bg-[#0097b2] text-white text-[18px] font-medium px-[25px] py-[12px] rounded-[20px] shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] w-fit hover:bg-[#007a8f] transition-colors"
           >
             Read More
           </Link>

@@ -22,7 +22,7 @@ export default function HeroSection() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-white font-bold text-3xl md:text-4xl leading-[1.35]">
+            <h1 className="text-white font-bold text-4xl md:text-5xl leading-[1.35]">
               Work with{" "}
               <span className="text-[#0097b2]">top talent</span>
               <br />
@@ -31,7 +31,7 @@ export default function HeroSection() {
             </h1>
 
             {/* Subtitle */}
-            <p className="text-white text-base md:text-lg leading-relaxed tracking-[0.2px]">
+            <p className="text-white text-lg md:text-xl leading-relaxed tracking-[0.2px]">
               Connect with{" "}
               <span className="text-[#0097b2]">highly skilled professionals</span>
               {" "}and cut operating costs by up to{" "}
@@ -43,7 +43,7 @@ export default function HeroSection() {
             <div className="flex justify-center md:justify-start">
               <Link
                 href="/pages/offers"
-                className="inline-flex items-center bg-[#0097b2] text-white px-6 py-3 rounded-[20px] font-medium text-base shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] transition-all hover:bg-[#007a91]"
+                className="inline-flex items-center bg-[#0097b2] text-white px-6 py-3 rounded-[20px] font-medium text-lg shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] transition-all hover:bg-[#007a91]"
               >
                 Find Talent Now
               </Link>

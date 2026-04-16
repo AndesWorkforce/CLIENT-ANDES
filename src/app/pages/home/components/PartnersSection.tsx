@@ -73,10 +73,10 @@ export default function PartnersSection() {
         <div className="container mx-auto px-5">
           {/* Título */}
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-[#00224d]">
+            <h2 className="text-3xl font-bold text-[#00224d]">
               Trusted By
             </h2>
-            <p className="text-sm text-[#676565] mt-1">
+            <p className="text-base text-[#676565] mt-1">
               Backed by world-class companies
             </p>
           </div>
@@ -121,8 +121,8 @@ export default function PartnersSection() {
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-5">
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-[#00224d]">Why Choose Us?</h2>
-            <p className="text-sm text-[#676565] mt-2">
+            <h2 className="text-3xl font-bold text-[#00224d]">Why Choose Us?</h2>
+            <p className="text-base text-[#676565] mt-2">
               We make offshore staffing simple, reliable, and results-driven
             </p>
           </div>
@@ -140,8 +140,8 @@ export default function PartnersSection() {
                 className="border border-gray-200 rounded-2xl p-6 flex flex-col gap-2"
               >
                 <span className="text-4xl font-bold text-[#0097b2]">{item.stat}</span>
-                <h3 className="text-base font-bold text-[#00224d]">{item.title}</h3>
-                <p className="text-sm text-[#676565] leading-snug">{item.desc}</p>
+                <h3 className="text-lg font-bold text-[#00224d]">{item.title}</h3>
+                <p className="text-base text-[#676565] leading-snug">{item.desc}</p>
               </div>
             ))}
           </div>

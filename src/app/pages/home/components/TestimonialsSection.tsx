@@ -87,10 +87,10 @@ export default function TestimonialsSection() {
       <div className="max-w-6xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-[#00224d] mb-2">
+          <h2 className="text-4xl font-bold text-[#00224d] mb-2">
             What Our Clients Say
           </h2>
-          <p className="text-sm text-[#676565]">
+          <p className="text-base text-[#676565]">
             Real results from companies that scaled with Andes Workforce
           </p>
         </div>
@@ -141,17 +141,17 @@ export default function TestimonialsSection() {
                           </div>
 
                           {/* Quote */}
-                          <p className="text-[12px] text-black leading-[1.8] overflow-hidden max-h-[108px] group-hover:max-h-[600px] transition-[max-height] duration-500 ease-in-out">
+                          <p className="text-[14px] text-black leading-[1.8] overflow-hidden max-h-[108px] group-hover:max-h-[600px] transition-[max-height] duration-500 ease-in-out">
                             &ldquo;{t.content}&rdquo;
                           </p>
 
                           {/* Author */}
                           <div className="mt-1">
-                            <p className="text-[12px] font-semibold text-black leading-snug">
+                            <p className="text-[14px] font-semibold text-black leading-snug">
                               {t.name}
                             </p>
                             {t.position && (
-                              <p className="text-[10px] text-[#676565] leading-snug mt-0.5">
+                              <p className="text-[12px] text-[#676565] leading-snug mt-0.5">
                                 {t.position}
                               </p>
                             )}

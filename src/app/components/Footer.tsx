@@ -28,7 +28,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
   }
 
   return (
-    <footer className="bg-[#00224d]">
+    <footer className="bg-[#0097b2]">
       <div className="container mx-auto px-4 py-[45px] flex flex-col gap-[45px]">
         {/* Top section - 3 columns */}
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-10 md:gap-8 lg:gap-0">
@@ -36,7 +36,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
           <div className="flex flex-col gap-[35px] md:flex-1 md:max-w-[462px] shrink-0">
             <div className="relative w-[200px] h-[50px]">
               <Image
-                src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Group+858+(2).png"
+                src="/LOGO_ANDES_BLANCO_TRANSPARENTE.png"
                 alt="Andes Workforce Logo"
                 fill
                 className="object-contain object-left"
@@ -114,13 +114,13 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
             </h3>
             <div className="flex flex-col gap-[10px]">
               <div className="flex items-start gap-[5px]">
-                <Phone size={16} className="text-[#0097b2] shrink-0 mt-0.5" />
+                <Phone size={16} className="text-white shrink-0 mt-0.5" />
                 <span className="text-white text-[12px] font-['Inter',sans-serif]">
                   +1 7572373612 - +1 3057030023
                 </span>
               </div>
               <div className="flex items-start gap-[5px]">
-                <Mail size={16} className="text-[#0097b2] shrink-0 mt-0.5" />
+                <Mail size={16} className="text-white shrink-0 mt-0.5" />
                 <Link
                   href="mailto:info@andes-workforce.com"
                   className="text-white text-[12px] font-['Inter',sans-serif] hover:text-white/80"
