@@ -37,6 +37,7 @@ const protectedRoutes = [
   "/applications",
   "/account",
   "/pages/offers/apply",
+  "/pages/open-contracts",
   "/user",
 ];
 
