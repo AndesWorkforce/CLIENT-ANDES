@@ -11,7 +11,7 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
   const router = useRouter();
 
   return (
-    <section className="relative w-full h-auto min-h-[60vh] md:h-[70vh] flex items-end justify-start px-6 sm:px-8 md:px-16 py-10 md:py-[60px]">
+    <section className="relative w-full min-h-[55vh] md:min-h-[60vh] md:max-h-[70vh] flex items-center justify-start px-6 sm:px-8 md:px-16 py-12 md:py-16">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
