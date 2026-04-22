@@ -15,7 +15,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME_TEST }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          username: webuser
+          key: ${{ secrets.SSH_PRIVATE_KEY_TEST }}
           port: ${{ secrets.PORT }}
           script: /home/webuser/deploy_client_test.sh
