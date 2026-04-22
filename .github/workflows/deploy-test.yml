@@ -1,0 +1,21 @@
+name: Deploy CLIENT — test-development
+
+on:
+  push:
+    branches:
+      - test-development
+
+jobs:
+  deploy:
+    name: Deploy to server (test)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME_TEST }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: /home/webuser/deploy_client_test.sh
