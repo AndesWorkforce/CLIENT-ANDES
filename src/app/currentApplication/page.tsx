@@ -53,6 +53,7 @@ import {
   downloadInboxPdfAction,
   generateUserInboxAction,
 } from "./actions/invoices.actions";
+import { uploadMonthlyProofFromClient } from "@/lib/monthly-proof-upload.client";
 
 export default function CurrentApplication() {
   const router = useRouter();
@@ -1046,29 +1047,6 @@ export default function CurrentApplication() {
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-  /** Subida vía Route Handler: evita el límite ~1MB de Server Actions (multipart a la misma página). */
-  const uploadMonthlyProofViaApiRoute = async (
-    contractId: string,
-    month: string,
-    year: number,
-    file: File
-  ) => {
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("contratoId", contractId);
-    fd.append("month", month);
-    fd.append("year", String(year));
-    const res = await fetch("/api/monthly-proofs/upload", {
-      method: "POST",
-      body: fd,
-    });
-    return (await res.json()) as {
-      success: boolean;
-      data?: { id: string; file: string };
-      error?: string;
-    };
-  };
-
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -1130,7 +1108,7 @@ export default function CurrentApplication() {
     }
     setUploading(true);
     try {
-      const result = await uploadMonthlyProofViaApiRoute(
+      const result = await uploadMonthlyProofFromClient(
         contractIdForProof,
         effMonth,
         effYear,
@@ -1193,7 +1171,7 @@ export default function CurrentApplication() {
     
     setUploading(true);
     try {
-      const result = await uploadMonthlyProofViaApiRoute(
+      const result = await uploadMonthlyProofFromClient(
         contractIdForProof,
         proofToEdit.month,
         proofToEdit.year,
