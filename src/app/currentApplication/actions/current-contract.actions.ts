@@ -72,6 +72,13 @@ export interface CurrentContractData {
   discretionaryBonusType?: string | null;
   paidHolidays?: boolean | null;
 
+  /** Flags de secciones leídas (API / proceso de contratación) */
+  introduccionLeido?: boolean;
+  politicasLeido?: boolean;
+  beneficiosLeido?: boolean;
+  contratoLeido?: boolean;
+  reglamentoLeido?: boolean;
+
   // Documentos leídos (desde la base de datos)
   documentosLeidos?: {
     id: string;
