@@ -4,7 +4,8 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     serverActions: {
-      bodySizeLimit: "8mb",
+      // Red de seguridad (Nginx front ya tiene 50M). Las subidas grandes van por axios al API.
+      bodySizeLimit: "50mb",
     },
   },
   images: {
