@@ -1,6 +1,7 @@
 "use server";
 
 import { createServerAxios } from "@/services/axios.server";
+import { uploadMonthlyProofToBackend } from "@/lib/monthly-proof-upload.server";
 
 export interface CurrentContractData {
   // Campos principales del proceso de contratación
@@ -225,106 +226,7 @@ export async function uploadMonthlyProof(
   data?: { id: string; file: string };
   error?: string;
 }> {
-  try {
-    const axios = await createServerAxios();
-
-    // Detectar tipo de archivo y subir como PDF o Imagen
-    const mime = (file as any).type ? String((file as any).type) : "";
-    const name = (file as any).name ? String((file as any).name) : "";
-    const ext = name.split(".").pop()?.toLowerCase() || "";
-    const isPdf = mime === "application/pdf" || ext === "pdf";
-    const isImage =
-      mime.startsWith("image/") ||
-      ["jpg", "jpeg", "png", "webp", "gif", "heic"].includes(ext);
-
-    let fileUrl: string = "";
-    if (isPdf) {
-      const formData = new FormData();
-      formData.append("pdf", file);
-      const fileResponse = await axios.post("/files/upload/pdf", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      fileUrl = fileResponse.data;
-    } else if (isImage) {
-      const typeSlug = (() => {
-        if (mime.startsWith("image/")) return mime.split("/")[1].toLowerCase();
-        if (ext === "jpg") return "jpeg";
-        return ext || "jpeg";
-      })();
-      const formData = new FormData();
-      formData.append("image", file);
-      formData.append("folder", "monthly-proofs");
-      const fileResponse = await axios.post(
-        `/files/upload/image/${typeSlug}`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      fileUrl = fileResponse.data;
-    } else {
-      return {
-        success: false,
-        error: "Tipo de archivo no soportado. Sube un PDF o una imagen.",
-      };
-    }
-
-    // Crear cadena añoMes en formato YYYY-MM (mes con 2 dígitos)
-    const monthIndex = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ].indexOf(month);
-
-    const paddedMonth = String(monthIndex + 1).padStart(2, "0");
-    const añoMes = `${year}-${paddedMonth}`;
-
-    const evaluationResponse = await axios.post(
-      `/users/contratos/${contratoId}/evaluaciones-mensuales`,
-      {
-        añoMes,
-        documentoSubido: fileUrl,
-        fechaSubidaDocumento: new Date().toISOString(),
-      }
-    );
-
-    // ✅ CORREGIDO: Acceder correctamente a la respuesta del backend
-    // El backend devuelve { success: true, data: { id: "...", ... } }
-    const responseData = evaluationResponse.data?.data || evaluationResponse.data;
-    
-    return {
-      success: true,
-      data: {
-        id: responseData?.id,
-        file: fileUrl,
-      },
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error("Error uploading monthly proof:", error);
-
-    const status = error.response?.status;
-    if (status === 413) {
-      return {
-        success: false,
-        error: "FILE_TOO_LARGE",
-      };
-    }
-
-    return {
-      success: false,
-      error: error.response?.data?.message || "Error al subir el archivo",
-    };
-  }
+  return uploadMonthlyProofToBackend(contratoId, month, year, file);
 }
 
 /**

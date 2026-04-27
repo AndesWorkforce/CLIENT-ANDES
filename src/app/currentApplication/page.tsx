@@ -20,7 +20,6 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import SimpleHeader from "../components/SimpleHeader";
 import {
-  uploadMonthlyProof,
   getCurrentContract,
   CurrentContractData,
   MonthlyProof,
@@ -1047,6 +1046,29 @@ export default function CurrentApplication() {
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
+  /** Subida vía Route Handler: evita el límite ~1MB de Server Actions (multipart a la misma página). */
+  const uploadMonthlyProofViaApiRoute = async (
+    contractId: string,
+    month: string,
+    year: number,
+    file: File
+  ) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("contratoId", contractId);
+    fd.append("month", month);
+    fd.append("year", String(year));
+    const res = await fetch("/api/monthly-proofs/upload", {
+      method: "POST",
+      body: fd,
+    });
+    return (await res.json()) as {
+      success: boolean;
+      data?: { id: string; file: string };
+      error?: string;
+    };
+  };
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -1108,7 +1130,7 @@ export default function CurrentApplication() {
     }
     setUploading(true);
     try {
-      const result = await uploadMonthlyProof(
+      const result = await uploadMonthlyProofViaApiRoute(
         contractIdForProof,
         effMonth,
         effYear,
@@ -1171,7 +1193,7 @@ export default function CurrentApplication() {
     
     setUploading(true);
     try {
-      const result = await uploadMonthlyProof(
+      const result = await uploadMonthlyProofViaApiRoute(
         contractIdForProof,
         proofToEdit.month,
         proofToEdit.year,
