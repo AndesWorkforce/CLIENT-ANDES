@@ -21,6 +21,7 @@ import "driver.js/dist/driver.css";
 import SimpleHeader from "../components/SimpleHeader";
 import {
   uploadMonthlyProof,
+  getCurrentContract,
   CurrentContractData,
   MonthlyProof,
   actualizarDocumentosLeidos,
@@ -29,7 +30,6 @@ import {
   obtenerDocumentosLeidos,
   actualizarDocumentoEspecifico,
 } from "./actions/current-contract.actions";
-import { getCurrentContract } from "../pages/offers/actions/jobs.actions";
 import {
   getActiveContractsForUser,
   getUserContractById,
@@ -718,12 +718,12 @@ export default function CurrentApplication() {
   const currentContract = async () => {
     if (!user?.id) return;
     try {
-      const response = await getCurrentContract(user?.id);
+      const response = await getCurrentContract();
       
       // ✅ Manejo explícito de errores 401
       // Nota: getCurrentContract (de jobs.actions) usa 'message', no 'error'
       if (!response.success) {
-        const errorMsg = response.message || "";
+        const errorMsg = response.error || "";
         if (errorMsg.includes("401") || errorMsg.includes("Unauthorized") || errorMsg.includes("Not authenticated")) {
           addNotification("Session expired. Please login again.", "error");
           router.push("/auth/login");
@@ -1313,7 +1313,7 @@ export default function CurrentApplication() {
 
           if (result.success) {
             // Actualizar el currentJob para reflejar los cambios
-            const updatedContract = await getCurrentContract(user.id);
+            const updatedContract = await getCurrentContract();
             if (updatedContract.success && updatedContract.data) {
               setCurrentJob(updatedContract.data);
             }
@@ -1355,7 +1355,7 @@ export default function CurrentApplication() {
             // Reiniciar contador de tiempo para el siguiente documento
             setDocumentStartTime(Date.now());
             // Actualizar el currentJob para reflejar los cambios
-            const updatedContract = await getCurrentContract(user.id);
+            const updatedContract = await getCurrentContract();
             if (updatedContract.success && updatedContract.data) {
               setCurrentJob(updatedContract.data);
             }
@@ -1399,7 +1399,7 @@ export default function CurrentApplication() {
               );
               closeDocumentsModal();
               // Actualizar el currentJob para reflejar los cambios
-              const updatedContract = await getCurrentContract(user.id);
+              const updatedContract = await getCurrentContract();
               if (updatedContract.success && updatedContract.data) {
                 setCurrentJob(updatedContract.data);
               }
