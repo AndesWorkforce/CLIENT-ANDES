@@ -1,7 +1,6 @@
 "use server";
 
 import { createServerAxios } from "@/services/axios.server";
-import { uploadMonthlyProofToBackend } from "@/lib/monthly-proof-upload.server";
 
 export interface CurrentContractData {
   // Campos principales del proceso de contratación
@@ -216,18 +215,10 @@ export async function getUserContractById(
   }
 }
 
-export async function uploadMonthlyProof(
-  contratoId: string,
-  month: string,
-  year: number,
-  file: File
-): Promise<{
-  success: boolean;
-  data?: { id: string; file: string };
-  error?: string;
-}> {
-  return uploadMonthlyProofToBackend(contratoId, month, year, file);
-}
+/**
+ * Subida de monthly proofs: solo desde `uploadMonthlyProofFromClient` (axios al API).
+ * No usar Server Action con File: el POST a la página queda limitado ~1MB por el runtime de actions.
+ */
 
 /**
  * Actualiza el estado de documentos leídos en la base de datos
