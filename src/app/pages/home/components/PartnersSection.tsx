@@ -131,7 +131,7 @@ export default function PartnersSection() {
             {[
               { stat: "48h", title: "Fast Hiring", desc: "Pre-evaluated expert talent ready to join your team today" },
               { stat: "60%", title: "Cost Effective", desc: "Reduce your payroll costs by hiring elite professionals" },
-              { stat: "3%", title: "Quality Assured", desc: "Our rigorous process selects only the best" },
+              { stat: "10–15%", title: "Top of talent", desc: "Carefully selected through a rigorous, multi‑step selection process"},
               { stat: "0", title: "Hour Difference", desc: "Fluid collaboration working in your same time zone" },
               { stat: "100%", title: "Cybersecurity", desc: "Full protection under international protocols" },
             ].map((item) => (
