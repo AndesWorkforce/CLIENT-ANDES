@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prepare": "husky",
     "dev": "next dev",
     "dev:no-turbo": "cross-env NEXT_DISABLE_TURBOPACK=1 next dev -p 3002",
     "build": "next build",
@@ -59,6 +60,7 @@
     "@types/react-dom": "^19",
     "cross-env": "^7.0.3",
     "eslint": "^9",
+    "husky": "^9.1.7",
     "eslint-config-next": "16.1.0",
     "tailwindcss": "^4",
     "typescript": "^5"
