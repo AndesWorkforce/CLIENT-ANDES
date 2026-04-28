@@ -11,14 +11,15 @@ export default function HeroSection() {
         <div className="flex flex-col gap-5 justify-center text-center md:text-left px-6 md:px-12 lg:px-20">
             {/* Color logo */}
             <div className="flex justify-center md:justify-start">
-              <Image
-                src="/logo-andes.png"
-                alt="Andes Workforce"
-                width={180}
-                height={46}
-                className="h-auto"
-                priority
-              />
+              <div className="relative w-[280px] h-[70px]">
+                <Image
+                  src="/LOGO_ANDES_BLANCO_TRANSPARENTE.png"
+                  alt="Andes Workforce"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                />
+              </div>
             </div>
 
             {/* Headline */}
@@ -40,12 +41,18 @@ export default function HeroSection() {
             </p>
 
             {/* CTA */}
-            <div className="flex justify-center md:justify-start">
+            <div className="flex flex-wrap justify-center md:justify-start gap-3">
               <Link
-                href="/pages/offers"
+                href="/pages/services"
                 className="inline-flex items-center bg-[#0097b2] text-white px-6 py-3 rounded-[20px] font-medium text-lg shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] transition-all hover:bg-[#007a91]"
               >
                 Find Talent Now
+              </Link>
+              <Link
+                href="/pages/offers"
+                className="inline-flex items-center bg-white hover:bg-gray-100 text-[#0097b2] px-6 py-3 rounded-[20px] text-base font-medium transition-colors cursor-pointer"
+              >
+                Join Our Team
               </Link>
             </div>
           </div>
