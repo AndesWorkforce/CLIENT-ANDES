@@ -69,7 +69,7 @@ const benefits = [
 const stats = [
   { value: "50+", label: "Partner Companies" },
   { value: "200+", label: "Professionals Hired" },
-  { value: "$2K–$4.5K", label: "Monthly Salary Range" },
+  { value: "$1K–$3K", label: "Monthly Salary Range" },
   { value: "10+", label: "Countries Represented" },
 ];
 

@@ -28,22 +28,22 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
   }
 
   return (
-    <footer className="bg-[#0097b2]">
+    <footer className="bg-white shadow-[0px_0px_10px_1px_#d2d2d2]">
       <div className="container mx-auto px-4 py-[45px] flex flex-col gap-[45px]">
         {/* Top section - 3 columns */}
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-10 md:gap-8 lg:gap-0">
           {/* Column 1: Logo + Description + Social */}
           <div className="flex flex-col gap-[35px] md:flex-1 md:max-w-[462px] shrink-0">
-            <div className="relative w-[200px] h-[50px]">
+            <div className="relative w-[145px] h-[66px]">
               <Image
-                src="/LOGO_ANDES_BLANCO_TRANSPARENTE.png"
+                src="/logo-andes.png"
                 alt="Andes Workforce Logo"
                 fill
                 className="object-contain object-left"
               />
             </div>
             <div className="flex flex-col gap-[20px]">
-              <p className="text-white text-[12px] leading-normal font-['Inter',sans-serif]">
+              <p className="text-[#343434] text-[12px] leading-normal font-['Inter',sans-serif]">
                 Andes Workforce connects growing companies with top-tier talent.
                 We specialize in providing high-performance professionals who
                 deliver exceptional value and drive business success.
@@ -56,7 +56,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
                   aria-label="Facebook"
                   className="hover:opacity-80 transition-opacity"
                 >
-                  <FaSquareFacebook size={24} color="white" />
+                  <FaSquareFacebook size={24} color="#666666" />
                 </Link>
                 <Link
                   href="https://www.instagram.com/andesworkforce/"
@@ -65,7 +65,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
                   aria-label="Instagram"
                   className="hover:opacity-80 transition-opacity"
                 >
-                  <AiFillInstagram size={24} color="white" />
+                  <AiFillInstagram size={24} color="#666666" />
                 </Link>
                 <Link
                   href="https://www.linkedin.com/company/andes-workforce/posts/?feedView=all"
@@ -74,7 +74,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
                   aria-label="LinkedIn"
                   className="hover:opacity-80 transition-opacity"
                 >
-                  <FaLinkedin size={24} color="white" />
+                  <FaLinkedin size={24} color="#666666" />
                 </Link>
                 <Link
                   href="https://www.tiktok.com/@andesworkforce?_r=1&_t=ZS-95Qs2ALJBau"
@@ -83,7 +83,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
                   aria-label="TikTok"
                   className="hover:opacity-80 transition-opacity"
                 >
-                  <AiFillTikTok size={24} color="white" />
+                  <AiFillTikTok size={24} color="#666666" />
                 </Link>
               </div>
             </div>
@@ -91,7 +91,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
 
           {/* Column 2: Platform */}
           <div className="flex flex-col gap-[15px] shrink-0">
-            <h3 className="text-white text-[12px] font-bold font-['Inter',sans-serif]">
+            <h3 className="text-[#343434] text-[12px] font-bold font-['Inter',sans-serif]">
               PLATFORM
             </h3>
             <nav className="flex flex-col gap-[10px]">
@@ -99,7 +99,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-white text-[12px] font-['Inter',sans-serif] hover:text-white/80 whitespace-nowrap"
+                  className="text-[#343434] text-[12px] font-['Inter',sans-serif] hover:text-[#0097b2] whitespace-nowrap transition-colors"
                 >
                   {item.name}
                 </Link>
@@ -109,21 +109,21 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
 
           {/* Column 3: Contact Us */}
           <div className="flex flex-col gap-[15px] md:max-w-[300px] shrink-0">
-            <h3 className="text-white text-[12px] font-bold font-['Inter',sans-serif]">
+            <h3 className="text-[#343434] text-[12px] font-bold font-['Inter',sans-serif]">
               CONTACT US
             </h3>
             <div className="flex flex-col gap-[10px]">
               <div className="flex items-start gap-[5px]">
-                <Phone size={16} className="text-white shrink-0 mt-0.5" />
-                <span className="text-white text-[12px] font-['Inter',sans-serif]">
+                <Phone size={16} className="text-[#0097b2] shrink-0 mt-0.5" />
+                <span className="text-[#343434] text-[12px] font-['Inter',sans-serif]">
                   +1 7572373612 - +1 3057030023
                 </span>
               </div>
               <div className="flex items-start gap-[5px]">
-                <Mail size={16} className="text-white shrink-0 mt-0.5" />
+                <Mail size={16} className="text-[#0097b2] shrink-0 mt-0.5" />
                 <Link
                   href="mailto:info@andes-workforce.com"
-                  className="text-white text-[12px] font-['Inter',sans-serif] hover:text-white/80"
+                  className="text-[#343434] text-[12px] font-['Inter',sans-serif] hover:text-[#0097b2] transition-colors"
                 >
                   info@andes-workforce.com
                 </Link>
@@ -134,19 +134,19 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
 
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4 lg:gap-0 mt-4 md:mt-0">
-          <p className="text-white text-[12px] font-['Inter',sans-serif] text-center md:text-left md:shrink-0">
+          <p className="text-[#343434] text-[12px] font-['Inter',sans-serif] text-center md:text-left md:shrink-0">
             &copy;2023 Andes Workforce All Rights Reserved
           </p>
           <div className="flex flex-wrap gap-[25px] justify-center md:justify-center flex-1">
             <Link
               href="/pages/privacy-policy"
-              className="text-white text-[12px] font-['Inter',sans-serif] hover:text-white/80 whitespace-nowrap"
+              className="text-[#343434] text-[12px] font-['Inter',sans-serif] hover:text-[#0097b2] whitespace-nowrap transition-colors"
             >
               Privacy Policy
             </Link>
             <Link
               href="/politica-datos"
-              className="text-white text-[12px] font-['Inter',sans-serif] hover:text-white/80 whitespace-nowrap"
+              className="text-[#343434] text-[12px] font-['Inter',sans-serif] hover:text-[#0097b2] whitespace-nowrap transition-colors"
             >
               Data Privacy Policy
             </Link>
@@ -156,7 +156,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
               href="https://appwiseinnovations.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-[6px] bg-white rounded-[20px] pl-[10px] pr-[12px] py-[5px] w-fit hover:opacity-90 transition-opacity"
+              className="flex items-center gap-[6px] bg-white border border-gray-200 rounded-[20px] pl-[10px] pr-[12px] py-[5px] w-fit hover:opacity-90 transition-opacity"
             >
               <Image
                 src="https://appwiseinnovations.dev/r2-appwise/appwise/logo_appwise.png"
