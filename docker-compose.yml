@@ -1,0 +1,45 @@
+name: andes-client
+
+services:
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: andes/client:latest
+    container_name: andes-client
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.andes-client.rule=Host(`andesworkforce.com`) || Host(`www.andesworkforce.com`) || Host(`andes-workforce.com`) || Host(`www.andes-workforce.com`)"
+      - "traefik.http.routers.andes-client.entrypoints=websecure"
+      - "traefik.http.routers.andes-client.tls=true"
+      - "traefik.http.routers.andes-client.tls.certresolver=letsencrypt"
+      - "traefik.http.services.andes-client.loadbalancer.server.port=3000"
+      # Redirección www -> apex (opcional; comentado por ahora)
+      # - "traefik.http.middlewares.andes-www-redir.redirectregex.regex=^https?://www\\.(.*)"
+      # - "traefik.http.middlewares.andes-www-redir.redirectregex.replacement=https://$$1"
+      # - "traefik.http.middlewares.andes-www-redir.redirectregex.permanent=true"
+      # - "traefik.http.routers.andes-client.middlewares=andes-www-redir@docker"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+networks:
+  traefik:
+    external: true
