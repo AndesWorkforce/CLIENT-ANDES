@@ -4,7 +4,9 @@ import { cookies } from "next/headers";
 // Obtener la URL base de la API
 function getApiUrl(): string {
   const rawUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/";
+    process.env.INTERNAL_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000/api/";
   let url = rawUrl.trim();
   if (!url.endsWith("/")) url = url + "/";
   if (!url.toLowerCase().includes("/api/")) {
