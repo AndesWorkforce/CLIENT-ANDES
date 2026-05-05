@@ -206,17 +206,28 @@ export default function Navbar() {
     }
   }, [user, isAuthenticated]); // Agregar isAuthenticated para evitar llamadas con token expirado
 
-  // Efecto separado para manejar redirecciones basadas en stepContract
+  // Redirecciones por estado de contrato: no bloquear rutas que el usuario debe poder abrir siempre
   useEffect(() => {
-    if (stepContract.length > 0) {
-      if (stepContract === "FIRMADO_CANDIDATO") {
-        router.push("/currentApplication");
-      }
-      if (stepContract === "FIRMADO_PROVEEDOR") {
-        router.push("/admin/dashboard/postulants");
-      }
+    if (stepContract.length === 0) return;
+
+    const allowedPrefixes = [
+      "/profile",
+      "/account",
+      "/applications",
+      "/bonifications",
+      "/auth/",
+    ];
+    if (allowedPrefixes.some((p) => pathname.startsWith(p))) {
+      return;
     }
-  }, [stepContract, router]);
+
+    if (stepContract === "FIRMADO_CANDIDATO") {
+      router.push("/currentApplication");
+    }
+    if (stepContract === "FIRMADO_PROVEEDOR") {
+      router.push("/admin/dashboard/postulants");
+    }
+  }, [stepContract, router, pathname]);
 
   const handleLogout = async () => {
     try {

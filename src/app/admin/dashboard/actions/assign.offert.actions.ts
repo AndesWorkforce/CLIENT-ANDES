@@ -3,12 +3,10 @@
 import { createServerAxios } from "@/services/axios.server";
 import { AxiosError } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export async function assignOffer(candidateId: string, offerId: string) {
   const axios = await createServerAxios();
   try {
-    const response = await axios.post(`${API_URL}applications/assign`, {
+    const response = await axios.post("applications/assign", {
       candidatoId: candidateId,
       propuestaId: offerId,
     });

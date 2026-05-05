@@ -60,7 +60,7 @@ interface Experiencia {
 
 type EstadoPerfil = "COMPLETO" | "INCOMPLETO" | "PENDIENTE" | string;
 
-interface ProfileData {
+export interface ProfileData {
   datosPersonales: DatosPersonales;
   requisitosDispositivo: RequisitosDispositivo;
   archivos: Archivos;

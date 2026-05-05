@@ -1,8 +1,8 @@
 import axios from "axios";
 import { cookies } from "next/headers";
 
-// Obtener la URL base de la API
-function getApiUrl(): string {
+// Obtener la URL base de la API (servidor Next → backend; preferir INTERNAL_API_URL en Docker)
+export function getApiUrl(): string {
   const rawUrl =
     process.env.INTERNAL_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||

@@ -3,31 +3,37 @@
 import { createServerAxios } from "@/services/axios.server";
 import { AxiosError } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+function axiosErrorMessage(error: unknown, fallback: string): string {
+  if (!(error instanceof AxiosError)) {
+    return error instanceof Error ? error.message : fallback;
+  }
+  const data = error.response?.data as
+    | { message?: string | string[] }
+    | undefined;
+  const m = data?.message;
+  if (Array.isArray(m)) return m.filter(Boolean).join("; ");
+  if (typeof m === "string" && m.trim()) return m;
+  if (error.response?.status) {
+    return `${fallback} (HTTP ${error.response.status})`;
+  }
+  return error.message || fallback;
+}
 
 export async function getCandidateActivityLogs(candidateId: string) {
   const axios = await createServerAxios();
   try {
-    const response = await axios.get(
-      `${API_URL}admin/postulantes/${candidateId}/bitacora`
+    const { data } = await axios.get(
+      `admin/postulantes/${candidateId}/bitacora`,
     );
-    const data = await response.data;
-    console.log("data", data);
     return {
-      success: true,
-      data: data,
+      success: true as const,
+      data,
     };
   } catch (error) {
-    console.log("error", error);
-    if (error instanceof AxiosError) {
-      return {
-        success: false,
-        message: error.response?.data.message,
-      };
-    }
+    console.error("[getCandidateActivityLogs]", error);
     return {
-      success: false,
-      message: "Error getting candidate activity logs",
+      success: false as const,
+      message: axiosErrorMessage(error, "Could not load activity logs"),
     };
   }
 }
@@ -35,82 +41,61 @@ export async function getCandidateActivityLogs(candidateId: string) {
 export async function createManualNote(candidateId: string, note: string) {
   const axios = await createServerAxios();
   try {
-    const response = await axios.post(
-      `${API_URL}admin/postulantes/${candidateId}/bitacora`,
+    const { data } = await axios.post(
+      `admin/postulantes/${candidateId}/bitacora`,
       {
         nota: note,
-      }
+      },
     );
-    const data = await response.data;
 
     return {
-      success: true,
-      data: data,
+      success: true as const,
+      data,
     };
   } catch (error) {
-    if (error instanceof AxiosError) {
-      return {
-        success: false,
-        message: error.response?.data.message,
-      };
-    }
     return {
-      success: false,
-      message: "Error getting candidate activity logs",
+      success: false as const,
+      message: axiosErrorMessage(error, "Could not add note"),
     };
   }
 }
 
-// Nueva función para editar un log existente
 export async function updateActivityLog(logId: string, note: string) {
   const axios = await createServerAxios();
   try {
-    const response = await axios.patch(`${API_URL}admin/bitacora/${logId}`, {
+    const { data } = await axios.patch(`admin/bitacora/${logId}`, {
       descripcion: note,
     });
 
     return {
-      success: true,
-      data: response.data,
+      success: true as const,
+      data: data,
       message: "Log updated successfully",
     };
   } catch (error) {
     console.error("Error updating activity log:", error);
-    if (error instanceof AxiosError) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Error updating activity log",
-      };
-    }
     return {
-      success: false,
-      message: "Error updating activity log",
+      success: false as const,
+      message: axiosErrorMessage(error, "Error updating activity log"),
     };
   }
 }
 
-// Nueva función para eliminar un log
 export async function deleteActivityLog(logId: string) {
   const axios = await createServerAxios();
   try {
-    const response = await axios.delete(`${API_URL}admin/bitacora/${logId}`);
+    const { data } = await axios.delete(`admin/bitacora/${logId}`);
 
     return {
-      success: true,
-      data: response.data,
+      success: true as const,
+      data: data,
       message: "Log deleted successfully",
     };
   } catch (error) {
     console.error("Error deleting activity log:", error);
-    if (error instanceof AxiosError) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Error deleting activity log",
-      };
-    }
     return {
-      success: false,
-      message: "Error deleting activity log",
+      success: false as const,
+      message: axiosErrorMessage(error, "Error deleting activity log"),
     };
   }
 }

@@ -10,8 +10,6 @@ interface SkillPayload {
   nivel: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 /**
  * Updates user skills in the backend API
  * @param userId User ID
@@ -24,14 +22,6 @@ export async function updateUserSkills(
 ): Promise<{ success: boolean; message: string }> {
   const axios = await createServerAxios();
   try {
-    // Verificar que tenemos una URL de API válida
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Error de configuración: URL de API no disponible",
-      };
-    }
-
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
@@ -51,14 +41,9 @@ export async function updateUserSkills(
       },
     ];
 
-    const apiUrl = `${API_URL}users/${userId}/skills`;
-
-    // Corregimos la forma de enviar datos con axios.patch
-    // El payload va como segundo parámetro y las opciones como tercero
-    const response = await axios.patch(apiUrl, skillsPayload, {
+    const response = await axios.patch(`users/${userId}/skills`, skillsPayload, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -103,12 +88,9 @@ export async function deleteAllSkills(userId: string) {
       };
     }
 
-    const apiUrl = `${API_URL}users/${userId}/skills`;
-
-    const response = await axios.delete(apiUrl, {
+    const response = await axios.delete(`users/${userId}/skills`, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
     });
 
