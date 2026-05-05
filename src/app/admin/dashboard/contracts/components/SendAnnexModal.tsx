@@ -24,8 +24,8 @@ import {
   esignAddFields,
   esignSendDocument,
   esignUpdateDocumentSource,
-  adminUpdateContratoYPostulacionClient,
 } from "@/app/admin/dashboard/actions/esign.client";
+import { adminUpdateContratoYPostulacionServer } from "@/app/admin/dashboard/actions/esign.server";
 import { getPublishedOffers } from "@/app/admin/dashboard/actions/offers.actions";
 
 interface SendAnnexModalProps {
@@ -669,7 +669,7 @@ export default function SendAnnexModal({
           contractData.puestoTrabajo?.trim() ||
           contract.puestoTrabajo;
 
-        await adminUpdateContratoYPostulacionClient({
+        await adminUpdateContratoYPostulacionServer({
           procesoContratacionId: contract.id,
           propuestaId: selectedProposalId,
           puestoTrabajo: puestoTrabajoParaBackend,
