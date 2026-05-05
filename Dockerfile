@@ -18,6 +18,9 @@ RUN --mount=type=cache,id=pnpm-client,target=/pnpm/store \
 FROM base AS build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+# NEXT_PUBLIC_* se inyecta en el bundle durante `pnpm run build` (no basta el env_file en runtime).
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Requiere `output: "standalone"` en next.config.ts

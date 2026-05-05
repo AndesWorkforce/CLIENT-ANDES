@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # Misma URL pública que el router Traefik del API — obligatorio para el build de Next.js
+        NEXT_PUBLIC_API_URL: https://andes.api.andes-workforce.com/api/
     image: andes/client:latest
     container_name: andes-client
     restart: unless-stopped
