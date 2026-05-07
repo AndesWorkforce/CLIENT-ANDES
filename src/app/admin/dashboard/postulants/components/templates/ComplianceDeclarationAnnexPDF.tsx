@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     lineHeight: 1.4,
   },
   header: {
-    alignItems: "flex-end",
+    alignItems: "center",
     marginBottom: 20,
   },
   logo: {
@@ -71,9 +71,8 @@ const ComplianceDeclarationAnnexPDF: React.FC<{
       <Page size="LETTER" style={styles.page}>
         {/* Header with Logo */}
         <View style={styles.header}>
-          {/* Assuming the logo is available at this path or passed as prop. Using the same path as other templates usually do */}
           <Image
-            src="https://andes-public-data.s3.amazonaws.com/andes-logo.png"
+            src="/images/logo-andes.png"
             style={styles.logo}
           />
         </View>
