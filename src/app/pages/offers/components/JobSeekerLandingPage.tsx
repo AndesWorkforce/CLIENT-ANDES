@@ -22,7 +22,7 @@ const steps = [
   },
   {
     number: "04",
-    title: "Get Hired",
+    title: "Apply for a Contract",
     description: "Apply, get selected, and start your remote career",
   },
 ];
@@ -30,15 +30,15 @@ const steps = [
 const benefits = [
   {
     icon: Globe,
-    title: "100% Remote Work",
+    title: "100% Remote",
     description:
-      "Work from anywhere in Latin America with top US and international companies",
+      "Collaborate remotely from anywhere in Latin America...",
   },
   {
     icon: Briefcase,
     title: "Competitive Salaries",
     description:
-      "Earn between $2,000 – $4,500 USD per month, paid consistently and on time",
+      "Earn between $1,000 – $3,000 USD per month, paid consistently and on time",
   },
   {
     icon: TrendingUp,
@@ -56,7 +56,7 @@ const benefits = [
     icon: Clock,
     title: "Flexible Opportunities",
     description:
-      "Full-time and part-time roles across various industries and specializations",
+      "Wide range of remote opportunities across industries and time zones.",
   },
   {
     icon: Award,
@@ -69,7 +69,7 @@ const benefits = [
 const stats = [
   { value: "50+", label: "Partner Companies" },
   { value: "200+", label: "Professionals Hired" },
-  { value: "$1K–$3K", label: "Monthly Salary Range" },
+  { value: "$1K–$3K", label: "Monthly Payment Rent" },
   { value: "10+", label: "Countries Represented" },
 ];
 
@@ -106,9 +106,7 @@ export default function JobSeekerLandingPage() {
 
           {/* Subtitle */}
           <p className="text-base sm:text-lg text-white/90 leading-relaxed max-w-[560px]">
-            Join hundreds of professionals working remotely with top US companies.
-            Competitive salaries, formal contracts, and full career support — all
-            from home.
+            Join hundreds of professionals collaborating remotely with leading U.S. companies. Attractive compensation, clear agreements, and full career support, all from home.
           </p>
 
           {/* CTAs */}
@@ -151,7 +149,7 @@ export default function JobSeekerLandingPage() {
               How It Works
             </h2>
             <p className="text-gray-600 max-w-xl mx-auto">
-              From registration to your first paycheck — simple and
+              From registration to your first payment — simple and
               straightforward
             </p>
           </div>
@@ -220,8 +218,7 @@ export default function JobSeekerLandingPage() {
             Ready to Start?
           </h2>
           <p className="text-white/80 mb-8 text-base sm:text-lg">
-            Join our growing community of Latin American professionals working
-            remotely with top global companies
+            Be part of a growing Latin American professional community partnering remotely with top companies worldwide.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <button
