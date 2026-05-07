@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     lineHeight: 1.4,
   },
   header: {
-    alignItems: "flex-end",
+    alignItems: "center",
     marginBottom: 10,
   },
   logo: {
@@ -95,7 +95,7 @@ const LoanAgreementAnnexPDF: React.FC<{
         {/* Header with Logo */}
         <View style={styles.header}>
           <Image
-            src="https://andes-public-data.s3.amazonaws.com/andes-logo.png"
+            src="/images/logo-andes.png"
             style={styles.logo}
           />
         </View>

@@ -8,6 +8,7 @@ import NewStatementOfWorkEnglishPDF from "../../postulants/components/templates/
 import ComplianceDeclarationAnnexPDF from "../../postulants/components/templates/ComplianceDeclarationAnnexPDF";
 import LoanAgreementAnnexPDF from "../../postulants/components/templates/LoanAgreementAnnexPDF";
 import ExtensionAddendumAnnexPDF from "../../postulants/components/templates/ExtensionAddendumAnnexPDF";
+import ImageUseAuthorizationAnnexPDF from "../../postulants/components/templates/ImageUseAuthorizationAnnexPDF";
 import {
   ProfessionalServicesAgreementColPDF,
   IndependentContractorAgreementUsaPDF,
@@ -185,6 +186,9 @@ const PDFPreview: React.FC<{
       }
       if (selectedTemplate.id === "extension-addendum") {
         return <ExtensionAddendumAnnexPDF data={contractData} />;
+      }
+      if (selectedTemplate.id === "image-use-authorization") {
+        return <ImageUseAuthorizationAnnexPDF data={contractData} />;
       }
       return <StatementOfWorkPDF data={contractData} />;
     } catch (e) {
@@ -365,6 +369,18 @@ export default function SendAnnexModal({
         "descripcionServicios",
       "signContractDate",
       ],
+    });
+
+    // Annex: Image Use Authorization
+    workingTemplates.push({
+      id: "image-use-authorization",
+      name: "ANNEX – IMAGE USE AUTHORIZATION",
+      description:
+        "Authorization for use of contractor's image (photos/videos) in social media, website, and corporate materials. Requires only Contractor signature.",
+      subject: "Annex - Image Use Authorization - {{nombreCompleto}}",
+      component: "ImageUseAuthorizationAnnexPDF",
+      category: "Compliance",
+      variables: ["nombreCompleto", "correoElectronico", "cedula"],
     });
 
     return workingTemplates;
@@ -696,6 +712,8 @@ export default function SendAnnexModal({
           pdfDocument = <LoanAgreementAnnexPDF data={pdfData} />;
         } else if (selectedTemplate.id === "extension-addendum") {
           pdfDocument = <ExtensionAddendumAnnexPDF data={pdfData} />;
+        } else if (selectedTemplate.id === "image-use-authorization") {
+          pdfDocument = <ImageUseAuthorizationAnnexPDF data={pdfData} />;
         } else {
           pdfDocument = <StatementOfWorkPDF data={pdfData} />;
         }
