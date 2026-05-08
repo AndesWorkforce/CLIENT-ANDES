@@ -12,6 +12,7 @@ import {
   IndependentContractorAgreementUsaPDF,
   InternationalProfessionalServicesAgreementPDF,
 } from "./templates";
+import VELSContractPDF from "./templates/VELSContractPDF";
 import { Applicant } from "../../../../types/applicant";
 import { useNotificationStore } from "@/store/notifications.store";
 import { DocumentProps } from "@react-pdf/renderer";
@@ -159,6 +160,9 @@ const PDFPreview: React.FC<{
         return (
           <InternationalProfessionalServicesAgreementPDF data={contractData} />
         );
+      }
+      if (selectedTemplate.id === "vels-contract") {
+        return <VELSContractPDF data={contractData} />;
       }
       // Ensure USA ICA renders the correct PDF in preview
       if (selectedTemplate.id === "ica-usa-english") {
@@ -321,10 +325,32 @@ export default function SignContractModal({
       ],
     });
 
+    workingTemplates.push({
+      id: "vels-contract",
+      name: "VELS Contract",
+      description:
+        "VELS Contract — simplified professional services summary with contractor details, scope, compensation, and start date.",
+      subject: "VELS Contract – {{nombreCompleto}}",
+      component: "VELSContractPDF",
+      category: "International",
+      variables: [
+        "nombreCompleto",
+        "cedula",
+        "nacionalidad",
+        "cityCountry",
+        "descripcionServicios",
+        "ofertaSalarial",
+        "montoEnLetrasUSD",
+        "fechaInicioLabores",
+        "fechaEjecucion",
+      ],
+    });
+
     // Mostrar únicamente el template internacional cuando el flag está activo
     if (SHOW_ONLY_INTERNATIONAL_PSA_TEMPLATE) {
       return workingTemplates.filter(
-        (t) => t.id === "psa-international-english"
+        (t) =>
+          t.id === "psa-international-english" || t.id === "vels-contract",
       );
     }
 
@@ -469,7 +495,8 @@ export default function SignContractModal({
       setContractData((prev) => ({
         ...prev,
         descripcionServicios:
-          contractTemplates[0].id === "psa-international-english"
+          contractTemplates[0].id === "psa-international-english" ||
+          contractTemplates[0].id === "vels-contract"
             ? PSA_COL_DEFAULT_SERVICES
             : contractTemplates[0].description,
       }));
@@ -485,7 +512,8 @@ export default function SignContractModal({
         ...prev,
         descripcionServicios:
           template.id === "psa-col-english" ||
-          template.id === "psa-international-english"
+          template.id === "psa-international-english" ||
+          template.id === "vels-contract"
             ? PSA_COL_DEFAULT_SERVICES
             : template.description,
       }));
@@ -632,6 +660,8 @@ export default function SignContractModal({
           pdfDocument = (
             <InternationalProfessionalServicesAgreementPDF data={pdfData} />
           );
+        } else if (selectedTemplate.id === "vels-contract") {
+          pdfDocument = <VELSContractPDF data={pdfData} />;
         } else if (selectedTemplate.id === "ica-usa-english") {
           pdfDocument = <IndependentContractorAgreementUsaPDF data={pdfData} />;
         } else {
@@ -1144,12 +1174,15 @@ export default function SignContractModal({
                       </div>
                     )}
 
-                  {/* International PSA – specific fields */}
+                  {/* International PSA / VELS – shared agreement fields */}
                   {selectedTemplate &&
-                    selectedTemplate.id === "psa-international-english" && (
+                    (selectedTemplate.id === "psa-international-english" ||
+                      selectedTemplate.id === "vels-contract") && (
                       <div className="border-b border-[#0097B2] pb-3">
                         <h5 className="text-sm font-semibold text-gray-600 mb-2">
-                          Agreement Details (International PSA)
+                          {selectedTemplate.id === "vels-contract"
+                            ? "Agreement Details (VELS Contract)"
+                            : "Agreement Details (International PSA)"}
                         </h5>
                         {/* Clause One text comes from Position → Service Description */}
                         <div className="grid grid-cols-2 gap-2">
