@@ -393,7 +393,7 @@ export default function SendAnnexModal({
       contract.correo ||
       (contract as any).emailCandidato ||
       "email@example.com", // Ensure email is available
-    cedula: "123456789",
+    cedula: contract.documento ?? "",
     telefono: contract.telefono ?? "+57 300 123 4567",
     nacionalidad: "Colombian",
     direccionCompleta: contract.residencia ?? "Calle 123 # 45-67, Bogota",
@@ -555,7 +555,7 @@ export default function SendAnnexModal({
       nombreCompleto: contractData.nombreCompleto || "Contractor Name",
       correoElectronico:
         contractData.correoElectronico || "contractor@email.com",
-      cedula: contractData.cedula || "000000000",
+      cedula: contractData.cedula || "",
       telefono: contractData.telefono || "000-000-0000",
       nacionalidad: contractData.nacionalidad || "Unknown",
       direccionCompleta:
