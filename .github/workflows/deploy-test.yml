@@ -1,4 +1,4 @@
-name: Deploy CLIENT — test-development
+﻿name: Deploy Client - test-development
 
 on:
   push:
@@ -11,13 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY_TEST }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
-
       - name: Deploy via SSH
-        run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no webuser@${{ secrets.HOST }} '/home/webuser/deploy_client_test.sh'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 2.24.196.222
+          username: sysadmin
+          key: ${{ secrets.SSH_PRIVATE_KEY_TEST }}
+          port: ${{ secrets.PORT }}
+          script: /home/sysadmin/deploy_client_test.sh
+          debug: true
