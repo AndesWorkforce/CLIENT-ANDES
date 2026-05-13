@@ -4,8 +4,6 @@ import { createServerAxios } from "@/services/axios.server";
 import { AxiosError } from "axios";
 import { revalidatePath } from "next/cache";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 interface ApiResponse {
   success: boolean;
   message?: string;
@@ -41,19 +39,17 @@ export async function updateCandidateStatus(
       };
     }
 
-    // Asegurar que API_URL termine con /
-    const baseUrl = API_URL?.endsWith("/") ? API_URL : `${API_URL}/`;
-    const endpoint = `${baseUrl}usuarios/${candidateId}/clasificacion`;
+    const path = `usuarios/${candidateId}/clasificacion`;
 
     const requestData = {
       clasificacionGlobal: status.toUpperCase(),
       ...(notes && { notasClasificacionGlobal: notes }),
     };
 
-    console.log("🚀 Enviando petición a:", endpoint);
+    console.log("🚀 Enviando petición a:", path);
     console.log("📦 Datos enviados:", requestData);
 
-    const response = await axios.patch(endpoint, requestData);
+    const response = await axios.patch(path, requestData);
 
     console.log("✅ Respuesta del servidor:", {
       status: response.status,
@@ -111,12 +107,11 @@ export async function sendPreliminaryInterviewInvitation(
       };
     }
 
-    const baseUrl = API_URL?.endsWith("/") ? API_URL : `${API_URL}/`;
-    const endpoint = `${baseUrl}users/${candidateId}/preliminary-interview`;
+    const path = `users/${candidateId}/preliminary-interview`;
 
-    console.log("Enviando invitación de entrevista preliminar a:", endpoint);
+    console.log("Enviando invitación de entrevista preliminar a:", path);
 
-    const response = await axios.patch(endpoint);
+    const response = await axios.patch(path);
 
     console.log("Respuesta:", response.status, response.data);
 
@@ -202,7 +197,7 @@ export async function removeCandidate(
 ): Promise<ApiResponse> {
   const axios = await createServerAxios();
   try {
-    const response = await axios.delete(`${API_URL}usuarios/${candidateId}`);
+    const response = await axios.delete(`usuarios/${candidateId}`);
 
     return {
       success: true,
@@ -236,9 +231,7 @@ export async function activateCandidate(
 ): Promise<ApiResponse> {
   const axios = await createServerAxios();
   try {
-    const response = await axios.patch(
-      `${API_URL}usuarios/${candidateId}/activar`
-    );
+    const response = await axios.patch(`usuarios/${candidateId}/activar`);
 
     return {
       success: true,
@@ -272,11 +265,9 @@ export async function toggleFavorite(
 ): Promise<ApiResponse> {
   const axios = await createServerAxios();
   try {
-    // Asegurar que API_URL termine con /
-    const baseUrl = API_URL?.endsWith("/") ? API_URL : `${API_URL}/`;
-    const endpoint = `${baseUrl}usuarios/${candidateId}/toggle-favorite`;
+    const path = `usuarios/${candidateId}/toggle-favorite`;
 
-    const response = await axios.patch(endpoint);
+    const response = await axios.patch(path);
 
     // Revalidar la ruta para actualizar los datos
     revalidatePath("/admin/dashboard/postulants");
@@ -322,11 +313,9 @@ export async function updateFavoriteRating(
       };
     }
 
-    // Asegurar que API_URL termine con /
-    const baseUrl = API_URL?.endsWith("/") ? API_URL : `${API_URL}/`;
-    const endpoint = `${baseUrl}usuarios/${candidateId}/update-favorite-rating`;
+    const path = `usuarios/${candidateId}/update-favorite-rating`;
 
-    const response = await axios.patch(endpoint, { rating });
+    const response = await axios.patch(path, { rating });
 
     // Revalidar la ruta para actualizar los datos
     revalidatePath("/admin/dashboard/postulants");

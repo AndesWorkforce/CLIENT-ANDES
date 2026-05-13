@@ -1,4 +1,4 @@
-﻿name: Deploy Client - test-development
+name: Deploy Client — test-development
 
 on:
   push:

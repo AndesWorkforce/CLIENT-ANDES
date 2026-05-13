@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { getApiUrl } from "@/services/axios.server";
 
 /**
  * Guarda las URLs de las imágenes de requisitos de PC en el perfil del usuario
@@ -22,8 +23,7 @@ export async function savePCRequirementsImages(
       return { success: false, error: "No hay token de autenticación" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const apiUrl = `${baseUrl}users/${userId}/profile-images`;
+    const apiUrl = `${getApiUrl()}users/${userId}/profile-images`;
 
     const payload = {
       imagenRequerimientosPC: requerimientosPC,
@@ -87,8 +87,7 @@ export async function deletePCRequirementsImages(userId: string) {
       return { success: false, error: "No hay token de autenticación" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const apiUrl = `${baseUrl}users/${userId}/test-images`;
+    const apiUrl = `${getApiUrl()}users/${userId}/test-images`;
 
     const response = await fetch(apiUrl, {
       method: "DELETE",

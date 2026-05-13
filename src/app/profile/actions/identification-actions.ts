@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { getApiUrl } from "@/services/axios.server";
 
 export async function saveIdentificationImages(
   userId: string,
@@ -16,8 +17,7 @@ export async function saveIdentificationImages(
       return { success: false, error: "No hay token de autenticación" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const apiUrl = `${baseUrl}users/${userId}/profile-images`;
+    const apiUrl = `${getApiUrl()}users/${userId}/profile-images`;
 
     const payload = {
       fotoCedulaFrente: frontImage,
@@ -73,8 +73,7 @@ export async function saveAssessment(userId: string, assessmentUrl: string) {
       return { success: false, error: "No hay token de autenticación" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const apiUrl = `${baseUrl}users/${userId}/profile-images`;
+    const apiUrl = `${getApiUrl()}users/${userId}/profile-images`;
 
     // Guardar en un campo específico para assessment
     const payload = {
@@ -130,8 +129,7 @@ export async function removeAssessment(userId: string) {
       return { success: false, error: "No hay token de autenticación" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const apiUrl = `${baseUrl}users/${userId}/profile-images`;
+    const apiUrl = `${getApiUrl()}users/${userId}/profile-images`;
 
     // Enviar null para eliminar el assessment
     const payload = {

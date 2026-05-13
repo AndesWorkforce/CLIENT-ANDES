@@ -82,7 +82,7 @@ export function AuthValidator() {
           response.statusText,
         );
 
-        if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
           // Token inválido o expirado
           console.warn(
             "[AuthValidator] ❌ Token inválido o expirado (status:",
@@ -93,6 +93,13 @@ export function AuthValidator() {
           // Esperar 2 segundos para que el usuario vea la notificación
           await new Promise((resolve) => setTimeout(resolve, 2000));
           await logout();
+        } else if (!response.ok) {
+          // Error de infraestructura/transitorio (ej. 5xx/timeout en backend)
+          console.warn(
+            "[AuthValidator] ⚠️ Validación no disponible temporalmente (status:",
+            response.status,
+            "), manteniendo sesión",
+          );
         } else {
           const data = await response.json();
           console.log(
@@ -143,7 +150,7 @@ export function AuthValidator() {
           credentials: "include",
         });
 
-        if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
           console.warn(
             "[AuthValidator] 🔄 Polling detectó token expirado, deslogueando...",
           );
@@ -155,6 +162,10 @@ export function AuthValidator() {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
           }
+        } else if (!response.ok) {
+          console.debug(
+            "[AuthValidator] 🔄 Polling - validación temporalmente no disponible, sesión mantenida",
+          );
         }
       } catch (error) {
         // Error de red silencioso, no desloguear

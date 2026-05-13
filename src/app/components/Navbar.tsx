@@ -206,17 +206,28 @@ export default function Navbar() {
     }
   }, [user, isAuthenticated]); // Agregar isAuthenticated para evitar llamadas con token expirado
 
-  // Efecto separado para manejar redirecciones basadas en stepContract
+  // Redirecciones por estado de contrato: no bloquear rutas que el usuario debe poder abrir siempre
   useEffect(() => {
-    if (stepContract.length > 0) {
-      if (stepContract === "FIRMADO_CANDIDATO") {
-        router.push("/currentApplication");
-      }
-      if (stepContract === "FIRMADO_PROVEEDOR") {
-        router.push("/admin/dashboard/postulants");
-      }
+    if (stepContract.length === 0) return;
+
+    const allowedPrefixes = [
+      "/profile",
+      "/account",
+      "/applications",
+      "/bonifications",
+      "/auth/",
+    ];
+    if (allowedPrefixes.some((p) => pathname.startsWith(p))) {
+      return;
     }
-  }, [stepContract, router]);
+
+    if (stepContract === "FIRMADO_CANDIDATO") {
+      router.push("/currentApplication");
+    }
+    if (stepContract === "FIRMADO_PROVEEDOR") {
+      router.push("/admin/dashboard/postulants");
+    }
+  }, [stepContract, router, pathname]);
 
   const handleLogout = async () => {
     try {
@@ -380,6 +391,18 @@ export default function Navbar() {
                 {item.name}
               </Link>
             ))}
+            {isAuthenticated && user?.rol === "CANDIDATO" && (
+              <Link
+                href="/pages/open-contracts"
+                className={`h-full flex items-center justify-center px-[15px] text-[16px] font-normal transition-colors relative ${
+                  isActive("/pages/open-contracts")
+                    ? "text-[#0097B2] border-b-[3px] border-[#0097B2]"
+                    : "text-black hover:text-[#0097B2]"
+                }`}
+              >
+                Open Contracts
+              </Link>
+            )}
           </nav>
 
           {/* Right: Auth area */}
@@ -566,6 +589,18 @@ export default function Navbar() {
                   {item.name}
                 </Link>
               ))}
+              {isAuthenticated && user?.rol === "CANDIDATO" && (
+                <Link
+                  href="/pages/open-contracts"
+                  className={`flex items-center justify-center px-4 py-1.5 border text-sm font-medium transition-colors whitespace-nowrap rounded-md ${
+                    isActive("/pages/open-contracts")
+                      ? "bg-[#0097B2] text-white border-[#0097B2]"
+                      : "bg-white text-black border-gray-200 hover:text-[#0097B2] hover:border-[#0097B2]"
+                  }`}
+                >
+                  Open Contracts
+                </Link>
+              )}
             </div>
           </div>
 
@@ -646,6 +681,15 @@ export default function Navbar() {
                     >
                       <FileText size={20} className="mr-2 text-[#0097B2]" />
                       My Applications
+                    </Link>
+
+                    <Link
+                      href="/pages/open-contracts"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      onClick={() => setShowMobileSidebar(false)}
+                    >
+                      <Briefcase size={20} className="mr-2 text-[#0097B2]" />
+                      Open Contracts
                     </Link>
 
                     <Link

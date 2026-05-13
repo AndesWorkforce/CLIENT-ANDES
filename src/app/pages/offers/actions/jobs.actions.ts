@@ -4,19 +4,10 @@ import { createServerAxios } from "@/services/axios.server";
 import { AxiosError } from "axios";
 import { sendAssignJobNotification } from "@/app/admin/dashboard/actions/sendEmail.actions";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export async function getOffers() {
   const axios = await createServerAxios();
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Configuration error: API URL not available",
-      };
-    }
-
-    const response = await axios.get(`${API_URL}offers/search`, {
+    const response = await axios.get("offers/search", {
       headers: {
         "Cache-Control": "no-store",
       },
@@ -41,7 +32,7 @@ export async function getOffers() {
 export async function applyToOffer(offerId: string) {
   const axios = await createServerAxios();
   try {
-    const response = await axios.post(`${API_URL}applications`, {
+    const response = await axios.post("applications", {
       propuestaId: offerId,
     });
     const data = await response.data;
@@ -50,8 +41,8 @@ export async function applyToOffer(offerId: string) {
     if (response.status === 201 || response.status === 200) {
       try {
         // Obtener información del usuario actual usando el nuevo endpoint
-        const userResponse = await axios.get(`${API_URL}users/me`);
-        const offersResponse = await axios.get(`${API_URL}offers/${offerId}`);
+        const userResponse = await axios.get("users/me");
+        const offersResponse = await axios.get(`offers/${offerId}`);
 
         if (userResponse.data && offersResponse.data) {
           const user = userResponse.data.data;
@@ -180,16 +171,9 @@ export async function getCurrentContract(userId: string) {
 export async function checkApplicationHistory(offerId: string) {
   const axios = await createServerAxios();
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Configuration error: API URL not available",
-      };
-    }
-
     console.log("🔍 Checking application history for offer:", offerId);
     const response = await axios.get(
-      `${API_URL}applications/check-status/${offerId}`,
+      `applications/check-status/${offerId}`,
       {
         headers: {
           "Cache-Control": "no-store",

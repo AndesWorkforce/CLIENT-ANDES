@@ -14,18 +14,9 @@ export interface Experience {
   esActual?: boolean;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export async function addExperience(userId: string, experience: Experience) {
   const axios = await createServerAxios();
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Error de configuración: URL de API no disponible",
-      };
-    }
-
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
@@ -37,12 +28,11 @@ export async function addExperience(userId: string, experience: Experience) {
     }
 
     const response = await axios.patch(
-      `${API_URL}users/${userId}/experience`,
+      `users/${userId}/experience`,
       experience,
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
       }
     );
@@ -85,13 +75,6 @@ export async function addExperience(userId: string, experience: Experience) {
 export async function deleteExperience(userId: string, experienceId: string) {
   const axios = await createServerAxios();
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Error de configuración: URL de API no disponible",
-      };
-    }
-
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
@@ -103,11 +86,10 @@ export async function deleteExperience(userId: string, experienceId: string) {
     }
 
     const response = await axios.delete(
-      `${API_URL}users/${userId}/experience/${experienceId}`,
+      `users/${userId}/experience/${experienceId}`,
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
       }
     );

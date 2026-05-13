@@ -67,7 +67,7 @@ export default function ActivityLogModal({
 
       if (!response.success) {
         addNotification(
-          "Error loading activity logs: " + response.message,
+          `Error loading activity logs: ${response.message ?? "Unknown error"}`,
           "error"
         );
         return;
@@ -98,7 +98,9 @@ export default function ActivityLogModal({
       }
     } catch (error) {
       console.error("[Dashboard] Error getting candidate logs:", error);
-      addNotification("Error loading activity logs", "error");
+      const msg =
+        error instanceof Error ? error.message : "Unexpected error";
+      addNotification(`Error loading activity logs: ${msg}`, "error");
     } finally {
       setIsLoading(false);
     }

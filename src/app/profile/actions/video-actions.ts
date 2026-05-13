@@ -2,18 +2,10 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { getApiUrl } from "@/services/axios.server";
 
 export async function removeVideoPresentation(userId: string) {
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Error de configuración: URL de API no disponible",
-      };
-    }
-
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
@@ -25,7 +17,7 @@ export async function removeVideoPresentation(userId: string) {
     }
 
     const response = await fetch(
-      `${API_URL}users/${userId}/video-presentacion`,
+      `${getApiUrl()}users/${userId}/video-presentacion`,
       {
         method: "DELETE",
         headers: {
@@ -74,8 +66,7 @@ export async function saveVideoUrl(userId: string, videoUrl: string) {
       return { success: false, error: "No hay token de autenticación" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const apiUrl = `${baseUrl}users/${userId}/profile-images`;
+    const apiUrl = `${getApiUrl()}users/${userId}/profile-images`;
 
     const payload = {
       videoPresentacion: videoUrl,

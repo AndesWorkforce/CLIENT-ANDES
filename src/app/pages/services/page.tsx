@@ -1,5 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import HeroSection from "@/app/pages/offers/components/HeroSection";
+import FeaturedTalentSection from "@/app/pages/offers/components/FeaturedTalentSection";
+import BenefitsSection from "@/app/pages/offers/components/BenefitsSection";
+import ContactFormSection from "@/app/pages/offers/components/ContactFormSection";
 
 const services = [
   {
@@ -26,31 +32,36 @@ const services = [
 ];
 
 export default function ServicesPage() {
+  const scrollToContact = () => {
+    const contactSection = document.getElementById("contact-form");
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <main className="min-h-screen">
-      {/* Sección de título con fondo blanco */}
-      <section className="w-full bg-white py-12 pt-4">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-[#08252A] mb-1 inline-block pb-1">
-            Our Services
-          </h1>
-          <p className="text-[#08252A] mt-1">
-            Find more information about the services we offer.
-          </p>
-        </div>
-      </section>
+      {/* Hero: Hire Top-Tier Talent */}
+      <HeroSection onContactClick={scrollToContact} />
 
-      {/* Sección de tarjetas con fondo gris */}
-      <section className="w-full bg-[#E2E2E2] py-8">
+      {/* Service categories */}
+      <section className="w-full bg-white py-16">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl min-h-[500px] mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-[28px] sm:text-[36px] md:text-[44px] font-bold text-[#08252A] mb-3">
+              What We Offer
+            </h2>
+            <p className="text-gray-600 max-w-xl mx-auto">
+              Specialized talent across the roles your business needs most
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {services.map((service) => (
               <div
                 key={service.id}
-                className="bg-white rounded-lg overflow-hidden shadow-md border border-gray-200 min-h-[400px] flex flex-col"
+                className="bg-white rounded-lg overflow-hidden shadow-md border border-gray-200 flex flex-col hover:shadow-lg transition-shadow min-h-[420px]"
               >
-                {/* Imagen */}
-                <div className="h-48 relative">
+                <div className="h-56 relative flex-shrink-0">
                   <Image
                     src={service.image}
                     alt={service.title}
@@ -58,8 +69,6 @@ export default function ServicesPage() {
                     style={{ objectFit: "cover" }}
                   />
                 </div>
-
-                {/* Contenido */}
                 <div className="p-6 flex flex-col flex-grow">
                   <h3 className="text-lg font-semibold text-[#08252A] mb-3">
                     {service.title}
@@ -70,7 +79,7 @@ export default function ServicesPage() {
                   <div className="mt-auto">
                     <Link
                       href="/pages/contact"
-                      className="inline-block bg-[#0097B2] text-white py-2 px-4 rounded text-sm hover:bg-opacity-90 transition-colors"
+                      className="inline-block bg-[#0097B2] text-white py-2 px-4 rounded text-sm hover:bg-[#007A8F] transition-colors"
                     >
                       Message Us
                     </Link>
@@ -81,6 +90,15 @@ export default function ServicesPage() {
           </div>
         </div>
       </section>
+
+      {/* Featured Talent Carousel */}
+      <FeaturedTalentSection />
+
+      {/* Contact Form */}
+      <ContactFormSection />
+
+      {/* Benefits for clients */}
+      <BenefitsSection onContactClick={scrollToContact} />
     </main>
   );
 }

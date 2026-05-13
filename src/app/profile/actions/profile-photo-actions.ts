@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { getApiUrl } from "@/services/axios.server";
 
 export async function saveProfilePhoto(userId: string, photoUrl: string) {
   try {
@@ -12,8 +13,7 @@ export async function saveProfilePhoto(userId: string, photoUrl: string) {
       return { success: false, error: "No hay token de autenticación" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const apiUrl = `${baseUrl}users/${userId}/profile-images`;
+    const apiUrl = `${getApiUrl()}users/${userId}/profile-images`;
 
     const response = await fetch(apiUrl, {
       method: "PATCH",
@@ -64,8 +64,7 @@ export async function removeProfilePhoto(userId: string) {
       return { success: false, error: "No hay token de autenticación" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const apiUrl = `${baseUrl}users/${userId}/profile-images`;
+    const apiUrl = `${getApiUrl()}users/${userId}/profile-images`;
 
     const response = await fetch(apiUrl, {
       method: "PATCH",

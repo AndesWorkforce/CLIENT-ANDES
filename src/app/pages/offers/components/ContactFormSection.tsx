@@ -108,7 +108,7 @@ export default function ContactFormSection() {
       className="relative w-full h-full flex flex-col md:flex-row items-stretch"
     >
       {/* Left side - Image with gradient overlay */}
-      <div className="relative hidden md:block w-1/2 min-h-[70vh]">
+      <div className="relative hidden md:block w-1/2 min-h-[500px] max-h-[700px]">
         <Image
           src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/contactus_offers.jpg"
           alt="Office workspace"

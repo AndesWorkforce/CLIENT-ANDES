@@ -20,7 +20,7 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import SimpleHeader from "../components/SimpleHeader";
 import {
-  uploadMonthlyProof,
+  getCurrentContract,
   CurrentContractData,
   MonthlyProof,
   actualizarDocumentosLeidos,
@@ -29,7 +29,6 @@ import {
   obtenerDocumentosLeidos,
   actualizarDocumentoEspecifico,
 } from "./actions/current-contract.actions";
-import { getCurrentContract } from "../pages/offers/actions/jobs.actions";
 import {
   getActiveContractsForUser,
   getUserContractById,
@@ -54,6 +53,7 @@ import {
   downloadInboxPdfAction,
   generateUserInboxAction,
 } from "./actions/invoices.actions";
+import { uploadMonthlyProofFromClient } from "@/lib/monthly-proof-upload.client";
 
 export default function CurrentApplication() {
   const router = useRouter();
@@ -216,7 +216,7 @@ export default function CurrentApplication() {
             popover: {
               title: "Documents",
               description:
-                "Manage your monthly proofs and payment inboxes here.",
+                "Gestiona tu seguridad social mensual y tus recibos de pago aquí.",
               side: "bottom",
               align: "start",
             },
@@ -244,9 +244,9 @@ export default function CurrentApplication() {
           {
             element: "#upload-proof-button",
             popover: {
-              title: "Upload your proof",
+              title: "Subir tu seguridad social",
               description:
-                "When everything is ready, press here to upload and save your monthly proof.",
+                "Cuando todo esté listo, presiona aquí para subir y guardar tu seguridad social mensual.",
               side: "top",
               align: "start",
             },
@@ -372,7 +372,7 @@ export default function CurrentApplication() {
           popover: {
             title: "Documents",
             description:
-              "Manage monthly proofs (Colombia) and your payment inboxes.",
+              "Gestiona tu seguridad social (Colombia) y tus recibos de pago.",
             side: "top",
             align: "start",
           },
@@ -718,12 +718,12 @@ export default function CurrentApplication() {
   const currentContract = async () => {
     if (!user?.id) return;
     try {
-      const response = await getCurrentContract(user?.id);
+      const response = await getCurrentContract();
       
       // ✅ Manejo explícito de errores 401
       // Nota: getCurrentContract (de jobs.actions) usa 'message', no 'error'
       if (!response.success) {
-        const errorMsg = response.message || "";
+        const errorMsg = response.error || "";
         if (errorMsg.includes("401") || errorMsg.includes("Unauthorized") || errorMsg.includes("Not authenticated")) {
           addNotification("Session expired. Please login again.", "error");
           router.push("/auth/login");
@@ -1108,7 +1108,7 @@ export default function CurrentApplication() {
     }
     setUploading(true);
     try {
-      const result = await uploadMonthlyProof(
+      const result = await uploadMonthlyProofFromClient(
         contractIdForProof,
         effMonth,
         effYear,
@@ -1171,7 +1171,7 @@ export default function CurrentApplication() {
     
     setUploading(true);
     try {
-      const result = await uploadMonthlyProof(
+      const result = await uploadMonthlyProofFromClient(
         contractIdForProof,
         proofToEdit.month,
         proofToEdit.year,
@@ -1313,7 +1313,7 @@ export default function CurrentApplication() {
 
           if (result.success) {
             // Actualizar el currentJob para reflejar los cambios
-            const updatedContract = await getCurrentContract(user.id);
+            const updatedContract = await getCurrentContract();
             if (updatedContract.success && updatedContract.data) {
               setCurrentJob(updatedContract.data);
             }
@@ -1355,7 +1355,7 @@ export default function CurrentApplication() {
             // Reiniciar contador de tiempo para el siguiente documento
             setDocumentStartTime(Date.now());
             // Actualizar el currentJob para reflejar los cambios
-            const updatedContract = await getCurrentContract(user.id);
+            const updatedContract = await getCurrentContract();
             if (updatedContract.success && updatedContract.data) {
               setCurrentJob(updatedContract.data);
             }
@@ -1399,7 +1399,7 @@ export default function CurrentApplication() {
               );
               closeDocumentsModal();
               // Actualizar el currentJob para reflejar los cambios
-              const updatedContract = await getCurrentContract(user.id);
+              const updatedContract = await getCurrentContract();
               if (updatedContract.success && updatedContract.data) {
                 setCurrentJob(updatedContract.data);
               }
@@ -2594,7 +2594,7 @@ export default function CurrentApplication() {
                         : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 cursor-pointer"
                     }`}
                   >
-                    Proofs
+                    Seguridad Social
                   </button>
                 )}
                 {showInboxesTab && (
@@ -2613,7 +2613,7 @@ export default function CurrentApplication() {
             </div>
             <p className="text-xs text-gray-500 mt-1">
               {isColombiaUser
-                ? "Upload your monthly proofs to enable payment processing"
+                ? "Sube tu seguridad social mensual para habilitar el procesamiento de pago"
                 : "View your payment inboxes"}
             </p>
           </div>
@@ -2624,16 +2624,16 @@ export default function CurrentApplication() {
                 {/* Tab Heading: Monthly Proofs */}
                 <div className="bg-gray-50 rounded-lg p-3 mb-3">
                   <h3 className="text-base font-medium text-gray-900 mb-1">
-                    Monthly Proofs
+                    Seguridad Social
                   </h3>
                   <p className="text-xs text-gray-500">
-                    Upload your monthly proofs to enable payment processing
+                    Sube tu seguridad social mensual para habilitar el procesamiento de pago
                   </p>
                 </div>
                 {/* Upload Form */}
                 <div className="bg-gray-50 rounded-lg p-6 mb-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    Upload New Proof
+                    Subir Seguridad Social
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -2701,7 +2701,7 @@ export default function CurrentApplication() {
                       >
                         <Upload size={16} />
                         {selectedPeriodHasProof 
-                          ? "File selection disabled (proof exists)"
+                          ? "Selección deshabilitada (ya existe)"
                           : "Select the file to upload"}
                       </label>
                     </div>
@@ -2719,9 +2719,9 @@ export default function CurrentApplication() {
                   {selectedPeriodHasProof && selectedPeriod && (
                     <div className="bg-[#0097B2]/15 border border-[#0097B2] rounded-lg p-3 mb-4">
                       <p className="text-sm text-[#006577]">
-                        <strong>✓ Proof for {selectedPeriod.month} {selectedPeriod.year} already uploaded.</strong>
+                        <strong>✓ Seguridad Social de {selectedPeriod.month} {selectedPeriod.year} ya subida.</strong>
                         <br />
-                        Need to make changes? Use the <span className="font-semibold">Edit</span> button next to your proof below.
+                        ¿Necesitas hacer cambios? Usa el botón <span className="font-semibold">Edit</span> junto a tu seguridad social abajo.
                       </p>
                     </div>
                   )}
@@ -2741,7 +2741,7 @@ export default function CurrentApplication() {
                       ) : (
                         <>
                           <Upload size={16} />
-                          Upload Proof
+                          Subir Seguridad Social
                         </>
                       )}
                     </button>
@@ -2752,7 +2752,7 @@ export default function CurrentApplication() {
                 {/* Proofs List */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-3">
-                    Uploaded Proofs
+                    Seguridad Social Subida
                     {/* ✅ Mostrar info del contrato seleccionado si hay múltiples */}
                     {availableContracts.length > 1 && selectedContractId && (
                       <span className="text-sm font-normal text-gray-500 ml-2">
@@ -2776,8 +2776,8 @@ export default function CurrentApplication() {
                           />
                           <p>
                             {availableContracts.length > 1 && selectedContractId
-                              ? "No proofs uploaded yet for this contract"
-                              : "No proofs uploaded yet"}
+                              ? "Sin seguridad social subida para este contrato"
+                              : "Sin seguridad social subida aún"}
                           </p>
                         </div>
                       );

@@ -19,14 +19,20 @@ export default function AboutSection() {
   }, []);
 
   return (
-    <section className="py-[60px] bg-[#00224d]">
-      <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center gap-16 md:gap-[104px]">
+    <section
+      className="relative py-[60px] bg-[#1F5965] bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage:
+          "linear-gradient(180deg, rgba(31,89,101,0.85) 0%, rgba(0,80,100,0.85) 100%), url('https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/88a77507bfcfb701f5c0eb2d264b3d1a8ed3a54c.jpg')",
+      }}
+    >
+      <div className="relative max-w-[1400px] mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center gap-12 md:gap-[80px]">
         {/* Left: text */}
-        <div className="flex flex-col gap-[35px] md:w-[450px] shrink-0">
-          <h2 className="text-white font-bold text-[30px] leading-tight">
+        <div className="flex flex-col gap-[35px] md:w-[520px] shrink-0">
+          <h2 className="text-white font-bold text-[34px] leading-tight">
             About Us
           </h2>
-          <p className="text-white text-[16px] leading-[28px] text-justify">
+          <p className="text-white text-[17px] leading-[28px] text-justify">
             We bridge the gap between global opportunity and local excellence.
             Our mission is to empower Latin American professionals while
             providing world-class infrastructure for global enterprises.
@@ -36,12 +42,12 @@ export default function AboutSection() {
             onClick={(e) => {
               e.preventDefault();
               if (typeof window !== "undefined" && (window as any).gtagSendEvent) {
-                (window as any).gtagSendEvent("/pages/contact");
+                (window as any).gtagSendEvent("/pages/about");
               } else {
-                window.location.href = "/pages/contact";
+                window.location.href = "/pages/about";
               }
             }}
-            className="inline-flex items-center justify-center bg-[#0097b2] text-white text-[18px] font-medium px-[25px] py-[12px] rounded-[20px] shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] w-fit hover:bg-[#007a8f] transition-colors"
+            className="inline-flex items-center justify-center bg-white text-[#0097b2] text-[18px] font-semibold px-[25px] py-[12px] rounded-[20px] shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] w-fit hover:bg-gray-100 transition-colors"
           >
             Read More
           </Link>

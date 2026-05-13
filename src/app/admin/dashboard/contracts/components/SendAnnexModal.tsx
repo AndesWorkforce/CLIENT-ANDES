@@ -8,6 +8,7 @@ import NewStatementOfWorkEnglishPDF from "../../postulants/components/templates/
 import ComplianceDeclarationAnnexPDF from "../../postulants/components/templates/ComplianceDeclarationAnnexPDF";
 import LoanAgreementAnnexPDF from "../../postulants/components/templates/LoanAgreementAnnexPDF";
 import ExtensionAddendumAnnexPDF from "../../postulants/components/templates/ExtensionAddendumAnnexPDF";
+import ImageUseAuthorizationAnnexPDF from "../../postulants/components/templates/ImageUseAuthorizationAnnexPDF";
 import {
   ProfessionalServicesAgreementColPDF,
   IndependentContractorAgreementUsaPDF,
@@ -24,8 +25,8 @@ import {
   esignAddFields,
   esignSendDocument,
   esignUpdateDocumentSource,
-  adminUpdateContratoYPostulacionClient,
 } from "@/app/admin/dashboard/actions/esign.client";
+import { adminUpdateContratoYPostulacionServer } from "@/app/admin/dashboard/actions/esign.server";
 import { getPublishedOffers } from "@/app/admin/dashboard/actions/offers.actions";
 
 interface SendAnnexModalProps {
@@ -185,6 +186,9 @@ const PDFPreview: React.FC<{
       }
       if (selectedTemplate.id === "extension-addendum") {
         return <ExtensionAddendumAnnexPDF data={contractData} />;
+      }
+      if (selectedTemplate.id === "image-use-authorization") {
+        return <ImageUseAuthorizationAnnexPDF data={contractData} />;
       }
       return <StatementOfWorkPDF data={contractData} />;
     } catch (e) {
@@ -367,6 +371,18 @@ export default function SendAnnexModal({
       ],
     });
 
+    // Annex: Image Use Authorization
+    workingTemplates.push({
+      id: "image-use-authorization",
+      name: "ANNEX – IMAGE USE AUTHORIZATION",
+      description:
+        "Authorization for use of contractor's image (photos/videos) in social media, website, and corporate materials. Requires only Contractor signature.",
+      subject: "Annex - Image Use Authorization - {{nombreCompleto}}",
+      component: "ImageUseAuthorizationAnnexPDF",
+      category: "Compliance",
+      variables: ["nombreCompleto", "correoElectronico", "cedula"],
+    });
+
     return workingTemplates;
   }, []);
 
@@ -377,7 +393,7 @@ export default function SendAnnexModal({
       contract.correo ||
       (contract as any).emailCandidato ||
       "email@example.com", // Ensure email is available
-    cedula: "123456789",
+    cedula: contract.documento ?? "",
     telefono: contract.telefono ?? "+57 300 123 4567",
     nacionalidad: "Colombian",
     direccionCompleta: contract.residencia ?? "Calle 123 # 45-67, Bogota",
@@ -539,7 +555,7 @@ export default function SendAnnexModal({
       nombreCompleto: contractData.nombreCompleto || "Contractor Name",
       correoElectronico:
         contractData.correoElectronico || "contractor@email.com",
-      cedula: contractData.cedula || "000000000",
+      cedula: contractData.cedula || "",
       telefono: contractData.telefono || "000-000-0000",
       nacionalidad: contractData.nacionalidad || "Unknown",
       direccionCompleta:
@@ -669,7 +685,7 @@ export default function SendAnnexModal({
           contractData.puestoTrabajo?.trim() ||
           contract.puestoTrabajo;
 
-        await adminUpdateContratoYPostulacionClient({
+        await adminUpdateContratoYPostulacionServer({
           procesoContratacionId: contract.id,
           propuestaId: selectedProposalId,
           puestoTrabajo: puestoTrabajoParaBackend,
@@ -696,6 +712,8 @@ export default function SendAnnexModal({
           pdfDocument = <LoanAgreementAnnexPDF data={pdfData} />;
         } else if (selectedTemplate.id === "extension-addendum") {
           pdfDocument = <ExtensionAddendumAnnexPDF data={pdfData} />;
+        } else if (selectedTemplate.id === "image-use-authorization") {
+          pdfDocument = <ImageUseAuthorizationAnnexPDF data={pdfData} />;
         } else {
           pdfDocument = <StatementOfWorkPDF data={pdfData} />;
         }
