@@ -2,8 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // Output standalone para imágenes Docker mucho más livianas
-  output: "standalone",
   experimental: {
     serverActions: {
       // Red de seguridad (Nginx front ya tiene 50M). Las subidas grandes van por axios al API.
