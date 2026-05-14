@@ -44,24 +44,6 @@ export const teamMembers: TeamMember[] = [
   },
   // Technology
   {
-    id: "ruben-dario-romero",
-    name: "Ruben D. Romero",
-    role: "Chief Technology Officer",
-    group: "Technology",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/ruben_romero.jpg",
-    summary: "Computer Engineer",
-    bullets: [
-      "Leads technology strategy, digital transformation, innovation, and agile practices.",
-      "Extensive experience in tech project management and agile roles: Agile Project Manager, Scrum Master, Agile Coach, Agile Delivery Manager.",
-      "Certified in Scrum Master, Agile Coach, Kanban, Product Owner, OKR, and Management 3.0.",
-      "Adaptive leadership, high-performance teams, and result‑driven solutions.",
-      "Purpose: connect technology with people to create sustainable value.",
-      "Hobbies: traveling, virtual aviation, beach, and movies.",
-    ],
-    imageClass: "object-cover",
-  },
-  {
     id: "nicole-chica",
     name: "Nicole Chica",
     role: " Director, Marketing and Client Relations",
@@ -75,22 +57,6 @@ export const teamMembers: TeamMember[] = [
       "Committed to improving her physical and emotional well-being; enjoys exploring new places, dancing, spending time with loved ones, and being close to animals, plants, and the beach.",
     ],
     imageClass: "object-cover",
-  },
-  {
-    id: "laura-chica",
-    name: "Laura A. Chica",
-    role: "Manager, HR and Recruitment",
-    group: "HR & Recruitment",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/laura_empresaria.jpg",
-    summary: "Psychologist",
-    bullets: [
-      "Mom of two cats, Casper and Bagheera, Directors of Purr-sonal Affairs and soon welcoming a puppy.",
-      "Passionate about supporting team well-being and building strong connections.",
-      "Loves learning new things; often takes courses on a variety of topics and enjoys pondering the idea that we might all be living in the Matrix.",
-    ],
-    // Crop from the bottom by anchoring to the top and slightly zooming in to hide the bottom star
-    imageClass: "object-cover image-position-top image-zoom-top",
   },
   // Administration
   {
@@ -110,19 +76,20 @@ export const teamMembers: TeamMember[] = [
     imageClass: "object-cover image-position-top",
   },
   {
-    id: "maria-alejandra-vargas",
-    name: "Maria A. Vargas",
-    role: "Assistant Administrative Coordinator",
-    group: "Administration",
+    id: "ruben-dario-romero",
+    name: "Ruben D. Romero",
+    role: "Chief Technology Officer",
+    group: "Technology",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/maria_alejandra_arias.jpg",
-    summary: "Business Administrator, specialized in Service Management",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/ruben_romero.jpg",
+    summary: "Computer Engineer",
     bullets: [
-      "Extensive background in commercial and administrative roles; known for organization, commitment, and a service‑oriented mindset.",
-      "Speaks Spanish, English, and French.",
-      "Lived in France, strengthening her French and embracing multicultural experiences.",
-      "Lives with her beloved dog, our Fur‑st Impressions Coordinator.",
-      "Loves traveling, baking delicious desserts, and spending quality time with her family.",
+      "Leads technology strategy, digital transformation, innovation, and agile practices.",
+      "Extensive experience in tech project management and agile roles: Agile Project Manager, Scrum Master, Agile Coach, Agile Delivery Manager.",
+      "Certified in Scrum Master, Agile Coach, Kanban, Product Owner, OKR, and Management 3.0.",
+      "Adaptive leadership, high-performance teams, and result‑driven solutions.",
+      "Purpose: connect technology with people to create sustainable value.",
+      "Hobbies: traveling, virtual aviation, beach, and movies.",
     ],
     imageClass: "object-cover",
   },
@@ -142,25 +109,89 @@ export const teamMembers: TeamMember[] = [
     ],
     imageClass: "object-cover",
   },
-  // Recruitment
-  {
-    id: "daniela-ramirez",
-    name: "Daniela Ramirez",
-    role: "Assistant Recruitment Manager",
-    group: "Recruitment",
+  { 
+    id: "julian-grisales",
+    name: "Julian Grisales",
+    role: "Marketing Assistant",
+    group: "Marketing & Client Relations",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/daniela-ramirez.jpg",
-    summary: "",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/2ccd9f5a09ceb502323805bc53685d445771d59a.jpg",
+    summary: "Software Development Technology in progress",
     bullets: [
-      "Industrial Engineer with a Master’s in Quality and Integrated Management Systems, bringing experience in HR recruiting, customer service, and legal support.",
-      "Proud mom to one dog and four cats, all happily rescued.",
-      "Passionate about helping people, optimizing processes, and creating work environments that feel more human.",
-      "Loves staying active, enjoying weekend hikes with her dog, and relaxing at home with a great movie.",
-      "Values quality time with family and believes that balance is the key to doing exceptional work.",
+      "Experience in hardware and software maintenance, system assembly, and remote support.",
+      "Shares his home with three curious cats who keep him company while he works and games—our Meowketing Assistants.",
+      "When he's not solving tech issues, you’ll find him skateboarding through the city or diving into his favorite video games.",
     ],
     imageClass: "object-cover",
   },
-  // Client Teams
+
+  // Client Teams (new members)
+  {
+    id: "milena-daleman",
+    name: "Milena D'aleman",
+    role: "Agile Coach",
+    group: "Technology",
+    image:
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/MilenaD'aleman.jpg",
+    summary: "Information Systems Administrator, specialized in Project Management",
+    bullets: [
+      "Information Systems Administrator with a specialization in Project Management, bringing structured thinking and process expertise to every initiative.",
+      "Naturally organized with a keen eye for improving processes, spaces, and experiences — always finding ways to make things work better.",
+      "Values genuine human connection and thrives in meaningful in-person interactions with colleagues, friends, and community.",
+      "Devoted mom who treasures quality time with her son and embraces every opportunity to see the world through a child's eyes.",
+      "Enjoys cinema, binge-worthy series, and travel as constant sources of inspiration and new perspectives.",
+    ],
+    imageClass: "object-cover",
+  },
+  {
+    id: "david-morcillo",
+    name: "David A. Morcillo",
+    role: "Fullstack Developer",
+    group: "Technology",
+    image:
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/David_Morcillo.png",
+    summary: "Software Developer",
+    bullets: [
+      "Fullstack developer with hands-on experience building scalable web applications using modern frontend and backend frameworks.",
+      "Skilled in database design and management, server setup and maintenance on Linux, and containerized deployments.",
+      "Passionate about competitive sports — especially football at every level, always giving his all in every game and competition.",
+      "Avid manga reader and video game enthusiast, finding inspiration and creativity beyond the screen.",
+    ],
+    imageClass: "object-cover",
+  },
+  {
+    id: "fernando-campellone",
+    name: "Fernando Campellone",
+    role: "Fullstack Developer",
+    group: "Technology",
+    image:
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Fernando+Campellone.png",
+    summary: "Software Developer",
+    bullets: [
+      "Developer with experience in building scalable web applications, database design and management, server maintenance, and technical support.",
+      "Focused on delivering efficient, reliable solutions with the adaptability to take on new technological challenges.",
+      "Enjoys connecting with nature through trips to rivers and mountains, taking these moments as an opportunity to recharge and clear his mind.",
+      "Passionate about video games — ask him about his favorite one and the conversation will probably go on for quite a while.",
+    ],
+    imageClass: "object-cover",
+  },
+  {
+    id: "francisca-rodriguez",
+    name: "Francisca Rodriguez",
+    role: "UX/UI Designer",
+    group: "Technology",
+    image:
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Francisca+Rodriguez.png",
+    summary: "Product Designer",
+    bullets: [
+      "Passionate about digital design, user experience, and visual details.",
+      "Industrial designer interested in creating functional, aesthetic, and human-centered solutions.",
+      "Constantly exploring new design trends, tools, and ways to optimize creative processes.",
+      "Outside the screen, enjoys spending time with friends, going to the beach, and challenging her creativity through new ideas and projects.",
+    ],
+    imageClass: "object-cover",
+  },
+  // Client Teams (commented)
   // {
   //   id: "carlos-soto",
   //   name: "Carlos Soto",
