@@ -21,7 +21,11 @@ const Q_ENGLISH_CALLS =
   "On a scale of 1-10, how comfortable are you with making and/or taking calls with native English speakers? Please explain your answer.";
 
 // Claves canónicas adicionales (para evitar depender del texto del label)
-const Q_NAME = "What is your preferred first and last name?";
+const Q_NAME =
+  "Enter your full name exactly as shown on your identification document";
+/** Clave histórica en JSON guardado; se migra a `Q_NAME` al cargar/guardar */
+const Q_NAME_LEGACY = "What is your preferred first and last name?";
+const Q_ALIAS = "Alias";
 const Q_WHATSAPP = "What phone number do you use for WhatsApp?";
 const Q_CITY_COUNTRY = "In which city and country do you live?";
 const Q_GMAIL =
@@ -60,6 +64,7 @@ export default function FormularioModal({
   const validateForm = () => {
     const requiredQuestions = [
       Q_NAME,
+      Q_ALIAS,
       Q_WHATSAPP,
       Q_CITY_COUNTRY,
       "Have you been referred by someone?",
@@ -188,6 +193,14 @@ export default function FormularioModal({
         formDataCleaned[Q_ENGLISH_CALLS] = datosFormulario[englishScaleVariant];
       }
 
+      // Nombre legal: migrar clave antigua → clave actual
+      if (
+        datosFormulario[Q_NAME_LEGACY] &&
+        !String(formDataCleaned[Q_NAME] ?? "").trim()
+      ) {
+        formDataCleaned[Q_NAME] = datosFormulario[Q_NAME_LEGACY];
+      }
+
       // Combinar con el resto de datos existentes
       setFormData({
         ...datosFormulario,
@@ -255,6 +268,7 @@ export default function FormularioModal({
       // Whitelist de preguntas permitidas en el cuestionario para evitar que se cuelen campos ajenos (p.ej. notas)
       const ALLOWED_QUESTIONS = new Set<string>([
         Q_NAME,
+        Q_ALIAS,
         Q_WHATSAPP,
         Q_CITY_COUNTRY,
         "Have you been referred by someone?",
@@ -337,6 +351,17 @@ export default function FormularioModal({
         ...completeFormData,
       };
 
+      // Si solo existe el valor bajo la clave antigua, copiarlo a la clave nueva
+      const legacyName = mergedFormData[Q_NAME_LEGACY];
+      if (
+        (!mergedFormData[Q_NAME] || String(mergedFormData[Q_NAME]).trim() === "") &&
+        legacyName != null &&
+        String(legacyName).trim() !== ""
+      ) {
+        mergedFormData[Q_NAME] = legacyName;
+      }
+      delete mergedFormData[Q_NAME_LEGACY];
+
       // Filtrar: solo enviar las claves del cuestionario permitidas
       const sanitizedFormData = Object.fromEntries(
         Object.entries(mergedFormData).filter(([key, value]) => {
@@ -398,7 +423,8 @@ export default function FormularioModal({
               data-question={Q_NAME}
               className="block text-sm font-medium text-gray-700"
             >
-              What is your preferred first and last name?
+              Enter your full name exactly as shown on your identification
+              document
               <span className="text-red-500">*</span>
             </label>
             <input
@@ -408,6 +434,29 @@ export default function FormularioModal({
               disabled={readOnly}
               value={formData[Q_NAME] || ""}
               onChange={(e) => handleInputChange(Q_NAME, e.target.value)}
+            />
+          </div>
+
+          {/* Alias */}
+          <div className="space-y-2">
+            <label
+              data-question={Q_ALIAS}
+              className="block text-sm font-medium text-gray-700"
+            >
+              Alias
+              <span className="text-red-500">*</span>
+              <br />
+              <span className="text-gray-400 text-xs">
+                A short display name that will be shown across the platform.
+              </span>
+            </label>
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              required
+              disabled={readOnly}
+              value={formData[Q_ALIAS] || ""}
+              onChange={(e) => handleInputChange(Q_ALIAS, e.target.value)}
             />
           </div>
 

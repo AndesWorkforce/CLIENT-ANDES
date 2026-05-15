@@ -17,7 +17,9 @@ export default function ViewFormularioModal({
   if (!isOpen) return null;
 
   // Claves canónicas (deben coincidir con cómo el formulario guarda las respuestas)
-  const Q_NAME = "What is your preferred first and last name?";
+  const Q_NAME =
+    "Enter your full name exactly as shown on your identification document";
+  const Q_NAME_LEGACY = "What is your preferred first and last name?";
   const Q_WHATSAPP = "What phone number do you use for WhatsApp?";
   const Q_CITY_COUNTRY = "In which city and country do you live?";
   const Q_REFERRED = "Have you been referred by someone?";
@@ -41,8 +43,16 @@ export default function ViewFormularioModal({
   const Q_WIRED = "Do you use a wired internet connection?";
 
   // Lista de preguntas mostrando el label para UI y usando la clave canónica para leer datos
-  const ordenPreguntas: Array<{ label: string; key: string }> = [
-    { label: Q_NAME, key: Q_NAME },
+  const ordenPreguntas: Array<{
+    label: string;
+    key: string;
+    fallbackKey?: string;
+  }> = [
+    {
+      label: Q_NAME,
+      key: Q_NAME,
+      fallbackKey: Q_NAME_LEGACY,
+    },
     { label: Q_WHATSAPP, key: Q_WHATSAPP },
     { label: Q_CITY_COUNTRY, key: Q_CITY_COUNTRY },
     { label: Q_REFERRED, key: Q_REFERRED },
@@ -76,7 +86,7 @@ export default function ViewFormularioModal({
         </div>
 
         <div className="p-4 space-y-6">
-          {ordenPreguntas.map(({ label, key }, index) => {
+          {ordenPreguntas.map(({ label, key, fallbackKey }, index) => {
             // Manejo especial para la pregunta de referidos
             if (key === Q_REFERRED) {
               const wasReferred =
@@ -102,6 +112,18 @@ export default function ViewFormularioModal({
             }
 
             // Renderizado normal para otras preguntas
+            const displayValue = (() => {
+              const candidates = fallbackKey
+                ? [datosFormulario[key], datosFormulario[fallbackKey]]
+                : [datosFormulario[key]];
+              const first = candidates.find(
+                (v) => v != null && String(v).trim() !== ""
+              );
+              return first != null && String(first).trim() !== ""
+                ? String(first)
+                : "Not answered";
+            })();
+
             return (
               <div
                 key={index}
@@ -109,7 +131,7 @@ export default function ViewFormularioModal({
               >
                 <h3 className="text-sm font-medium text-gray-900">{label}</h3>
                 <div className="w-full p-2 bg-gray-50 border border-gray-200 rounded-md text-gray-700 whitespace-pre-wrap">
-                  {datosFormulario[key] || "Not answered"}
+                  {displayValue}
                 </div>
               </div>
             );

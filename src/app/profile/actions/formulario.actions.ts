@@ -28,7 +28,10 @@ export async function guardarDatosFormulario(
 
     // Capa defensiva: permitir solo las preguntas del cuestionario conocidas
     const ALLOWED_QUESTIONS = new Set<string>([
+      "Enter your full name exactly as shown on your identification document",
+      // Clave histórica (compatibilidad con respuestas ya guardadas)
       "What is your preferred first and last name?",
+      "Alias",
       "What phone number do you use for WhatsApp?",
       "In which city and country do you live?",
       "Have you been referred by someone?",

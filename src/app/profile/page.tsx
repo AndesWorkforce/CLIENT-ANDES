@@ -132,7 +132,9 @@ export default function ProfilePage() {
   };
 
   // Lista estricta de preguntas requeridas del cuestionario (claves canónicas)
-  const Q_NAME = "What is your preferred first and last name?";
+  const Q_NAME =
+    "Enter your full name exactly as shown on your identification document";
+  const Q_NAME_LEGACY = "What is your preferred first and last name?";
   const Q_WHATSAPP = "What phone number do you use for WhatsApp?";
   const Q_CITY_COUNTRY = "In which city and country do you live?";
   const Q_GMAIL =
@@ -184,9 +186,12 @@ export default function ProfilePage() {
 
     // Validar preguntas estándar
     for (const key of REQUIRED_QUESTIONS) {
-      if (
-        !hasMeaningfulValue((formularioData as Record<string, unknown>)[key])
-      ) {
+      const raw =
+        key === Q_NAME
+          ? (formularioData as Record<string, unknown>)[Q_NAME] ??
+            (formularioData as Record<string, unknown>)[Q_NAME_LEGACY]
+          : (formularioData as Record<string, unknown>)[key];
+      if (!hasMeaningfulValue(raw)) {
         return false;
       }
     }
