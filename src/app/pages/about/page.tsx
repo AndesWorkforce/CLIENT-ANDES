@@ -29,7 +29,7 @@ export default function AboutPage() {
       <TeamMembersGrid members={allMembers} onMemberClick={setSelectedMember} />
       {petMembers.length > 0 && (
         <section className="w-full bg-white py-16">
-          <div className="max-w-[1280px] mx-auto px-6">
+          <div className="max-w-[1480px] mx-auto px-10 md:px-20">
             <PetFamilyCarousel petMembers={petMembers} />
           </div>
         </section>

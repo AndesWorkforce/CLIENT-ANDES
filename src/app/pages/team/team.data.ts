@@ -32,7 +32,7 @@ export const teamMembers: TeamMember[] = [
     role: "Founder",
     group: "Leadership",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/miguel_rendon_resolution.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Miguel_Staff.png",
     summary: "Business Administrator",
     bullets: [
       "Proudly served in the U.S. Navy for 22 years, building a distinguished career marked by discipline, leadership, and a deep commitment to service.",
@@ -49,7 +49,7 @@ export const teamMembers: TeamMember[] = [
     role: " Director, Marketing and Client Relations",
     group: "Marketing & Client Relations",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/Nicole.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Nicole_Staff.png",
     summary: "Business Administrator",
     bullets: [
       "Has worked in sales, research interviewing, banking, U.S. Diplomacy, and marketing, a dynamic career shaped by adaptability and global perspective as a military spouse.",
@@ -81,7 +81,7 @@ export const teamMembers: TeamMember[] = [
     role: "Chief Technology Officer",
     group: "Technology",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/ruben_romero.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Ruben_Staff.png",
     summary: "Computer Engineer",
     bullets: [
       "Leads technology strategy, digital transformation, innovation, and agile practices.",
@@ -100,7 +100,7 @@ export const teamMembers: TeamMember[] = [
     role: "IT Support Analyst",
     group: "IT & Support",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/mateo_castro.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Mateo_Staff.png",
     summary: "Software Development Technology in progress",
     bullets: [
       "Experience in hardware and software maintenance, system assembly, and remote support.",
@@ -116,11 +116,29 @@ export const teamMembers: TeamMember[] = [
     group: "Marketing & Client Relations",
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/2ccd9f5a09ceb502323805bc53685d445771d59a.jpg",
-    summary: "Software Development Technology in progress",
+    summary: "Publicist and Marketing Assistant",
     bullets: [
-      "Experience in hardware and software maintenance, system assembly, and remote support.",
-      "Shares his home with three curious cats who keep him company while he works and games—our Meowketing Assistants.",
-      "When he's not solving tech issues, you’ll find him skateboarding through the city or diving into his favorite video games.",
+      "Publicist and Marketing Assistant with experience in social media management, content creation, and marketing campaign planning for companies focused on remote talent and digital growth.",
+      "Skilled in tools and platforms such as Canva, Meta Ads, TikTok, LinkedIn, and Mailchimp, creating engaging content and helping brands improve their online presence and audience engagement.",
+      "Shares his home with his wife, two children, and two cats, enjoying quality family time and the balance between creativity, work, and personal life.",
+      "Passionate about music and creativity, especially playing guitar and drums, while always looking for new ways to connect ideas, people, and stories."
+    ],
+    imageClass: "object-cover",
+  },
+
+  {
+    id: "daniela-ramirez",
+    name: "Daniela Ramirez",
+    role: "Assistant Recruitment Manager",
+    group: "Recruitment",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Daniela_Staff.png",
+    summary: "Industrial Engineer with a Master's in Quality and Integrated Management Systems",
+    bullets: [
+      "Industrial Engineer with a Master's in Quality and Integrated Management Systems, bringing experience in HR recruiting, customer service, and legal support.",
+      "Proud mom to one dog and four cats, all happily rescued.",
+      "Passionate about helping people, optimizing processes, and creating work environments that feel more human.",
+      "Loves staying active, enjoying weekend hikes with her dog, and relaxing at home with a great movie.",
+      "Values quality time with family and believes that balance is the key to doing exceptional work.",
     ],
     imageClass: "object-cover",
   },
@@ -149,7 +167,7 @@ export const teamMembers: TeamMember[] = [
     role: "Fullstack Developer",
     group: "Technology",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/David_Morcillo.png",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/David_staff+(2).png",
     summary: "Software Developer",
     bullets: [
       "Fullstack developer with hands-on experience building scalable web applications using modern frontend and backend frameworks.",
@@ -165,7 +183,7 @@ export const teamMembers: TeamMember[] = [
     role: "Fullstack Developer",
     group: "Technology",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Fernando+Campellone.png",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Fernando_Staff.png",
     summary: "Software Developer",
     bullets: [
       "Developer with experience in building scalable web applications, database design and management, server maintenance, and technical support.",

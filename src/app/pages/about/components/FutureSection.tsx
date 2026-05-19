@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function FutureSection() {
   return (
     <section className="w-full bg-white py-24">
-      <div className="max-w-[1280px] mx-auto px-6 flex flex-col lg:flex-row gap-14 items-center">
+      <div className="max-w-[1480px] mx-auto px-10 md:px-20 flex flex-col lg:flex-row gap-14 items-center">
         {/* Image — left on desktop */}
         <div className="relative w-full lg:w-[611px] h-[456px] shrink-0 overflow-hidden">
           <Image

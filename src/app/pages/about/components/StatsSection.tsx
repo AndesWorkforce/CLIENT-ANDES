@@ -20,7 +20,7 @@ export default function StatsSection() {
       {/* Dark teal overlay */}
       <div className="absolute inset-0 bg-[rgba(4,78,92,0.7)]" />
 
-      <div className="relative z-10 max-w-[1115px] mx-auto px-6 flex flex-col gap-16 items-center">
+      <div className="relative z-10 max-w-[1480px] mx-auto px-10 md:px-20 flex flex-col gap-16 items-center">
         {/* Title */}
         <h2 className="text-4xl md:text-[48px] font-bold text-white text-center leading-[1.3]">
           Growing with results
@@ -28,11 +28,11 @@ export default function StatsSection() {
 
         {/* Stats grid */}
         <div className="flex flex-col gap-8 items-center w-full">
-          <div className="flex flex-wrap justify-center gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full">
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="bg-[rgba(4,78,92,0.73)] border border-[#044e5c] rounded-[12px] flex flex-col items-center justify-end px-6 pb-8 pt-16 w-[260px]"
+                className="bg-[rgba(4,78,92,0.73)] border border-[#044e5c] rounded-[12px] flex flex-col items-center justify-end px-6 pb-8 pt-16"
               >
                 <p className="text-[64px] font-bold text-white leading-[1.3]">
                   {stat.value}

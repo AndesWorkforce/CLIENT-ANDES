@@ -59,7 +59,7 @@ export default function MemberModal({ member, onClose }: MemberModalProps) {
         {/* Right Side: Info */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header Info */}
-          <div className="flex-shrink-0 text-center px-6 py-6 border-b border-gray-100">
+          <div className="flex-shrink-0 text-center px-8 py-8 border-b border-gray-100">
             <h3 className="text-2xl md:text-3xl font-bold text-[#08252A] mb-2">
               {member.name}
             </h3>
