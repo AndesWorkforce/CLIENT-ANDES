@@ -1,0 +1,73 @@
+import Image from "next/image";
+
+const items = [
+  {
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Support.gif",
+    heading: ["Who we ", "support"],
+    description:
+      "Andes supports small and growing U.S.-based businesses that need reliable operational support without the cost and rigidity of traditional hiring.",
+  },
+  {
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Value.gif",
+    heading: ["What our clients ", "value"],
+    description:
+      "Our clients value efficiency, transparency, and long-term partnerships, and they come to us to build flexible remote teams that help them scale sustainably.",
+  },
+  {
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Different.gif",
+    heading: ["What makes us ", "different"],
+    description:
+      "What sets Andes apart is our people-first approach: we combine carefully selected, highly professional Latin American talent with strong structure, accountability, and hands-on support, delivering cost savings without compromising quality, trust, or performance.",
+  },
+];
+
+export default function WhatSetsUsApart() {
+  return (
+    <section className="w-full bg-white py-24">
+      <div className="max-w-[1480px] mx-auto px-10 md:px-20">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <h2 className="text-4xl md:text-[48px] font-bold text-black leading-[1.3]">
+            What sets us apart
+          </h2>
+          <p className="mt-3 text-lg md:text-[22px] font-medium text-[#525252] leading-[1.2]">
+            Combining exceptional talent, operational support, and long-term
+            partnership.
+          </p>
+        </div>
+
+        {/* Items */}
+        <div className="flex flex-col gap-7">
+          {items.map((item, idx) => (
+            <div
+              key={idx}
+              className="bg-[rgba(4,78,92,0.06)] rounded-[12px] px-6 py-11 flex flex-col gap-3"
+            >
+              {/* Title row */}
+              <div className="flex items-center gap-2">
+                <div className="relative w-[45px] h-[45px] shrink-0 mix-blend-darken">
+                  <Image
+                    src={item.icon}
+                    alt=""
+                    fill
+                    className="object-cover mix-blend-darken"
+                    aria-hidden
+                  />
+                </div>
+                <h3 className="text-[24px] md:text-[28px] font-semibold text-black leading-[1.3]">
+                  {item.heading[0]}
+                  <span className="text-[#0097b2]">{item.heading[1]}</span>
+                </h3>
+              </div>
+
+              {/* Description */}
+              <p className="text-lg md:text-[20px] font-normal text-black leading-[1.3]">
+                {item.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
