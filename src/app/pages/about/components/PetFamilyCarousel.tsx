@@ -135,9 +135,9 @@ export default function PetFamilyCarousel({ petMembers }: PetFamilyCarouselProps
                 className="flex-shrink-0 px-3"
                 style={{ width: `${100 / visibleCount}%` }}
               >
-                <div className="flex flex-col rounded-[15px] overflow-hidden bg-white shadow-sm">
+                <div className="flex flex-col rounded-[15px] overflow-hidden bg-white shadow-sm h-full">
                   {/* Rectangular Image */}
-                  <div className="relative h-[204px] w-full">
+                  <div className="relative h-[204px] w-full flex-shrink-0">
                     {pet.image ? (
                       <Image
                         src={pet.image}
@@ -154,7 +154,7 @@ export default function PetFamilyCarousel({ petMembers }: PetFamilyCarouselProps
                   </div>
 
                   {/* Info */}
-                  <div className="bg-white px-6 py-5 text-center">
+                  <div className="bg-white px-6 py-5 text-center flex-1 flex flex-col justify-center h-[110px] overflow-hidden">
                     <h3 className="text-[18px] font-bold text-black leading-[1.3]">
                       {pet.name}
                     </h3>

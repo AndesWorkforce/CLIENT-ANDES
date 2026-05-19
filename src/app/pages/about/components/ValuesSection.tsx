@@ -35,7 +35,7 @@ const values = [
 export default function ValuesSection() {
   return (
     <section className="w-full bg-white py-24">
-      <div className="max-w-[1280px] mx-auto px-6">
+      <div className="max-w-[1480px] mx-auto px-10 md:px-20">
         {/* Header */}
         <div className="text-center mb-10">
           <h2 className="text-4xl md:text-[48px] font-bold text-[#343434] leading-[1.3]">

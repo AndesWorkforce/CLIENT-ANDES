@@ -48,7 +48,7 @@ const storyBlocks = [
 export default function OurStorySection() {
   return (
     <section className="w-full bg-white py-24">
-      <div className="max-w-[1280px] mx-auto px-6">
+        <div className="max-w-[1480px] mx-auto px-10 md:px-20">
         {/* Section header */}
         <div className="text-center mb-16">
           <h2 className="text-[#0097b2] text-4xl md:text-[52px] font-bold leading-[1.3]">
@@ -69,12 +69,13 @@ export default function OurStorySection() {
               }`}
             >
               {/* Image */}
-              <div className="relative w-full lg:w-[611px] h-[400px] md:h-[480px] shrink-0 overflow-hidden">
+              <div className="w-full lg:w-[611px] shrink-0">
                 <Image
                   src={block.image}
                   alt={block.imageAlt}
-                  fill
-                  className="object-cover"
+                  width={611}
+                  height={480}
+                  className="w-full h-auto"
                 />
               </div>
 
