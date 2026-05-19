@@ -26,6 +26,7 @@ import useOutsideClick from "@/hooks/useOutsideClick";
 import useScrollShadow from "@/hooks/useScrollShadow";
 import {
   getCurrentContract,
+  getCurrentUserBasic,
   userIsAppliedToOffer,
 } from "../pages/offers/actions/jobs.actions";
 
@@ -43,6 +44,28 @@ const socialLinks = [
   { icon: FaLinkedin, href: "https://www.linkedin.com/company/andes-workforce/posts/?feedView=all", label: "LinkedIn" },
   { icon: AiFillTikTok, href: "https://www.tiktok.com/@andesworkforce?_r=1&_t=ZS-95Qs2ALJBau", label: "TikTok" },
 ];
+
+/** Texto mostrado en la navbar: prioriza el alias (override o `user.alias`);
+ *  si no hay, nombre + apellido (comportamiento anterior). */
+function getNavbarDisplayName(
+  user:
+    | {
+        nombre?: string | null;
+        apellido?: string | null;
+        alias?: string | null;
+      }
+    | null
+    | undefined,
+  aliasOverride?: string | null
+): string {
+  const overrideTrimmed =
+    typeof aliasOverride === "string" ? aliasOverride.trim() : "";
+  if (overrideTrimmed) return overrideTrimmed;
+  if (!user) return "";
+  const alias = typeof user.alias === "string" ? user.alias.trim() : "";
+  if (alias) return alias;
+  return `${user.nombre ?? ""} ${user.apellido ?? ""}`.trim();
+}
 
 const contactInfo: { icon: typeof Phone; text: React.ReactNode }[] = [
   {
@@ -71,6 +94,11 @@ export default function Navbar() {
   const [stepContract, setStepContract] = useState<string>("");
   const [isValidProfileUserState, setIsValidProfileUserState] =
     useState<boolean>(false);
+  /**
+   * Alias leído en caliente desde `users/me`. Esto evita depender de la cookie
+   * `user_info` (que puede tener un objeto de usuario viejo sin `alias`).
+   */
+  const [aliasFromServer, setAliasFromServer] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   useOutsideClick(userMenuRef, () => setShowUserMenu(false), showUserMenu);
@@ -203,8 +231,27 @@ export default function Navbar() {
       // Solo ejecutar las funciones cuando el usuario cambia, no en cada pathname
       fetchAndUpdateProfileStatus();
       currentContract();
+      // Sincronizar el alias actual desde la BD (el de la cookie puede ser viejo)
+      (async () => {
+        try {
+          const res = await getCurrentUserBasic();
+          if (res?.success && res.data) {
+            const freshAlias =
+              typeof res.data.alias === "string" ? res.data.alias : null;
+            setAliasFromServer(freshAlias);
+            // Mantener el store sincronizado para el resto de la app
+            if (freshAlias !== (user.alias ?? null)) {
+              useAuthStore
+                .getState()
+                .setUser({ ...user, alias: freshAlias } as typeof user);
+            }
+          }
+        } catch (error) {
+          console.warn("[Navbar] Error fetching current user alias:", error);
+        }
+      })();
     }
-  }, [user, isAuthenticated]); // Agregar isAuthenticated para evitar llamadas con token expirado
+  }, [user?.id, isAuthenticated]); // Agregar isAuthenticated para evitar llamadas con token expirado
 
   // Redirecciones por estado de contrato: no bloquear rutas que el usuario debe poder abrir siempre
   useEffect(() => {
@@ -261,7 +308,7 @@ export default function Navbar() {
                 : "Profile Incomplete"}
             </span>
           )}
-          {user?.nombre || ""} {user?.apellido || ""}
+          {getNavbarDisplayName(user, aliasFromServer)}
         </p>
       </div>
 
@@ -434,7 +481,7 @@ export default function Navbar() {
                         onClick={() => setShowUserMenu(!showUserMenu)}
                         className="flex items-center justify-center h-[45px] px-[15px] text-[16px] text-[#0097B2] hover:text-[#007a94] font-normal transition-colors cursor-pointer"
                       >
-                        {`${user?.nombre || ""} ${user?.apellido || ""}`}
+                        {getNavbarDisplayName(user, aliasFromServer)}
                       </button>
                       {showUserMenu && (
                         <div className="absolute right-0 mt-2 min-w-[280px] w-max bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
@@ -447,7 +494,7 @@ export default function Navbar() {
                         onClick={() => setShowMobileSidebar(true)}
                         className="text-[16px] text-[#0097B2] hover:text-[#007a94] px-3 py-2 font-normal transition-colors cursor-pointer"
                       >
-                        {`${user?.nombre || ""} ${user?.apellido || ""}`}
+                        {getNavbarDisplayName(user, aliasFromServer)}
                       </button>
                     </div>
                   </>
@@ -458,13 +505,13 @@ export default function Navbar() {
                         onClick={() => setShowUserMenu(!showUserMenu)}
                         className="flex items-center justify-center h-[45px] px-[15px] text-[16px] text-[#0097B2] hover:text-[#007a94] font-normal transition-colors cursor-pointer"
                       >
-                        {`${user?.nombre || ""} ${user?.apellido || ""}`}
+                        {getNavbarDisplayName(user, aliasFromServer)}
                       </button>
                       {showUserMenu && (
                         <div className="absolute right-0 mt-2 min-w-[280px] w-max bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                           <div className="px-4 py-3 border-b border-gray-100">
                             <p className="text-[#0097B2] font-medium text-sm cursor-default">
-                              {user?.nombre || ""} {user?.apellido || ""}
+                              {getNavbarDisplayName(user, aliasFromServer)}
                             </p>
                           </div>
 
@@ -555,7 +602,7 @@ export default function Navbar() {
                         onClick={() => setShowMobileSidebar(true)}
                         className="text-[16px] text-[#0097B2] hover:text-[#007a94] px-3 py-2 font-normal transition-colors cursor-pointer"
                       >
-                        {`${user?.nombre || ""} ${user?.apellido || ""}`}
+                        {getNavbarDisplayName(user, aliasFromServer)}
                       </button>
                     </div>
                   </>
@@ -644,7 +691,7 @@ export default function Navbar() {
                       {isValidProfileUserState ? "Completed" : "Incomplete"}
                     </span>
                   )}
-                  {user?.nombre || ""} {user?.apellido || ""}
+                  {getNavbarDisplayName(user, aliasFromServer)}
                 </p>
 
                 {user?.rol === "CANDIDATO" ? (

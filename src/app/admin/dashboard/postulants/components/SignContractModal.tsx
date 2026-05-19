@@ -426,7 +426,13 @@ export default function SignContractModal({
 
   const [contractData, setContractData] = useState(() => ({
     // Datos básicos del empleado
-    nombreCompleto: `${applicant.nombre} ${applicant.apellido}`,
+    nombreCompleto: (() => {
+      const nc =
+        typeof applicant.nombreCompleto === "string"
+          ? applicant.nombreCompleto.trim()
+          : "";
+      return nc || `${applicant.nombre} ${applicant.apellido}`.trim();
+    })(),
     correoElectronico: applicant.correo,
     cedula: "",
     telefono: applicant.telefono || "",
@@ -877,7 +883,14 @@ export default function SignContractModal({
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800">
-            Send contract to {applicant.nombre} {applicant.apellido}
+            Send contract to{" "}
+            {(() => {
+              const nc =
+                typeof applicant.nombreCompleto === "string"
+                  ? applicant.nombreCompleto.trim()
+                  : "";
+              return nc || `${applicant.nombre} ${applicant.apellido}`.trim();
+            })()}
           </h2>
           <button
             onClick={onClose}

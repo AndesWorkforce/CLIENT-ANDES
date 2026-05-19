@@ -4,6 +4,36 @@ import { createServerAxios } from "@/services/axios.server";
 import { AxiosError } from "axios";
 import { sendAssignJobNotification } from "@/app/admin/dashboard/actions/sendEmail.actions";
 
+/**
+ * Devuelve datos básicos del usuario autenticado (incluye alias actualizado)
+ * para sincronizar la navbar con la BD sin esperar a un nuevo login.
+ */
+export async function getCurrentUserBasic() {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.get("users/me", {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
+
+    // El backend envuelve la respuesta con TransformResponseInterceptor en
+    // `{ data, meta }`, y el servicio internamente retorna `{ success, data: usuario }`.
+    // Por eso el usuario puede estar en varios niveles dependiendo de la versión.
+    const raw = response.data;
+    const inner = raw?.data ?? raw;
+    const usuario = inner?.data ?? inner;
+
+    return {
+      success: true,
+      data: usuario,
+    };
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    return { success: false, message: "Error fetching current user" };
+  }
+}
+
 export async function getOffers() {
   const axios = await createServerAxios();
   try {

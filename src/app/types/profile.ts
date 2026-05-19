@@ -38,7 +38,8 @@ export interface DatosFormulario {
   "What 3 words best describe you and why?": string;
   "What phone number do you use for WhatsApp?": string;
   "How much RAM is available on your computer?": string;
-  "What is your preferred first and last name?": string;
+  "Enter your full name exactly as shown on your identification document"?: string;
+  "What is your preferred first and last name?"?: string;
   "What makes you the best candidate for this position?": string;
   "How many monitors do you currently have/use for work?": string;
   "Please run a speed test on your computer: what is the current upload speed?": string;
