@@ -5,13 +5,7 @@ import { getPublishedOffers } from "../actions/offers.actions";
 import { assignOffer } from "../actions/assign.offert.actions";
 import { sendAssignJobNotification } from "../actions/sendEmail.actions";
 import { getProfile } from "../actions/profile.actions";
-
-interface Offer {
-  id: string;
-  titulo: string;
-  estado: string;
-  fechaCreacion: string;
-}
+import { Offer } from "@/app/types/offers";
 
 interface AssignApplicationModalProps {
   isOpen: boolean;
@@ -285,27 +279,47 @@ export default function AssignApplicationModal({
                   key={offer.id}
                   ref={index === offers.length - 1 ? lastOfferElementRef : null}
                   className={`p-3 border rounded-md cursor-pointer ${
-                    selectedOfferId === offer.id
+                    selectedOfferId === (offer.id ?? "")
                       ? "border-[#0097B2] bg-[#0097B2]/5"
                       : "border-gray-200 hover:border-[#0097B2]/50"
                   }`}
-                  onClick={() => setSelectedOfferId(offer.id)}
+                  onClick={() => setSelectedOfferId(offer.id ?? "")}
                 >
                   <div className="font-medium text-gray-800">
                     {offer.titulo}
                   </div>
+                  {offer.empresasAsociadas &&
+                    offer.empresasAsociadas.length > 0 && (
+                      <div className="text-xs text-gray-600 flex flex-wrap gap-1 mt-1">
+                        <span className="text-gray-500">Clients:</span>
+                        {offer.empresasAsociadas.map((asociacion, idx) => (
+                          <span
+                            key={asociacion.empresa.id}
+                            className="text-[#0097B2] font-medium"
+                          >
+                            {asociacion.empresa.nombre}
+                            {idx <
+                              (offer.empresasAsociadas?.length || 0) - 1 &&
+                              ", "}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   <div className="flex justify-between mt-1">
                     <span className="text-xs text-gray-500">
-                      Created: {offer.fechaCreacion.split("T")[0]}
+                      Created:{" "}
+                      {offer.fechaCreacion
+                        ? offer.fechaCreacion.split("T")[0]
+                        : "—"}
                     </span>
                     <span
                       className={`text-xs py-1 px-2 rounded-full ${
-                        offer.estado === "activo"
+                        (offer.estado || "").toLowerCase() === "activo"
                           ? "bg-green-100 text-green-800"
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {offer.estado === "activo"
+                      {(offer.estado || "").toLowerCase() === "activo"
                         ? "Active"
                         : transformedTextState(offer.estado)}
                     </span>
