@@ -80,7 +80,10 @@ function PublicSignClient() {
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       if (typeof window !== "undefined") {
-        localStorage.setItem("redirectAfterLogin", window.location.href);
+        localStorage.setItem(
+          "redirectAfterLogin",
+          `${window.location.pathname}${window.location.search}`
+        );
         router.push("/auth/login");
       }
     }

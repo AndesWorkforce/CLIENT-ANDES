@@ -5,20 +5,82 @@ import type { NextRequest } from "next/server";
 const AUTH_COOKIE = "auth_token";
 const USER_INFO_COOKIE = "user_info";
 
-// Función helper para crear redirects limpios sin puerto
-function createCleanRedirect(request: NextRequest, pathname: string) {
-  const url = request.nextUrl.clone();
-  url.pathname = pathname;
+const PRODUCTION_FALLBACK_ORIGIN = "https://andesworkforce.com";
 
-  // En producción, limpiar el puerto si es necesario
-  if (process.env.NODE_ENV === "production") {
-    url.port = "";
-    // Asegurar que use el host correcto en producción
-    if (url.hostname.includes("andes-workforce.com")) {
-      url.host = "andes-workforce.com";
-    }
+/** Hosts inválidos cuando Next corre en Docker con HOSTNAME=0.0.0.0 */
+function isInvalidRedirectHost(hostname: string): boolean {
+  return (
+    !hostname ||
+    hostname === "0.0.0.0" ||
+    hostname === "localhost" ||
+    hostname.startsWith("127.") ||
+    hostname.endsWith(".local")
+  );
+}
+
+/**
+ * Origen público real detrás de Traefik/nginx.
+ * Evita redirects a https://0.0.0.0/... (HOSTNAME del contenedor).
+ */
+function getPublicOrigin(request: NextRequest): string {
+  const forwardedHost = request.headers
+    .get("x-forwarded-host")
+    ?.split(",")[0]
+    ?.trim();
+  const hostHeader = request.headers.get("host")?.split(",")[0]?.trim();
+  const host = forwardedHost || hostHeader || request.nextUrl.host;
+
+  const forwardedProto = request.headers
+    .get("x-forwarded-proto")
+    ?.split(",")[0]
+    ?.trim();
+  const protocol =
+    forwardedProto ||
+    (request.nextUrl.protocol === "https:" ? "https" : "http");
+
+  if (isInvalidRedirectHost(host.split(":")[0])) {
+    return PRODUCTION_FALLBACK_ORIGIN;
   }
 
+  return `${protocol}://${host}`;
+}
+
+function buildRedirectUrl(request: NextRequest, pathname: string): URL {
+  const url = new URL(pathname, getPublicOrigin(request));
+  if (process.env.NODE_ENV === "production") {
+    url.port = "";
+    const hostname = url.hostname;
+    if (
+      hostname === "andes-workforce.com" ||
+      hostname === "www.andes-workforce.com"
+    ) {
+      url.host = "andes-workforce.com";
+    } else if (
+      hostname === "andesworkforce.com" ||
+      hostname === "www.andesworkforce.com"
+    ) {
+      url.host = "andesworkforce.com";
+    }
+  }
+  return url;
+}
+
+// Función helper para crear redirects limpios sin puerto
+function createCleanRedirect(request: NextRequest, pathname: string) {
+  return NextResponse.redirect(buildRedirectUrl(request, pathname));
+}
+
+function redirectWithSearch(
+  request: NextRequest,
+  pathname: string,
+  searchParams?: Record<string, string>
+) {
+  const url = buildRedirectUrl(request, pathname);
+  if (searchParams) {
+    for (const [key, value] of Object.entries(searchParams)) {
+      url.searchParams.set(key, value);
+    }
+  }
   return NextResponse.redirect(url);
 }
 
@@ -80,10 +142,10 @@ const publicRoutes = [
 export function middleware(request: NextRequest) {
   const host = request.headers.get("host");
   if (host === "andes.client.andes-workforce.com") {
-    // clonar la URL y forzar el host principal
-    const url = request.nextUrl.clone();
+    const url = buildRedirectUrl(request, request.nextUrl.pathname);
     url.host = "andes-workforce.com";
-    url.port = ""; // Limpiar puerto en redirección
+    url.port = "";
+    url.search = request.nextUrl.search;
     return NextResponse.redirect(url, 301);
   }
 
@@ -173,18 +235,16 @@ export function middleware(request: NextRequest) {
 
   // 4. Si requiere ser empresa pero el usuario no lo es, redirigir
   if (requiresCompany && (!isAuthenticated || !isCompany)) {
-    const url = request.nextUrl.clone();
-
     if (!isAuthenticated) {
-      url.pathname = "/auth/forced-logout";
-      url.searchParams.set("reason", "session_expired");
-      url.searchParams.set("callbackUrl", pathname);
-    } else {
-      // Si está autenticado pero no es empresa, enviar a su página correspondiente
-      url.pathname = isAdmin ? "/admin/dashboard" : "/pages/offers";
+      return redirectWithSearch(request, "/auth/forced-logout", {
+        reason: "session_expired",
+        callbackUrl: pathname,
+      });
     }
-
-    return NextResponse.redirect(url);
+    return createCleanRedirect(
+      request,
+      isAdmin ? "/admin/dashboard" : "/pages/offers"
+    );
   }
 
   // 5. Verificar si la ruta actual es una ruta exclusiva de super administrador
@@ -194,17 +254,13 @@ export function middleware(request: NextRequest) {
 
   // 6. Si requiere ser super administrador pero el usuario no lo es, redirigir
   if (requiresSuperAdmin && (!isAuthenticated || !isSuperAdmin)) {
-    const url = request.nextUrl.clone();
-
     if (!isAuthenticated) {
-      url.pathname = "/auth/forced-logout";
-      url.searchParams.set("reason", "session_expired");
-      url.searchParams.set("callbackUrl", pathname);
-    } else {
-      url.pathname = "/admin/dashboard";
+      return redirectWithSearch(request, "/auth/forced-logout", {
+        reason: "session_expired",
+        callbackUrl: pathname,
+      });
     }
-
-    return NextResponse.redirect(url);
+    return createCleanRedirect(request, "/admin/dashboard");
   }
 
   // 7. Verificar si la ruta actual es una ruta exclusiva de administrador
@@ -214,17 +270,13 @@ export function middleware(request: NextRequest) {
 
   // 8. Si requiere ser administrador pero el usuario no lo es, redirigir
   if (requiresAdmin && (!isAuthenticated || !isAdmin)) {
-    const url = request.nextUrl.clone();
-
     if (!isAuthenticated) {
-      url.pathname = "/auth/forced-logout";
-      url.searchParams.set("reason", "session_expired");
-      url.searchParams.set("callbackUrl", pathname);
-    } else {
-      url.pathname = "/pages/offers";
+      return redirectWithSearch(request, "/auth/forced-logout", {
+        reason: "session_expired",
+        callbackUrl: pathname,
+      });
     }
-
-    return NextResponse.redirect(url);
+    return createCleanRedirect(request, "/pages/offers");
   }
 
   // 9. Verificamos si la ruta actual es una ruta protegida que requiere autenticación
@@ -234,11 +286,10 @@ export function middleware(request: NextRequest) {
 
   // 10. Si requiere autenticación y el usuario no está autenticado, redirigir al login
   if (requiresAuth && !isAuthenticated) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/forced-logout";
-    url.searchParams.set("reason", "session_expired");
-    url.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(url);
+    return redirectWithSearch(request, "/auth/forced-logout", {
+      reason: "session_expired",
+      callbackUrl: pathname,
+    });
   }
 
   return NextResponse.next();

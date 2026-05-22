@@ -56,8 +56,23 @@ export default function LoginForm() {
   }, [setValue]);
 
   const safeRedirect = (url: string) => {
+    let target = url;
+    try {
+      if (/^https?:\/\//i.test(url)) {
+        const parsed = new URL(url);
+        const badHost =
+          parsed.hostname === "0.0.0.0" ||
+          parsed.hostname === "localhost" ||
+          parsed.hostname.startsWith("127.");
+        if (badHost) {
+          target = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+        }
+      }
+    } catch {
+      // mantener url original si no se puede parsear
+    }
     setTimeout(() => {
-      window.location.href = url;
+      window.location.href = target;
     }, 500);
   };
 
