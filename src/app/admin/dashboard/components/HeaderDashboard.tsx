@@ -84,6 +84,17 @@ export default function HeaderDashboard() {
                   Offers Management
                 </Link>
 
+                {/* ── Admin Hub ── */}
+                <hr className="my-1 border-gray-200" />
+                <Link
+                  href="/admin-hub/dashboard"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <LayoutDashboard size={16} className="mr-2 text-[#0097B2]" />
+                  Admin Hub
+                </Link>
+
                 <hr className="my-1 border-gray-200" />
                 <Link
                   href="/admin/dashboard/account"

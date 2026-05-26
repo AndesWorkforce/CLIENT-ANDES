@@ -46,6 +46,7 @@ const adminRoutes = [
   "/admin/dashboard",
   "/admin/users",
   "/admin/offers",
+  "/admin-hub",
   // Agregar aquí todas las rutas de administrador
 ];
 
