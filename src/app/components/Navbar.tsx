@@ -15,11 +15,6 @@ import {
   Briefcase,
   Phone,
   Mail,
-  Users,
-  ClipboardList,
-  Receipt,
-  CreditCard,
-  Clock,
 } from "lucide-react";
 import { FaSquareFacebook, FaLinkedin } from "react-icons/fa6";
 import { AiFillInstagram, AiFillTikTok } from "react-icons/ai";
@@ -528,56 +523,13 @@ export default function Navbar() {
 
                               {/* ── Admin Hub ── */}
                               <hr className="my-1 border-gray-200" />
-                              <p className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 select-none">
-                                Admin Hub
-                              </p>
                               <Link
                                 href="/admin-hub/dashboard"
                                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
                                 onClick={() => setShowUserMenu(false)}
                               >
                                 <LayoutDashboard size={16} className="mr-2 text-[#0097B2]" />
-                                Panel de control
-                              </Link>
-                              <Link
-                                href="/admin-hub/personas"
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-                                onClick={() => setShowUserMenu(false)}
-                              >
-                                <Users size={16} className="mr-2 text-[#0097B2]" />
-                                Personas
-                              </Link>
-                              <Link
-                                href="/admin-hub/contratos"
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-                                onClick={() => setShowUserMenu(false)}
-                              >
-                                <ClipboardList size={16} className="mr-2 text-[#0097B2]" />
-                                Contratos
-                              </Link>
-                              <Link
-                                href="/admin-hub/nominas"
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-                                onClick={() => setShowUserMenu(false)}
-                              >
-                                <Receipt size={16} className="mr-2 text-[#0097B2]" />
-                                Nóminas
-                              </Link>
-                              <Link
-                                href="/admin-hub/pagos"
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-                                onClick={() => setShowUserMenu(false)}
-                              >
-                                <CreditCard size={16} className="mr-2 text-[#0097B2]" />
-                                Pagos
-                              </Link>
-                              <Link
-                                href="/admin-hub/historial"
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-                                onClick={() => setShowUserMenu(false)}
-                              >
-                                <Clock size={16} className="mr-2 text-[#0097B2]" />
-                                Historial
+                                Admin Hub
                               </Link>
 
                               <hr className="my-1 border-gray-200" />
@@ -830,56 +782,13 @@ export default function Navbar() {
                           user?.rol === "ADMIN_RECLUTAMIENTO") && (
                           <>
                             <hr className="my-1 border-gray-200" />
-                            <p className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 select-none">
-                              Admin Hub
-                            </p>
                             <Link
                               href="/admin-hub/dashboard"
                               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
                               onClick={() => setShowMobileSidebar(false)}
                             >
                               <LayoutDashboard size={20} className="mr-2 text-[#0097B2]" />
-                              Panel de control
-                            </Link>
-                            <Link
-                              href="/admin-hub/personas"
-                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                              onClick={() => setShowMobileSidebar(false)}
-                            >
-                              <Users size={20} className="mr-2 text-[#0097B2]" />
-                              Personas
-                            </Link>
-                            <Link
-                              href="/admin-hub/contratos"
-                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                              onClick={() => setShowMobileSidebar(false)}
-                            >
-                              <ClipboardList size={20} className="mr-2 text-[#0097B2]" />
-                              Contratos
-                            </Link>
-                            <Link
-                              href="/admin-hub/nominas"
-                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                              onClick={() => setShowMobileSidebar(false)}
-                            >
-                              <Receipt size={20} className="mr-2 text-[#0097B2]" />
-                              Nóminas
-                            </Link>
-                            <Link
-                              href="/admin-hub/pagos"
-                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                              onClick={() => setShowMobileSidebar(false)}
-                            >
-                              <CreditCard size={20} className="mr-2 text-[#0097B2]" />
-                              Pagos
-                            </Link>
-                            <Link
-                              href="/admin-hub/historial"
-                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                              onClick={() => setShowMobileSidebar(false)}
-                            >
-                              <Clock size={20} className="mr-2 text-[#0097B2]" />
-                              Historial
+                              Admin Hub
                             </Link>
                           </>
                         )}
