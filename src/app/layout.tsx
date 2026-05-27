@@ -165,7 +165,7 @@ export default function RootLayout({
       <body className={`${inter.className} flex flex-col min-h-screen`}>
         <AuthValidator />
         <Navbar />
-        <main className="flex-1 pt-[85px]">
+        <main className="flex-1">
           {children}
         </main>
         <Footer />
