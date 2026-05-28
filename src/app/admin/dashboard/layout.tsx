@@ -1,4 +1,4 @@
-import HeaderDashboard from "./components/HeaderDashboard";
+import DashboardHeader from "@/app/components/DashboardHeader";
 import TabsNavigation from "./components/TabsNavigation";
 import NotificationsSidebar from "@/app/components/NotificationsSidebar";
 
@@ -9,7 +9,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex flex-col h-screen">
-      <HeaderDashboard />
+      <DashboardHeader variant="admin" />
       <TabsNavigation />
       {children}
       <NotificationsSidebar />
