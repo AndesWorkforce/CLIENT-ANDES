@@ -223,6 +223,16 @@ export default function PaymentsPage() {
       .replace(/\s+/g, " ")
       .trim();
 
+  const BONUS_TYPE_SORT_ORDER: Record<string, number> = {
+    NONE: 0,
+    HALF_MONTH_ONCE_DECEMBER: 1,
+    FULL_MONTH_ONCE_DECEMBER: 2,
+    FULL_MONTH_TWICE_JUNE_DECEMBER: 3,
+  };
+
+  const getBonusTypeSortRank = (type: string | null | undefined) =>
+    BONUS_TYPE_SORT_ORDER[type || "NONE"] ?? 99;
+
   const getAdminDiscretionaryBonusLabel = (
     type: string | null | undefined
   ): string => {
@@ -346,6 +356,18 @@ export default function PaymentsPage() {
       setSortDirection("asc");
     }
   };
+
+  const renderSortIndicator = (key: keyof UserContract) => (
+    <div className="flex flex-col text-xs text-gray-400">
+      {sortKey === key && sortDirection === "asc" ? (
+        <span className="text-blue-600">▲</span>
+      ) : sortKey === key && sortDirection === "desc" ? (
+        <span className="text-blue-600">▼</span>
+      ) : (
+        <span className="opacity-50">⇅</span>
+      )}
+    </div>
+  );
 
   const getPaymentStatusRank = (user: UserContract) => {
     const isColombia = String(user.country || "").toLowerCase() === "colombia";
@@ -562,6 +584,30 @@ export default function PaymentsPage() {
         const comparison = getPaymentStatusRank(a) - getPaymentStatusRank(b);
         return sortDirection === "asc" ? comparison : -comparison;
       }
+
+      if (sortKey === "discretionaryBonusType") {
+        const comparison =
+          getBonusTypeSortRank(a.discretionaryBonusType) -
+          getBonusTypeSortRank(b.discretionaryBonusType);
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
+
+      if (sortKey === "inboxMesActualId") {
+        const aHas = !!a.inboxMesActualId;
+        const bHas = !!b.inboxMesActualId;
+        if (aHas === bHas) return 0;
+        const comparison = aHas ? -1 : 1;
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
+
+      if (sortKey === "paidHolidays") {
+        const aVal = a.paidHolidays === true;
+        const bVal = b.paidHolidays === true;
+        if (aVal === bVal) return 0;
+        const comparison = aVal ? -1 : 1;
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
+
       const aValue = a[sortKey];
       const bValue = b[sortKey];
 
@@ -1598,14 +1644,59 @@ export default function PaymentsPage() {
                   </div>
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                <span id="col-invoices-header">Invoices</span>
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("inboxMesActualId")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSort("inboxMesActualId");
+                  }
+                }}
+                title="Ordenar por factura cargada o pendiente"
+              >
+                <div className="flex items-center space-x-1">
+                  <span id="col-invoices-header">Invoices</span>
+                  {renderSortIndicator("inboxMesActualId")}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                Discretionary Bonus
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("discretionaryBonusType")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSort("discretionaryBonusType");
+                  }
+                }}
+                title="Ordenar por tipo de bono discrecional"
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Discretionary Bonus</span>
+                  {renderSortIndicator("discretionaryBonusType")}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                Paid Holidays
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("paidHolidays")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSort("paidHolidays");
+                  }
+                }}
+                title="Ordenar por feriados pagados (Sí / No)"
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Paid Holidays</span>
+                  {renderSortIndicator("paidHolidays")}
+                </div>
               </th>
             </tr>
           </thead>
