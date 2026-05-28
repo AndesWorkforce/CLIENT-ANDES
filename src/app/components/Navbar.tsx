@@ -293,6 +293,9 @@ export default function Navbar() {
     return null;
   }
 
+  // Spacer that compensates for the fixed navbar height
+  const NavbarSpacer = () => <div className="h-[85px]" aria-hidden="true" />;
+
   const renderUserMenu = () => (
     <>
       <div className="px-4 py-3 border-b border-gray-100">
@@ -377,7 +380,8 @@ export default function Navbar() {
   );
 
   return (
-    <header className="fixed top-0 w-full bg-white z-50 shadow-[0px_4px_4px_0px_rgba(210,210,210,0.25)]">
+    <>
+      <header className="fixed top-0 w-full bg-white z-50 shadow-[0px_4px_4px_0px_rgba(210,210,210,0.25)]">
       {/* Top Header - Contact & Social */}
       <div className="hidden md:block bg-white border-b border-[rgba(210,210,210,0.5)]">
         <div className="container mx-auto px-4">
@@ -848,5 +852,7 @@ export default function Navbar() {
         </div>
       )}
     </header>
+      <NavbarSpacer />
+    </>
   );
 }

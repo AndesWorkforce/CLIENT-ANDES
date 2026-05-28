@@ -1,4 +1,4 @@
-import HeaderDashboard from "@/app/admin/dashboard/components/HeaderDashboard";
+import DashboardHeader from "@/app/components/DashboardHeader";
 import TabsNavigationSuperAdmin from "./components/TabsNavigationSuperAdmin";
 
 export default function SuperAdminLayout({
@@ -8,7 +8,7 @@ export default function SuperAdminLayout({
 }) {
   return (
     <div className="flex flex-col h-screen">
-      <HeaderDashboard />
+      <DashboardHeader variant="admin" />
       <TabsNavigationSuperAdmin />
       {children}
     </div>

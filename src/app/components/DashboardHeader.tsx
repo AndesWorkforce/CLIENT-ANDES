@@ -1,15 +1,32 @@
 "use client";
 
 import { useAuthStore } from "@/store/auth.store";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, User } from "lucide-react";
 import { useRef, useState } from "react";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Logo from "@/components/ui/Logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import NotificationsBell from "@/app/components/NotificationsBell";
 
-export default function HeaderDashboard() {
+type Variant = "admin" | "companies";
+
+interface DashboardHeaderProps {
+  variant: Variant;
+}
+
+const HIDE_ROUTES: Record<Variant, string> = {
+  admin: "/admin/dashboard/account",
+  companies: "/companies/account",
+};
+
+const ACCOUNT_ROUTES: Record<Variant, string> = {
+  admin: "/admin/dashboard/account",
+  companies: "/companies/account",
+};
+
+export default function DashboardHeader({ variant }: DashboardHeaderProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -26,11 +43,11 @@ export default function HeaderDashboard() {
     }
   }
 
-  if (
-    pathname === "/admin/dashboard/account" ||
-    pathname === "/companies/account"
-  )
-    return null;
+  if (pathname === HIDE_ROUTES[variant]) return null;
+
+  const isAdmin = user?.rol === "ADMIN";
+  const isAdminOrRecruiter =
+    user?.rol === "ADMIN" || user?.rol === "ADMIN_RECLUTAMIENTO";
 
   return (
     <header className="container mx-auto bg-white shadow-sm">
@@ -40,7 +57,10 @@ export default function HeaderDashboard() {
             <Logo />
           </div>
         </div>
+
         <div className="flex items-center space-x-4">
+          {variant === "admin" && <NotificationsBell />}
+
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
@@ -57,38 +77,60 @@ export default function HeaderDashboard() {
                   </p>
                 </div>
 
-                {user?.rol === "ADMIN" && (
+                {/* Super Admin Panel — solo ADMIN */}
+                {isAdmin && (
                   <>
                     <Link
                       href="/admin/superAdmin"
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
                       onClick={() => setShowUserMenu(false)}
                     >
-                      <Settings
-                        size={16}
-                        className="mr-2 text-[#0097B2] cursor-pointer"
-                      />
+                      <Settings size={16} className="mr-2 text-[#0097B2]" />
                       Super Admin Panel
                     </Link>
                     <hr className="my-1 border-gray-200" />
                   </>
                 )}
 
-                {/* <Link
-                  href="/admin/dashboard"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
-                  onClick={() => setShowUserMenu(false)}
-                >
-                  <LayoutDashboard
-                    size={16}
-                    className="mr-2 text-[#0097B2] cursor-pointer"
-                  />
-                  Offers Management
-                </Link>
+                {/* Offers Management — solo variante admin */}
+                {variant === "admin" && (
+                  <>
+                    <Link
+                      href="/admin/dashboard"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <LayoutDashboard
+                        size={16}
+                        className="mr-2 text-[#0097B2]"
+                      />
+                      Offers Management
+                    </Link>
+                    <hr className="my-1 border-gray-200" />
+                  </>
+                )}
 
-                <hr className="my-1 border-gray-200" /> */}
+                {/* Admin Hub — ADMIN y ADMIN_RECLUTAMIENTO */}
+                {isAdminOrRecruiter && (
+                  <>
+                    <Link
+                      href="/admin-hub/dashboard"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <LayoutDashboard
+                        size={16}
+                        className="mr-2 text-[#0097B2]"
+                      />
+                      Admin Hub
+                    </Link>
+                    <hr className="my-1 border-gray-200" />
+                  </>
+                )}
+
+                {/* My Account */}
                 <Link
-                  href="/companies/account"
+                  href={ACCOUNT_ROUTES[variant]}
                   className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                   onClick={() => setShowUserMenu(false)}
                 >
@@ -104,10 +146,7 @@ export default function HeaderDashboard() {
                   }}
                   className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
                 >
-                  <LogOut
-                    size={16}
-                    className="mr-2 text-[#0097B2] cursor-pointer"
-                  />
+                  <LogOut size={16} className="mr-2 text-[#0097B2]" />
                   Logout
                 </button>
               </div>
