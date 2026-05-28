@@ -774,13 +774,13 @@ export default function ProfilePage() {
               <div className="mt-2 text-sm text-gray-700 space-y-1">
                 {profile.bankInfo?.usaDollarApp ? (
                   <div>
-                    DollarApp: Yes
+                    ARQ App: Yes
                     {profile.bankInfo?.dollarTag
                       ? ` (${profile.bankInfo.dollarTag})`
                       : ""}
                   </div>
                 ) : (
-                  <div>DollarApp: No</div>
+                  <div>ARQ App: No</div>
                 )}
                 {profile.bankInfo?.bancoNombre && (
                   <div>
@@ -1923,13 +1923,13 @@ export default function ProfilePage() {
                   <div className="mt-2 text-sm text-gray-700 space-y-1">
                     {profile.bankInfo?.usaDollarApp ? (
                       <div>
-                        DollarApp: Yes
+                        ARQ App: Yes
                         {profile.bankInfo?.dollarTag
                           ? ` (${profile.bankInfo.dollarTag})`
                           : ""}
                       </div>
                     ) : (
-                      <div>DollarApp: No</div>
+                      <div>ARQ App: No</div>
                     )}
                     {profile.bankInfo?.bancoNombre && (
                       <div>

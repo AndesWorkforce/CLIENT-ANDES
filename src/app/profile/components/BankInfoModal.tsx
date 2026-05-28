@@ -29,7 +29,7 @@ const bankInfoSchema = z
     },
     {
       path: ["dollarTag"],
-      message: "Dollar tag is required when DollarApp is used",
+      message: "ARQ tag is required when ARQ App is used",
     }
   );
 
@@ -135,14 +135,14 @@ export default function BankInfoModal({
                 {...register("usaDollarApp")}
               />
               <label htmlFor="usaDollarApp" className="text-sm text-gray-700">
-                I use DollarApp
+                I use ARQ App
               </label>
             </div>
 
             {usaDollarApp && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Dollar tag
+                  ARQ tag
                 </label>
                 <input
                   type="text"
