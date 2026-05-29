@@ -23,8 +23,24 @@ export default function TeamMembersGrid({
     rows.push(visibleMembers.slice(i, i + 4));
   }
 
+  // ~3.5s per card for a smooth continuous scroll feel
+  const carouselDuration = `${members.length * 3.5}s`;
+
   return (
-    <section className="relative w-full overflow-hidden py-[109px]">
+    <section className="relative w-full overflow-hidden py-[33px] sm:py-[109px]">
+      <style>{`
+        @keyframes teamMembersScroll {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        .team-members-carousel {
+          will-change: transform;
+        }
+        .team-members-carousel:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+
       {/* Background image */}
       <Image
         src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/The+people+behind+it+all+-+Fondo.jpg"
@@ -36,19 +52,37 @@ export default function TeamMembersGrid({
       {/* Dark teal overlay */}
       <div className="absolute inset-0 bg-[rgba(4,78,92,0.72)]" />
 
-      <div className="relative z-10 max-w-[1440px] mx-auto px-[80px] flex flex-col gap-[55px] items-center">
+      <div className="relative z-10 max-w-[1440px] mx-auto px-[21px] sm:px-[80px] flex flex-col gap-[22px] sm:gap-[55px] items-center">
         {/* Centered header */}
         <div className="flex flex-col gap-[11px] items-center text-center">
-          <h2 className="text-[48px] font-bold text-white leading-[1.3]">
+          <h2 className="text-[24px] sm:text-[48px] font-bold text-white leading-[1.3]">
             The <span className="text-[#89e9fa]">people</span> behind it all
           </h2>
-          <p className="text-[22px] font-semibold text-white leading-[1.3]">
+          <p className="text-[14px] sm:text-[22px] font-semibold text-white leading-[1.3]">
             Behind every great result, there&apos;s a team that makes it possible.
           </p>
         </div>
 
-        {/* Cards grid: rows of 4 */}
-        <div className="flex flex-col gap-[55px] w-full">
+        {/* Mobile: infinite auto-scroll carousel */}
+        <div className="md:hidden -mx-[21px] overflow-hidden w-[calc(100%+42px)]">
+          <div
+            className="team-members-carousel flex gap-[19px] pl-[19px]"
+            style={{
+              width: "max-content",
+              animation: `teamMembersScroll ${carouselDuration} linear infinite`,
+            }}
+          >
+            {/* Duplicate cards for seamless looping */}
+            {[...members, ...members].map((member, i) => (
+              <div key={`carousel-${member.id}-${i}`} className="w-[201px] flex-shrink-0">
+                <MemberCard member={member} onMemberClick={onMemberClick} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop: rows of 4 */}
+        <div className="hidden md:flex flex-col gap-[55px] w-full">
           {rows.map((row, rowIndex) => (
             <div key={rowIndex} className="grid grid-cols-4 gap-[19px]">
               {row.map((member) => (
@@ -58,8 +92,8 @@ export default function TeamMembersGrid({
           ))}
         </div>
 
-        {/* See more / Show less button */}
-        <div className="flex justify-center">
+        {/* See more / Show less — desktop only */}
+        <div className="hidden md:flex justify-center">
           {!showAll ? (
             <button
               onClick={() => setShowAll(true)}
@@ -94,13 +128,13 @@ function MemberCard({
       className="flex flex-col cursor-pointer rounded-[15px] overflow-hidden hover:scale-[1.02] transition-transform h-full"
     >
       {/* Photo */}
-      <div className="relative w-full h-[380px] bg-gray-200 rounded-tl-[15px] rounded-tr-[15px]">
+      <div className="relative w-full h-[204px] sm:h-[380px] bg-gray-200 rounded-tl-[15px] rounded-tr-[15px]">
         {member.image ? (
           <Image
             src={member.image}
             alt={member.name}
             fill
-            sizes="305px"
+            sizes="(max-width: 768px) 50vw, 305px"
             className={member.imageClass || "object-cover object-top"}
           />
         ) : (
@@ -112,16 +146,16 @@ function MemberCard({
 
       {/* Info */}
       <div className="bg-white flex flex-col flex-1 items-center justify-center gap-[11px] px-[25px] py-[22px] rounded-bl-[15px] rounded-br-[15px]">
-        <div className="flex flex-col items-center gap-[4px] text-center w-[275px]">
-          <h3 className="text-[24px] font-bold text-black leading-[1.3]">
+        <div className="flex flex-col items-center gap-[4px] text-center w-auto sm:w-[275px]">
+          <h3 className="text-[18px] sm:text-[24px] font-bold text-black leading-[1.3]">
             {member.name}
           </h3>
-          <p className="text-[16px] font-normal text-black leading-[1.3]">
+          <p className="text-[12px] sm:text-[16px] font-normal text-black leading-[1.3]">
             {member.role}
           </p>
         </div>
-        <div className="border border-[#0097b2] rounded-[8px] px-[8px] py-[6px] h-[30px] flex items-center justify-center">
-          <span className="text-[#0097b2] text-[12px] tracking-[0.24px]">
+        <div className="border border-[#0097b2] rounded-[8px] px-[8px] py-[6px] h-[21px] sm:h-[30px] flex items-center justify-center">
+          <span className="text-[#0097b2] text-[10px] sm:text-[12px] tracking-[0.24px]">
             See details
           </span>
         </div>

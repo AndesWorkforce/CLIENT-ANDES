@@ -9,6 +9,8 @@ interface MemberModalProps {
 export default function MemberModal({ member, onClose }: MemberModalProps) {
   if (!member) return null;
 
+  const memberPets = member.pets ?? [];
+
   return (
     <div
       className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fadeIn"
@@ -97,6 +99,51 @@ export default function MemberModal({ member, onClose }: MemberModalProps) {
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {/* Their furry teammate section */}
+            {memberPets.length > 0 && (
+              <div className="mt-6 pt-5 border-t border-gray-100">
+                <h4 className="text-base md:text-lg font-semibold text-[#08252A] mb-3">
+                  🐾 Their furry teammate{memberPets.length > 1 ? "s" : ""}
+                </h4>
+                <div className="flex flex-col gap-3">
+                  {memberPets.map((pet) => (
+                    <div key={pet.id} className="flex items-center gap-3">
+                      {/* Pet thumbnail */}
+                      <div className="relative w-[81px] h-[81px] rounded-xl overflow-hidden flex-shrink-0">
+                        {pet.image ? (
+                          <Image
+                            src={pet.image}
+                            alt={pet.name}
+                            fill
+                            sizes="81px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-[#0097B2] flex items-center justify-center text-2xl">
+                            🐾
+                          </div>
+                        )}
+                      </div>
+                      {/* Pet info */}
+                      <div className="flex flex-col">
+                        <span className="text-[16px] font-semibold text-[#08252A] leading-tight">
+                          {pet.name}
+                        </span>
+                        <span className="text-[14px] font-medium text-[#0097B2] leading-snug">
+                          {pet.role}
+                        </span>
+                        {pet.bullets[0] && (
+                          <span className="text-[12px] font-normal text-gray-500 tracking-[0.24px] leading-relaxed mt-0.5 line-clamp-2">
+                            {pet.bullets[0]}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

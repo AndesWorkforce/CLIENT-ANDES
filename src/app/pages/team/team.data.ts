@@ -10,6 +10,14 @@ export type TeamGroup =
   | "Client Teams"
   | "Pet Family";
 
+export interface PetInfo {
+  id: string;
+  name: string;
+  role: string;
+  image?: string;
+  bullets: string[];
+}
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -21,6 +29,7 @@ export interface TeamMember {
   imageClass?: string;
   summary?: string;
   bullets: string[];
+  pets?: PetInfo[]; // Pet Family members associated with this team member
 }
 
 // Tip: Add or edit people here. If no image is available, simply omit the image field
@@ -41,6 +50,19 @@ export const teamMembers: TeamMember[] = [
       "In his free time, Miguel is often found hiking mountains and exploring volcanoes, lakes, and rivers.",
     ],
     imageClass: "object-cover",
+    pets: [
+      {
+        id: "alana",
+        name: "Alana",
+        role: "Fur\u2011st Impressions Coordinator",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alana.jpg",
+        bullets: [
+          "Greets everyone with tail wags and instant charm.",
+          "Ensures all visitors feel welcome (and slightly covered in fur).",
+          "Expert in sniff\u2011based background checks and belly\u2011rub negotiations.",
+        ],
+      },
+    ],
   },
   // Technology
   {
@@ -57,6 +79,29 @@ export const teamMembers: TeamMember[] = [
       "Committed to improving her physical and emotional well-being; enjoys exploring new places, dancing, spending time with loved ones, and being close to animals, plants, and the beach.",
     ],
     imageClass: "object-cover",
+    pets: [
+      {
+        id: "simona",
+        name: "Simona",
+        role: "Barketing Assistant",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/simona.jpg",
+        bullets: [
+          "Specializes in tail\u2011wagging team morale.",
+          "Oversees snack inventory and nap scheduling.",
+          "Expert in client greetings and paw\u2011sitive vibes.",
+        ],
+      },
+      {
+        id: "brownie",
+        name: "Brownie",
+        role: "Former Chief Treat Officer (Oct 23, 2015 \u2013 Sept 03, 2025)",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/brownie.jpg",
+        bullets: [
+          "Brought endless joy and love to our team\u2014especially when snacks were involved!",
+          "His cheerful spirit made every day brighter; his legacy lives on in our hearts and workspace.",
+        ],
+      },
+    ],
   },
   // Administration
   {
@@ -74,6 +119,26 @@ export const teamMembers: TeamMember[] = [
       "Loves dancing, cooking, traveling, and making the most of family time.",
     ],
     imageClass: "object-cover image-position-top",
+    pets: [
+      {
+        id: "alaska",
+        name: "Alaska",
+        role: "Feline Fun Facilitator",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alaska.jpg",
+        bullets: [
+          "Junior joy specialist\u2014only 3 months old and already mastering playful chaos and zoomies.",
+        ],
+      },
+      {
+        id: "queen",
+        name: "Queen",
+        role: "Feline Fun Facilitator",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/queen.jpg",
+        bullets: [
+          "Senior nap executive; majestic fluff with grumpy charm and zero tolerance for nonsense.",
+        ],
+      },
+    ],
   },
   {
     id: "ruben-dario-romero",
@@ -108,6 +173,41 @@ export const teamMembers: TeamMember[] = [
       "When he's not solving tech issues, you’ll find him skateboarding through the city or diving into his favorite video games.",
     ],
     imageClass: "object-cover",
+    pets: [
+      {
+        id: "toby",
+        name: "Toby",
+        role: "Junior Meowketing Specialist",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/toby.jpg",
+        bullets: [
+          "Youngest team member with the biggest paws and the biggest heart.",
+          "Large, lovable, and always ready to play.",
+          "Passionate about chasing imaginary bugs and supervising from high places.",
+        ],
+      },
+      {
+        id: "emilia",
+        name: "Emilia",
+        role: "Executive Cuddle Consultant",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/emilia.jpg",
+        bullets: [
+          "Provides daily inspiration through unexpected Zoom appearances.",
+          "The tiniest diva with the loudest demands.",
+          "Delivers daily doses of sass and sweetness.",
+        ],
+      },
+      {
+        id: "kira",
+        name: "Kira",
+        role: "Senior Nap Strategist",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/kira.jpg",
+        bullets: [
+          "The wise veteran with a majestic fluff and a love for lounging.",
+          "Supervises from comfy spots with minimal movement.",
+          "Proudly plus-size, deeply experienced, and always snack-ready.",
+        ],
+      },
+    ],
   },
   { 
     id: "julian-grisales",
@@ -124,6 +224,30 @@ export const teamMembers: TeamMember[] = [
       "Passionate about music and creativity, especially playing guitar and drums, while always looking for new ways to connect ideas, people, and stories."
     ],
     imageClass: "object-cover",
+    pets: [
+      {
+        id: "casper",
+        name: "Casper",
+        role: "Director of Purr\u2011sonal Affairs",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/casper.jpg",
+        bullets: [
+          "Master of emotional support and spontaneous cuddle sessions.",
+          "Expert in stress relief via purring and lap occupation.",
+          "Responsible for daily office patrols and sunbeam lounging.",
+        ],
+      },
+      {
+        id: "bagheera",
+        name: "Bagheera",
+        role: "Director of Purr\u2011sonal Affairs",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/bagheera.jpg",
+        bullets: [
+          "Master of emotional support and spontaneous cuddle sessions.",
+          "Expert in stress relief via purring and lap occupation.",
+          "Responsible for daily office patrols and sunbeam lounging.",
+        ],
+      },
+    ],
   },
 
   {
@@ -141,6 +265,19 @@ export const teamMembers: TeamMember[] = [
       "Values quality time with family and believes that balance is the key to doing exceptional work.",
     ],
     imageClass: "object-cover",
+    pets: [
+      {
+        id: "ozzy",
+        name: "Ozzy",
+        role: "Junior Pawblic Relations Intern",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/ozzy.jpg",
+        bullets: [
+          "Mastering the art of chew\u2011toy diplomacy.",
+          "Brings boundless energy and puppy\u2011eyed charm to every meeting.",
+          "Still learning the ropes but already a pro at stealing hearts.",
+        ],
+      },
+    ],
   },
 
   // Client Teams (new members)
