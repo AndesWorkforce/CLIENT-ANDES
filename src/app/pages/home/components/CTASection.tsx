@@ -23,7 +23,7 @@ export default function CTASection() {
               onClick={(e) => {
                 e.preventDefault();
                 if (typeof window !== "undefined" && (window as any).gtagSendEvent) {
-                  (window as any).gtagSendEvent("/pages/contact");
+                  (window as any).gtagSendEvent("/pages/contact", "ads_click_CTA_Home");
                 } else {
                   window.location.href = "/pages/contact";
                 }
