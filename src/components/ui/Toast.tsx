@@ -46,17 +46,17 @@ const positionToAnimation: Record<Position, { enter: string; exit: string }> = {
 };
 
 const toastStyles: Record<NotificationType, string> = {
-  success: "border-[#0097B2]",
-  error: "border-red-500",
-  info: "border-blue-500",
-  warning: "border-yellow-500",
+  success: "",
+  error: "border-l-4 border-red-500",
+  info: "border-l-4 border-blue-500",
+  warning: "border-l-4 border-yellow-500",
 };
 
 const toastIcons: Record<
   NotificationType,
   { icon: React.ReactNode; color: string }
 > = {
-  success: { icon: <CheckCircle size={20} />, color: "#0097B2" },
+  success: { icon: <CheckCircle size={24} strokeWidth={2} />, color: "#2D6A4F" },
   error: { icon: <AlertCircle size={20} />, color: "#EF4444" },
   info: { icon: <Info size={20} />, color: "#3B82F6" },
   warning: { icon: <AlertTriangle size={20} />, color: "#F59E0B" },
@@ -90,41 +90,64 @@ export function Toast({ position = "top-right" }: ToastProps = {}) {
 
   return (
     <div
-      className={`fixed z-50 flex flex-col gap-2 ${positionClasses[position]}`}
+      className={`fixed z-[150] flex flex-col gap-2 ${positionClasses[position]}`}
     >
-      {notifications.map((notification) => (
-        <div
-          key={notification.id}
-          className={`
-            flex items-center justify-between
-            rounded-lg px-6 py-4
-            shadow-lg
-            border-l-4
-            bg-[#FCFEFF]
-            ${toastStyles[notification.type]}
-            ${
-              exitingNotifications.includes(notification.id)
-                ? positionToAnimation[position].exit
-                : positionToAnimation[position].enter
-            }
-          `}
-        >
-          <div className="flex items-center gap-3">
-            <span style={{ color: toastIcons[notification.type].color }}>
-              {toastIcons[notification.type].icon}
-            </span>
-            <p className="text-sm font-medium text-gray-700">
-              {notification.message}
-            </p>
-          </div>
-          <button
-            onClick={() => handleRemoveNotification(notification.id)}
-            className="cursor-pointer ml-4 rounded-full p-1 hover:bg-gray-100 transition-colors"
+      {notifications.map((notification) => {
+        const isSuccess = notification.type === "success";
+
+        return (
+          <div
+            key={notification.id}
+            className={`
+              relative flex items-start justify-between
+              ${
+                isSuccess
+                  ? "w-[min(384px,calc(100vw-2rem))] rounded-[8px] bg-white px-[14px] pt-[15px] pb-[11px] shadow-[0px_2px_5px_rgba(112,112,112,0.17)]"
+                  : "rounded-lg border-l-4 bg-[#FCFEFF] px-6 py-4 shadow-lg"
+              }
+              ${toastStyles[notification.type]}
+              ${
+                exitingNotifications.includes(notification.id)
+                  ? positionToAnimation[position].exit
+                  : positionToAnimation[position].enter
+              }
+            `}
           >
-            <XIcon size={16} className="text-gray-400 hover:text-gray-600" />
-          </button>
-        </div>
-      ))}
+            <div className={`flex items-start ${isSuccess ? "gap-[17px] pr-8" : "gap-3"}`}>
+              <span
+                className="shrink-0"
+                style={{ color: toastIcons[notification.type].color }}
+              >
+                {toastIcons[notification.type].icon}
+              </span>
+              <p
+                className={
+                  isSuccess
+                    ? "text-[16px] font-bold leading-[1.3] text-[#343434]"
+                    : "text-sm font-medium text-gray-700"
+                }
+              >
+                {notification.message}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleRemoveNotification(notification.id)}
+              className={`cursor-pointer shrink-0 rounded-full transition-colors ${
+                isSuccess
+                  ? "absolute right-[11px] top-[11px] p-0 text-[#707070] hover:text-[#343434]"
+                  : "ml-4 p-1 hover:bg-gray-100"
+              }`}
+              aria-label="Cerrar notificación"
+            >
+              <XIcon
+                size={isSuccess ? 21 : 16}
+                className={isSuccess ? "" : "text-gray-400 hover:text-gray-600"}
+              />
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

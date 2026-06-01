@@ -1,8 +1,5 @@
-﻿export default function AdminHubPagosPage() {
-  return (
-    <div>
-      <h1 className="text-[32px] font-bold text-[#343434] leading-[1.3]">Pagos</h1>
-      <p className="mt-4 text-[#707070]">Esta sección está en desarrollo.</p>
-    </div>
-  );
+﻿import InvoicesPageContent from "./components/InvoicesPageContent";
+
+export default function AdminHubPagosPage() {
+  return <InvoicesPageContent />;
 }

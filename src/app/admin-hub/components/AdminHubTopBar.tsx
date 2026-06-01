@@ -15,6 +15,7 @@ const breadcrumbLabels: Record<string, string> = {
   contratos: "Contratos",
   nominas: "Nóminas",
   pagos: "Pagos",
+  facturas: "Facturas",
   historial: "Historial",
   configuracion: "Configuración",
 };
@@ -37,7 +38,9 @@ export default function AdminHubTopBar() {
   }
 
   const segments = pathname.split("/").filter(Boolean);
-  const crumbs = segments.map((seg) => breadcrumbLabels[seg] ?? seg);
+  const crumbs = segments
+    .filter((seg) => !/^\d+$/.test(seg))
+    .map((seg) => breadcrumbLabels[seg] ?? seg);
 
   return (
     <header className="flex items-center justify-between h-[60px] px-6 bg-white border-b border-[#EFEFEF] shrink-0">
