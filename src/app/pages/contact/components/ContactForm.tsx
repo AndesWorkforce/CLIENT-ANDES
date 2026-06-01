@@ -80,9 +80,9 @@ export default function ContactForm() {
       setFormResponse(response);
 
       if (response.success) {
-        // Track Google Ads conversion event
+        // Track Google Ads conversion event - contact page form submit
         if (typeof window !== "undefined" && window.gtag) {
-          window.gtag("event", "ads_conversion_Contact_1", {});
+          window.gtag("event", "ads_conversion_Form_ContactPage", {});
         }
 
         reset();
