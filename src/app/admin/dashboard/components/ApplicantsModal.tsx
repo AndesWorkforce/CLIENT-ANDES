@@ -39,44 +39,16 @@ import UpdateStatusModal from "./UpdateStatusModal";
 import ApplicantsTableSkeleton from "./ApplicantsTableSkeleton";
 import TableSkeleton from "./TableSkeleton";
 import InterviewDateTimePicker from "@/components/InterviewDateTimePicker";
+import {
+  formatInterviewDateUS,
+  formatInterviewTime,
+  formatInterviewDateTimeLabel,
+} from "@/lib/interview-datetime";
 
 // Feature flag temporal: ocultar columna "Proposed Date" mientras está en desarrollo
 const SHOW_PROPOSED_DATE = true;
 
-// Helper: US date format MM/DD/YYYY, optionally respecting a timeZone
-const formatDateUS = (iso?: string, tz?: string | null) => {
-  if (!iso) return "";
-  try {
-    const d = new Date(iso);
-    if (tz) {
-      // Use Intl to format in specific timeZone and then assemble MM/DD/YYYY
-      const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone: tz || undefined,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      })
-        .formatToParts(d)
-        .reduce<Record<string, string>>((acc, p) => {
-          acc[p.type] = p.value;
-          return acc;
-        }, {});
-      return `${parts.month}/${parts.day}/${parts.year}`;
-    }
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    return `${mm}/${dd}/${yyyy}`;
-  } catch {
-    const plain = (iso || "").split("T")[0];
-    const parts = plain.split("-");
-    if (parts.length === 3) {
-      const [y, m, day] = parts;
-      return `${m}/${day}/${y}`;
-    }
-    return iso || "";
-  }
-};
+const formatDateUS = formatInterviewDateUS;
 
 // Definir StageStatus aquí
 export type StageStatus =
@@ -440,10 +412,10 @@ const AdminApplicantsTable = ({
                             )}
                           </div>
                           <div className="text-green-600 font-medium">
-                            {new Date(confirmed).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {formatInterviewTime(
+                              confirmed,
+                              applicant.zonaHorariaEntrevista
+                            )}
                           </div>
                           {/* TZ badge moved to Name cell to reduce clutter */}
                           {/* Removed explicit 'Confirmed' label per UX request */}
@@ -562,27 +534,15 @@ const AdminApplicantsTable = ({
                           }
                         >
                           <option value="">Select option...</option>
-                          {proposedDates.map((d, idx) => {
-                            const tz =
-                              applicant.zonaHorariaEntrevista || undefined;
-                            const dt = new Date(d);
-                            const dateStr = formatDateUS(d, tz);
-                            const timeStr = dt.toLocaleTimeString(
-                              [],
-                              tz
-                                ? ({
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    timeZone: tz as string,
-                                  } as any)
-                                : { hour: "2-digit", minute: "2-digit" }
-                            );
-                            return (
-                              <option key={idx} value={idx + 1}>
-                                {idx + 1}. {dateStr} {timeStr}
-                              </option>
-                            );
-                          })}
+                          {proposedDates.map((d, idx) => (
+                            <option key={idx} value={idx + 1}>
+                              {idx + 1}.{" "}
+                              {formatInterviewDateTimeLabel(
+                                d,
+                                applicant.zonaHorariaEntrevista
+                              )}
+                            </option>
+                          ))}
                         </select>
                         {/* TZ badge moved to Name cell to reduce clutter */}
                         {confirmingInterview[applicant.id] && (
@@ -600,14 +560,12 @@ const AdminApplicantsTable = ({
                   const confirmed = applicant.fechaEntrevistaConfirmada;
                   const firstProposed = applicant.disponibilidadEntrevista;
                   if (confirmed) {
+                    const tz = applicant.zonaHorariaEntrevista;
                     return (
                       <div className="text-xs text-green-700 flex flex-col gap-1">
-                        <div>{new Date(confirmed).toLocaleDateString()}</div>
+                        <div>{formatDateUS(confirmed, tz)}</div>
                         <div className="text-green-600 font-medium">
-                          {new Date(confirmed).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {formatInterviewTime(confirmed, tz)}
                         </div>
                         {/* TZ badge moved to Name cell to reduce clutter */}
                         <button
@@ -621,19 +579,12 @@ const AdminApplicantsTable = ({
                     );
                   }
                   if (firstProposed) {
+                    const tz = applicant.zonaHorariaEntrevista;
                     return (
                       <div className="text-xs text-gray-700">
-                        <div>
-                          {formatDateUS(
-                            firstProposed,
-                            applicant.zonaHorariaEntrevista
-                          )}
-                        </div>
+                        <div>{formatDateUS(firstProposed, tz)}</div>
                         <div className="text-gray-500">
-                          {new Date(firstProposed).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {formatInterviewTime(firstProposed, tz)}
                         </div>
                         {applicant.zonaHorariaEntrevista && (
                           <span className="text-[10px] text-gray-500 inline-block">

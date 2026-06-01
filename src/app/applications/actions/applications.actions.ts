@@ -47,6 +47,7 @@ export interface ApiApplication {
   disponibilidadEntrevista2?: string | null;
   disponibilidadEntrevista3?: string | null;
   fechaEntrevistaConfirmada?: string | null;
+  zonaHorariaEntrevista?: string | null;
 }
 
 export interface Application {
@@ -67,6 +68,7 @@ export interface Application {
   disponibilidadEntrevista2?: string | null;
   disponibilidadEntrevista3?: string | null;
   fechaEntrevistaConfirmada?: string | null;
+  zonaHorariaEntrevista?: string | null;
 }
 
 interface PaginationInfo {
@@ -110,6 +112,7 @@ export async function getMyApplications(page: number = 1, limit: number = 10) {
         disponibilidadEntrevista2: apiApp.disponibilidadEntrevista2 || null,
         disponibilidadEntrevista3: apiApp.disponibilidadEntrevista3 || null,
         fechaEntrevistaConfirmada: apiApp.fechaEntrevistaConfirmada || null,
+        zonaHorariaEntrevista: apiApp.zonaHorariaEntrevista || null,
       })
     );
 

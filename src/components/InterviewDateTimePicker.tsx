@@ -2,6 +2,10 @@
 import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import {
+  utcIsoToZonedParts,
+  zonedDateTimeToUtcIso,
+} from "@/lib/interview-datetime";
 
 interface InterviewDateTimePickerProps {
   valueISO?: string;
@@ -71,13 +75,22 @@ export const InterviewDateTimePicker: React.FC<
     }
   }, [timeZone]);
 
+  const emitIsoFromWallClock = (dateStr: string, timeStr: string) => {
+    onChange(zonedDateTimeToUtcIso(dateStr, timeStr, selectedTz));
+  };
+
   const handleChange = (date: Date | null) => {
     setSelectedDate(date);
     if (!date) {
       onChange(undefined);
-    } else {
-      onChange(date.toISOString());
+      return;
     }
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    const hh = String(date.getHours()).padStart(2, "0");
+    const mm = String(date.getMinutes()).padStart(2, "0");
+    emitIsoFromWallClock(`${y}-${m}-${d}`, `${hh}:${mm}`);
   };
 
   if (compact) {
@@ -92,12 +105,14 @@ export const InterviewDateTimePicker: React.FC<
       }
     }
 
-    const dateValue = selectedDate
-      ? selectedDate.toISOString().slice(0, 10)
-      : "";
-    const timeValue = selectedDate
-      ? selectedDate.toTimeString().slice(0, 5)
-      : "";
+    const zonedParts = valueISO
+      ? utcIsoToZonedParts(valueISO, selectedTz)
+      : selectedDate
+        ? utcIsoToZonedParts(selectedDate.toISOString(), selectedTz)
+        : null;
+
+    const dateValue = zonedParts?.dateStr ?? "";
+    const timeValue = zonedParts?.timeStr ?? "";
 
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newDate = e.target.value;
@@ -107,12 +122,10 @@ export const InterviewDateTimePicker: React.FC<
         return;
       }
       // Guardamos la fecha (medianoche) para permitir elegir hora después
-      const tempDate = new Date(`${newDate}T00:00:00`);
-      setSelectedDate(tempDate);
-      // Si ya había hora seleccionada (selectedDate con hora previa), combinamos
       if (timeValue) {
-        const combined = new Date(`${newDate}T${timeValue}:00`);
-        handleChange(combined);
+        emitIsoFromWallClock(newDate, timeValue);
+      } else {
+        onChange(undefined);
       }
     };
 
@@ -127,8 +140,7 @@ export const InterviewDateTimePicker: React.FC<
         // aún no se eligió fecha; no podemos combinar
         return;
       }
-      const combined = new Date(`${dateValue}T${newTime}:00`);
-      handleChange(combined);
+      emitIsoFromWallClock(dateValue, newTime);
     };
 
     const isComplete = Boolean(dateValue && timeValue);
