@@ -23,25 +23,25 @@ const items = [
 
 export default function WhatSetsUsApart() {
   return (
-    <section className="w-full bg-white py-24">
-      <div className="max-w-[1480px] mx-auto px-10 md:px-20">
+    <section className="w-full bg-white py-8 sm:py-24">
+      <div className="max-w-[1480px] mx-auto px-[21px] sm:px-10 md:px-20">
         {/* Header */}
-        <div className="text-center mb-14">
-          <h2 className="text-4xl md:text-[48px] font-bold text-black leading-[1.3]">
+        <div className="text-center mb-[22px] sm:mb-14">
+          <h2 className="text-[24px] sm:text-4xl md:text-[48px] font-bold text-black leading-[1.3]">
             What sets us apart
           </h2>
-          <p className="mt-3 text-lg md:text-[22px] font-medium text-[#525252] leading-[1.2]">
+          <p className="mt-3 text-[14px] sm:text-lg md:text-[22px] font-medium text-[#525252] leading-[1.2]">
             Combining exceptional talent, operational support, and long-term
             partnership.
           </p>
         </div>
 
         {/* Items */}
-        <div className="flex flex-col gap-7">
+        <div className="flex flex-col gap-[22px] sm:gap-7">
           {items.map((item, idx) => (
             <div
               key={idx}
-              className="bg-[rgba(4,78,92,0.06)] rounded-[12px] px-6 py-11 flex flex-col gap-3"
+              className="bg-[rgba(4,78,92,0.06)] rounded-[12px] px-[22px] py-[44px] sm:px-6 sm:py-11 flex flex-col gap-[11px] sm:gap-3"
             >
               {/* Title row */}
               <div className="flex items-center gap-2">
@@ -54,14 +54,14 @@ export default function WhatSetsUsApart() {
                     aria-hidden
                   />
                 </div>
-                <h3 className="text-[24px] md:text-[28px] font-semibold text-black leading-[1.3]">
+                <h3 className="text-[22px] sm:text-[24px] md:text-[28px] font-semibold text-black leading-[1.3]">
                   {item.heading[0]}
                   <span className="text-[#0097b2]">{item.heading[1]}</span>
                 </h3>
               </div>
 
               {/* Description */}
-              <p className="text-lg md:text-[20px] font-normal text-black leading-[1.3]">
+              <p className="text-[14px] sm:text-lg md:text-[20px] font-normal text-black leading-[1.5] tracking-[0.28px]">
                 {item.description}
               </p>
             </div>

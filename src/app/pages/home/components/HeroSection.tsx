@@ -72,12 +72,22 @@ export default function HeroSection() {
           <div className="flex flex-wrap items-center gap-[10px]">
             <Link
               href="/pages/services"
+              onClick={() => {
+                if (typeof window !== "undefined" && window.gtag) {
+                  window.gtag("event", "ads_click_Hero_FindTalent", {});
+                }
+              }}
               className="inline-flex items-center justify-center bg-[#0097b2] text-white font-semibold text-[20px] leading-[1.3] px-[25px] py-[12px] rounded-[20px] shadow-[0px_4px_2px_rgba(255,255,255,0.15)] transition-colors hover:bg-[#007a91]"
             >
               Find Talent Now
             </Link>
             <Link
               href="/pages/offers"
+              onClick={() => {
+                if (typeof window !== "undefined" && window.gtag) {
+                  window.gtag("event", "ads_click_Hero_JoinTeam", {});
+                }
+              }}
               className="inline-flex items-center justify-center bg-white border border-[#0097b2] text-[#0097b2] font-semibold text-[20px] leading-[1.3] px-[25px] py-[12px] rounded-[20px] shadow-[0px_4px_2px_rgba(255,255,255,0.15)] transition-colors hover:bg-[#0097b2] hover:text-white"
             >
               Join Our Team

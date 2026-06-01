@@ -114,16 +114,6 @@ const STATIC_TALENT: TalentCard[] = [
     paisImagen: null,
   },
   {
-    id: "static-5",
-    name: "Julian Grisales",
-    country: "France",
-    profesion: "Publicist",
-    position: "Marketing & Communications Specialist",
-    company: "Andes Workforce Staff",
-    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/profile/d15eaf20-8251-4829-a2c4-e1e8d664933d.png",
-    paisImagen: null,
-  },
-  {
     id: "static-6",
     name: "Marco Pabon",
     country: "Colombia",

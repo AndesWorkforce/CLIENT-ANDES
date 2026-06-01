@@ -37,12 +37,13 @@ export default function AboutSection() {
             Our mission is to empower Latin American professionals while
             providing world-class infrastructure for global enterprises.
           </p>
+          {/* FIX: href and gtagSendEvent URL now consistently point to /pages/about */}
           <Link
-            href="/pages/contact"
+            href="/pages/about"
             onClick={(e) => {
               e.preventDefault();
               if (typeof window !== "undefined" && (window as any).gtagSendEvent) {
-                (window as any).gtagSendEvent("/pages/about");
+                (window as any).gtagSendEvent("/pages/about", "ads_click_About_ReadMore");
               } else {
                 window.location.href = "/pages/about";
               }

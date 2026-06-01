@@ -145,15 +145,17 @@ export default function RootLayout({
         </Script>
 
         {/* Google tag (gtag.js) event - delayed navigation helper */}
+        {/* eventName defaults to 'ads_conversion_Contact_1' for backwards compatibility */}
         <Script id="gtag-conversion-helper" strategy="afterInteractive">
           {`
-            function gtagSendEvent(url) {
+            function gtagSendEvent(url, eventName) {
+              var evt = eventName || 'ads_conversion_Contact_1';
               var callback = function () {
                 if (typeof url === 'string') {
                   window.location = url;
                 }
               };
-              gtag('event', 'ads_conversion_Contact_1', {
+              gtag('event', evt, {
                 'event_callback': callback,
                 'event_timeout': 2000,
               });

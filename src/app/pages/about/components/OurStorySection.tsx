@@ -9,6 +9,7 @@ const storyBlocks = [
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Where+it+all+started+-+Our+Story.jpg",
     imageAlt: "Where it all started",
     imageLeft: false,
+    imageClassName: "",
   },
   {
     id: "began",
@@ -18,6 +19,7 @@ const storyBlocks = [
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Where+it+all+began+-+Our+Story.png",
     imageAlt: "Where it all began",
     imageLeft: true,
+    imageClassName: "object-top lg:object-center",
   },
   {
     id: "service",
@@ -30,6 +32,7 @@ const storyBlocks = [
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/A+path+defined+by+service+-+Our+Story.png",
     imageAlt: "A path defined by service",
     imageLeft: false,
+    imageClassName: "object-top lg:object-center",
   },
   {
     id: "expanding",
@@ -42,49 +45,41 @@ const storyBlocks = [
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Expanding+with+purpose+-+Our+Story.JPG",
     imageAlt: "Expanding with purpose",
     imageLeft: true,
+    imageClassName: "[object-position:50%_15%] lg:object-center",
   },
 ];
 
 export default function OurStorySection() {
   return (
-    <section className="w-full bg-white py-24">
-        <div className="max-w-[1480px] mx-auto px-10 md:px-20">
+    <section className="w-full bg-white py-8 sm:py-24">
+        <div className="max-w-[1480px] mx-auto px-[18px] sm:px-10 md:px-20">
         {/* Section header */}
-        <div className="text-center mb-16">
-          <h2 className="text-[#0097b2] text-4xl md:text-[52px] font-bold leading-[1.3]">
+        <div className="text-center mb-8 sm:mb-16">
+
+
+          <h2 className="text-[#0097b2] text-[32px] sm:text-4xl md:text-[52px] font-bold leading-[1.3]">
             Our Story
           </h2>
-          <p className="mt-3 text-[#525252] text-lg md:text-[22px] font-medium leading-[1.2]">
+          <p className="mt-3 text-[#525252] text-[14px] sm:text-lg md:text-[22px] font-medium leading-[1.2]">
             Built on service, shaped by experience, and driven by people.
           </p>
         </div>
 
         {/* Story blocks */}
-        <div className="flex flex-col gap-16">
+        <div className="flex flex-col gap-8 sm:gap-16">
           {storyBlocks.map((block) => (
             <div
               key={block.id}
-              className={`flex flex-col gap-12 items-center ${
+              className={`flex flex-col gap-[22px] sm:gap-12 items-center ${
                 block.imageLeft ? "lg:flex-row-reverse" : "lg:flex-row"
               }`}
             >
-              {/* Image */}
-              <div className="w-full lg:w-[611px] shrink-0">
-                <Image
-                  src={block.image}
-                  alt={block.imageAlt}
-                  width={611}
-                  height={480}
-                  className="w-full h-auto"
-                />
-              </div>
-
-              {/* Text */}
-              <div className="flex-1">
-                <h3 className="text-3xl md:text-[48px] font-bold text-[#343434] leading-[1.3]">
+              {/* Text — always on top for mobile */}
+              <div className="flex-1 w-full">
+                <h3 className="text-[24px] sm:text-3xl md:text-[48px] font-bold text-[#343434] leading-[1.3] text-center lg:text-left">
                   {block.title}
                 </h3>
-                <div className="mt-8 text-[18px] text-black leading-[1.6] flex flex-col gap-4">
+                <div className="mt-[22px] sm:mt-8 text-[14px] sm:text-[18px] text-black leading-[1.6] flex flex-col gap-4">
                   {Array.isArray(block.body) ? (
                     block.body.map((paragraph, i) => (
                       <p key={i}>{paragraph}</p>
@@ -93,6 +88,28 @@ export default function OurStorySection() {
                     <p>{block.body}</p>
                   )}
                 </div>
+              </div>
+
+              {/* Image mobile — full image, smaller */}
+              <div className="w-full shrink-0 lg:hidden">
+                <Image
+                  src={block.image}
+                  alt={block.imageAlt}
+                  width={611}
+                  height={456}
+                  className="w-full h-auto"
+                />
+              </div>
+
+              {/* Image desktop — full image, no crop */}
+              <div className="hidden lg:block lg:w-[611px] shrink-0">
+                <Image
+                  src={block.image}
+                  alt={block.imageAlt}
+                  width={611}
+                  height={456}
+                  className="w-full h-auto rounded-lg"
+                />
               </div>
             </div>
           ))}
