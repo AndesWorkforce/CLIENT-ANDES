@@ -338,7 +338,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
 
 
 
-        <div className="flex flex-col gap-0">
+        <div className="flex flex-col gap-6">
 
           {visibleSections.map((section) => (
 

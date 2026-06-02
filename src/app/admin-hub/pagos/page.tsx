@@ -1,5 +1,9 @@
-﻿import InvoicesPageContent from "./components/InvoicesPageContent";
+import InvoicesPageContent from "./components/InvoicesPageContent";
 
 export default function AdminHubPagosPage() {
-  return <InvoicesPageContent />;
+  return (
+    <div className="px-3">
+      <InvoicesPageContent />
+    </div>
+  );
 }

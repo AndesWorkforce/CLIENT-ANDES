@@ -114,11 +114,11 @@ export default function CreateInvoiceItemDrawer({
       <button
         type="button"
         aria-label="Cerrar panel"
-        className="absolute inset-y-0 right-0 left-[210px] bg-black/40 xl:left-[280px]"
+        className="absolute inset-0 bg-black/40"
         onClick={onClose}
       />
 
-      <aside className="relative flex h-full w-full max-w-[694px] flex-col bg-white shadow-[-8px_0_32px_rgba(0,0,0,0.12)] sm:w-1/2 sm:min-w-[400px]">
+      <aside className="relative z-10 flex h-full w-full max-w-[694px] flex-col bg-white shadow-[-8px_0_32px_rgba(0,0,0,0.12)] sm:w-1/2 sm:min-w-[400px]">
         <header className="shrink-0 border-b border-[#C8C8C8] bg-white px-8 pt-[30px] pb-6">
           <div className="flex flex-col items-end gap-6">
             <button
@@ -149,11 +149,17 @@ export default function CreateInvoiceItemDrawer({
                       key={option.id}
                       type="button"
                       onClick={() => setSelectedType(option.id)}
-                      className={`flex h-[76px] w-full items-center rounded-[8px] border border-[#EFEFEF] bg-white px-6 text-left shadow-[0px_2px_2px_rgba(202,202,202,0.25)] transition-colors ${
-                        isSelected ? "ring-1 ring-[#0097B2]" : "hover:border-[#C8C8C8]"
+                      className={`flex h-[76px] w-full items-center rounded-[8px] border bg-white px-6 text-left shadow-[0px_2px_2px_rgba(202,202,202,0.25)] transition-colors ${
+                        isSelected
+                          ? "border-[#0097B2] ring-1 ring-[#0097B2]"
+                          : "border-[#EFEFEF] hover:border-[#C8C8C8]"
                       }`}
                     >
-                      <span className="text-[18px] font-bold leading-[1.3] text-[#343434]">
+                      <span
+                        className={`text-[18px] font-bold leading-[1.3] transition-colors ${
+                          isSelected ? "text-[#0097B2]" : "text-[#343434]"
+                        }`}
+                      >
                         {option.label}
                       </span>
                     </button>

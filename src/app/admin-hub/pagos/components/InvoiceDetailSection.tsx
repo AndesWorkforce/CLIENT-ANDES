@@ -17,7 +17,7 @@ export default function InvoiceDetailSection({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="w-full">
+    <div className="w-full overflow-hidden rounded-[8px] border border-[#EFEFEF] bg-white">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}

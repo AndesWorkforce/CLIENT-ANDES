@@ -39,17 +39,17 @@ export default function InvoiceFormField(props: InvoiceFormFieldProps) {
           <select
             value={props.value}
             onChange={(e) => props.onChange(e.target.value)}
-            className={`h-[50px] w-full appearance-none rounded-[8px] border border-[#EFEFEF] bg-white px-4 text-[14px] leading-[1.3] tracking-[0.28px] focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
-              props.value ? "text-[#343434]" : "text-[#C8C8C8]"
+            className={`h-[50px] w-full appearance-none rounded-[8px] border border-[#EFEFEF] bg-white px-4 text-[14px] leading-[1.3] tracking-[0.28px] focus:outline-none focus:ring-1 focus:ring-[#0097B2] [&>option]:bg-white [&>option]:text-black ${
+              props.value ? "text-black" : "text-[#C8C8C8]"
             }`}
           >
             {props.placeholder && (
-              <option value="" disabled>
+              <option value="" disabled className="text-[#C8C8C8]">
                 {props.placeholder}
               </option>
             )}
             {props.options.map((opt) => (
-              <option key={opt.value} value={opt.value}>
+              <option key={opt.value} value={opt.value} className="text-black">
                 {opt.label}
               </option>
             ))}

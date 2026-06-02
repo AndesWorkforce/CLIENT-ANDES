@@ -95,7 +95,7 @@ export default function InvoiceLineItemsTable({
                 {item.amount}
               </td>
               <td className="px-3 py-6">
-                <InvoiceStatusBadge status={item.status} />
+                <InvoiceStatusBadge status={item.status} enlarged />
               </td>
               <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">{item.createdBy}</td>
               <td className="px-6 py-6 text-center" onClick={(e) => e.stopPropagation()}>
@@ -110,17 +110,18 @@ export default function InvoiceLineItemsTable({
             </tr>
           ))}
           <tr className="border-t border-[#EFEFEF]">
-            <td colSpan={4} className="px-6 py-4 text-right text-[16px] font-bold text-[#343434]">
-              Total
+            <td colSpan={8} className="px-6 py-4">
+              <div className="flex w-full items-center justify-end gap-4">
+                <span className="text-[18px] font-bold text-[#343434]">Total</span>
+                <span
+                  className={`min-w-[80px] text-right text-[18px] font-bold ${
+                    subtotalIsNegative ? "text-[#E33434]" : "text-[#343434]"
+                  }`}
+                >
+                  {subtotal}
+                </span>
+              </div>
             </td>
-            <td
-              className={`px-3 py-4 text-[16px] font-bold ${
-                subtotalIsNegative ? "text-[#E33434]" : "text-[#343434]"
-              }`}
-            >
-              {subtotal}
-            </td>
-            <td colSpan={3} />
           </tr>
         </tbody>
       </table>

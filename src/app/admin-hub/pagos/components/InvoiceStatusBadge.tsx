@@ -6,10 +6,25 @@ const statusStyles: Record<InvoiceStatus, string> = {
   Vencido: "bg-[#FFE5E5] text-[#B42318]",
 };
 
-export default function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
+interface InvoiceStatusBadgeProps {
+  status: InvoiceStatus;
+  /** +15% size (line-item tables in invoice detail) */
+  enlarged?: boolean;
+}
+
+export default function InvoiceStatusBadge({
+  status,
+  enlarged = false,
+}: InvoiceStatusBadgeProps) {
+  const isEnlarged = enlarged;
+
   return (
     <span
-      className={`inline-flex h-[22px] items-center justify-center rounded-[10px] px-[6px] py-[5px] text-[10px] font-semibold leading-[1.2] ${statusStyles[status]}`}
+      className={`inline-flex items-center justify-center font-semibold leading-[1.2] ${statusStyles[status]} ${
+        isEnlarged
+          ? "h-[25.3px] rounded-[11.5px] px-[7px] py-[6px] text-[11.5px]"
+          : "h-[22px] rounded-[10px] px-[6px] py-[5px] text-[10px]"
+      }`}
     >
       {status}
     </span>

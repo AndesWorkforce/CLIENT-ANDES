@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, MoreVertical } from "lucide-react";
 import type { Invoice } from "../data/mock-invoices";
@@ -8,45 +8,56 @@ import InvoiceStatusBadge from "./InvoiceStatusBadge";
 
 interface InvoicesTableProps {
   invoices: Invoice[];
-  searchQuery: string;
 }
 
-export default function InvoicesTable({ invoices, searchQuery }: InvoicesTableProps) {
+export default function InvoicesTable({ invoices }: InvoicesTableProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortByAmount, setSortByAmount] = useState<"asc" | "desc" | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  const filteredInvoices = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    let result = query
-      ? invoices.filter(
-          (inv) =>
-            inv.clientId.toLowerCase().includes(query) ||
-            inv.client.toLowerCase().includes(query) ||
-            inv.period.toLowerCase().includes(query)
-        )
-      : [...invoices];
+  useEffect(() => {
+    if (!openMenuId) return;
 
-    if (sortByAmount) {
-      result = [...result].sort((a, b) => {
-        const amountA = parseInt(a.totalAmount.replace(/[^\d]/g, ""), 10);
-        const amountB = parseInt(b.totalAmount.replace(/[^\d]/g, ""), 10);
-        return sortByAmount === "asc" ? amountA - amountB : amountB - amountA;
-      });
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      if (!target.closest("[data-invoice-row-menu]")) {
+        setOpenMenuId(null);
+      }
     }
 
-    return result;
-  }, [invoices, searchQuery, sortByAmount]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuId]);
+
+  function toggleRowMenu(invoiceId: string) {
+    setOpenMenuId((prev) => (prev === invoiceId ? null : invoiceId));
+  }
+
+  function handleViewInvoice(invoiceId: string) {
+    setOpenMenuId(null);
+    router.push(`/admin-hub/pagos/facturas/${invoiceId}`);
+  }
+
+  const displayedInvoices = useMemo(() => {
+    if (!sortByAmount) return invoices;
+
+    return [...invoices].sort((a, b) => {
+      const amountA = parseInt(a.totalAmount.replace(/[^\d]/g, ""), 10);
+      const amountB = parseInt(b.totalAmount.replace(/[^\d]/g, ""), 10);
+      return sortByAmount === "asc" ? amountA - amountB : amountB - amountA;
+    });
+  }, [invoices, sortByAmount]);
 
   const allSelected =
-    filteredInvoices.length > 0 &&
-    filteredInvoices.every((inv) => selectedIds.has(inv.id));
+    displayedInvoices.length > 0 &&
+    displayedInvoices.every((inv) => selectedIds.has(inv.id));
 
   function toggleAll() {
     if (allSelected) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(filteredInvoices.map((inv) => inv.id)));
+      setSelectedIds(new Set(displayedInvoices.map((inv) => inv.id)));
     }
   }
 
@@ -106,13 +117,12 @@ export default function InvoicesTable({ invoices, searchQuery }: InvoicesTablePr
           </tr>
         </thead>
         <tbody>
-          {filteredInvoices.map((invoice) => (
+          {displayedInvoices.map((invoice) => (
             <tr
               key={invoice.id}
-              onClick={() => router.push(`/admin-hub/pagos/facturas/${invoice.id}`)}
-              className="cursor-pointer border-b border-[#EFEFEF] last:border-b-0 hover:bg-[#FAFAFA] transition-colors"
+              className="border-b border-[#EFEFEF] last:border-b-0 hover:bg-[#FAFAFA] transition-colors"
             >
-              <td className="px-6 py-6" onClick={(e) => e.stopPropagation()}>
+              <td className="px-6 py-6">
                 <input
                   type="checkbox"
                   checked={selectedIds.has(invoice.id)}
@@ -136,14 +146,42 @@ export default function InvoicesTable({ invoices, searchQuery }: InvoicesTablePr
               <td className="px-3 py-6">
                 <InvoiceStatusBadge status={invoice.status} />
               </td>
-              <td className="px-6 py-6 text-center" onClick={(e) => e.stopPropagation()}>
-                <button
-                  type="button"
-                  aria-label="Más opciones"
-                  className="text-[#858585] hover:text-[#0097B2] transition-colors"
+              <td className="px-6 py-6 text-center">
+                <div
+                  className="relative inline-block"
+                  data-invoice-row-menu
                 >
-                  <MoreVertical size={18} />
-                </button>
+                  <button
+                    type="button"
+                    aria-label="Más opciones"
+                    aria-expanded={openMenuId === invoice.id}
+                    aria-haspopup="menu"
+                    onClick={() => toggleRowMenu(invoice.id)}
+                    className={`rounded p-1 transition-colors ${
+                      openMenuId === invoice.id
+                        ? "text-[#0097B2] bg-[#DFFAFF]"
+                        : "text-[#858585] hover:text-[#0097B2]"
+                    }`}
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+
+                  {openMenuId === invoice.id && (
+                    <div
+                      role="menu"
+                      className="absolute right-0 top-full z-50 mt-1 min-w-[148px] rounded-[8px] border border-[#EFEFEF] bg-white py-1 shadow-[0px_2px_8px_rgba(112,112,112,0.15)]"
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => handleViewInvoice(invoice.id)}
+                        className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] hover:bg-[#F8F8F8] transition-colors cursor-pointer"
+                      >
+                        Ver Factura
+                      </button>
+                    </div>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
