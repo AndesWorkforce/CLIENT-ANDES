@@ -13,6 +13,7 @@ import {
   Settings,
   LayoutDashboard,
   Briefcase,
+  HelpCircle,
   Phone,
   Mail,
 } from "lucide-react";
@@ -262,6 +263,7 @@ export default function Navbar() {
       "/account",
       "/applications",
       "/bonifications",
+      "/faq",
       "/auth/",
     ];
     if (allowedPrefixes.some((p) => pathname.startsWith(p))) {
@@ -354,6 +356,15 @@ export default function Navbar() {
           Additional Incentives & Holidays
         </Link>
       )}
+
+      <Link
+        href="/faq"
+        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+        onClick={() => setShowUserMenu(false)}
+      >
+        <HelpCircle size={16} className="mr-2 text-[#0097B2]" />
+        Frequently Asked Questions
+      </Link>
 
       <Link
         href="/account"
@@ -743,15 +754,6 @@ export default function Navbar() {
                       Open Contracts
                     </Link>
 
-                    <Link
-                      href="/account"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setShowMobileSidebar(false)}
-                    >
-                      <User size={20} className="mr-2 text-[#0097B2]" />
-                      My Account
-                    </Link>
-
                     {currentContractStatus && (
                       <Link
                         href="/currentApplication"
@@ -773,6 +775,24 @@ export default function Navbar() {
                         Additional Incentives & Holidays
                       </Link>
                     )}
+
+                    <Link
+                      href="/faq"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      onClick={() => setShowMobileSidebar(false)}
+                    >
+                      <HelpCircle size={20} className="mr-2 text-[#0097B2]" />
+                      Frequently Asked Questions
+                    </Link>
+
+                    <Link
+                      href="/account"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      onClick={() => setShowMobileSidebar(false)}
+                    >
+                      <User size={20} className="mr-2 text-[#0097B2]" />
+                      My Account
+                    </Link>
                   </>
                 ) : (
                   <>
