@@ -51,11 +51,7 @@ export default function AdminHubSidebar() {
   const isPagosSection = pathname.startsWith("/admin-hub/pagos");
 
   return (
-    <aside
-      className={`flex flex-col min-h-screen bg-white border-r border-[#C8C8C8] shrink-0 transition-[width] duration-200 ${
-        isPagosSection ? "w-[280px]" : "w-[210px]"
-      }`}
-    >
+    <aside className="flex w-[280px] shrink-0 flex-col min-h-screen border-r border-[#C8C8C8] bg-white">
       <div className="px-4 py-5 border-b border-[#EFEFEF]">
         <Link href="/">
           <img src="/logo-andes.png" alt="Andes Workforce" className="h-8" />
@@ -106,31 +102,29 @@ export default function AdminHubSidebar() {
             <span className="tracking-[0.28px]">Pagos</span>
           </Link>
 
-          {isPagosSection && (
-            <div className="flex flex-col gap-[11px] mt-[11px]">
-              {pagosSubItems.map(({ label, href, icon: SubIcon }) => {
-                const isSubActive = isActivePath(pathname, href);
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`flex items-center gap-3 h-10 pl-3 pr-3 rounded-lg text-[14px] transition-colors ${
-                      isSubActive
-                        ? "text-[#0097B2] font-semibold"
-                        : "text-[#707070] hover:text-[#0097B2]"
-                    }`}
-                  >
-                    {SubIcon ? (
-                      <SubIcon size={20} className="shrink-0" />
-                    ) : (
-                      <ChevronRight size={20} className="shrink-0" />
-                    )}
-                    <span className="tracking-[0.28px]">{label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          <div className="mt-[11px] flex flex-col gap-[11px]">
+            {pagosSubItems.map(({ label, href, icon: SubIcon }) => {
+              const isSubActive = isActivePath(pathname, href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex h-10 items-center gap-3 rounded-lg pl-3 pr-3 text-[14px] transition-colors ${
+                    isSubActive
+                      ? "font-semibold text-[#0097B2]"
+                      : "text-[#707070] hover:text-[#0097B2]"
+                  }`}
+                >
+                  {SubIcon ? (
+                    <SubIcon size={20} className="shrink-0" />
+                  ) : (
+                    <ChevronRight size={20} className="shrink-0" />
+                  )}
+                  <span className="tracking-[0.28px]">{label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </nav>
 

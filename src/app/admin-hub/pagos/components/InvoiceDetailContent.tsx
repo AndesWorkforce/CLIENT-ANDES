@@ -8,13 +8,20 @@ import { Download, Plus, Search } from "lucide-react";
 
 import { useNotificationStore } from "@/store/notifications.store";
 
-import type { InvoiceDetail, InvoiceLineItem } from "../data/mock-invoice-details";
+import type {
+  InvoiceDetail,
+  InvoiceLineItem,
+  InvoiceLineItemStatus,
+  InvoiceSection,
+} from "../data/mock-invoice-details";
 
 import CreateInvoiceItemDrawer, { type MovementType } from "./CreateInvoiceItemDrawer";
 
 import InvoiceClientInfoGrid from "./InvoiceClientInfoGrid";
 
 import InvoiceDetailSection from "./InvoiceDetailSection";
+
+import InvoiceEmitModal, { type InvoiceEmitModalVariant } from "./InvoiceEmitModal";
 
 
 
@@ -94,6 +101,26 @@ function recalculateSectionSubtotal(items: InvoiceLineItem[]): {
 
 
 
+function recalculateGrandTotal(sections: InvoiceSection[]): string {
+
+  const chargesTotal = parseAmount(
+
+    sections.find((s) => s.tabKey === "customer-charges")?.subtotal ?? "0"
+
+  );
+
+  const creditsTotal = parseAmount(
+
+    sections.find((s) => s.tabKey === "customer-credits")?.subtotal ?? "0"
+
+  );
+
+  return formatAmount(chargesTotal + creditsTotal);
+
+}
+
+
+
 export default function InvoiceDetailContent({ invoice: initialInvoice }: InvoiceDetailContentProps) {
 
   const { addNotification } = useNotificationStore();
@@ -105,6 +132,32 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   const [searchQuery, setSearchQuery] = useState("");
 
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
+
+  const [emitModal, setEmitModal] = useState<InvoiceEmitModalVariant | null>(null);
+
+
+
+  const invoiceLineItems = useMemo(
+
+    () => invoice.sections.flatMap((section) => section.items),
+
+    [invoice.sections]
+
+  );
+
+
+
+  const allItemsApproved = useMemo(
+
+    () =>
+
+      invoiceLineItems.length > 0 &&
+
+      invoiceLineItems.every((item) => item.status === "Aprobado"),
+
+    [invoiceLineItems]
+
+  );
 
 
 
@@ -172,19 +225,59 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
 
 
 
-      const chargesTotal = parseAmount(
+      return {
 
-        sections.find((s) => s.tabKey === "customer-charges")?.subtotal ?? "0"
+        ...prev,
 
-      );
+        sections,
 
-      const creditsTotal = parseAmount(
+        grandTotal: recalculateGrandTotal(sections),
 
-        sections.find((s) => s.tabKey === "customer-credits")?.subtotal ?? "0"
+      };
 
-      );
+    });
 
-      const grandTotal = chargesTotal + creditsTotal;
+
+
+    addNotification("El ítem ingresado fue creado correctamente.", "success");
+
+  }
+
+
+
+  function updateItemStatus(
+
+    sectionId: string,
+
+    itemId: string,
+
+    status: InvoiceLineItemStatus,
+
+    successMessage: string
+
+  ) {
+
+    setInvoice((prev) => {
+
+      const sections = prev.sections.map((section) => {
+
+        if (section.id !== sectionId) return section;
+
+
+
+        const items = section.items.map((item) =>
+
+          item.id === itemId ? { ...item, status } : item
+
+        );
+
+
+
+        const { subtotal, subtotalIsNegative } = recalculateSectionSubtotal(items);
+
+        return { ...section, items, subtotal, subtotalIsNegative };
+
+      });
 
 
 
@@ -194,7 +287,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
 
         sections,
 
-        grandTotal: formatAmount(grandTotal),
+        grandTotal: recalculateGrandTotal(sections),
 
       };
 
@@ -202,7 +295,89 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
 
 
 
-    addNotification("El ítem ingresado fue creado correctamente.", "success");
+    addNotification(successMessage, "success");
+
+  }
+
+
+
+  function handleApproveItem(sectionId: string, itemId: string) {
+
+    updateItemStatus(sectionId, itemId, "Aprobado", "El ítem fue aprobado correctamente.");
+
+  }
+
+
+
+  function handleRejectItem(sectionId: string, itemId: string) {
+
+    updateItemStatus(sectionId, itemId, "Rechazado", "El ítem fue rechazado.");
+
+  }
+
+
+
+  function handleDeleteItem(sectionId: string, itemId: string) {
+
+    setInvoice((prev) => {
+
+      const sections = prev.sections.map((section) => {
+
+        if (section.id !== sectionId) return section;
+
+
+
+        const items = section.items.filter((item) => item.id !== itemId);
+
+        const { subtotal, subtotalIsNegative } = recalculateSectionSubtotal(items);
+
+        return { ...section, items, subtotal, subtotalIsNegative };
+
+      });
+
+
+
+      return {
+
+        ...prev,
+
+        sections,
+
+        grandTotal: recalculateGrandTotal(sections),
+
+      };
+
+    });
+
+
+
+    addNotification("El ítem fue eliminado.", "success");
+
+  }
+
+
+
+  function handleEmitInvoiceClick() {
+
+    if (allItemsApproved) {
+
+      setEmitModal("confirm-emit");
+
+    } else {
+
+      setEmitModal("cannot-emit");
+
+    }
+
+  }
+
+
+
+  function handleConfirmEmit() {
+
+    setEmitModal(null);
+
+    addNotification("La factura fue emitida correctamente.", "success");
 
   }
 
@@ -342,7 +517,13 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
 
           {visibleSections.map((section) => (
 
-            <InvoiceDetailSection key={section.id} section={section} />
+            <InvoiceDetailSection
+              key={section.id}
+              section={section}
+              onApproveItem={(itemId) => handleApproveItem(section.id, itemId)}
+              onRejectItem={(itemId) => handleRejectItem(section.id, itemId)}
+              onDeleteItem={(itemId) => handleDeleteItem(section.id, itemId)}
+            />
 
           ))}
 
@@ -378,6 +559,8 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
 
             type="button"
 
+            onClick={handleEmitInvoiceClick}
+
             className="inline-flex h-9 items-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors"
 
           >
@@ -401,6 +584,36 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         onItemCreated={handleItemCreated}
 
       />
+
+
+
+      {emitModal && (
+
+        <InvoiceEmitModal
+
+          open
+
+          variant={emitModal}
+
+          onClose={() => setEmitModal(null)}
+
+          onPrimaryAction={() => {
+
+            if (emitModal === "confirm-emit") {
+
+              handleConfirmEmit();
+
+            } else {
+
+              setEmitModal(null);
+
+            }
+
+          }}
+
+        />
+
+      )}
 
     </div>
 

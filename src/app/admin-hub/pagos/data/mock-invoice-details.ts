@@ -1,4 +1,6 @@
-import { MOCK_INVOICES, type Invoice, type InvoiceStatus } from "./mock-invoices";
+import { MOCK_INVOICES, type Invoice } from "./mock-invoices";
+
+export type InvoiceLineItemStatus = "Pendiente" | "Aprobado" | "Rechazado";
 
 export interface InvoiceLineItem {
   id: string;
@@ -7,7 +9,7 @@ export interface InvoiceLineItem {
   description: string;
   amount: string;
   amountIsNegative?: boolean;
-  status: InvoiceStatus;
+  status: InvoiceLineItemStatus;
   createdBy: string;
 }
 

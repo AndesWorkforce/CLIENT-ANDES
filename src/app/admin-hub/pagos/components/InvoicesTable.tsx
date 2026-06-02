@@ -144,7 +144,7 @@ export default function InvoicesTable({ invoices }: InvoicesTableProps) {
                 {invoice.totalAmount}
               </td>
               <td className="px-3 py-6">
-                <InvoiceStatusBadge status={invoice.status} />
+                <InvoiceStatusBadge status={invoice.status} enlarged />
               </td>
               <td className="px-6 py-6 text-center">
                 <div

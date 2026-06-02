@@ -166,7 +166,7 @@ export default function InvoicesPageContent() {
             />
             <InvoiceFilterSelect
               label="Filtrar por Monto"
-              placeholder="Rango"
+              placeholder="Monto"
               value={amountFilter}
               onChange={setAmountFilter}
               options={AMOUNT_FILTER_OPTIONS}

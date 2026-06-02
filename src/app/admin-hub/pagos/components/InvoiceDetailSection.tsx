@@ -8,16 +8,22 @@ import InvoiceLineItemsTable from "./InvoiceLineItemsTable";
 interface InvoiceDetailSectionProps {
   section: InvoiceSection;
   defaultOpen?: boolean;
+  onApproveItem: (itemId: string) => void;
+  onRejectItem: (itemId: string) => void;
+  onDeleteItem: (itemId: string) => void;
 }
 
 export default function InvoiceDetailSection({
   section,
   defaultOpen = true,
+  onApproveItem,
+  onRejectItem,
+  onDeleteItem,
 }: InvoiceDetailSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="w-full overflow-hidden rounded-[8px] border border-[#EFEFEF] bg-white">
+    <div className="w-full overflow-visible rounded-[8px] border border-[#EFEFEF] bg-white">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
@@ -34,6 +40,9 @@ export default function InvoiceDetailSection({
           items={section.items}
           subtotal={section.subtotal}
           subtotalIsNegative={section.subtotalIsNegative}
+          onApprove={onApproveItem}
+          onReject={onRejectItem}
+          onDelete={onDeleteItem}
         />
       )}
     </div>

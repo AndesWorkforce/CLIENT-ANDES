@@ -2,19 +2,19 @@ import { ChevronDown } from "lucide-react";
 
 interface InvoiceFilterSelectProps {
   label: string;
+  placeholder: string;
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
-  placeholder: string;
   className?: string;
 }
 
 export default function InvoiceFilterSelect({
   label,
+  placeholder,
   value,
   onChange,
   options,
-  placeholder,
   className = "",
 }: InvoiceFilterSelectProps) {
   return (
@@ -30,7 +30,9 @@ export default function InvoiceFilterSelect({
             value ? "text-black" : "text-[#C8C8C8]"
           }`}
         >
-          <option value="">{placeholder}</option>
+          <option value="" disabled hidden>
+            {placeholder}
+          </option>
           {options.map((opt) => (
             <option key={opt.value} value={opt.value} className="text-black">
               {opt.label}
