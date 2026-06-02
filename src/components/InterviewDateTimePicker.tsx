@@ -105,14 +105,16 @@ export const InterviewDateTimePicker: React.FC<
       }
     }
 
-    const zonedParts = valueISO
+    const zonedFromValue = valueISO
       ? utcIsoToZonedParts(valueISO, selectedTz)
-      : selectedDate
-        ? utcIsoToZonedParts(selectedDate.toISOString(), selectedTz)
-        : null;
+      : null;
 
-    const dateValue = zonedParts?.dateStr ?? "";
-    const timeValue = zonedParts?.timeStr ?? "";
+    const pendingDateStr = selectedDate
+      ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
+      : "";
+
+    const dateValue = zonedFromValue?.dateStr ?? pendingDateStr;
+    const timeValue = zonedFromValue?.timeStr ?? "";
 
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newDate = e.target.value;
@@ -121,11 +123,11 @@ export const InterviewDateTimePicker: React.FC<
         onChange(undefined);
         return;
       }
-      // Guardamos la fecha (medianoche) para permitir elegir hora después
       if (timeValue) {
         emitIsoFromWallClock(newDate, timeValue);
       } else {
-        onChange(undefined);
+        const [y, mo, d] = newDate.split("-").map(Number);
+        setSelectedDate(new Date(y, mo - 1, d, 12, 0, 0));
       }
     };
 
@@ -133,11 +135,9 @@ export const InterviewDateTimePicker: React.FC<
       const newTime = e.target.value;
       if (!newTime) {
         onChange(undefined);
-        // mantenemos selectedDate con la fecha para seguir
         return;
       }
       if (!dateValue) {
-        // aún no se eligió fecha; no podemos combinar
         return;
       }
       emitIsoFromWallClock(dateValue, newTime);
