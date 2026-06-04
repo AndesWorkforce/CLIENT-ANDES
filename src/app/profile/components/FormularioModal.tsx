@@ -64,7 +64,6 @@ export default function FormularioModal({
   const validateForm = () => {
     const requiredQuestions = [
       Q_NAME,
-      Q_ALIAS,
       Q_WHATSAPP,
       Q_CITY_COUNTRY,
       "Have you been referred by someone?",
@@ -437,14 +436,14 @@ export default function FormularioModal({
             />
           </div>
 
-          {/* Alias */}
+          {/* Alias (opcional) */}
           <div className="space-y-2">
             <label
               data-question={Q_ALIAS}
               className="block text-sm font-medium text-gray-700"
             >
               Alias
-              <span className="text-red-500">*</span>
+              <span className="text-gray-400 text-xs font-normal"> (optional)</span>
               <br />
               <span className="text-gray-400 text-xs">
                 A short display name that will be shown across the platform.
@@ -453,7 +452,6 @@ export default function FormularioModal({
             <input
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md"
-              required
               disabled={readOnly}
               value={formData[Q_ALIAS] || ""}
               onChange={(e) => handleInputChange(Q_ALIAS, e.target.value)}
