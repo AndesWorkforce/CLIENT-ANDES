@@ -49,6 +49,16 @@ export const FAQ_SECTIONS: FaqSection[] = [
         ],
       },
       {
+        id: "how-generate-invoice",
+        question: "How do I generate my invoice?",
+        answer: [
+          {
+            type: "paragraph",
+            text: 'Go to Current Contract, select the month and year, then click "Generate Invoice".',
+          },
+        ],
+      },
+      {
         id: "invoice-late",
         question: "What happens if I don't do it in time?",
         answer: [
@@ -86,7 +96,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
   },
   {
     id: "invoice-values",
-    title: "Invoice values (we're working on it)",
+    title: "Invoice values",
     items: [
       {
         id: "invoice-value-mismatch",
@@ -94,27 +104,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         answer: [
           {
             type: "paragraph",
-            text: "The value generated in the invoice corresponds to the initial contract, without considering variables (if applicable).",
-          },
-        ],
-      },
-      {
-        id: "invoice-raise",
-        question: "What if I had a raise?",
-        answer: [
-          {
-            type: "paragraph",
-            text: "It is not yet reflected on the platform (we are working on it).",
-          },
-        ],
-      },
-      {
-        id: "correct-payment-value",
-        question: "Where do I see the correct value of my payment?",
-        answer: [
-          {
-            type: "paragraph",
-            text: "In the paystub that you receive at the end of the month in your email.",
+            text: "The invoice shows your monthly base salary only—it does not include additional payments (bonuses, overtime, or other extras). The value corresponds to the initial contract, without considering variables (if applicable).",
           },
         ],
       },
@@ -343,7 +333,11 @@ export const FAQ_SECTIONS: FaqSection[] = [
         answer: [
           {
             type: "paragraph",
-            text: "If you are selected for the next stage, you must complete the assessment. Only those who pass it will go to the interview with Andes. Candidates will receive all the information about the process by email.",
+            text: "If the referred candidate is selected for the next stage, they must complete the assessment. Only those who pass it will go to the interview with Andes. Candidates will receive all the information about the process by email.",
+          },
+          {
+            type: "paragraph",
+            text: 'When your referral is successfully hired, you receive a referral bonus. For more information about the bonus, go to "Additional Incentives & Holidays" in your profile.',
           },
         ],
       },

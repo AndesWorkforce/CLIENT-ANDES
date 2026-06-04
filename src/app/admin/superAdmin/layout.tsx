@@ -10,7 +10,9 @@ export default function SuperAdminLayout({
     <div className="flex flex-col h-screen">
       <DashboardHeader variant="admin" />
       <TabsNavigationSuperAdmin />
-      {children}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {children}
+      </main>
     </div>
   );
 }

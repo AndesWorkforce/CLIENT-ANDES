@@ -1300,11 +1300,11 @@ export default function PaymentsPage() {
   console.log("[USERS]", filteredUsers);
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] p-4">
-        <div className="max-w-7xl mx-auto">
+      <div className="flex flex-1 min-h-0 flex-col bg-[#F8FAFC] p-4">
+        <div className="container mx-auto flex flex-1 min-h-0 flex-col">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="flex-1 min-h-[200px] bg-gray-200 rounded"></div>
           </div>
         </div>
       </div>
@@ -1312,8 +1312,8 @@ export default function PaymentsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-4">
+      <div className="mb-4 flex shrink-0 items-center justify-between">
         <h1 id="payments-title" className="text-2xl font-bold">
           Monthly Payments
         </h1>
@@ -1358,7 +1358,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Filters */}
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="mb-4 flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div id="filter-country" className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-gray-600">Country:</span>
           <div className="inline-flex rounded-md overflow-hidden border border-gray-200">
@@ -1478,7 +1478,7 @@ export default function PaymentsPage() {
 
       {/* Success Message */}
       {showSuccessMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
+        <div className="mb-4 flex shrink-0 items-center rounded-lg border border-green-200 bg-green-50 p-4">
           <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
           <div className="text-green-800">{lastActionMessage}</div>
         </div>
@@ -1486,7 +1486,7 @@ export default function PaymentsPage() {
 
       {/* Selection Actions */}
       {selectedUsers.size > 0 && (
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-[#0097B2]">
+        <div className="mb-4 shrink-0 rounded-lg border border-[#0097B2] bg-white p-4 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-sm text-gray-600">
               {selectedUsers.size} user(s) selected for monthly payment
@@ -1513,10 +1513,11 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow-sm">
-        <table className="min-w-full">
-          <thead className="bg-gray-50 border-b">
+      {/* Table: scroll vertical + horizontal dentro del viewport */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg bg-white shadow-sm">
+        <div className="min-h-0 flex-1 overflow-auto custom-scrollbar">
+        <table className="w-full min-w-[1400px] border-collapse">
+          <thead className="sticky top-0 z-10 border-b bg-gray-50 shadow-sm">
             <tr>
               <th className="px-6 py-3 text-left">
                 <input
@@ -2005,6 +2006,7 @@ export default function PaymentsPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Action Logs */}
