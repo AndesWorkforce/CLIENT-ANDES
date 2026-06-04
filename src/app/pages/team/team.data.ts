@@ -52,14 +52,14 @@ export const teamMembers: TeamMember[] = [
     imageClass: "object-cover",
     pets: [
       {
-        id: "alana",
-        name: "Alana",
-        role: "Fur\u2011st Impressions Coordinator",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alana.jpg",
+        id: "simona",
+        name: "Simona",
+        role: "Barketing Assistant",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/simona.jpg",
         bullets: [
-          "Greets everyone with tail wags and instant charm.",
-          "Ensures all visitors feel welcome (and slightly covered in fur).",
-          "Expert in sniff\u2011based background checks and belly\u2011rub negotiations.",
+          "Specializes in tail\u2011wagging team morale.",
+          "Oversees snack inventory and nap scheduling.",
+          "Expert in client greetings and paw\u2011sitive vibes.",
         ],
       },
     ],
@@ -80,17 +80,6 @@ export const teamMembers: TeamMember[] = [
     ],
     imageClass: "object-cover",
     pets: [
-      {
-        id: "simona",
-        name: "Simona",
-        role: "Barketing Assistant",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/simona.jpg",
-        bullets: [
-          "Specializes in tail\u2011wagging team morale.",
-          "Oversees snack inventory and nap scheduling.",
-          "Expert in client greetings and paw\u2011sitive vibes.",
-        ],
-      },
       {
         id: "brownie",
         name: "Brownie",
@@ -127,15 +116,6 @@ export const teamMembers: TeamMember[] = [
         image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alaska.jpg",
         bullets: [
           "Junior joy specialist\u2014only 3 months old and already mastering playful chaos and zoomies.",
-        ],
-      },
-      {
-        id: "queen",
-        name: "Queen",
-        role: "Feline Fun Facilitator",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/queen.jpg",
-        bullets: [
-          "Senior nap executive; majestic fluff with grumpy charm and zero tolerance for nonsense.",
         ],
       },
     ],
@@ -226,6 +206,15 @@ export const teamMembers: TeamMember[] = [
     imageClass: "object-cover",
     pets: [
       {
+        id: "queen",
+        name: "Queen",
+        role: "Feline Fun Facilitator",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/queen.jpg",
+        bullets: [
+          "Senior nap executive; majestic fluff with grumpy charm and zero tolerance for nonsense.",
+        ],
+      },
+      {
         id: "casper",
         name: "Casper",
         role: "Director of Purr\u2011sonal Affairs",
@@ -277,6 +266,59 @@ export const teamMembers: TeamMember[] = [
           "Still learning the ropes but already a pro at stealing hearts.",
         ],
       },
+      {
+        id: "panela",
+        name: "Panela",
+        role: "Home Security & Wellness Coordinator",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Panela+-+Daniela+Ramirez.JPG",
+        bullets: [
+          "Responsible for monitoring all incoming visitors and immediately escalating doorbell-related incidents.",
+          "Passionate about outdoor adventures, toy management, and keeping feline employees constantly on edge.",
+          "Frequently attends meetings asleep beside her manager.",
+        ],
+      },
+      {
+        id: "gustavo",
+        name: "Gustavo",
+        role: "Senior Emotional Support Specialist",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Gustavo+-+Daniela+Ramirez.jpeg",
+        bullets: [
+          "Known for providing hands-on support by gently tapping team members for attention and affection.",
+          "Specializes in naps, cuddles, and maintaining a calm workplace environment.",
+        ],
+      },
+      {
+        id: "esteban-sarkozy",
+        name: "Esteban Sarkozy",
+        role: "Lunch Operations Manager",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Esteban+Sarkozy+-+Daniela+Ramirez.jpeg",
+        bullets: [
+          "Takes meal scheduling very seriously.",
+          "Oversees all lunch-related activities with unmatched enthusiasm and midday zoomies.",
+          "Maintains a strong work-life balance centered around eating and sleeping.",
+        ],
+      },
+      {
+        id: "lucia",
+        name: "Luc\u00eda",
+        role: "Director of Executive Oversight",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Luc%C3%ADa+-+Daniela+Ramirez.JPG",
+        bullets: [
+          "Ensures full visibility across all household operations and insists on being involved in every department.",
+          "Expert climber and the only team member certified in advanced wall-gym navigation.",
+          "Naturally assumes leadership in all situations.",
+        ],
+      },
+      {
+        id: "clara-ines",
+        name: "Clara In\u00e9s",
+        role: "Independent Nap Consultant",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Clara+In%C3%A9s+-+Daniela+Ramirez.JPG",
+        bullets: [
+          "Prefers a low-interaction work style while quietly monitoring team dynamics from undisclosed sleeping locations.",
+          "Publicly maintains a serious reputation despite privately enjoying affection and premium snack benefits.",
+        ],
+      },
     ],
   },
 
@@ -313,6 +355,17 @@ export const teamMembers: TeamMember[] = [
       "Avid manga reader and video game enthusiast, finding inspiration and creativity beyond the screen.",
     ],
     imageClass: "object-cover",
+    pets: [
+      {
+        id: "isis-executive-slayer-prime",
+        name: "Isis Executive Slayer Prime",
+        role: "Strategic Entity",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Isis.jpg",
+        bullets: [
+          "Optimizes processes, eliminates risks, and dominates markets without mercy.",
+        ],
+      },
+    ],
   },
   {
     id: "fernando-campellone",
@@ -329,6 +382,17 @@ export const teamMembers: TeamMember[] = [
       "Passionate about video games — ask him about his favorite one and the conversation will probably go on for quite a while.",
     ],
     imageClass: "object-cover",
+    pets: [
+      {
+        id: "capitana-kathryn-janeway",
+        name: "Capitana Kathryn Janeway",
+        role: "Starfleet Officer",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Capitana+Kathryn+Janeway.jpeg",
+        bullets: [
+          "Commanding officer of the USS Voyager, Starfleet.",
+        ],
+      },
+    ],
   },
   {
     id: "francisca-rodriguez",
@@ -499,6 +563,84 @@ export const teamMembers: TeamMember[] = [
       "Mastering the art of chew‑toy diplomacy.",
       "Brings boundless energy and puppy‑eyed charm to every meeting.",
       "Still learning the ropes but already a pro at stealing hearts.",
+    ],
+  },
+  {
+    id: "panela",
+    name: "Panela",
+    role: "Home Security & Wellness Coordinator",
+    group: "Pet Family",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Panela+-+Daniela+Ramirez.JPG",
+    bullets: [
+      "Responsible for monitoring all incoming visitors and immediately escalating doorbell-related incidents.",
+      "Passionate about outdoor adventures, toy management, and keeping feline employees constantly on edge.",
+      "Frequently attends meetings asleep beside her manager.",
+    ],
+  },
+  {
+    id: "gustavo",
+    name: "Gustavo",
+    role: "Senior Emotional Support Specialist",
+    group: "Pet Family",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Gustavo+-+Daniela+Ramirez.jpeg",
+    bullets: [
+      "Known for providing hands-on support by gently tapping team members for attention and affection.",
+      "Specializes in naps, cuddles, and maintaining a calm workplace environment.",
+    ],
+  },
+  {
+    id: "esteban-sarkozy",
+    name: "Esteban Sarkozy",
+    role: "Lunch Operations Manager",
+    group: "Pet Family",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Esteban+Sarkozy+-+Daniela+Ramirez.HEIC",
+    bullets: [
+      "Takes meal scheduling very seriously.",
+      "Oversees all lunch-related activities with unmatched enthusiasm and midday zoomies.",
+      "Maintains a strong work-life balance centered around eating and sleeping.",
+    ],
+  },
+  {
+    id: "lucia",
+    name: "Luc\u00eda",
+    role: "Director of Executive Oversight",
+    group: "Pet Family",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Luc%C3%ADa+-+Daniela+Ramirez.HEIC",
+    bullets: [
+      "Ensures full visibility across all household operations and insists on being involved in every department.",
+      "Expert climber and the only team member certified in advanced wall-gym navigation.",
+      "Naturally assumes leadership in all situations.",
+    ],
+  },
+  {
+    id: "clara-ines",
+    name: "Clara In\u00e9s",
+    role: "Independent Nap Consultant",
+    group: "Pet Family",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Clara+In%C3%A9s+-+Daniela+Ramirez.HEIC",
+    bullets: [
+      "Prefers a low-interaction work style while quietly monitoring team dynamics from undisclosed sleeping locations.",
+      "Publicly maintains a serious reputation despite privately enjoying affection and premium snack benefits.",
+    ],
+  },
+  {
+    id: "capitana-kathryn-janeway",
+    name: "Capitana Kathryn Janeway",
+    role: "Starfleet Officer",
+    group: "Pet Family",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Isis.jpg",
+    bullets: [
+      "Commanding officer of the USS Voyager, Starfleet.",
+    ],
+  },
+  {
+    id: "isis-executive-slayer-prime",
+    name: "Isis Executive Slayer Prime",
+    role: "Strategic Entity",
+    group: "Pet Family",
+    // image: "",
+    bullets: [
+      "Optimizes processes, eliminates risks, and dominates markets without mercy.",
     ],
   },
 ];
