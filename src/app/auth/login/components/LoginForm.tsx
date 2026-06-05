@@ -168,6 +168,19 @@ export default function LoginForm() {
                   setAuthenticated(true);
                   if (result.data?.accessToken)
                     setToken(result.data?.accessToken);
+
+                  // Set session cookies server-side
+                  console.log("[Login Multi-Role] 🍪 Setting session cookies...");
+                  await fetch("/api/auth/set-session", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                      token: result.data?.accessToken,
+                      user,
+                    }),
+                  }).catch(err => console.error("[Login Multi-Role] Cookie error:", err));
+
                   // Guardar cookie legible por el cliente usada como fallback en select-role
                   const userInfo = encodeURIComponent(JSON.stringify(user));
                   // 7 días
@@ -212,6 +225,30 @@ export default function LoginForm() {
           setUser(effectiveUser);
           setAuthenticated(true);
           setToken(result.data?.accessToken);
+
+          // CRITICAL: Set cookies server-side with httpOnly flag
+          // Backend returns token in JSON but doesn't set cookies
+          console.log("[Login] 🍪 Setting session cookies...");
+          try {
+            const sessionResponse = await fetch("/api/auth/set-session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({
+                token: result.data?.accessToken,
+                user: effectiveUser,
+              }),
+            });
+
+            if (!sessionResponse.ok) {
+              console.error("[Login] ❌ Failed to set session cookies");
+              addNotification("Login warning: session may not persist", "warning");
+            } else {
+              console.log("[Login] ✅ Session cookies set successfully");
+            }
+          } catch (sessionError) {
+            console.error("[Login] ❌ Error setting session:", sessionError);
+          }
 
           // Wait for cookie to persist before redirecting
           console.log("[Login] ⏳ Waiting for cookie persistence...");
