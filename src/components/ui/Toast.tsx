@@ -94,6 +94,7 @@ export function Toast({ position = "top-right" }: ToastProps = {}) {
     >
       {notifications.map((notification) => {
         const isSuccess = notification.type === "success";
+        const isCompact = notification.variant === "compact" && isSuccess;
 
         return (
           <div
@@ -101,9 +102,11 @@ export function Toast({ position = "top-right" }: ToastProps = {}) {
             className={`
               relative flex items-start justify-between
               ${
-                isSuccess
-                  ? "w-[min(538px,calc(100vw-2rem))] rounded-[11px] bg-white px-5 pt-[21px] pb-[15px] shadow-[0px_3px_7px_rgba(112,112,112,0.17)]"
-                  : "rounded-lg border-l-4 bg-[#FCFEFF] px-6 py-4 shadow-lg"
+                isCompact
+                  ? "w-[min(360px,calc(100vw-2rem))] rounded-[8px] bg-white px-[14px] pt-[15px] pb-[11px] shadow-[0px_2px_5px_rgba(112,112,112,0.17)]"
+                  : isSuccess
+                    ? "w-[min(538px,calc(100vw-2rem))] rounded-[11px] bg-white px-5 pt-[21px] pb-[15px] shadow-[0px_3px_7px_rgba(112,112,112,0.17)]"
+                    : "rounded-lg border-l-4 bg-[#FCFEFF] px-6 py-4 shadow-lg"
               }
               ${toastStyles[notification.type]}
               ${
@@ -113,18 +116,28 @@ export function Toast({ position = "top-right" }: ToastProps = {}) {
               }
             `}
           >
-            <div className={`flex items-start ${isSuccess ? "gap-6 pr-11" : "gap-3"}`}>
+            <div
+              className={`flex items-start ${
+                isCompact ? "gap-[17px] pr-6" : isSuccess ? "gap-6 pr-11" : "gap-3"
+              }`}
+            >
               <span
                 className="shrink-0"
                 style={{ color: toastIcons[notification.type].color }}
               >
-                {toastIcons[notification.type].icon}
+                {isCompact ? (
+                  <CheckCircle size={24} strokeWidth={2} className="text-[#2D6A4F]" />
+                ) : (
+                  toastIcons[notification.type].icon
+                )}
               </span>
               <p
                 className={
-                  isSuccess
-                    ? "text-[17.6px] font-bold leading-[1.3] text-[#343434]"
-                    : "text-sm font-medium text-gray-700"
+                  isCompact
+                    ? "text-[14px] font-bold leading-[1.3] text-[#343434]"
+                    : isSuccess
+                      ? "text-[17.6px] font-bold leading-[1.3] text-[#343434]"
+                      : "text-sm font-medium text-gray-700"
                 }
               >
                 {notification.message}
@@ -134,15 +147,17 @@ export function Toast({ position = "top-right" }: ToastProps = {}) {
               type="button"
               onClick={() => handleRemoveNotification(notification.id)}
               className={`cursor-pointer shrink-0 rounded-full transition-colors ${
-                isSuccess
-                  ? "absolute right-[15px] top-[15px] p-0 text-[#707070] hover:text-[#343434]"
-                  : "ml-4 p-1 hover:bg-gray-100"
+                isCompact
+                  ? "absolute right-[14px] top-[15px] p-0 text-[#707070] hover:text-[#343434]"
+                  : isSuccess
+                    ? "absolute right-[15px] top-[15px] p-0 text-[#707070] hover:text-[#343434]"
+                    : "ml-4 p-1 hover:bg-gray-100"
               }`}
               aria-label="Cerrar notificación"
             >
               <XIcon
-                size={isSuccess ? 29 : 16}
-                className={isSuccess ? "" : "text-gray-400 hover:text-gray-600"}
+                size={isCompact ? 18 : isSuccess ? 29 : 16}
+                className={isCompact || isSuccess ? "" : "text-gray-400 hover:text-gray-600"}
               />
             </button>
           </div>

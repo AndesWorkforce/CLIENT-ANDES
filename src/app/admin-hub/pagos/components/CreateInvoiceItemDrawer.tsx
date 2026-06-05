@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import AdminHubDrawerFooter from "../../components/AdminHubDrawerFooter";
+import AdminHubSideDrawer from "../../components/AdminHubSideDrawer";
+import AdminHubTypeSelectStep from "../../components/AdminHubTypeSelectStep";
 import CreateInvoiceItemForm, {
   type CreateItemFormData,
   isCreateItemFormComplete,
@@ -48,24 +49,6 @@ export default function CreateInvoiceItemDrawer({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
-
   const canGoNext = selectedType !== null;
   const isFormComplete = isCreateItemFormComplete(formData);
 
@@ -109,116 +92,37 @@ export default function CreateInvoiceItemDrawer({
     onClose();
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex justify-end" role="dialog" aria-modal="true" aria-labelledby="create-item-title">
-      <button
-        type="button"
-        aria-label="Cerrar panel"
-        className="absolute inset-0 bg-black/40"
-        onClick={onClose}
-      />
-
-      <aside className="relative z-10 flex h-full w-full max-w-[694px] flex-col bg-white shadow-[-8px_0_32px_rgba(0,0,0,0.12)] sm:w-1/2 sm:min-w-[400px]">
-        <header className="shrink-0 border-b border-[#C8C8C8] bg-white px-8 pt-[30px] pb-6">
-          <div className="flex flex-col items-end gap-6">
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Cerrar"
-              className="text-[#707070] hover:text-[#343434] transition-colors"
-            >
-              <X size={21} strokeWidth={1.75} />
-            </button>
-            <h2 id="create-item-title" className="w-full text-[24px] font-bold leading-[1.3] text-[#343434]">
-              Crear ítem
-            </h2>
-          </div>
-        </header>
-
-        <div className="flex flex-1 flex-col overflow-y-auto bg-[#F8F8F8] px-7 pt-9 pb-8 sm:px-10 sm:pt-14">
-          {step === "select-type" ? (
-            <div className="flex w-full max-w-[624px] flex-col gap-[37px]">
-              <h3 className="text-[22px] font-bold leading-[1.3] text-[#525252]">
-                Seleccionar tipo de movimiento
-              </h3>
-              <div className="flex flex-col gap-4">
-                {MOVEMENT_OPTIONS.map((option) => {
-                  const isSelected = selectedType === option.id;
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => setSelectedType(option.id)}
-                      className={`flex h-[76px] w-full items-center rounded-[8px] border bg-white px-6 text-left shadow-[0px_2px_2px_rgba(202,202,202,0.25)] transition-colors ${
-                        isSelected
-                          ? "border-[#0097B2] ring-1 ring-[#0097B2]"
-                          : "border-[#EFEFEF] hover:border-[#C8C8C8]"
-                      }`}
-                    >
-                      <span
-                        className={`text-[18px] font-bold leading-[1.3] transition-colors ${
-                          isSelected ? "text-[#0097B2]" : "text-[#343434]"
-                        }`}
-                      >
-                        {option.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            selectedType && (
-              <CreateInvoiceItemForm
-                movementType={selectedType}
-                formData={formData}
-                onChange={setFormData}
-              />
-            )
-          )}
-        </div>
-
-        <footer className="shrink-0 border-t border-[#C8C8C8] bg-[#F8F8F8] px-8 py-7">
-          <div className="flex items-center justify-end gap-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#858585] bg-white px-[22px] text-[14px] text-[#858585] leading-5 hover:bg-white transition-colors"
-            >
-              Cancelar
-            </button>
-
-            {step === "select-type" ? (
-              <button
-                type="button"
-                disabled={!canGoNext}
-                onClick={handleNext}
-                className={`inline-flex h-9 items-center justify-center rounded-[8px] px-[22px] text-[14px] leading-5 transition-colors ${
-                  canGoNext
-                    ? "bg-[#0097B2] text-white hover:bg-[#008099]"
-                    : "cursor-not-allowed bg-[#C8C8C8] text-[#707070]"
-                }`}
-              >
-                Siguiente
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled={!isFormComplete}
-                onClick={handleCreate}
-                className={`inline-flex h-9 items-center justify-center rounded-[8px] px-[22px] text-[14px] leading-5 transition-colors ${
-                  isFormComplete
-                    ? "bg-[#0097B2] text-white hover:bg-[#008099]"
-                    : "cursor-not-allowed bg-[#C8C8C8] text-[#707070]"
-                }`}
-              >
-                Crear movimiento
-              </button>
-            )}
-          </div>
-        </footer>
-      </aside>
-    </div>,
-    document.body
+  return (
+    <AdminHubSideDrawer
+      open={open}
+      onClose={onClose}
+      title="Crear ítem"
+      titleId="create-item-title"
+      footer={
+        <AdminHubDrawerFooter
+          onCancel={onClose}
+          primaryLabel={step === "select-type" ? "Siguiente" : "Crear movimiento"}
+          onPrimary={step === "select-type" ? handleNext : handleCreate}
+          primaryDisabled={step === "select-type" ? !canGoNext : !isFormComplete}
+        />
+      }
+    >
+      {step === "select-type" ? (
+        <AdminHubTypeSelectStep
+          title="Seleccionar tipo de movimiento"
+          options={MOVEMENT_OPTIONS}
+          selectedId={selectedType}
+          onSelect={setSelectedType}
+        />
+      ) : (
+        selectedType && (
+          <CreateInvoiceItemForm
+            movementType={selectedType}
+            formData={formData}
+            onChange={setFormData}
+          />
+        )
+      )}
+    </AdminHubSideDrawer>
   );
 }

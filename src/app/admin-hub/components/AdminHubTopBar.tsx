@@ -1,27 +1,13 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { Bell, ChevronDown, ChevronRight, Settings, LayoutDashboard, User, LogOut } from "lucide-react";
+import { Bell, ChevronDown, Settings, LayoutDashboard, User, LogOut } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
 import { useRef, useState } from "react";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Link from "next/link";
 
-const breadcrumbLabels: Record<string, string> = {
-  "admin-hub": "Administrador",
-  dashboard: "Panel de Control",
-  personas: "Personas",
-  contratos: "Contratos",
-  nominas: "Nóminas",
-  pagos: "Pagos",
-  facturas: "Facturas",
-  historial: "Historial",
-  configuracion: "Configuración",
-};
-
 export default function AdminHubTopBar() {
-  const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -37,26 +23,8 @@ export default function AdminHubTopBar() {
     }
   }
 
-  const segments = pathname.split("/").filter(Boolean);
-  const crumbs = segments
-    .filter((seg) => !/^\d+$/.test(seg))
-    .map((seg) => breadcrumbLabels[seg] ?? seg);
-
   return (
-    <header className="flex items-center justify-between h-[60px] px-6 bg-white border-b border-[#EFEFEF] shrink-0">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-[14px] text-[#707070]">
-        {crumbs.map((crumb, i) => (
-          <span key={i} className="flex items-center gap-1">
-            {i > 0 && <ChevronRight size={14} className="text-[#C8C8C8]" />}
-            <span className={i === crumbs.length - 1 ? "text-[#343434] font-semibold" : ""}>
-              {crumb}
-            </span>
-          </span>
-        ))}
-      </nav>
-
-      {/* Right: bell + user dropdown */}
+    <header className="flex h-[60px] shrink-0 items-center justify-end border-b border-[#EFEFEF] bg-white px-6">
       <div className="flex items-center gap-4">
         <button
           type="button"

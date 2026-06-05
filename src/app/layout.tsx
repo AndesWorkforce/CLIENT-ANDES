@@ -5,6 +5,7 @@ import { Toast } from "@/components/ui/Toast";
 import { AuthValidator } from "@/components/AuthValidator";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import Main from "./components/Main";
 import "react-quill/dist/quill.snow.css";
 import "quill/dist/quill.snow.css";
 import Script from "next/script";
@@ -165,9 +166,7 @@ export default function RootLayout({
       <body className={`${inter.className} flex flex-col min-h-screen`}>
         <AuthValidator />
         <Navbar />
-        <main className="flex-1 pt-[85px]">
-          {children}
-        </main>
+        <Main>{children}</Main>
         <Footer />
         <Toast />
       </body>

@@ -1,120 +1,89 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Filter, Plus, Search } from "lucide-react";
+import { Filter, Search } from "lucide-react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubSelect from "../../components/AdminHubSelect";
+import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
 import {
-  MOCK_INVOICES,
-  MONTH_OPTIONS,
-  type Invoice,
-  type InvoiceStatus,
-} from "../data/mock-invoices";
-import InvoiceFilterSelect from "./InvoiceFilterSelect";
-import InvoicesTable from "./InvoicesTable";
+  buildPayrollRows,
+  getPayrollVariables,
+  monthOptionToPeriod,
+  NOMINA_MONTH_OPTIONS,
+} from "../data/payroll-data";
+import type { PayrollVariableStatus } from "../data/mock-payroll-variables";
+import NominasTable from "./NominasTable";
 
-const CLIENT_FILTER_OPTIONS = Array.from(
-  new Set(MOCK_INVOICES.map((inv) => inv.client))
-).map((client) => ({ value: client, label: client }));
-
-const AMOUNT_FILTER_OPTIONS = [
-  { value: "0-10000", label: "Hasta $10.000" },
-  { value: "10000-15000", label: "$10.000 – $15.000" },
-  { value: "15000-20000", label: "$15.000 – $20.000" },
-  { value: "20000+", label: "Más de $20.000" },
-];
-
-const STATUS_FILTER_OPTIONS: { value: InvoiceStatus; label: string }[] = [
+const STATUS_FILTER_OPTIONS: { value: PayrollVariableStatus; label: string }[] = [
   { value: "Pendiente", label: "Pendiente" },
-  { value: "Pagado", label: "Pagado" },
-  { value: "Vencido", label: "Vencido" },
 ];
 
-function parseInvoiceAmount(amount: string): number {
-  return parseInt(amount.replace(/[^\d]/g, ""), 10) || 0;
+function buildFilterOptions(values: string[]) {
+  return Array.from(new Set(values)).map((value) => ({ value, label: value }));
 }
 
-function matchesAmountRange(amount: string, range: string): boolean {
-  const value = parseInvoiceAmount(amount);
-  switch (range) {
-    case "0-10000":
-      return value <= 10000;
-    case "10000-15000":
-      return value > 10000 && value <= 15000;
-    case "15000-20000":
-      return value > 15000 && value <= 20000;
-    case "20000+":
-      return value > 20000;
-    default:
-      return true;
-  }
-}
-
-export default function InvoicesPageContent() {
-  const [selectedMonth, setSelectedMonth] = useState(MONTH_OPTIONS[0]);
+export default function NominasPageContent() {
+  const [selectedMonth, setSelectedMonth] = useState(
+    NOMINA_MONTH_OPTIONS.find((m) => m.includes("2026")) ?? NOMINA_MONTH_OPTIONS[0]
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState("");
-  const [amountFilter, setAmountFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  const filteredInvoices = useMemo(() => {
+  const period = monthOptionToPeriod(selectedMonth);
+  const variables = getPayrollVariables();
+
+  const allRows = useMemo(
+    () => buildPayrollRows(period, variables),
+    [period, variables]
+  );
+
+  const filteredRows = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    let result: Invoice[] = [...MOCK_INVOICES];
+    let result = [...allRows];
 
     if (query) {
       result = result.filter(
-        (inv) =>
-          inv.clientId.toLowerCase().includes(query) ||
-          inv.client.toLowerCase().includes(query) ||
-          inv.period.toLowerCase().includes(query)
+        (row) =>
+          row.contractorName.toLowerCase().includes(query) ||
+          row.position.toLowerCase().includes(query) ||
+          row.client.toLowerCase().includes(query) ||
+          row.period.toLowerCase().includes(query)
       );
     }
 
     if (clientFilter) {
-      result = result.filter((inv) => inv.client === clientFilter);
-    }
-
-    if (amountFilter) {
-      result = result.filter((inv) => matchesAmountRange(inv.totalAmount, amountFilter));
+      result = result.filter((row) => row.client === clientFilter);
     }
 
     if (statusFilter) {
-      result = result.filter((inv) => inv.status === statusFilter);
+      result = result.filter((row) => row.status === statusFilter);
     }
 
     return result;
-  }, [searchQuery, clientFilter, amountFilter, statusFilter]);
+  }, [allRows, searchQuery, clientFilter, statusFilter]);
+
+  const clientFilterOptions = buildFilterOptions(allRows.map((row) => row.client));
 
   function clearFilters() {
     setClientFilter("");
-    setAmountFilter("");
     setStatusFilter("");
   }
 
-  const hasActiveFilters = Boolean(clientFilter || amountFilter || statusFilter);
+  const hasActiveFilters = Boolean(clientFilter || statusFilter);
 
   return (
     <div className="flex flex-col gap-6">
       <AdminHubBreadcrumbs />
-      <h1 className="text-[32px] font-bold text-black leading-[1.3]">Invoices</h1>
+      <h1 className="text-[32px] font-bold text-black leading-[1.3]">Nóminas</h1>
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <AdminHubSelect
-          value={selectedMonth}
-          onChange={setSelectedMonth}
-          options={MONTH_OPTIONS.map((month) => ({ value: month, label: month }))}
-          variant="filter"
-        />
-
-        <button
-          type="button"
-          className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors"
-        >
-          <Plus size={20} />
-          Crear nuevo
-        </button>
-      </div>
+      <AdminHubSelect
+        value={selectedMonth}
+        onChange={setSelectedMonth}
+        options={NOMINA_MONTH_OPTIONS.map((month) => ({ value: month, label: month }))}
+        variant="filter"
+      />
 
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -154,14 +123,7 @@ export default function InvoicesPageContent() {
               placeholder="Cliente"
               value={clientFilter}
               onChange={setClientFilter}
-              options={CLIENT_FILTER_OPTIONS}
-            />
-            <InvoiceFilterSelect
-              label="Filtrar por Monto"
-              placeholder="Monto"
-              value={amountFilter}
-              onChange={setAmountFilter}
-              options={AMOUNT_FILTER_OPTIONS}
+              options={clientFilterOptions}
             />
             <InvoiceFilterSelect
               label="Filtrar por Estado"
@@ -186,7 +148,7 @@ export default function InvoicesPageContent() {
         )}
       </div>
 
-      <InvoicesTable invoices={filteredInvoices} />
+      <NominasTable rows={filteredRows} />
     </div>
   );
 }

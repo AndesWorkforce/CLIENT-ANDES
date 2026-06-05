@@ -1,7 +1,7 @@
 "use client";
 
 import type { MovementType } from "./CreateInvoiceItemDrawer";
-import InvoiceFormField from "./InvoiceFormField";
+import AdminHubFormField from "../../components/AdminHubFormField";
 
 export interface CreateItemFormData {
   tipo: string;
@@ -55,7 +55,7 @@ export default function CreateInvoiceItemForm({
       <div className="flex flex-col gap-[10px]">
         <h3 className="text-[18px] font-bold leading-[1.3] text-black">Información General</h3>
 
-        <InvoiceFormField
+        <AdminHubFormField
           type="select"
           label="Tipo"
           value={formData.tipo}
@@ -64,7 +64,7 @@ export default function CreateInvoiceItemForm({
           placeholder="Seleccionar tipo"
         />
 
-        <InvoiceFormField
+        <AdminHubFormField
           type="input"
           label="Descripción"
           value={formData.descripcion}
@@ -74,7 +74,7 @@ export default function CreateInvoiceItemForm({
 
         <div className="flex flex-col gap-[10px] sm:flex-row">
           <div className="min-w-0 flex-1 sm:max-w-[350px]">
-            <InvoiceFormField
+            <AdminHubFormField
               type="input"
               label="Monto"
               value={formData.monto}
@@ -83,7 +83,7 @@ export default function CreateInvoiceItemForm({
             />
           </div>
           <div className="w-full sm:w-[222px] shrink-0">
-            <InvoiceFormField
+            <AdminHubFormField
               type="select"
               label="Moneda"
               value={formData.moneda}

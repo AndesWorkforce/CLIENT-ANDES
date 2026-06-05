@@ -1,18 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
   ClipboardList,
   Receipt,
-  CreditCard,
   Clock,
   Settings,
   ChevronDown,
   ChevronRight,
+  Dock,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 
 const rolLabels: Record<string, string> = {
@@ -25,30 +26,57 @@ const navItems = [
   { label: "Panel de control", href: "/admin-hub/dashboard", icon: LayoutDashboard },
   { label: "Personas", href: "/admin-hub/personas", icon: Users },
   { label: "Contratos", href: "/admin-hub/contratos", icon: ClipboardList },
-  { label: "Nóminas", href: "/admin-hub/nominas", icon: Receipt },
 ];
 
-const pagosSubItems = [
-  { label: "Pagos", href: "/admin-hub/pagos" },
-  { label: "Facturas", href: "/admin-hub/pagos/facturas" },
-  { label: "Historial", href: "/admin-hub/pagos/historial", icon: Clock },
+const nominasSubItems = [
+  { label: "Todas", href: "/admin-hub/nominas" },
+  { label: "Variables de nómina", href: "/admin-hub/nominas/variables" },
+];
+
+const nominasRelatedItems = [
+  { label: "Pagos", href: "/admin-hub/pagos", icon: Dock },
+  { label: "Historial", href: "/admin-hub/historial", icon: Clock },
 ];
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/admin-hub/pagos") {
-    return pathname === href;
-  }
-  if (href === "/admin-hub/pagos/facturas") {
-    return pathname === href || pathname.startsWith("/admin-hub/pagos/facturas/");
+    return pathname === href || pathname.startsWith("/admin-hub/pagos/");
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function isNominasPath(pathname: string) {
+  return (
+    pathname === "/admin-hub/nominas" ||
+    pathname === "/admin-hub/nominas/todas" ||
+    pathname.startsWith("/admin-hub/nominas/variables")
+  );
+}
+
 export default function AdminHubSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuthStore();
+  const [nominasExpanded, setNominasExpanded] = useState(() => isNominasPath(pathname));
 
-  const isPagosSection = pathname.startsWith("/admin-hub/pagos");
+  const isNominasActive = isNominasPath(pathname);
+
+  useEffect(() => {
+    setNominasExpanded(isNominasPath(pathname));
+  }, [pathname]);
+
+  function handleNominasClick() {
+    if (!nominasExpanded) {
+      setNominasExpanded(true);
+    }
+    if (!isNominasActive) {
+      router.push("/admin-hub/nominas");
+    }
+  }
+
+  function handleNavItemClick() {
+    setNominasExpanded(false);
+  }
 
   return (
     <aside className="flex w-[280px] shrink-0 flex-col min-h-screen border-r border-[#C8C8C8] bg-white">
@@ -77,6 +105,7 @@ export default function AdminHubSidebar() {
             <Link
               key={href}
               href={href}
+              onClick={handleNavItemClick}
               className={`flex items-center gap-3 h-10 px-3 rounded-lg text-[14px] transition-colors ${
                 isActive
                   ? "bg-[#F8F8F8] text-[#0097B2] font-semibold"
@@ -90,47 +119,78 @@ export default function AdminHubSidebar() {
         })}
 
         <div>
-          <Link
-            href="/admin-hub/pagos"
-            className={`flex items-center gap-3 h-10 px-3 rounded-lg text-[14px] transition-colors ${
-              isPagosSection
+          <button
+            type="button"
+            onClick={handleNominasClick}
+            className={`flex w-full items-center gap-3 h-10 px-3 rounded-lg text-[14px] transition-colors ${
+              isNominasActive
                 ? "bg-[#DFFAFF] text-[#0097B2] font-semibold"
-                : "text-[#707070] hover:bg-[#F8F8F8] hover:text-[#0097B2]"
+                : nominasExpanded
+                  ? "bg-[#F8F8F8] text-[#0097B2] font-semibold"
+                  : "text-[#707070] hover:bg-[#F8F8F8] hover:text-[#0097B2]"
             }`}
           >
-            <CreditCard size={20} className="shrink-0" />
-            <span className="tracking-[0.28px]">Pagos</span>
-          </Link>
+            <Receipt size={20} className="shrink-0" />
+            <span className="flex-1 text-left tracking-[0.28px]">Nóminas</span>
+            <ChevronDown
+              size={18}
+              className={`shrink-0 text-[#707070] transition-transform ${
+                nominasExpanded ? "rotate-180" : ""
+              }`}
+            />
+          </button>
 
-          <div className="mt-[11px] flex flex-col gap-[11px]">
-            {pagosSubItems.map(({ label, href, icon: SubIcon }) => {
-              const isSubActive = isActivePath(pathname, href);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex h-10 items-center gap-3 rounded-lg pl-3 pr-3 text-[14px] transition-colors ${
-                    isSubActive
-                      ? "font-semibold text-[#0097B2]"
-                      : "text-[#707070] hover:text-[#0097B2]"
-                  }`}
-                >
-                  {SubIcon ? (
-                    <SubIcon size={20} className="shrink-0" />
-                  ) : (
+          {nominasExpanded && (
+            <div className="mt-[11px] flex flex-col gap-[11px]">
+              {nominasSubItems.map(({ label, href }) => {
+                const isSubActive =
+                  href === "/admin-hub/nominas"
+                    ? pathname === "/admin-hub/nominas" || pathname === "/admin-hub/nominas/todas"
+                    : pathname.startsWith("/admin-hub/nominas/variables");
+
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`flex h-10 items-center gap-3 rounded-lg pl-3 pr-3 text-[14px] transition-colors ${
+                      isSubActive
+                        ? "font-semibold text-[#0097B2]"
+                        : "text-[#707070] hover:text-[#0097B2]"
+                    }`}
+                  >
                     <ChevronRight size={20} className="shrink-0" />
-                  )}
-                  <span className="tracking-[0.28px]">{label}</span>
-                </Link>
-              );
-            })}
-          </div>
+                    <span className="tracking-[0.28px]">{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
+
+        {nominasRelatedItems.map(({ label, href, icon: Icon }) => {
+          const isActive = isActivePath(pathname, href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={handleNavItemClick}
+              className={`flex items-center gap-3 h-10 px-3 rounded-lg text-[14px] transition-colors ${
+                isActive
+                  ? "bg-[#F8F8F8] text-[#0097B2] font-semibold"
+                  : "text-[#707070] hover:bg-[#F8F8F8] hover:text-[#0097B2]"
+              }`}
+            >
+              <Icon size={20} className="shrink-0" />
+              <span className="tracking-[0.28px]">{label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="px-2 py-3 border-t border-[#EFEFEF]">
         <Link
           href="/admin-hub/configuracion"
+          onClick={handleNavItemClick}
           className={`flex items-center gap-3 h-10 px-3 rounded-lg text-[14px] transition-colors ${
             pathname.startsWith("/admin-hub/configuracion")
               ? "bg-[#F8F8F8] text-[#0097B2] font-semibold"
