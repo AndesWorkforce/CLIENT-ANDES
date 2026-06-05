@@ -484,9 +484,9 @@ export default function SelectRolePage() {
         body: JSON.stringify(proxyPayload),
       });
       const data = await resp.json();
-      result = data;API route",
-        proxyErr?.message
-      );
+      result = data;
+    } catch (error) {
+      console.error("[SelectRole] Error calling API route:", error);
       try {
         // disable-next-line @typescript-eslint/no-explicit-any
         const payload: any = { ...proxyPayload };
