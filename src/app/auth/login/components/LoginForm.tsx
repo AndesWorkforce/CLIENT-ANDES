@@ -213,6 +213,11 @@ export default function LoginForm() {
           setAuthenticated(true);
           setToken(result.data?.accessToken);
 
+          // Wait for cookie to persist before redirecting
+          console.log("[Login] ⏳ Waiting for cookie persistence...");
+          await new Promise(resolve => setTimeout(resolve, 200));
+          console.log("[Login] ✅ Cookie wait complete, redirecting...");
+
           // Verificar si hay una URL de redirección pendiente
           const redirectAfterLogin = localStorage.getItem("redirectAfterLogin");
           if (redirectAfterLogin) {

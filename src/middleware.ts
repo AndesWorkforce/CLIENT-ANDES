@@ -105,6 +105,13 @@ export function middleware(request: NextRequest) {
   const authToken = request.cookies.get(AUTH_COOKIE)?.value;
   const isAuthenticated = !!authToken;
 
+  // DEBUG: Log cookie presence for protected routes
+  if (pathname.startsWith("/admin") || pathname.startsWith("/companies") || pathname.startsWith("/profile")) {
+    console.log(`[Middleware] 🔍 pathname: ${pathname}`);
+    console.log(`[Middleware] 🔍 authToken present: ${!!authToken}`);
+    console.log(`[Middleware] 🔍 authToken preview: ${authToken ? authToken.substring(0, 20) + '...' : 'NONE'}`);
+  }
+
   // Obtener información del usuario (si existe)
   let userInfo: { rol?: string } = {};
   try {
