@@ -29,9 +29,11 @@ const VARIABLE_TYPE_OPTIONS: { id: PayrollVariableDrawerType; label: string }[] 
   { id: "deducciones", label: "Deducciones" },
 ];
 
+type PayrollVariableItemCategory = Exclude<PayrollVariableCategory, "todos">;
+
 const TYPE_META: Record<
   PayrollVariableDrawerType,
-  { type: PayrollVariableType; category: PayrollVariableCategory }
+  { type: PayrollVariableType; category: PayrollVariableItemCategory }
 > = {
   ausencia: { type: "Ausencia", category: "ausencias" },
   overtime: { type: "Overtime", category: "overtimes" },
