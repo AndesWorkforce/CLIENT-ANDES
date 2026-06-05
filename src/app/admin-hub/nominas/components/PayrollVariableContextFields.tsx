@@ -5,13 +5,20 @@ import AdminHubFormField from "../../components/AdminHubFormField";
 import {
   findContract,
   findContractor,
-  formatBaseSalary,
   MOCK_CONTRACTORS,
 } from "../data/mock-contractors";
 import { formatHolidayLabel, getHolidaysByCountry } from "../data/mock-holidays";
+import DeductionAmountField from "./DeductionAmountField";
+import IncomeVariableAmountField from "./IncomeVariableAmountField";
+import { DURATION_OPTIONS } from "./payroll-variable-form-types";
 import type { CreatePayrollVariableFormData } from "./payroll-variable-form-types";
 
-export type ContextFieldsVariant = "ausencia" | "overtime" | "holidays" | "deducciones";
+export type ContextFieldsVariant =
+  | "ausencia"
+  | "overtime"
+  | "holidays"
+  | "deducciones"
+  | "incomeVariables";
 
 interface PayrollVariableContextFieldsProps {
   variant: ContextFieldsVariant;
@@ -27,7 +34,9 @@ export default function PayrollVariableContextFields({
   const contractor = findContractor(formData.contractorId);
   const contract = findContract(formData.contractorId, formData.contractId);
   const showDateRange = variant === "ausencia";
-  const showMonto = variant === "deducciones";
+  const showOvertimeDuration = variant === "overtime";
+  const showDeductionMonto = variant === "deducciones";
+  const showIncomeMonto = variant === "incomeVariables";
   const showHoliday = variant === "holidays";
 
   const contractorOptions = MOCK_CONTRACTORS.map((c) => ({
@@ -146,14 +155,44 @@ export default function PayrollVariableContextFields({
         </div>
       )}
 
-      {showMonto && (
-        <AdminHubFormField
-          type="input"
-          label="Monto"
+      {showOvertimeDuration && (
+        <div className="flex flex-col gap-[10px] sm:flex-row">
+          <div className="min-w-0 flex-1">
+            <AdminHubFormField
+              type="select"
+              label="Duración"
+              value={formData.duracion}
+              onChange={(duracion) => patch({ duracion })}
+              options={DURATION_OPTIONS}
+              placeholder="Horas"
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <AdminHubFormField
+              type="input"
+              label="Cantidad"
+              value={formData.cantidad}
+              onChange={(cantidad) => patch({ cantidad })}
+              placeholder="1"
+              inputMode="numeric"
+            />
+          </div>
+        </div>
+      )}
+
+      {showDeductionMonto && (
+        <DeductionAmountField
           value={formData.montoContexto}
-          onChange={(v) => patch({ montoContexto: v })}
-          placeholder="Monto"
-          inputMode="numeric"
+          onChange={(montoContexto) => patch({ montoContexto })}
+        />
+      )}
+
+      {showIncomeMonto && (
+        <IncomeVariableAmountField
+          category={formData.incomeCategory}
+          amount={formData.montoContexto}
+          onCategoryChange={(incomeCategory) => patch({ incomeCategory })}
+          onAmountChange={(montoContexto) => patch({ montoContexto })}
         />
       )}
 
@@ -176,12 +215,4 @@ export default function PayrollVariableContextFields({
       )}
     </>
   );
-}
-
-export function getContextBaseSalary(
-  contractorId: string,
-  contractId: string
-): string {
-  const contract = findContract(contractorId, contractId);
-  return contract ? formatBaseSalary(contract.baseSalary) : "";
 }

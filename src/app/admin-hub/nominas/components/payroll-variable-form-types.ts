@@ -6,6 +6,7 @@ export interface CreatePayrollVariableFormData {
   desde: string;
   hasta: string;
   montoContexto: string;
+  incomeCategory: string;
   holidayId: string;
   duracion: string;
   cantidad: string;
@@ -13,8 +14,8 @@ export interface CreatePayrollVariableFormData {
 }
 
 export const DURATION_OPTIONS = [
-  { value: "hora", label: "Hora" },
-  { value: "dia", label: "Día" },
+  { value: "horas", label: "Horas" },
+  { value: "minutos", label: "Minutos" },
 ];
 
 export const TYPE_SUBTITLES: Record<PayrollVariableDrawerType, string> = {
@@ -22,6 +23,7 @@ export const TYPE_SUBTITLES: Record<PayrollVariableDrawerType, string> = {
   overtime: "Overtime",
   holidays: "Holidays",
   deducciones: "Deducciones",
+  incomeVariables: "Income Variables",
 };
 
 export function emptyPayrollVariableForm(): CreatePayrollVariableFormData {
@@ -31,6 +33,7 @@ export function emptyPayrollVariableForm(): CreatePayrollVariableFormData {
     desde: "",
     hasta: "",
     montoContexto: "",
+    incomeCategory: "",
     holidayId: "",
     duracion: "",
     cantidad: "1",
@@ -46,13 +49,16 @@ export function isPayrollVariableFormComplete(
 
   switch (type) {
     case "ausencia":
-      return base && Boolean(data.desde && data.duracion && data.cantidad.trim());
+      return base && Boolean(data.desde);
     case "overtime":
       return base && Boolean(data.duracion && data.cantidad.trim());
     case "holidays":
       return base && Boolean(data.holidayId);
     case "deducciones":
-      return base && Boolean(data.montoContexto.trim());
+    case "incomeVariables":
+      return (
+        base && Boolean(data.montoContexto.trim() && data.incomeCategory.trim())
+      );
     default:
       return false;
   }

@@ -1,6 +1,9 @@
+import type { IncomeVariableCategory } from "./income-variable-categories";
+
 export type PayrollVariableType =
   | "Overtime"
   | "Deducción"
+  | "Income Variable"
   | "Ausencia"
   | "Holiday";
 
@@ -9,11 +12,17 @@ export type PayrollVariableCategory =
   | "ausencias"
   | "overtimes"
   | "holidays"
-  | "deducciones";
+  | "deducciones"
+  | "incomeVariables";
 
 export type PayrollVariableStatus = "Pendiente" | "Aprobado" | "Rechazado";
 
-export type PayrollVariableDrawerType = "ausencia" | "overtime" | "holidays" | "deducciones";
+export type PayrollVariableDrawerType =
+  | "ausencia"
+  | "overtime"
+  | "holidays"
+  | "deducciones"
+  | "incomeVariables";
 
 export interface PayrollVariable {
   id: string;
@@ -26,6 +35,8 @@ export interface PayrollVariable {
   amount: number;
   status: PayrollVariableStatus;
   createdBy: string;
+  /** Solo variables Income Variable */
+  incomeCategory?: IncomeVariableCategory;
 }
 
 export const PAYROLL_VARIABLE_TABS: {
@@ -37,6 +48,7 @@ export const PAYROLL_VARIABLE_TABS: {
   { key: "overtimes", label: "Overtimes" },
   { key: "holidays", label: "Holidays" },
   { key: "deducciones", label: "Deducciones" },
+  { key: "incomeVariables", label: "Income Variables" },
 ];
 
 export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
@@ -75,6 +87,32 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+  },
+  {
+    id: "pv-9",
+    date: "03.21.26",
+    contractor: "Ana Gomez",
+    client: "BK",
+    type: "Income Variable",
+    category: "incomeVariables",
+    description: "Bono desempeño",
+    amount: 200,
+    status: "Pendiente",
+    createdBy: "Violeta Q",
+    incomeCategory: "Bonus",
+  },
+  {
+    id: "pv-10",
+    date: "03.21.26",
+    contractor: "Luis Lee",
+    client: "Rocket",
+    type: "Income Variable",
+    category: "incomeVariables",
+    description: "Ajuste manual",
+    amount: -200,
+    status: "Pendiente",
+    createdBy: "Violeta Q",
+    incomeCategory: "Other",
   },
   {
     id: "pv-4",
