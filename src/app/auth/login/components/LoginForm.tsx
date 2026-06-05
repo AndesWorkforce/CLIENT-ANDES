@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormValues } from "../schemas/login.schema";
-import { loginAction } from "../actions/login.action";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useAuthStore } from "@/store/auth.store";
 import { useRouter } from "next/navigation";
@@ -112,12 +111,19 @@ export default function LoginForm() {
 
       // Intentar login
       try {
-        const result = await loginAction(data);
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
 
         // Guard against unexpected undefined
         if (!result) {
           addNotification("Login failed: empty response", "error");
-          console.error("[Login] Empty result from loginAction");
+          console.error("[Login] Empty result from API");
           return;
         }
 

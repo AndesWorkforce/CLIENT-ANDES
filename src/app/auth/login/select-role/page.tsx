@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
-import { loginAction } from "../actions/login.action";
 import { getUsuarioCompanyAssociation } from "@/app/admin/superAdmin/users-roles/actions/users-roles.actions";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import Logo from "@/app/components/Logo";
-import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 
 // Encryption removed: we'll read plaintext payload from sessionStorage
 
@@ -190,14 +188,19 @@ export default function SelectRolePage() {
     // disable-next-line @typescript-eslint/no-explicit-any
     let result: any = null;
     try {
-      result = await loginAction({
-        correo: pending.correo,
-        contrasena: pending.contrasena,
-        selectedRole: role,
-        // disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          correo: pending.correo,
+          contrasena: pending.contrasena,
+          selectedRole: role,
+        }),
+      });
+      result = await response.json();
     } catch (e) {
-      console.warn("[SelectRole] loginAction threw", e);
+      console.warn("[SelectRole] fetch /api/auth/login threw", e);
       result = null;
     }
 
@@ -481,17 +484,22 @@ export default function SelectRolePage() {
         body: JSON.stringify(proxyPayload),
       });
       const data = await resp.json();
-      result = data;
-      console.log("[SelectRole] proxy login result", resp.status, data);
-      // disable-next-line @typescript-eslint/no-explicit-any
-    } catch (proxyErr: any) {
-      console.warn(
-        "[SelectRole] proxy login failed, fallback to server action",
+      result = data;API route",
         proxyErr?.message
       );
       try {
         // disable-next-line @typescript-eslint/no-explicit-any
         const payload: any = { ...proxyPayload };
+        const fallbackResp = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+        result = await fallbackResp.json();
+        // disable-next-line @typescript-eslint/no-explicit-any
+      } catch (e: any) {
+        console.warn("[SelectRole] API logid };
         // disable-next-line @typescript-eslint/no-explicit-any
         result = await loginAction(payload as any);
         // disable-next-line @typescript-eslint/no-explicit-any
@@ -595,7 +603,10 @@ export default function SelectRolePage() {
               sessionStorage.removeItem("andes_pending_login");
             } catch {}
             // borrar cookies de auth en el servidor
-            await logoutAction();
+            await fetch("/api/auth/logout", {
+              method: "GET",
+              credentials: "include",
+            });
             router.replace("/auth/login");
           }}
           disabled={submitting}
