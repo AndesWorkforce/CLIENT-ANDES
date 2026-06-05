@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         try {
           // Llamar a la API para eliminar las cookies desde el servidor
-          await fetch("/api/auth/logout", {
+          await fetch("/session-api/logout", {
             method: "GET",
             credentials: "include",
           });

@@ -72,7 +72,7 @@ export function AuthValidator() {
         console.log("[AuthValidator] ✅ isAuthenticated:", isAuthenticated);
 
         const token = useAuthStore.getState().token;
-        const response = await fetch("/api/auth/verify", {
+        const response = await fetch("/session-api/verify", {
           method: "GET",
           credentials: "include",
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -141,7 +141,7 @@ export function AuthValidator() {
     const validateSessionSilently = async () => {
       try {
         const token = useAuthStore.getState().token;
-        const response = await fetch("/api/auth/verify", {
+        const response = await fetch("/session-api/verify", {
           method: "GET",
           credentials: "include",
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
