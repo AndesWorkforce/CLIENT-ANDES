@@ -4,6 +4,7 @@ import { Bell, ChevronDown, Settings, LayoutDashboard, User, LogOut } from "luci
 import { useAuthStore } from "@/store/auth.store";
 import { useRef, useState } from "react";
 import useOutsideClick from "@/hooks/useOutsideClick";
+import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Link from "next/link";
 
 export default function AdminHubTopBar() {
@@ -15,10 +16,7 @@ export default function AdminHubTopBar() {
 
   async function handleLogout() {
     try {
-      await fetch("/api/auth/logout", {
-        method: "GET",
-        credentials: "include",
-      });
+      await logoutAction();
       logout();
     } catch (error) {
       console.error("Error logging out:", error);

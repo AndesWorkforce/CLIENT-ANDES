@@ -1,10 +1,13 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import {
+  getAuthCookieBaseOptions,
+  getClientReadableCookieOptions,
+} from "@/lib/auth-cookies";
 import { createServerAxios } from "@/services/axios.server";
 
 const AUTH_COOKIE = "auth_token";
 const USER_INFO_COOKIE = "user_info";
-const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
 export async function POST(request: Request) {
   try {
@@ -67,34 +70,20 @@ export async function POST(request: Request) {
     cookieStore.set({
       name: AUTH_COOKIE,
       value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: COOKIE_MAX_AGE,
-      path: "/",
-      sameSite: "strict",
+      ...getAuthCookieBaseOptions(),
     });
 
-    // Usuario (no httpOnly)
     cookieStore.set({
       name: USER_INFO_COOKIE,
       value: JSON.stringify(data.usuario || data),
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: COOKIE_MAX_AGE,
-      path: "/",
-      sameSite: "strict",
+      ...getClientReadableCookieOptions(),
     });
 
-    // Persist selected company for subsequent server requests
     if (selectedCompanyId) {
       cookieStore.set({
         name: "active_company_id",
         value: selectedCompanyId,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: COOKIE_MAX_AGE,
-        path: "/",
-        sameSite: "strict",
+        ...getAuthCookieBaseOptions(),
       });
     }
 
