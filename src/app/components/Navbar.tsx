@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import { useAuthStore } from "@/store/auth.store";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -220,7 +219,10 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await logoutAction();
+      await fetch("/api/auth/logout", {
+        method: "GET",
+        credentials: "include",
+      });
       logout();
     } catch (error) {
       console.error("Error logging out:", error);

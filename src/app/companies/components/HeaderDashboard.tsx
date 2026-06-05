@@ -4,7 +4,6 @@ import { useAuthStore } from "@/store/auth.store";
 import { LogOut, Settings, User } from "lucide-react";
 import { useRef, useState } from "react";
 import useOutsideClick from "@/hooks/useOutsideClick";
-import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Logo from "@/components/ui/Logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,7 +18,10 @@ export default function HeaderDashboard() {
 
   async function handleLogout() {
     try {
-      await logoutAction();
+      await fetch("/api/auth/logout", {
+        method: "GET",
+        credentials: "include",
+      });
       logout();
     } catch (error) {
       console.error("Error logging out:", error);
