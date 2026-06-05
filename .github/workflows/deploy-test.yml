@@ -1,0 +1,23 @@
+name: Deploy Client — Test Environment
+
+on:
+  push:
+    branches:
+      - admin-hub
+      - test-development
+
+jobs:
+  deploy:
+    name: Deploy to server (test environment)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 2.24.196.222
+          username: sysadmin
+          key: ${{ secrets.SSH_PRIVATE_KEY_TEST }}
+          port: ${{ secrets.PORT }}
+          script: /home/sysadmin/deploy_client_test.sh ${{ github.ref_name }}
+          debug: true
