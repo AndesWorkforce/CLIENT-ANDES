@@ -120,6 +120,12 @@ export default function LoginForm() {
 
         const result = await response.json();
 
+        // DEBUG: Log completo de la respuesta
+        console.log("[Login] 🔍 Full response:", result);
+        console.log("[Login] 🔍 result.success:", result.success);
+        console.log("[Login] 🔍 result.data:", result.data);
+        console.log("[Login] 🔍 result.error:", result.error);
+
         // Guard against unexpected undefined
         if (!result) {
           addNotification("Login failed: empty response", "error");
