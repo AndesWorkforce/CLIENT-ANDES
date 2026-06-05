@@ -497,14 +497,8 @@ export default function SelectRolePage() {
           body: JSON.stringify(payload),
         });
         result = await fallbackResp.json();
-        // disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
-        console.warn("[SelectRole] API logid };
-        // disable-next-line @typescript-eslint/no-explicit-any
-        result = await loginAction(payload as any);
-        // disable-next-line @typescript-eslint/no-explicit-any
-      } catch (e: any) {
-        console.warn("[SelectRole] loginAction (company) threw", e?.message, e);
+        console.warn("[SelectRole] API login fallback also failed:", e?.message);
         result = { success: false, error: e?.message || "Request failed" };
       }
     }
