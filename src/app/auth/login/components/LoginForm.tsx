@@ -118,6 +118,14 @@ export default function LoginForm() {
           body: JSON.stringify(data),
         });
 
+        // Check HTTP status before parsing
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.message || errorData.error || `HTTP ${response.status}`
+          );
+        }
+
         const result = await response.json();
 
         // DEBUG: Log completo de la respuesta
@@ -133,7 +141,9 @@ export default function LoginForm() {
           return;
         }
 
-        if (result.success) {
+        // Handle both Next.js API route response {success: true, data: {...}}
+        // and direct backend response {data: {...}, meta: {...}}
+        if (result.success || (result.data && (result.data.usuario || result.data.accessToken))) {
           // usuario puede venir en distintas formas
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const user: any = result.data?.usuario || result.data;
@@ -228,8 +238,15 @@ export default function LoginForm() {
             }
           }
         } else {
-          addNotification(result.error || "Error logging in", "error");
-          console.error("Login error:", result.error);
+          // Handle error response (could be from API route or backend)
+          const errorMessage =
+            result.error ||
+            result.message ||
+            (result.data && typeof result.data === "string"
+              ? result.data
+              : "Error logging in");
+          addNotification(errorMessage, "error");
+          console.error("Login error:", result);
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (loginError: any) {
