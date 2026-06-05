@@ -1,13 +1,14 @@
-name: Deploy Client — test-development
+name: Deploy Client — Test Environment
 
 on:
   push:
     branches:
+      - admin-hub
       - test-development
 
 jobs:
   deploy:
-    name: Deploy to server (test)
+    name: Deploy to server (test environment)
     runs-on: ubuntu-latest
 
     steps:
@@ -18,5 +19,5 @@ jobs:
           username: sysadmin
           key: ${{ secrets.SSH_PRIVATE_KEY_TEST }}
           port: ${{ secrets.PORT }}
-          script: /home/sysadmin/deploy_client_test.sh
+          script: /home/sysadmin/deploy_client_test.sh ${{ github.ref_name }}
           debug: true
