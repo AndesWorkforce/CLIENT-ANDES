@@ -3,6 +3,8 @@ export interface MockContract {
   position: string;
   client: string;
   baseSalary: number;
+  clientPrice: number;
+  contractStartDate: string;
 }
 
 export interface MockContractor {
@@ -25,6 +27,8 @@ export const MOCK_CONTRACTORS: MockContractor[] = [
         position: "Desarrollador Full Stack",
         client: "BK",
         baseSalary: 3200,
+        clientPrice: 1100,
+        contractStartDate: "03.03.2025",
       },
     ],
   },
@@ -39,12 +43,16 @@ export const MOCK_CONTRACTORS: MockContractor[] = [
         position: "Analista de Soporte",
         client: "Port",
         baseSalary: 2800,
+        clientPrice: 1100,
+        contractStartDate: "03.03.2025",
       },
       {
         id: "CNT-PORT-022",
         position: "Tech Lead",
         client: "Port",
         baseSalary: 4500,
+        clientPrice: 1500,
+        contractStartDate: "01.06.2024",
       },
     ],
   },
@@ -59,6 +67,8 @@ export const MOCK_CONTRACTORS: MockContractor[] = [
         position: "Ingeniero Backend",
         client: "Rocket",
         baseSalary: 3800,
+        clientPrice: 1200,
+        contractStartDate: "15.01.2025",
       },
     ],
   },
@@ -73,6 +83,8 @@ export const MOCK_CONTRACTORS: MockContractor[] = [
         position: "QA Engineer",
         client: "Rocket",
         baseSalary: 2600,
+        clientPrice: 950,
+        contractStartDate: "20.02.2025",
       },
     ],
   },
@@ -87,6 +99,8 @@ export const MOCK_CONTRACTORS: MockContractor[] = [
         position: "Diseñador UX",
         client: "Ve",
         baseSalary: 2400,
+        clientPrice: 900,
+        contractStartDate: "10.04.2025",
       },
     ],
   },
@@ -101,6 +115,8 @@ export const MOCK_CONTRACTORS: MockContractor[] = [
         position: "Project Manager",
         client: "BK",
         baseSalary: 4100,
+        clientPrice: 1100,
+        contractStartDate: "03.03.2025",
       },
     ],
   },
@@ -119,4 +135,20 @@ export function findContract(
 
 export function formatBaseSalary(amount: number): string {
   return `$${amount.toLocaleString("es-ES")}`;
+}
+
+export function formatClientPrice(amount: number): string {
+  return `$${amount.toLocaleString("es-ES")}`;
+}
+
+export function getContractorsByClient(client: string) {
+  return MOCK_CONTRACTORS.flatMap((contractor) =>
+    contractor.contracts
+      .filter((contract) => contract.client === client)
+      .map((contract) => ({
+        contractorId: contractor.id,
+        contractorName: contractor.name,
+        contract,
+      }))
+  );
 }

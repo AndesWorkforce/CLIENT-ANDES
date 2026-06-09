@@ -13,7 +13,7 @@ interface NominasTableProps {
   rows: PayrollRow[];
 }
 
-type SortKey = "baseSalary" | "variableAmount" | "totalAmount" | null;
+type SortKey = "clientPrice" | "variableAmount" | "totalAmount" | null;
 
 export default function NominasTable({ rows }: NominasTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -125,7 +125,7 @@ export default function NominasTable({ rows }: NominasTableProps) {
               Período
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              <SortableHeader label="Salario base" sortField="baseSalary" />
+              <SortableHeader label="Precio del cliente" sortField="clientPrice" />
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
               <SortableHeader label="Variable" sortField="variableAmount" />
@@ -158,7 +158,7 @@ export default function NominasTable({ rows }: NominasTableProps) {
               <td className={cellClass}>{row.position}</td>
               <td className={cellClass}>{row.client}</td>
               <td className={cellClass}>{row.period}</td>
-              <td className={cellClass}>{formatMoney(row.baseSalary)}</td>
+              <td className={cellClass}>{formatMoney(row.clientPrice)}</td>
               <td className={cellClass}>{formatVariableColumn(row.variableAmount)}</td>
               <td className={cellClass}>{formatMoney(row.totalAmount)}</td>
               <td className="px-3 py-6">

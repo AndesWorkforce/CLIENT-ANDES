@@ -3,16 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, MoreVertical } from "lucide-react";
-import type { InvoiceLineItem } from "../data/mock-invoice-details";
+import type { InvoiceAdditionalFee } from "../data/mock-invoice-details";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 import InvoiceTableTotalRow from "./InvoiceTableTotalRow";
 
 const MENU_MIN_WIDTH = 148;
 
-interface InvoiceLineItemsTableProps {
-  items: InvoiceLineItem[];
+interface InvoiceAdditionalFeesTableProps {
+  items: InvoiceAdditionalFee[];
   subtotal: string;
-  subtotalIsNegative?: boolean;
   onApprove: (itemId: string) => void;
   onReject: (itemId: string) => void;
   onDelete: (itemId: string) => void;
@@ -20,14 +19,13 @@ interface InvoiceLineItemsTableProps {
 
 type MenuPosition = { top: number; left: number };
 
-export default function InvoiceLineItemsTable({
+export default function InvoiceAdditionalFeesTable({
   items,
   subtotal,
-  subtotalIsNegative,
   onApprove,
   onReject,
   onDelete,
-}: InvoiceLineItemsTableProps) {
+}: InvoiceAdditionalFeesTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
@@ -64,8 +62,8 @@ export default function InvoiceLineItemsTable({
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement;
       if (
-        !target.closest("[data-line-item-row-menu]") &&
-        !target.closest("[data-line-item-row-menu-dropdown]")
+        !target.closest("[data-additional-fee-menu]") &&
+        !target.closest("[data-additional-fee-menu-dropdown]")
       ) {
         setOpenMenuId(null);
         setMenuPosition(null);
@@ -107,21 +105,6 @@ export default function InvoiceLineItemsTable({
     requestAnimationFrame(() => updateMenuPosition(itemId));
   }
 
-  function handleApprove(itemId: string) {
-    closeMenu();
-    onApprove(itemId);
-  }
-
-  function handleReject(itemId: string) {
-    closeMenu();
-    onReject(itemId);
-  }
-
-  function handleDelete(itemId: string) {
-    closeMenu();
-    onDelete(itemId);
-  }
-
   const menuButtonClass = (itemId: string) =>
     `rounded p-1 transition-colors ${
       openMenuId === itemId
@@ -136,6 +119,8 @@ export default function InvoiceLineItemsTable({
     ? items.find((item) => item.id === openMenuId)
     : null;
 
+  const cellClass = "px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585] whitespace-nowrap";
+
   return (
     <>
       <div className="w-full overflow-x-auto overflow-y-visible">
@@ -148,17 +133,17 @@ export default function InvoiceLineItemsTable({
                   checked={allSelected}
                   onChange={toggleAll}
                   className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                  aria-label="Seleccionar todos los ítems"
+                  aria-label="Seleccionar todos los adicionales"
                 />
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 Fecha
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Tipo
+                Contratista
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Contratista
+                Puesto
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 Descripción
@@ -190,36 +175,20 @@ export default function InvoiceLineItemsTable({
                     checked={selectedIds.has(item.id)}
                     onChange={() => toggleOne(item.id)}
                     className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                    aria-label={`Seleccionar ${item.description}`}
+                    aria-label={`Seleccionar ${item.contractor}`}
                   />
                 </td>
-                <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
-                  {item.date}
-                </td>
-                <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
-                  {item.type}
-                </td>
-                <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
-                  {item.contractor}
-                </td>
-                <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
-                  {item.description}
-                </td>
-                <td
-                  className={`px-3 py-6 text-[14px] tracking-[0.28px] ${
-                    item.amountIsNegative ? "text-[#E33434]" : "text-[#858585]"
-                  }`}
-                >
-                  {item.amount}
-                </td>
+                <td className={cellClass}>{item.date}</td>
+                <td className={cellClass}>{item.contractor}</td>
+                <td className={cellClass}>{item.position}</td>
+                <td className={cellClass}>{item.description}</td>
+                <td className={cellClass}>{item.amount}</td>
                 <td className="px-3 py-6">
                   <InvoiceStatusBadge status={item.status} enlarged />
                 </td>
-                <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
-                  {item.createdBy}
-                </td>
+                <td className={cellClass}>{item.createdBy}</td>
                 <td className="overflow-visible px-6 py-6 text-center">
-                  <div className="relative inline-block" data-line-item-row-menu>
+                  <div className="relative inline-block" data-additional-fee-menu>
                     <button
                       ref={(el) => {
                         menuButtonRefs.current[item.id] = el;
@@ -241,7 +210,6 @@ export default function InvoiceLineItemsTable({
               emptyColumnsBeforeAmount={3}
               emptyColumnsAfterStatus={2}
               subtotal={subtotal}
-              subtotalIsNegative={subtotalIsNegative}
             />
           </tbody>
         </table>
@@ -253,7 +221,7 @@ export default function InvoiceLineItemsTable({
         typeof document !== "undefined" &&
         createPortal(
           <div
-            data-line-item-row-menu-dropdown
+            data-additional-fee-menu-dropdown
             role="menu"
             className="fixed z-[200] min-w-[148px] rounded-[8px] border border-[#EFEFEF] bg-white py-1 shadow-[0px_2px_8px_rgba(112,112,112,0.15)]"
             style={{ top: menuPosition.top, left: menuPosition.left }}
@@ -261,7 +229,10 @@ export default function InvoiceLineItemsTable({
             <button
               type="button"
               role="menuitem"
-              onClick={() => handleApprove(openMenuItem.id)}
+              onClick={() => {
+                closeMenu();
+                onApprove(openMenuItem.id);
+              }}
               className={menuItemClass}
             >
               Aprobar
@@ -269,7 +240,10 @@ export default function InvoiceLineItemsTable({
             <button
               type="button"
               role="menuitem"
-              onClick={() => handleReject(openMenuItem.id)}
+              onClick={() => {
+                closeMenu();
+                onReject(openMenuItem.id);
+              }}
               className={menuItemClass}
             >
               Rechazar
@@ -285,7 +259,10 @@ export default function InvoiceLineItemsTable({
             <button
               type="button"
               role="menuitem"
-              onClick={() => handleDelete(openMenuItem.id)}
+              onClick={() => {
+                closeMenu();
+                onDelete(openMenuItem.id);
+              }}
               className={`${menuItemClass} text-[#E33434] hover:bg-[#FFF5F5]`}
             >
               Eliminar
