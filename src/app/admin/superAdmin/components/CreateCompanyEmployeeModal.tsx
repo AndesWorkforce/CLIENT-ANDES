@@ -200,7 +200,7 @@ export default function CreateCompanyEmployeeModal({
                   <span className="font-medium">Role:</span> Employee
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  New employees will automatically be assigned as company
+                  New employees will automatically be assigned as client
                   employees.
                 </p>
               </div>

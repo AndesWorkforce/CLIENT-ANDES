@@ -8,7 +8,6 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 interface FormData {
   name: string;
-  description: string;
   email: string;
   password?: string;
   representativeName: string;
@@ -18,12 +17,14 @@ interface FormData {
 interface Props {
   initialData?: FormData;
   companyId?: string;
+  preservedDescription?: string;
   onClose: () => void;
 }
 
 export default function CreateCompanyForm({
   initialData,
   companyId,
+  preservedDescription = "",
   onClose,
 }: Props) {
   const { addNotification } = useNotificationStore();
@@ -37,7 +38,6 @@ export default function CreateCompanyForm({
   } = useForm<FormData>({
     defaultValues: initialData || {
       name: "",
-      description: "",
       email: "",
       password: "",
       representativeName: "",
@@ -51,7 +51,7 @@ export default function CreateCompanyForm({
       // Transform data to match API expectations
       const apiData = {
         nombre: data.name,
-        descripcion: data.description,
+        descripcion: preservedDescription,
         correo: data.email,
         contrasena: data.password,
         nombreRepresentante: data.representativeName,
@@ -71,7 +71,7 @@ export default function CreateCompanyForm({
     } catch (error) {
       console.error("Error:", error);
       addNotification(
-        companyId ? "Error updating company" : "Error creating company",
+        companyId ? "Error updating client" : "Error creating client",
         "error"
       );
     } finally {
@@ -82,7 +82,7 @@ export default function CreateCompanyForm({
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
       <h2 className="text-2xl font-bold mb-6 text-[#17323A]">
-        {companyId ? "Edit Company" : "Create Company"}
+        {companyId ? "Edit Client" : "Create Client"}
       </h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
@@ -90,32 +90,17 @@ export default function CreateCompanyForm({
             htmlFor="name"
             className="block text-sm font-medium text-[#17323A]"
           >
-            Company Name
+            Client Name
           </label>
           <input
             type="text"
             id="name"
-            {...register("name", { required: "Company name is required" })}
+            {...register("name", { required: "Client name is required" })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#0097B2] focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
           />
           {errors.name && (
             <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
           )}
-        </div>
-
-        <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium text-[#17323A]"
-          >
-            Description
-          </label>
-          <textarea
-            id="description"
-            {...register("description")}
-            rows={3}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#0097B2] focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">

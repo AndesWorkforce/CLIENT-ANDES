@@ -7,6 +7,7 @@ import { getCompaniesAdmin } from "../actions/company.actions";
 import CreateCompanyForm from "../components/CreateCompanyForm";
 import CompaniesTable from "../components/CompaniesTable";
 import CreateCompanyEmployeeModal from "../components/CreateCompanyEmployeeModal";
+import CompanyEmployeesModal from "../components/CompanyEmployeesModal";
 import TableSkeleton from "../../dashboard/components/TableSkeleton";
 
 export default function CompaniesPage() {
@@ -19,6 +20,10 @@ export default function CompaniesPage() {
     useState<boolean>(false);
   const [selectedCompanyForEmployee, setSelectedCompanyForEmployee] =
     useState<Company | null>(null);
+  const [showEmployeesModal, setShowEmployeesModal] = useState<boolean>(false);
+  const [selectedCompanyForEmployees, setSelectedCompanyForEmployees] =
+    useState<Company | null>(null);
+  const [employeesRefreshKey, setEmployeesRefreshKey] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
@@ -83,11 +88,16 @@ export default function CompaniesPage() {
     setShowCreateEmployeeModal(true);
   };
 
+  const handleViewEmployees = (company: Company) => {
+    setSelectedCompanyForEmployees(company);
+    setShowEmployeesModal(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-4">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl font-semibold text-[#17323A]">Companies</h1>
+          <h1 className="text-2xl font-semibold text-[#17323A]">Clients</h1>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
             <div className="relative flex-grow sm:flex-grow-0 sm:w-64">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -95,7 +105,7 @@ export default function CompaniesPage() {
               </div>
               <input
                 type="text"
-                placeholder="Search companies..."
+                placeholder="Search clients..."
                 value={search}
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyDown}
@@ -107,7 +117,7 @@ export default function CompaniesPage() {
               className="bg-[#0097B2] text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-[#007B8E] transition-colors cursor-pointer whitespace-nowrap"
             >
               <PlusIcon size={18} />
-              <span>Create Company</span>
+              <span>Create Client</span>
             </button>
           </div>
         </div>
@@ -122,6 +132,7 @@ export default function CompaniesPage() {
             totalPages={totalPages}
             onPageChange={setCurrentPage}
             onCreateEmployee={handleCreateEmployee}
+            onViewEmployees={handleViewEmployees}
           />
         )}
       </div>
@@ -146,7 +157,20 @@ export default function CompaniesPage() {
           }}
           onSuccess={() => {
             fetchCompanies(currentPage, search);
+            setEmployeesRefreshKey((prev) => prev + 1);
           }}
+        />
+      )}
+
+      {showEmployeesModal && selectedCompanyForEmployees && (
+        <CompanyEmployeesModal
+          company={selectedCompanyForEmployees}
+          onClose={() => {
+            setShowEmployeesModal(false);
+            setSelectedCompanyForEmployees(null);
+          }}
+          onEmployeesChanged={() => fetchCompanies(currentPage, search)}
+          refreshKey={employeesRefreshKey}
         />
       )}
     </div>

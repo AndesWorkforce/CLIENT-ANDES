@@ -7,7 +7,7 @@ import CreateCompanyForm from "./CreateCompanyForm";
 import ConfirmStatusModal from "./ConfirmStatusModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { useNotificationStore } from "@/store/notifications.store";
-import { UserPlus } from "lucide-react";
+import { UserPlus, List } from "lucide-react";
 // import { formatDate } from "@/utils/dates";
 
 interface Props {
@@ -17,6 +17,7 @@ interface Props {
   totalPages: number;
   onPageChange: (page: number) => void;
   onCreateEmployee?: (company: Company) => void;
+  onViewEmployees?: (company: Company) => void;
 }
 
 export default function CompaniesTable({
@@ -26,6 +27,7 @@ export default function CompaniesTable({
   totalPages,
   onPageChange,
   onCreateEmployee,
+  onViewEmployees,
 }: Props) {
   const { addNotification } = useNotificationStore();
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -51,7 +53,7 @@ export default function CompaniesTable({
         addNotification(response.message, "error");
       }
     } catch {
-      addNotification("Error changing company status", "error");
+      addNotification("Error changing client status", "error");
     } finally {
       setIsUpdatingStatus(false);
       setShowStatusModal(false);
@@ -98,14 +100,14 @@ export default function CompaniesTable({
       <div className="overflow-x-auto bg-white rounded-lg custom-scrollbar">
         <div className="p-6">
           <div className="mb-4 text-gray-500 text-sm">
-            Total: {companies.length} companies | Page {currentPage} of{" "}
+            Total: {companies.length} clients | Page {currentPage} of{" "}
             {totalPages}
           </div>
           <table className="min-w-full">
             <thead className="bg-white border-b">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase">
-                  Company
+                  Client
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase">
                   Representative
@@ -156,9 +158,13 @@ export default function CompaniesTable({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[#17323A]">
+                      <button
+                        onClick={() => onViewEmployees?.(company)}
+                        className="text-sm text-[#0097B2] hover:text-[#007B8E] hover:underline cursor-pointer font-medium"
+                        title="View employees"
+                      >
                         {company._count?.empleados || 0}
-                      </div>
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
@@ -177,6 +183,15 @@ export default function CompaniesTable({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex space-x-2">
+                        {onViewEmployees && (
+                          <button
+                            onClick={() => onViewEmployees(company)}
+                            className="text-[#0097B2] hover:text-[#007B8E] cursor-pointer"
+                            title="View Employees List"
+                          >
+                            <List size={18} />
+                          </button>
+                        )}
                         {onCreateEmployee && (
                           <button
                             onClick={() => onCreateEmployee(company)}
@@ -192,7 +207,7 @@ export default function CompaniesTable({
                             setShowEditModal(true);
                           }}
                           className="text-[#0097B2] hover:text-[#007B8E] cursor-pointer"
-                          title="Edit Company"
+                          title="Edit Client"
                         >
                           <svg
                             width="22"
@@ -223,7 +238,7 @@ export default function CompaniesTable({
                             setShowDeleteModal(true);
                           }}
                           className="text-[#0097B2] hover:text-[#007B8E] cursor-pointer"
-                          title="Delete Company"
+                          title="Delete Client"
                         >
                           <svg
                             width="22"
@@ -258,7 +273,7 @@ export default function CompaniesTable({
                     colSpan={6}
                     className="px-6 py-4 text-center text-sm text-[#17323A]"
                   >
-                    No companies registered
+                    No clients registered
                   </td>
                 </tr>
               )}
@@ -343,7 +358,6 @@ export default function CompaniesTable({
           <CreateCompanyForm
             initialData={{
               name: selectedCompany.nombre,
-              description: selectedCompany.descripcion || "",
               email: selectedCompany.usuarioResponsable.correo,
               representativeName:
                 selectedCompany.usuarioResponsable.nombre || "",
@@ -351,6 +365,7 @@ export default function CompaniesTable({
                 selectedCompany.usuarioResponsable.apellido || "",
             }}
             companyId={selectedCompany.id}
+            preservedDescription={selectedCompany.descripcion || ""}
             onClose={() => {
               setShowEditModal(false);
               setSelectedCompany(null);
