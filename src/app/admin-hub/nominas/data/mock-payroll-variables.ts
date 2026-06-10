@@ -1,4 +1,5 @@
 import type { IncomeVariableCategory } from "./income-variable-categories";
+import type { DeductionTipo } from "./deduction-types";
 
 export type PayrollVariableType =
   | "Overtime"
@@ -18,7 +19,6 @@ export type PayrollVariableCategory =
 export type PayrollVariableStatus = "Pendiente" | "Aprobado" | "Rechazado";
 
 export type PayrollVariableDrawerType =
-  | "ausencia"
   | "overtime"
   | "holidays"
   | "deducciones"
@@ -35,8 +35,9 @@ export interface PayrollVariable {
   amount: number;
   status: PayrollVariableStatus;
   createdBy: string;
-  /** Solo variables Income Variable */
   incomeCategory?: IncomeVariableCategory;
+  /** Tipo dentro de Deductions (ej. Ausencia) */
+  deductionTipo?: DeductionTipo;
 }
 
 export const PAYROLL_VARIABLE_TABS: {
@@ -69,12 +70,13 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     date: "03.21.26",
     contractor: "Ana Gomez",
     client: "BK",
-    type: "Deducción",
+    type: "Ausencia",
     category: "deducciones",
     description: "Ausencia injustificada",
     amount: -50,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    deductionTipo: "Ausencia",
   },
   {
     id: "pv-3",

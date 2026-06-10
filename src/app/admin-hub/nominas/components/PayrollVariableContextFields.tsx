@@ -7,14 +7,14 @@ import {
   findContractor,
   MOCK_CONTRACTORS,
 } from "../data/mock-contractors";
+import { DEDUCTION_TYPE_OPTIONS } from "../data/deduction-types";
 import { formatHolidayLabel, getHolidaysByCountry } from "../data/mock-holidays";
-import DeductionAmountField from "./DeductionAmountField";
+import { sanitizeDeductionMontoInput } from "../lib/deduction-monto";
+import { getTodayIso } from "../lib/today-iso";
 import IncomeVariableAmountField from "./IncomeVariableAmountField";
-import { DURATION_OPTIONS } from "./payroll-variable-form-types";
 import type { CreatePayrollVariableFormData } from "./payroll-variable-form-types";
 
 export type ContextFieldsVariant =
-  | "ausencia"
   | "overtime"
   | "holidays"
   | "deducciones"
@@ -33,11 +33,13 @@ export default function PayrollVariableContextFields({
 }: PayrollVariableContextFieldsProps) {
   const contractor = findContractor(formData.contractorId);
   const contract = findContract(formData.contractorId, formData.contractId);
-  const showDateRange = variant === "ausencia";
-  const showOvertimeDuration = variant === "overtime";
-  const showDeductionMonto = variant === "deducciones";
+  const showDeductionFields = variant === "deducciones";
+  const isDeductionAusencia = showDeductionFields && formData.deductionTipo === "Ausencia";
+  const isDeductionOther = showDeductionFields && formData.deductionTipo === "Other";
+  const showOvertimeFecha = variant === "overtime";
   const showIncomeMonto = variant === "incomeVariables";
   const showHoliday = variant === "holidays";
+  const todayIso = getTodayIso();
 
   const contractorOptions = MOCK_CONTRACTORS.map((c) => ({
     value: c.id,
@@ -73,6 +75,15 @@ export default function PayrollVariableContextFields({
 
   function handleContractChange(contractId: string) {
     patch({ contractId, holidayId: "" });
+  }
+
+  function handleDeductionTipoChange(deductionTipo: string) {
+    patch({
+      deductionTipo,
+      desde: "",
+      hasta: "",
+      montoContexto: "",
+    });
   }
 
   return (
@@ -119,71 +130,73 @@ export default function PayrollVariableContextFields({
         readOnly
       />
 
-      {showDateRange && (
-        <div className="flex flex-col gap-[10px] sm:flex-row">
-          <div className="min-w-0 flex-1">
-            <AdminHubDatePicker
-              label="Desde"
-              value={formData.desde}
-              onChange={(desde) => {
-                const next: Partial<CreatePayrollVariableFormData> = { desde };
-                if (formData.hasta && desde > formData.hasta) {
-                  next.hasta = desde;
-                }
-                patch(next);
-              }}
-              placeholder="Fecha"
-              maxDate={formData.hasta || undefined}
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <AdminHubDatePicker
-              label="Hasta"
-              value={formData.hasta}
-              onChange={(hasta) => {
-                const next: Partial<CreatePayrollVariableFormData> = { hasta };
-                if (formData.desde && hasta < formData.desde) {
-                  next.hasta = formData.desde;
-                }
-                patch(next);
-              }}
-              placeholder="Fecha si corresponde"
-              required={false}
-              minDate={formData.desde || undefined}
-            />
-          </div>
-        </div>
-      )}
+      {showDeductionFields && (
+        <>
+          <AdminHubFormField
+            type="select"
+            label="Tipo"
+            value={formData.deductionTipo}
+            onChange={handleDeductionTipoChange}
+            options={[...DEDUCTION_TYPE_OPTIONS]}
+            placeholder="Ausencia"
+          />
 
-      {showOvertimeDuration && (
-        <div className="flex flex-col gap-[10px] sm:flex-row">
-          <div className="min-w-0 flex-1">
-            <AdminHubFormField
-              type="select"
-              label="Duración"
-              value={formData.duracion}
-              onChange={(duracion) => patch({ duracion })}
-              options={DURATION_OPTIONS}
-              placeholder="Horas"
-            />
-          </div>
-          <div className="min-w-0 flex-1">
+          {isDeductionAusencia && (
+            <div className="flex flex-col gap-[10px] sm:flex-row">
+              <div className="min-w-0 flex-1">
+                <AdminHubDatePicker
+                  label="Desde"
+                  value={formData.desde}
+                  onChange={(desde) => {
+                    const next: Partial<CreatePayrollVariableFormData> = { desde };
+                    if (formData.hasta && desde > formData.hasta) {
+                      next.hasta = desde;
+                    }
+                    patch(next);
+                  }}
+                  placeholder="Fecha"
+                  maxDate={todayIso}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <AdminHubDatePicker
+                  label="Hasta"
+                  value={formData.hasta}
+                  onChange={(hasta) => {
+                    const next: Partial<CreatePayrollVariableFormData> = { hasta };
+                    if (formData.desde && hasta < formData.desde) {
+                      next.hasta = formData.desde;
+                    }
+                    patch(next);
+                  }}
+                  placeholder="Fecha si corresponde"
+                  required={false}
+                  minDate={formData.desde || undefined}
+                />
+              </div>
+            </div>
+          )}
+
+          {isDeductionOther && (
             <AdminHubFormField
               type="input"
-              label="Cantidad"
-              value={formData.cantidad}
-              onChange={(cantidad) => patch({ cantidad })}
-              placeholder="1"
+              label="Monto"
+              value={formData.montoContexto}
+              onChange={(v) => patch({ montoContexto: sanitizeDeductionMontoInput(v) })}
+              placeholder="Monto"
               inputMode="numeric"
             />
-          </div>
-        </div>
+          )}
+        </>
       )}
 
-      {showDeductionMonto && (
-        <DeductionAmountField
-          value={formData.montoContexto}
-          onChange={(montoContexto) => patch({ montoContexto })}
+      {showOvertimeFecha && (
+        <AdminHubDatePicker
+          label="Fecha"
+          value={formData.desde}
+          onChange={(desde) => patch({ desde })}
+          placeholder="03.03.2026"
+          required={false}
         />
       )}
 

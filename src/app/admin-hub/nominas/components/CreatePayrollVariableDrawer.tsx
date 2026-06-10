@@ -7,6 +7,7 @@ import AdminHubSideDrawer from "../../components/AdminHubSideDrawer";
 import AdminHubTypeSelectStep from "../../components/AdminHubTypeSelectStep";
 import { findContract, findContractor } from "../data/mock-contractors";
 import { findHoliday } from "../data/mock-holidays";
+import type { DeductionTipo } from "../data/deduction-types";
 import type { IncomeVariableCategory } from "../data/income-variable-categories";
 import type {
   PayrollVariable,
@@ -19,37 +20,72 @@ import CreatePayrollVariableForm, {
   isPayrollVariableFormComplete,
   type CreatePayrollVariableFormData,
 } from "./CreatePayrollVariableForm";
-import { parseDeductionAmount } from "./DeductionAmountField";
+import { parseDeductionMonto } from "../lib/deduction-monto";
 import { parseSignedAmountInput } from "./IncomeVariableAmountField";
 import { formatDisplayDate, TYPE_SUBTITLES } from "./payroll-variable-form-types";
 
 type DrawerStep = "select-type" | "form";
 
+/** Orden según Figma: Income Variables → Overtime → Holidays → Deductions */
 const VARIABLE_TYPE_OPTIONS: { id: PayrollVariableDrawerType; label: string }[] = [
-  { id: "ausencia", label: "Ausencia" },
+  { id: "incomeVariables", label: "Income Variables" },
   { id: "overtime", label: "Overtime" },
   { id: "holidays", label: "Holidays" },
-  { id: "deducciones", label: "Deducciones" },
-  { id: "incomeVariables", label: "Income Variables" },
+  { id: "deducciones", label: "Deductions" },
 ];
 
 type PayrollVariableItemCategory = Exclude<PayrollVariableCategory, "todos">;
 
 const TYPE_META: Record<
   PayrollVariableDrawerType,
-  { type: PayrollVariableType; category: PayrollVariableItemCategory }
+  { category: PayrollVariableItemCategory }
 > = {
-  ausencia: { type: "Ausencia", category: "ausencias" },
-  overtime: { type: "Overtime", category: "overtimes" },
-  holidays: { type: "Holiday", category: "holidays" },
-  deducciones: { type: "Deducción", category: "deducciones" },
-  incomeVariables: { type: "Income Variable", category: "incomeVariables" },
+  overtime: { category: "overtimes" },
+  holidays: { category: "holidays" },
+  deducciones: { category: "deducciones" },
+  incomeVariables: { category: "incomeVariables" },
 };
 
 interface CreatePayrollVariableDrawerProps {
   open: boolean;
   onClose: () => void;
   onVariableCreated: (variable: PayrollVariable) => void;
+}
+
+function resolveVariableType(
+  drawerType: PayrollVariableDrawerType,
+  formData: CreatePayrollVariableFormData
+): PayrollVariableType {
+  if (drawerType === "deducciones" && formData.deductionTipo === "Ausencia") {
+    return "Ausencia";
+  }
+  if (drawerType === "deducciones") return "Deducción";
+  if (drawerType === "incomeVariables") return "Income Variable";
+  if (drawerType === "holidays") return "Holiday";
+  return "Overtime";
+}
+
+function computeDeductionAmount(
+  formData: CreatePayrollVariableFormData,
+  contract: ReturnType<typeof findContract>
+): number {
+  if (formData.deductionTipo === "Other") {
+    return parseDeductionMonto(formData.montoContexto);
+  }
+
+  const dailyRate = contract ? contract.baseSalary / 22 : 0;
+  const days =
+    formData.desde && formData.hasta
+      ? Math.max(
+          1,
+          Math.ceil(
+            (new Date(formData.hasta).getTime() - new Date(formData.desde).getTime()) /
+              (1000 * 60 * 60 * 24)
+          ) + 1
+        )
+      : 1;
+
+  return -Math.round(dailyRate * days);
 }
 
 function computeAmount(
@@ -62,7 +98,7 @@ function computeAmount(
 
   switch (type) {
     case "deducciones":
-      return parseDeductionAmount(formData.montoContexto);
+      return computeDeductionAmount(formData, contract);
     case "incomeVariables":
       return parseSignedAmountInput(formData.montoContexto);
     case "holidays": {
@@ -73,20 +109,6 @@ function computeAmount(
       const hours =
         formData.duracion === "minutos" ? quantity / 60 : quantity;
       return Math.round(hourlyRate * hours);
-    }
-    case "ausencia": {
-      const days =
-        formData.desde && formData.hasta
-          ? Math.max(
-              1,
-              Math.ceil(
-                (new Date(formData.hasta).getTime() - new Date(formData.desde).getTime()) /
-                  (1000 * 60 * 60 * 24)
-              ) + 1
-            )
-          : quantity;
-      const dailyRate = contract ? contract.baseSalary / 22 : 0;
-      return -Math.round(dailyRate * days);
     }
     default:
       return 0;
@@ -175,7 +197,7 @@ export default function CreatePayrollVariableDrawer({
       date: resolveDisplayDate(selectedType, formData),
       contractor: contractor.name,
       client: contract.client,
-      type: meta.type,
+      type: resolveVariableType(selectedType, formData),
       category: meta.category,
       description: buildDescription(selectedType, formData),
       amount: computeAmount(selectedType, formData),
@@ -185,6 +207,9 @@ export default function CreatePayrollVariableDrawer({
         ? {
             incomeCategory: formData.incomeCategory as IncomeVariableCategory,
           }
+        : {}),
+      ...(selectedType === "deducciones" && formData.deductionTipo
+        ? { deductionTipo: formData.deductionTipo as DeductionTipo }
         : {}),
     };
 
