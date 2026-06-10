@@ -13,6 +13,7 @@ export interface CreatePayrollVariableFormData {
   duracion: string;
   cantidad: string;
   descripcion: string;
+  periodo: string;
 }
 
 export const OVERTIME_UNIT_OPTIONS = [
@@ -40,6 +41,7 @@ export function emptyPayrollVariableForm(): CreatePayrollVariableFormData {
     duracion: "",
     cantidad: "1",
     descripcion: "",
+    periodo: getTodayIso(),
   };
 }
 
@@ -65,7 +67,12 @@ export function isPayrollVariableFormComplete(
   type: PayrollVariableDrawerType,
   data: CreatePayrollVariableFormData
 ): boolean {
-  const base = Boolean(data.contractorId && data.contractId && data.descripcion.trim());
+  const base = Boolean(
+    data.contractorId &&
+      data.contractId &&
+      data.descripcion.trim() &&
+      data.periodo.trim()
+  );
 
   switch (type) {
     case "overtime":

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, Plus, Search } from "lucide-react";
+import { Download, Filter, Plus } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import { formatClientPrice } from "../../nominas/data/mock-contractors";
 import type {
@@ -13,7 +13,14 @@ import type {
   InvoiceSection,
 } from "../data/mock-invoice-details";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
+import {
+  ADMIN_HUB_CLEAR_FILTERS_CLASS,
+  ADMIN_HUB_FILTER_BUTTON_CLASS,
+  ADMIN_HUB_FILTERS_ROW_CLASS,
+} from "../../components/admin-hub-filter-styles";
+import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import CreateInvoiceItemDrawer, { type MovementType } from "./CreateInvoiceItemDrawer";
+import InvoiceFilterSelect from "./InvoiceFilterSelect";
 import InvoiceAdditionalFeesSection from "./InvoiceAdditionalFeesSection";
 import InvoiceClientInfoGrid from "./InvoiceClientInfoGrid";
 import InvoiceDetailSection from "./InvoiceDetailSection";
@@ -21,6 +28,12 @@ import InvoiceEmitModal, { type InvoiceEmitModalVariant } from "./InvoiceEmitMod
 import InvoicePayrollSection from "./InvoicePayrollSection";
 
 type TabKey = "all" | "nomina" | "adicionales" | "customer-charges" | "customer-credits";
+
+const DETAIL_STATUS_FILTER_OPTIONS = [
+  { value: "Pendiente", label: "Pendiente" },
+  { value: "Aprobado", label: "Aprobado" },
+  { value: "Rechazado", label: "Rechazado" },
+];
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "all", label: "Todos" },
@@ -70,6 +83,24 @@ function recalculateAdditionalFeesSubtotal(fees: InvoiceAdditionalFee[]): string
   return formatAmount(total);
 }
 
+function matchesDetailStatus(
+  status: InvoiceLineItem["status"] | InvoicePayrollEntry["status"],
+  filter: string
+): boolean {
+  if (!filter) return true;
+  if (filter === "Aprobado") {
+    return status === "Aprobado" || status === "Aprobada";
+  }
+  return status === filter;
+}
+
+function buildFilterOptions(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean))).map((value) => ({
+    value,
+    label: value,
+  }));
+}
+
 function recalculateGrandTotal(
   payrollEntries: InvoicePayrollEntry[],
   additionalFees: InvoiceAdditionalFee[],
@@ -94,6 +125,10 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   const [invoice, setInvoice] = useState<InvoiceDetail>(initialInvoice);
   const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [contractorFilter, setContractorFilter] = useState("");
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
   const [emitModal, setEmitModal] = useState<InvoiceEmitModalVariant | null>(null);
 
@@ -109,29 +144,82 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     [invoiceLineItems]
   );
 
+  const typeFilterOptions = useMemo(
+    () =>
+      buildFilterOptions([
+        ...invoice.sections.flatMap((section) => section.items.map((item) => item.type)),
+        ...invoice.additionalFees.map((fee) => fee.description),
+      ]),
+    [invoice.sections, invoice.additionalFees]
+  );
+
+  const contractorFilterOptions = useMemo(
+    () =>
+      buildFilterOptions([
+        ...invoice.payrollEntries.map((entry) => entry.contractorName),
+        ...invoice.additionalFees.map((fee) => fee.contractor),
+        ...invoice.sections.flatMap((section) => section.items.map((item) => item.contractor)),
+      ]),
+    [invoice.payrollEntries, invoice.additionalFees, invoice.sections]
+  );
+
   const filteredPayrollEntries = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return invoice.payrollEntries;
+    let result = [...invoice.payrollEntries];
 
-    return invoice.payrollEntries.filter(
-      (entry) =>
-        entry.contractorName.toLowerCase().includes(query) ||
-        entry.position.toLowerCase().includes(query)
-    );
-  }, [invoice.payrollEntries, searchQuery]);
+    if (query) {
+      result = result.filter(
+        (entry) =>
+          entry.contractorName.toLowerCase().includes(query) ||
+          entry.position.toLowerCase().includes(query)
+      );
+    }
+
+    if (statusFilter) {
+      result = result.filter((entry) => matchesDetailStatus(entry.status, statusFilter));
+    }
+
+    if (contractorFilter) {
+      result = result.filter((entry) => entry.contractorName === contractorFilter);
+    }
+
+    return result;
+  }, [invoice.payrollEntries, searchQuery, statusFilter, contractorFilter]);
 
   const filteredAdditionalFees = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return invoice.additionalFees;
+    let result = [...invoice.additionalFees];
 
-    return invoice.additionalFees.filter(
-      (fee) =>
-        fee.contractor.toLowerCase().includes(query) ||
-        fee.position.toLowerCase().includes(query) ||
-        fee.description.toLowerCase().includes(query) ||
-        fee.createdBy.toLowerCase().includes(query)
-    );
-  }, [invoice.additionalFees, searchQuery]);
+    if (query) {
+      result = result.filter(
+        (fee) =>
+          fee.contractor.toLowerCase().includes(query) ||
+          fee.position.toLowerCase().includes(query) ||
+          fee.description.toLowerCase().includes(query) ||
+          fee.createdBy.toLowerCase().includes(query)
+      );
+    }
+
+    if (statusFilter) {
+      result = result.filter((fee) => matchesDetailStatus(fee.status, statusFilter));
+    }
+
+    if (contractorFilter) {
+      result = result.filter((fee) => fee.contractor === contractorFilter);
+    }
+
+    if (typeFilter) {
+      result = result.filter((fee) => fee.description === typeFilter);
+    }
+
+    return result;
+  }, [
+    invoice.additionalFees,
+    searchQuery,
+    statusFilter,
+    contractorFilter,
+    typeFilter,
+  ]);
 
   const visibleSections = useMemo(() => {
     if (activeTab === "nomina" || activeTab === "adicionales") {
@@ -144,21 +232,45 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         : invoice.sections.filter((s) => s.tabKey === activeTab);
 
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return sections;
 
     return sections
-      .map((section) => ({
-        ...section,
-        items: section.items.filter(
-          (item) =>
-            item.type.toLowerCase().includes(query) ||
-            item.contractor.toLowerCase().includes(query) ||
-            item.description.toLowerCase().includes(query) ||
-            item.createdBy.toLowerCase().includes(query)
-        ),
-      }))
+      .map((section) => {
+        let items = [...section.items];
+
+        if (query) {
+          items = items.filter(
+            (item) =>
+              item.type.toLowerCase().includes(query) ||
+              item.contractor.toLowerCase().includes(query) ||
+              item.description.toLowerCase().includes(query) ||
+              item.createdBy.toLowerCase().includes(query)
+          );
+        }
+
+        if (statusFilter) {
+          items = items.filter((item) => matchesDetailStatus(item.status, statusFilter));
+        }
+
+        if (contractorFilter) {
+          items = items.filter((item) => item.contractor === contractorFilter);
+        }
+
+        if (typeFilter) {
+          items = items.filter((item) => item.type === typeFilter);
+        }
+
+        const { subtotal, subtotalIsNegative } = recalculateSectionSubtotal(items);
+        return { ...section, items, subtotal, subtotalIsNegative };
+      })
       .filter((section) => section.items.length > 0);
-  }, [invoice.sections, activeTab, searchQuery]);
+  }, [
+    invoice.sections,
+    activeTab,
+    searchQuery,
+    statusFilter,
+    contractorFilter,
+    typeFilter,
+  ]);
 
   const showPayrollSection =
     (activeTab === "all" || activeTab === "nomina") && filteredPayrollEntries.length > 0;
@@ -349,6 +461,16 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   const payrollSubtotal = recalculatePayrollSubtotal(filteredPayrollEntries);
   const additionalFeesSubtotal = recalculateAdditionalFeesSubtotal(filteredAdditionalFees);
 
+  const hasActiveFilters = Boolean(statusFilter || typeFilter || contractorFilter);
+
+  function clearFilters() {
+    setStatusFilter("");
+    setTypeFilter("");
+    setContractorFilter("");
+  }
+
+  const showTypeFilter = activeTab !== "nomina";
+
   return (
     <div className="flex w-full min-w-0 flex-col gap-6">
       <AdminHubBreadcrumbs />
@@ -402,19 +524,63 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
           </div>
         </div>
 
-        <div className="relative w-full max-w-[320px]">
-          <Search
-            size={21}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#C8C8C8]"
-          />
-          <input
-            type="search"
-            placeholder="Buscar"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 w-full rounded-[8px] border border-[#C8C8C8] bg-white pl-11 pr-4 text-[14px] font-medium text-[#525252] placeholder:text-[#C8C8C8] focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-          />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <AdminHubSearchInput value={searchQuery} onChange={setSearchQuery} />
+
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((prev) => !prev)}
+            aria-expanded={filtersOpen}
+            className={`${ADMIN_HUB_FILTER_BUTTON_CLASS} ${
+              filtersOpen
+                ? "border-[#0097B2] text-[#0097B2]"
+                : "border-[#C8C8C8] text-[#858585] hover:border-[#0097B2] hover:text-[#0097B2]"
+            }`}
+          >
+            Filtros
+            <Filter size={18} />
+          </button>
         </div>
+
+        {filtersOpen && (
+          <div className={ADMIN_HUB_FILTERS_ROW_CLASS}>
+            <InvoiceFilterSelect
+              label="Filtrar por Estado"
+              placeholder="Pendiente"
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={DETAIL_STATUS_FILTER_OPTIONS}
+            />
+            {showTypeFilter && (
+              <InvoiceFilterSelect
+                label="Filtrar por Tipo"
+                placeholder="Tipo"
+                value={typeFilter}
+                onChange={setTypeFilter}
+                options={typeFilterOptions}
+              />
+            )}
+            <InvoiceFilterSelect
+              label="Filtrar por Contratista"
+              placeholder="Contratista"
+              value={contractorFilter}
+              onChange={setContractorFilter}
+              options={contractorFilterOptions}
+            />
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              className={`${ADMIN_HUB_CLEAR_FILTERS_CLASS} ${
+                hasActiveFilters
+                  ? "cursor-pointer text-[#0097B2] hover:text-[#008099]"
+                  : "cursor-default text-[#C8C8C8]"
+              }`}
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        )}
 
         <div className="flex flex-col gap-6">
           {showPayrollSection && (

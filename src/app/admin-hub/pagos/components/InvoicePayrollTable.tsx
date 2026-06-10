@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, MoreVertical } from "lucide-react";
+import AdminHubTableShell, { ADMIN_HUB_TABLE_ROW } from "../../components/AdminHubTableShell";
 import type { InvoicePayrollEntry } from "../data/mock-invoice-details";
 import { formatClientPrice } from "../../nominas/data/mock-contractors";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
@@ -35,7 +36,7 @@ export default function InvoicePayrollTable({ entries, subtotal }: InvoicePayrol
   const cellClass = "px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585] whitespace-nowrap";
 
   return (
-    <div className="w-full overflow-x-auto overflow-y-visible">
+    <AdminHubTableShell variant="nested">
       <table className="w-full min-w-[900px] border-collapse bg-white">
         <thead>
           <tr className="border-b border-[#EFEFEF]">
@@ -66,14 +67,14 @@ export default function InvoicePayrollTable({ entries, subtotal }: InvoicePayrol
                 <ChevronDown size={18} />
               </span>
             </th>
-            <th className="w-[68px] px-3 py-5" />
+            <th className="w-[70px] px-3 py-5" />
           </tr>
         </thead>
         <tbody>
           {entries.map((entry) => (
             <tr
               key={entry.id}
-              className="border-b border-[#EFEFEF] hover:bg-[#FAFAFA] transition-colors"
+              className={ADMIN_HUB_TABLE_ROW}
             >
               <td className="px-6 py-6">
                 <input
@@ -116,6 +117,6 @@ export default function InvoicePayrollTable({ entries, subtotal }: InvoicePayrol
           />
         </tbody>
       </table>
-    </div>
+    </AdminHubTableShell>
   );
 }

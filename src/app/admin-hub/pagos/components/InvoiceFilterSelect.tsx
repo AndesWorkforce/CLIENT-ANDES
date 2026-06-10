@@ -27,6 +27,7 @@ export default function InvoiceFilterSelect({
       placeholder={placeholder}
       variant="filter"
       labelBackground="#F8F8F8"
+      clearable
       className={`max-w-[259px] min-w-[200px] flex-1 ${className}`}
     />
   );

@@ -12,6 +12,7 @@ import { formatHolidayLabel, getHolidaysByCountry } from "../data/mock-holidays"
 import { sanitizeDeductionMontoInput } from "../lib/deduction-monto";
 import { getTodayIso } from "../lib/today-iso";
 import IncomeVariableAmountField from "./IncomeVariableAmountField";
+import PayrollPeriodField from "./PayrollPeriodField";
 import type { CreatePayrollVariableFormData } from "./payroll-variable-form-types";
 
 export type ContextFieldsVariant =
@@ -226,6 +227,11 @@ export default function PayrollVariableContextFields({
           readOnly={!contractor || holidayOptions.length === 0}
         />
       )}
+
+      <PayrollPeriodField
+        value={formData.periodo}
+        onChange={(periodo) => patch({ periodo })}
+      />
     </>
   );
 }

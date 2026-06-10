@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, MoreVertical } from "lucide-react";
+import AdminHubTableShell, { ADMIN_HUB_TABLE_ROW } from "../../components/AdminHubTableShell";
 import type { InvoiceAdditionalFee } from "../data/mock-invoice-details";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 import InvoiceTableTotalRow from "./InvoiceTableTotalRow";
@@ -123,7 +124,7 @@ export default function InvoiceAdditionalFeesTable({
 
   return (
     <>
-      <div className="w-full overflow-x-auto overflow-y-visible">
+      <AdminHubTableShell variant="nested">
         <table className="w-full min-w-[1050px] border-collapse bg-white">
           <thead>
             <tr className="border-b border-[#EFEFEF]">
@@ -160,14 +161,14 @@ export default function InvoiceAdditionalFeesTable({
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 Creado por
               </th>
-              <th className="w-[68px] px-3 py-5" />
+              <th className="w-[70px] px-3 py-5" />
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
               <tr
                 key={item.id}
-                className="border-b border-[#EFEFEF] last:border-b-0 hover:bg-[#FAFAFA] transition-colors"
+                className={ADMIN_HUB_TABLE_ROW}
               >
                 <td className="px-6 py-6" onClick={(e) => e.stopPropagation()}>
                   <input
@@ -213,7 +214,7 @@ export default function InvoiceAdditionalFeesTable({
             />
           </tbody>
         </table>
-      </div>
+      </AdminHubTableShell>
 
       {openMenuId &&
         openMenuItem &&

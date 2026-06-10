@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
 import type { InvoiceSection } from "../data/mock-invoice-details";
+import { resolveLineItemsApprovalStatus } from "../lib/invoice-approval-status";
+import InvoiceCollapsibleSectionHeader from "./InvoiceCollapsibleSectionHeader";
 import InvoiceLineItemsTable from "./InvoiceLineItemsTable";
 
 interface InvoiceDetailSectionProps {
@@ -22,19 +23,18 @@ export default function InvoiceDetailSection({
 }: InvoiceDetailSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
+  const aggregateStatus = resolveLineItemsApprovalStatus(section.items);
+
   return (
-    <div className="w-full overflow-visible rounded-[8px] border border-[#EFEFEF] bg-white">
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="flex w-full items-center gap-3 border-b border-[#EFEFEF] bg-white px-6 py-5 text-left"
-      >
-        <ChevronDown
-          size={21}
-          className={`shrink-0 text-[#525252] transition-transform ${isOpen ? "" : "-rotate-90"}`}
-        />
-        <span className="text-[16px] font-bold leading-[1.3] text-[#525252]">{section.title}</span>
-      </button>
+    <div className="w-full overflow-hidden rounded-[12px] border border-[#EFEFEF] bg-white">
+      <InvoiceCollapsibleSectionHeader
+        title={section.title}
+        isOpen={isOpen}
+        onToggle={() => setIsOpen((prev) => !prev)}
+        subtotal={section.subtotal}
+        subtotalIsNegative={section.subtotalIsNegative}
+        aggregateStatus={aggregateStatus}
+      />
       {isOpen && (
         <InvoiceLineItemsTable
           items={section.items}

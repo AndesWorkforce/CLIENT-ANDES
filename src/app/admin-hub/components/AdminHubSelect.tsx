@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useId, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, CircleX } from "lucide-react";
 import useOutsideClick from "@/hooks/useOutsideClick";
 
 export interface AdminHubSelectOption {
@@ -15,7 +15,7 @@ interface AdminHubSelectProps {
   options: AdminHubSelectOption[];
   placeholder?: string;
   disabled?: boolean;
-  /** Campo de formulario (50px) o filtro/toolbar (36px) */
+  /** Campo de formulario (50px) o filtro con label (40px) / compacto (36px) */
   variant?: "form" | "filter";
   label?: string;
   required?: boolean;
@@ -24,6 +24,8 @@ interface AdminHubSelectProps {
   className?: string;
   menuClassName?: string;
   id?: string;
+  /** Filtros con label: circle-x para limpiar cuando hay valor (Figma) */
+  clearable?: boolean;
 }
 
 const MENU_PANEL_CLASS =
@@ -44,6 +46,7 @@ export default function AdminHubSelect({
   className = "",
   menuClassName = "",
   id: idProp,
+  clearable = false,
 }: AdminHubSelectProps) {
   const generatedId = useId();
   const id = idProp ?? generatedId;
@@ -58,7 +61,9 @@ export default function AdminHubSelect({
   const hasValue = Boolean(selectedOption);
 
   const isForm = variant === "form";
+  const isFilterWithLabel = !isForm && Boolean(label);
   const isCompactFilter = !label && variant === "filter";
+  const showFilterClear = clearable && isFilterWithLabel && hasValue && !disabled;
 
   const triggerClass = isForm
     ? `flex h-[50px] w-full items-center rounded-[8px] border border-[#EFEFEF] bg-white px-4 pr-10 text-left text-[14px] leading-[1.3] tracking-[0.28px] focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
@@ -66,7 +71,7 @@ export default function AdminHubSelect({
       }`
     : `${
         isCompactFilter ? "inline-flex min-w-[200px]" : "flex w-full"
-      } h-9 items-center rounded-[8px] border border-[#C8C8C8] bg-white pl-[22px] pr-10 text-left text-[14px] leading-none focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
+      } ${isCompactFilter ? "h-10" : "h-11"} items-center rounded-[8px] border border-[#C8C8C8] bg-white pl-[22px] pr-10 text-left text-[14px] leading-none focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
         hasValue ? "text-[#525252]" : "text-[#C8C8C8]"
       }`;
 
@@ -78,6 +83,12 @@ export default function AdminHubSelect({
   function handleTriggerClick() {
     if (disabled) return;
     setIsOpen((prev) => !prev);
+  }
+
+  function handleClear(event: React.MouseEvent) {
+    event.stopPropagation();
+    onChange("");
+    setIsOpen(false);
   }
 
   function handleKeyDown(event: React.KeyboardEvent) {
@@ -111,12 +122,23 @@ export default function AdminHubSelect({
       >
         <span className="min-w-0 truncate">{displayLabel}</span>
       </button>
-      <ChevronDown
-        size={18}
-        className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-[#707070] transition-transform ${
-          isForm ? "right-4" : "right-3"
-        } ${isOpen ? "rotate-180" : ""}`}
-      />
+      {showFilterClear ? (
+        <button
+          type="button"
+          onClick={handleClear}
+          className="absolute right-[11px] top-1/2 z-10 -translate-y-1/2 rounded p-0 text-[#707070] transition-colors hover:text-[#0097B2]"
+          aria-label={label ? `Limpiar ${label}` : "Limpiar filtro"}
+        >
+          <CircleX size={18} strokeWidth={1.75} />
+        </button>
+      ) : (
+        <ChevronDown
+          size={18}
+          className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-[#707070] transition-transform ${
+            isForm ? "right-4" : "right-3"
+          } ${isOpen ? "rotate-180" : ""}`}
+        />
+      )}
 
       {isOpen && !disabled && (
         <div className={`${MENU_PANEL_CLASS} ${menuClassName}`} role="listbox">

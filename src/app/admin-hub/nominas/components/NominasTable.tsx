@@ -2,6 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, MoreVertical } from "lucide-react";
+import AdminHubTableShell, {
+  ADMIN_HUB_TABLE_HEAD_FIRST_CELL,
+  ADMIN_HUB_TABLE_HEAD_LAST_CELL,
+  ADMIN_HUB_TABLE_ROW,
+} from "../../components/AdminHubTableShell";
 import {
   formatMoney,
   formatVariableColumn,
@@ -99,11 +104,11 @@ export default function NominasTable({ rows }: NominasTableProps) {
   }
 
   return (
-    <div className="w-full overflow-x-auto rounded-[12px] border border-[#EFEFEF]">
+    <AdminHubTableShell>
       <table className="w-full min-w-[1100px] border-collapse bg-white">
         <thead>
           <tr className="border-b border-[#EFEFEF]">
-            <th className="w-16 rounded-tl-[12px] px-6 py-5 text-left">
+            <th className={ADMIN_HUB_TABLE_HEAD_FIRST_CELL}>
               <input
                 type="checkbox"
                 checked={allSelected}
@@ -136,14 +141,14 @@ export default function NominasTable({ rows }: NominasTableProps) {
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
               Estado
             </th>
-            <th className="w-[70px] rounded-tr-[12px] px-3 py-5" />
+            <th className={ADMIN_HUB_TABLE_HEAD_LAST_CELL} />
           </tr>
         </thead>
         <tbody>
           {displayedRows.map((row) => (
             <tr
               key={row.id}
-              className="border-b border-[#EFEFEF] hover:bg-[#FAFAFA] transition-colors"
+              className={ADMIN_HUB_TABLE_ROW}
             >
               <td className="px-6 py-6">
                 <input
@@ -210,6 +215,6 @@ export default function NominasTable({ rows }: NominasTableProps) {
           ))}
         </tbody>
       </table>
-    </div>
+    </AdminHubTableShell>
   );
 }

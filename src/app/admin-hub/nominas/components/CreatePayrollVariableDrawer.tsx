@@ -21,6 +21,7 @@ import CreatePayrollVariableForm, {
   type CreatePayrollVariableFormData,
 } from "./CreatePayrollVariableForm";
 import { parseDeductionMonto } from "../lib/deduction-monto";
+import { formatPayrollPeriodFromIso, resolveApplyDate } from "../lib/payroll-apply-date";
 import { parseSignedAmountInput } from "./IncomeVariableAmountField";
 import { formatDisplayDate, TYPE_SUBTITLES } from "./payroll-variable-form-types";
 
@@ -129,22 +130,7 @@ function buildDescription(
   return formData.descripcion.trim() || "—";
 }
 
-function resolveDisplayDate(
-  type: PayrollVariableDrawerType,
-  formData: CreatePayrollVariableFormData
-): string {
-  if (type === "holidays") {
-    const holiday = findHoliday(formData.holidayId);
-    if (holiday?.fecha) return formatDisplayDate(holiday.fecha);
-    if (holiday) {
-      const year = new Date().getFullYear();
-      return formatDisplayDate(
-        `${year}-${String(holiday.mes).padStart(2, "0")}-${String(holiday.dia).padStart(2, "0")}`
-      );
-    }
-  }
-
-  if (formData.desde) return formatDisplayDate(formData.desde);
+function resolveCreationDate(): string {
   return formatDisplayDate(new Date().toISOString().slice(0, 10));
 }
 
@@ -194,7 +180,7 @@ export default function CreatePayrollVariableDrawer({
 
     const newVariable: PayrollVariable = {
       id: `pv-${Date.now()}`,
-      date: resolveDisplayDate(selectedType, formData),
+      date: resolveCreationDate(),
       contractor: contractor.name,
       client: contract.client,
       type: resolveVariableType(selectedType, formData),
@@ -203,6 +189,8 @@ export default function CreatePayrollVariableDrawer({
       amount: computeAmount(selectedType, formData),
       status: "Pendiente",
       createdBy: formatCreatedBy(user?.nombre, user?.apellido),
+      period: formatPayrollPeriodFromIso(formData.periodo),
+      applyDate: resolveApplyDate(formData),
       ...(selectedType === "incomeVariables" && formData.incomeCategory
         ? {
             incomeCategory: formData.incomeCategory as IncomeVariableCategory,
