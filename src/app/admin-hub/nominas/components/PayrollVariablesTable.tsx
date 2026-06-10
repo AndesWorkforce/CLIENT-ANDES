@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, MoreVertical } from "lucide-react";
 import AdminHubTableShell, {
+  ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS,
   ADMIN_HUB_TABLE_HEAD_FIRST_CELL,
   ADMIN_HUB_TABLE_HEAD_LAST_CELL,
   ADMIN_HUB_TABLE_ROW,
@@ -195,7 +196,6 @@ export default function PayrollVariablesTable({
   const cellClass =
     "px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]";
   const compactCellClass = `${cellClass} whitespace-nowrap`;
-  const descriptionCellClass = `${cellClass} max-w-[220px] whitespace-normal break-words`;
 
   return (
     <>
@@ -228,14 +228,13 @@ export default function PayrollVariablesTable({
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 Contratista
               </th>
-              <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+              <th
+                className={`px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252] ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}
+              >
                 Cliente
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 Tipo
-              </th>
-              <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Descripción
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 <button
@@ -291,9 +290,10 @@ export default function PayrollVariablesTable({
                   {item.date}
                 </td>
                 <td className={compactCellClass}>{item.contractor}</td>
-                <td className={compactCellClass}>{item.client}</td>
+                <td className={`${compactCellClass} ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}>
+                  {item.client}
+                </td>
                 <td className={compactCellClass}>{item.type}</td>
-                <td className={descriptionCellClass}>{item.description}</td>
                 <td className={compactCellClass}>{formatPayrollAmount(item.amount)}</td>
                 <td className="px-3 py-6">
                   <PayrollVariableStatusBadge status={item.status} />

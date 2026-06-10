@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, MoreVertical } from "lucide-react";
 import AdminHubTableShell, {
+  ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS,
   ADMIN_HUB_TABLE_HEAD_FIRST_CELL,
   ADMIN_HUB_TABLE_HEAD_LAST_CELL,
   ADMIN_HUB_TABLE_ROW,
@@ -123,7 +124,9 @@ export default function NominasTable({ rows }: NominasTableProps) {
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
               Puesto
             </th>
-            <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+            <th
+              className={`px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252] ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}
+            >
               Cliente
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
@@ -161,7 +164,9 @@ export default function NominasTable({ rows }: NominasTableProps) {
               </td>
               <td className={cellClass}>{row.contractorName}</td>
               <td className={cellClass}>{row.position}</td>
-              <td className={cellClass}>{row.client}</td>
+              <td className={`${cellClass} ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}>
+                {row.client}
+              </td>
               <td className={cellClass}>{row.period}</td>
               <td className={cellClass}>{formatMoney(row.clientPrice)}</td>
               <td className={cellClass}>{formatVariableColumn(row.variableAmount)}</td>

@@ -14,6 +14,9 @@ export const ADMIN_HUB_TABLE_HEAD_LAST_CELL = "w-[70px] rounded-tr-[12px] px-3 p
 export const ADMIN_HUB_TABLE_ROW =
   "border-b border-[#EFEFEF] hover:bg-[#FAFAFA] transition-colors";
 
+/** Columna Cliente en tablas de nóminas (ancho mínimo, el resto sigue siendo automático) */
+export const ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS = "min-w-[120px]";
+
 export default function AdminHubTableShell({
   children,
   variant = "standalone",
