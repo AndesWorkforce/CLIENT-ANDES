@@ -14,6 +14,7 @@ export interface PayrollRow {
   client: string;
   period: string;
   baseSalary: number;
+  clientPrice: number;
   variableAmount: number;
   totalAmount: number;
   status: PayrollVariableStatus;
@@ -115,6 +116,7 @@ export function buildPayrollRows(
     for (const contract of contractor.contracts) {
       const variableAmount = sumVariables(contractor.name, contract.client, variables);
       const baseSalary = contract.baseSalary;
+      const clientPrice = contract.clientPrice;
 
       rows.push({
         id: `${contractor.id}-${contract.id}`,
@@ -125,8 +127,9 @@ export function buildPayrollRows(
         client: contract.client,
         period,
         baseSalary,
+        clientPrice,
         variableAmount,
-        totalAmount: baseSalary + variableAmount,
+        totalAmount: clientPrice + variableAmount,
         status: resolveStatus(contractor.name, contract.client, variables),
       });
     }

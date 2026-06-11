@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Filter, Search } from "lucide-react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
+import {
+  ADMIN_HUB_CLEAR_FILTERS_CLASS,
+  ADMIN_HUB_FILTER_BUTTON_CLASS,
+  ADMIN_HUB_FILTERS_ROW_CLASS,
+} from "../../components/admin-hub-filter-styles";
+import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import AdminHubSelect from "../../components/AdminHubSelect";
 import AdminHubDateRangePicker from "../../components/AdminHubDateRangePicker";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
@@ -159,25 +165,13 @@ export default function NominasPageContent() {
 
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="relative w-full max-w-[320px]">
-            <Search
-              size={21}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#C8C8C8]"
-            />
-            <input
-              type="search"
-              placeholder="Buscar"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 w-full rounded-[8px] border border-[#C8C8C8] bg-white pl-11 pr-4 text-[14px] font-medium text-[#525252] placeholder:text-[#C8C8C8] focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
-            />
-          </div>
+          <AdminHubSearchInput value={searchQuery} onChange={setSearchQuery} />
 
           <button
             type="button"
             onClick={() => setFiltersOpen((prev) => !prev)}
             aria-expanded={filtersOpen}
-            className={`inline-flex h-10 items-center gap-1.5 rounded-[8px] border bg-white px-4 text-[14px] font-medium transition-colors ${
+            className={`${ADMIN_HUB_FILTER_BUTTON_CLASS} ${
               filtersOpen
                 ? "border-[#0097B2] text-[#0097B2]"
                 : "border-[#C8C8C8] text-[#858585] hover:border-[#0097B2] hover:text-[#0097B2]"

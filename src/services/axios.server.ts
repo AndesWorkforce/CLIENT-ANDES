@@ -1,17 +1,24 @@
 import axios from "axios";
 import { cookies } from "next/headers";
 
-// Obtener la URL base de la API
-function getApiUrl(): string {
-  const rawUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/";
-  let url = rawUrl.trim();
-  if (!url.endsWith("/")) url = url + "/";
+function normalizeApiBaseUrl(raw?: string): string {
+  const fallback = "http://localhost:5000/api/";
+  let url = (raw || "").trim();
+  if (!url) return fallback;
+  if (!url.endsWith("/")) url = `${url}/`;
   if (!url.toLowerCase().includes("/api/")) {
-    url = url + (url.endsWith("/") ? "" : "/") + "api/";
-    url = url.replace(/([^:]\/)\/+/g, "$1");
+    url = `${url}${url.endsWith("/") ? "" : "/"}api/`.replace(/([^:]\/)\/+/g, "$1");
   }
   return url;
+}
+
+/** SSR / API routes: preferir URL interna (mismo VPS) si existe */
+function getApiUrl(): string {
+  const rawUrl =
+    process.env.INTERNAL_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000/api/";
+  return normalizeApiBaseUrl(rawUrl);
 }
 
 export async function createServerAxios() {

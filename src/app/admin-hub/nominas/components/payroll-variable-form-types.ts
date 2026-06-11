@@ -1,4 +1,5 @@
 import type { PayrollVariableDrawerType } from "../data/mock-payroll-variables";
+import { getTodayIso } from "../lib/today-iso";
 
 export interface CreatePayrollVariableFormData {
   contractorId: string;
@@ -6,22 +7,25 @@ export interface CreatePayrollVariableFormData {
   desde: string;
   hasta: string;
   montoContexto: string;
+  incomeCategory: string;
+  deductionTipo: string;
   holidayId: string;
   duracion: string;
   cantidad: string;
   descripcion: string;
+  periodo: string;
 }
 
-export const DURATION_OPTIONS = [
-  { value: "hora", label: "Hora" },
-  { value: "dia", label: "Día" },
+export const OVERTIME_UNIT_OPTIONS = [
+  { value: "horas", label: "Horas" },
+  { value: "minutos", label: "Minutos" },
 ];
 
 export const TYPE_SUBTITLES: Record<PayrollVariableDrawerType, string> = {
-  ausencia: "Ausencia",
   overtime: "Overtime",
   holidays: "Holidays",
-  deducciones: "Deducciones",
+  deducciones: "Deductions",
+  incomeVariables: "Income Variables",
 };
 
 export function emptyPayrollVariableForm(): CreatePayrollVariableFormData {
@@ -31,28 +35,59 @@ export function emptyPayrollVariableForm(): CreatePayrollVariableFormData {
     desde: "",
     hasta: "",
     montoContexto: "",
+    incomeCategory: "",
+    deductionTipo: "",
     holidayId: "",
     duracion: "",
     cantidad: "1",
     descripcion: "",
+    periodo: getTodayIso(),
   };
+}
+
+function isDeductionFormComplete(data: CreatePayrollVariableFormData): boolean {
+  if (!data.deductionTipo) return false;
+
+  if (data.deductionTipo === "Ausencia") {
+    if (!data.desde || !data.hasta) return false;
+    const today = getTodayIso();
+    if (data.desde > today) return false;
+    if (data.hasta < data.desde) return false;
+    return true;
+  }
+
+  if (data.deductionTipo === "Other") {
+    return Boolean(data.montoContexto.trim());
+  }
+
+  return false;
 }
 
 export function isPayrollVariableFormComplete(
   type: PayrollVariableDrawerType,
   data: CreatePayrollVariableFormData
 ): boolean {
-  const base = Boolean(data.contractorId && data.contractId && data.descripcion.trim());
+  const base = Boolean(
+    data.contractorId &&
+      data.contractId &&
+      data.descripcion.trim() &&
+      data.periodo.trim()
+  );
 
   switch (type) {
-    case "ausencia":
-      return base && Boolean(data.desde && data.duracion && data.cantidad.trim());
     case "overtime":
-      return base && Boolean(data.duracion && data.cantidad.trim());
+      return (
+        base &&
+        Boolean(data.desde && data.duracion && data.cantidad.trim())
+      );
     case "holidays":
       return base && Boolean(data.holidayId);
     case "deducciones":
-      return base && Boolean(data.montoContexto.trim());
+      return base && isDeductionFormComplete(data);
+    case "incomeVariables":
+      return (
+        base && Boolean(data.montoContexto.trim() && data.incomeCategory.trim())
+      );
     default:
       return false;
   }

@@ -73,6 +73,11 @@ const publicRoutes = [
   "/api/auth/login/with-company",
   "/api/health",
   "/health",
+  "/session-api/set",
+  "/session-api/login",
+  "/session-api/login/with-company",
+  "/session-api/verify",
+  "/session-api/logout",
   // ESIGN public flows must be accessible without auth
   "/esign",
   // Otras rutas públicas o APIs que deberían estar disponibles para todos
@@ -93,7 +98,10 @@ export function middleware(request: NextRequest) {
   // Hard-exempt our login proxy so it never gets redirected by middleware
   if (
     pathname === "/api/auth/login/with-company" ||
-    pathname.startsWith("/api/auth/login/with-company/")
+    pathname.startsWith("/api/auth/login/with-company/") ||
+    pathname === "/session-api/login/with-company" ||
+    pathname.startsWith("/session-api/login/with-company/") ||
+    pathname.startsWith("/session-api/")
   ) {
     return NextResponse.next();
   }
@@ -101,9 +109,23 @@ export function middleware(request: NextRequest) {
     pathname === "/auth/login/select-role" ||
     pathname.startsWith("/auth/login/select-role/");
 
-  // Verificar autenticación usando la cookie
+  // Verificar autenticación: httpOnly auth_token o user_info (fallback si /api fue al Nest)
   const authToken = request.cookies.get(AUTH_COOKIE)?.value;
-  const isAuthenticated = !!authToken;
+
+  let hasUserInfoSession = false;
+  try {
+    const userInfoCookie = request.cookies.get(USER_INFO_COOKIE)?.value;
+    if (userInfoCookie) {
+      const parsed = JSON.parse(decodeURIComponent(userInfoCookie)) as {
+        id?: string;
+      };
+      hasUserInfoSession = Boolean(parsed?.id);
+    }
+  } catch {
+    hasUserInfoSession = false;
+  }
+
+  const isAuthenticated = !!authToken || hasUserInfoSession;
 
   // DEBUG: Log cookie presence for protected routes
   if (pathname.startsWith("/admin") || pathname.startsWith("/companies") || pathname.startsWith("/profile")) {

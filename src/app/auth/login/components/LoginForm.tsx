@@ -9,6 +9,7 @@ import { loginSchema, type LoginFormValues } from "../schemas/login.schema";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useAuthStore } from "@/store/auth.store";
 import { useRouter } from "next/navigation";
+import { persistAuthSession } from "@/lib/persist-auth-session.client";
 
 const REMEMBER_KEY = "andes_remembered_email";
 // Encryption removed to simplify flow and avoid runtime issues
@@ -111,7 +112,7 @@ export default function LoginForm() {
 
       // Intentar login
       try {
-        const response = await fetch("/api/auth/login", {
+        const response = await fetch("/session-api/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -171,22 +172,7 @@ export default function LoginForm() {
 
                   // Set session cookies server-side
                   console.log("[Login Multi-Role] 🍪 Setting session cookies...");
-                  await fetch("/api/auth/set-session", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                    body: JSON.stringify({
-                      token: result.data?.accessToken,
-                      user,
-                    }),
-                  }).catch(err => console.error("[Login Multi-Role] Cookie error:", err));
-
-                  // Guardar cookie legible por el cliente usada como fallback en select-role
-                  const userInfo = encodeURIComponent(JSON.stringify(user));
-                  // 7 días
-                  document.cookie = `user_info=${userInfo}; path=/; max-age=${
-                    7 * 24 * 60 * 60
-                  }; samesite=strict`;
+                  await persistAuthSession(result.data?.accessToken, user);
                 } catch (e) {
                   console.warn(
                     "[Login] could not prime local session before role selection",
@@ -229,26 +215,7 @@ export default function LoginForm() {
           // CRITICAL: Set cookies server-side with httpOnly flag
           // Backend returns token in JSON but doesn't set cookies
           console.log("[Login] 🍪 Setting session cookies...");
-          try {
-            const sessionResponse = await fetch("/api/auth/set-session", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify({
-                token: result.data?.accessToken,
-                user: effectiveUser,
-              }),
-            });
-
-            if (!sessionResponse.ok) {
-              console.error("[Login] ❌ Failed to set session cookies");
-              addNotification("Login warning: session may not persist", "warning");
-            } else {
-              console.log("[Login] ✅ Session cookies set successfully");
-            }
-          } catch (sessionError) {
-            console.error("[Login] ❌ Error setting session:", sessionError);
-          }
+          await persistAuthSession(result.data?.accessToken, effectiveUser);
 
           // Wait for cookie to persist before redirecting
           console.log("[Login] ⏳ Waiting for cookie persistence...");

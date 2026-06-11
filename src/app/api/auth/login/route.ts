@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import {
+  getAuthCookieBaseOptions,
+  getClientReadableCookieOptions,
+} from "@/lib/auth-cookies";
 import { createServerAxios } from "@/services/axios.server";
 
-// Constantes para las cookies
 const AUTH_COOKIE = "auth_token";
 const USER_INFO_COOKIE = "user_info";
 const ACTIVE_COMPANY_COOKIE = "active_company_id";
-
-// Duración de la cookie - 7 días en segundos
-const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
 export async function POST(request: Request) {
   try {
@@ -71,11 +71,7 @@ export async function POST(request: Request) {
       cookieStore.set({
         name: AUTH_COOKIE,
         value: token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: COOKIE_MAX_AGE,
-        path: "/",
-        sameSite: "strict",
+        ...getAuthCookieBaseOptions(),
       });
 
       // Resolver empresa activa
@@ -92,11 +88,7 @@ export async function POST(request: Request) {
       cookieStore.set({
         name: USER_INFO_COOKIE,
         value: JSON.stringify(userData),
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: COOKIE_MAX_AGE,
-        path: "/",
-        sameSite: "strict",
+        ...getClientReadableCookieOptions(),
       });
 
       // Guardar empresa activa si se resolvió
@@ -104,11 +96,7 @@ export async function POST(request: Request) {
         cookieStore.set({
           name: ACTIVE_COMPANY_COOKIE,
           value: String(resolvedCompanyId),
-          httpOnly: false,
-          secure: process.env.NODE_ENV === "production",
-          maxAge: COOKIE_MAX_AGE,
-          path: "/",
-          sameSite: "strict",
+          ...getClientReadableCookieOptions(),
         });
       }
 

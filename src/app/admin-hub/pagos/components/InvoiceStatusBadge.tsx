@@ -1,13 +1,20 @@
 import type { InvoiceStatus } from "../data/mock-invoices";
-import type { InvoiceLineItemStatus } from "../data/mock-invoice-details";
+import type {
+  InvoiceLineItemStatus,
+  InvoicePayrollStatus,
+} from "../data/mock-invoice-details";
 
-export type InvoiceBadgeStatus = InvoiceStatus | InvoiceLineItemStatus;
+export type InvoiceBadgeStatus =
+  | InvoiceStatus
+  | InvoiceLineItemStatus
+  | InvoicePayrollStatus;
 
 const statusStyles: Record<InvoiceBadgeStatus, string> = {
   Pendiente: "bg-[#DDE2FF] text-[#4356A6]",
   Pagado: "bg-[#D4F4E2] text-[#2D6A4F]",
   Vencido: "bg-[#FFE5E5] text-[#B42318]",
   Aprobado: "bg-[#D4F4E2] text-[#2D6A4F]",
+  Aprobada: "bg-[#ECFDF3] text-[#027A48]",
   Rechazado: "bg-[#FFE5E5] text-[#B42318]",
 };
 

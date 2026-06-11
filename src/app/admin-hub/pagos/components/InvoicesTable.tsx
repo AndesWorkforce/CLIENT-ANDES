@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, MoreVertical } from "lucide-react";
+import AdminHubTableShell, {
+  ADMIN_HUB_TABLE_HEAD_FIRST_CELL,
+  ADMIN_HUB_TABLE_HEAD_LAST_CELL,
+  ADMIN_HUB_TABLE_ROW,
+} from "../../components/AdminHubTableShell";
 import type { Invoice } from "../data/mock-invoices";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 
@@ -75,11 +80,11 @@ export default function InvoicesTable({ invoices }: InvoicesTableProps) {
   }
 
   return (
-    <div className="w-full overflow-x-auto">
+    <AdminHubTableShell>
       <table className="w-full min-w-[900px] border-collapse bg-white">
         <thead>
           <tr className="border-b border-[#EFEFEF]">
-            <th className="w-16 px-6 py-5 text-left">
+            <th className={ADMIN_HUB_TABLE_HEAD_FIRST_CELL}>
               <input
                 type="checkbox"
                 checked={allSelected}
@@ -113,14 +118,14 @@ export default function InvoicesTable({ invoices }: InvoicesTableProps) {
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
               Estado
             </th>
-            <th className="w-[70px] px-3 py-5" />
+            <th className={ADMIN_HUB_TABLE_HEAD_LAST_CELL} />
           </tr>
         </thead>
         <tbody>
           {displayedInvoices.map((invoice) => (
             <tr
               key={invoice.id}
-              className="border-b border-[#EFEFEF] last:border-b-0 hover:bg-[#FAFAFA] transition-colors"
+              className={ADMIN_HUB_TABLE_ROW}
             >
               <td className="px-6 py-6">
                 <input
@@ -187,6 +192,6 @@ export default function InvoicesTable({ invoices }: InvoicesTableProps) {
           ))}
         </tbody>
       </table>
-    </div>
+    </AdminHubTableShell>
   );
 }

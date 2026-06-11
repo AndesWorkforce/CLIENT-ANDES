@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, MoreVertical } from "lucide-react";
+import AdminHubTableShell, { ADMIN_HUB_TABLE_ROW } from "../../components/AdminHubTableShell";
 import type { InvoiceLineItem } from "../data/mock-invoice-details";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
+import InvoiceTableTotalRow from "./InvoiceTableTotalRow";
 
 const MENU_MIN_WIDTH = 148;
 
@@ -137,8 +139,8 @@ export default function InvoiceLineItemsTable({
 
   return (
     <>
-      <div className="w-full overflow-x-auto overflow-y-visible">
-        <table className="w-full min-w-[900px] border-collapse bg-white">
+      <AdminHubTableShell variant="nested">
+        <table className="w-full min-w-[1050px] border-collapse bg-white">
           <thead>
             <tr className="border-b border-[#EFEFEF]">
               <th className="w-16 px-6 py-5 text-left">
@@ -157,6 +159,9 @@ export default function InvoiceLineItemsTable({
                 Tipo
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+                Contratista
+              </th>
+              <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 Descripción
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
@@ -171,14 +176,14 @@ export default function InvoiceLineItemsTable({
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 Creado por
               </th>
-              <th className="w-[68px] px-3 py-5" />
+              <th className="w-[70px] px-3 py-5" />
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
               <tr
                 key={item.id}
-                className="border-b border-[#EFEFEF] last:border-b-0 hover:bg-[#FAFAFA] transition-colors"
+                className={ADMIN_HUB_TABLE_ROW}
               >
                 <td className="px-6 py-6" onClick={(e) => e.stopPropagation()}>
                   <input
@@ -194,6 +199,9 @@ export default function InvoiceLineItemsTable({
                 </td>
                 <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
                   {item.type}
+                </td>
+                <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
+                  {item.contractor}
                 </td>
                 <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
                   {item.description}
@@ -230,23 +238,15 @@ export default function InvoiceLineItemsTable({
                 </td>
               </tr>
             ))}
-            <tr className="border-t border-[#EFEFEF]">
-              <td colSpan={8} className="px-6 py-4">
-                <div className="flex w-full items-center justify-end gap-4">
-                  <span className="text-[18px] font-bold text-[#343434]">Total</span>
-                  <span
-                    className={`min-w-[80px] text-right text-[18px] font-bold ${
-                      subtotalIsNegative ? "text-[#E33434]" : "text-[#343434]"
-                    }`}
-                  >
-                    {subtotal}
-                  </span>
-                </div>
-              </td>
-            </tr>
+            <InvoiceTableTotalRow
+              emptyColumnsBeforeAmount={3}
+              emptyColumnsAfterStatus={2}
+              subtotal={subtotal}
+              subtotalIsNegative={subtotalIsNegative}
+            />
           </tbody>
         </table>
-      </div>
+      </AdminHubTableShell>
 
       {openMenuId &&
         openMenuItem &&

@@ -3,7 +3,7 @@
 import type { PayrollVariableDrawerType } from "../data/mock-payroll-variables";
 import PayrollVariableContextFields from "./PayrollVariableContextFields";
 import PayrollVariableFormSection from "./PayrollVariableFormSection";
-import PayrollVariablePaymentBaseFields from "./PayrollVariablePaymentBaseFields";
+import OvertimeDetailFields from "./OvertimeDetailFields";
 import AdminHubFormField from "../../components/AdminHubFormField";
 import type { CreatePayrollVariableFormData } from "./payroll-variable-form-types";
 
@@ -24,10 +24,12 @@ export default function CreatePayrollVariableForm({
   formData,
   onChange,
 }: CreatePayrollVariableFormProps) {
-  const showPaymentBase = variableType === "ausencia" || variableType === "overtime";
-
   function patchDescription(descripcion: string) {
     onChange({ ...formData, descripcion });
+  }
+
+  function patch(partial: Partial<CreatePayrollVariableFormData>) {
+    onChange({ ...formData, ...partial });
   }
 
   return (
@@ -40,9 +42,14 @@ export default function CreatePayrollVariableForm({
         />
       </PayrollVariableFormSection>
 
-      {showPaymentBase && (
-        <PayrollVariableFormSection title="Base de pago">
-          <PayrollVariablePaymentBaseFields formData={formData} onChange={onChange} />
+      {variableType === "overtime" && (
+        <PayrollVariableFormSection title="Detalle">
+          <OvertimeDetailFields
+            unidad={formData.duracion}
+            cantidad={formData.cantidad}
+            onUnidadChange={(duracion) => patch({ duracion })}
+            onCantidadChange={(cantidad) => patch({ cantidad })}
+          />
         </PayrollVariableFormSection>
       )}
 

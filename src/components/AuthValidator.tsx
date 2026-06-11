@@ -71,9 +71,11 @@ export function AuthValidator() {
         console.log("[AuthValidator] 📍 Ruta actual:", pathname);
         console.log("[AuthValidator] ✅ isAuthenticated:", isAuthenticated);
 
-        const response = await fetch("/api/auth/verify", {
+        const token = useAuthStore.getState().token;
+        const response = await fetch("/session-api/verify", {
           method: "GET",
           credentials: "include",
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
 
         console.log(
@@ -138,9 +140,11 @@ export function AuthValidator() {
     // Función de validación silenciosa (sin logs excesivos)
     const validateSessionSilently = async () => {
       try {
-        const response = await fetch("/api/auth/verify", {
+        const token = useAuthStore.getState().token;
+        const response = await fetch("/session-api/verify", {
           method: "GET",
           credentials: "include",
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
 
         if (!response.ok) {

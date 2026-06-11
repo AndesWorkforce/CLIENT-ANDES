@@ -7,6 +7,7 @@ import { useNotificationStore } from "@/store/notifications.store";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import Logo from "@/app/components/Logo";
+import { persistAuthSession } from "@/lib/persist-auth-session.client";
 
 // Encryption removed: we'll read plaintext payload from sessionStorage
 
@@ -136,12 +137,7 @@ export default function SelectRolePage() {
     setAuthenticated(true);
     if (accessToken) setToken(accessToken);
     sessionStorage.removeItem("andes_pending_login");
-    // Actualizar cookie user_info (no httpOnly) para mantener el rol elegido
-    try {
-      document.cookie = `user_info=${encodeURIComponent(
-        JSON.stringify(finalUser)
-      )}; path=/; max-age=${7 * 24 * 60 * 60}; samesite=strict`;
-    } catch {}
+    void persistAuthSession(accessToken, finalUser);
     const rol = finalUser?.rol;
     if (rol === "EMPRESA" || rol === "EMPLEADO_EMPRESA") {
       router.replace("/companies/dashboard");
@@ -188,7 +184,7 @@ export default function SelectRolePage() {
     // disable-next-line @typescript-eslint/no-explicit-any
     let result: any = null;
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/session-api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -474,7 +470,7 @@ export default function SelectRolePage() {
       selectedCompanyId: companyId,
     };
     try {
-      const resp = await fetch("/api/auth/login/with-company", {
+      const resp = await fetch("/session-api/login/with-company", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -490,7 +486,7 @@ export default function SelectRolePage() {
       try {
         // disable-next-line @typescript-eslint/no-explicit-any
         const payload: any = { ...proxyPayload };
-        const fallbackResp = await fetch("/api/auth/login", {
+        const fallbackResp = await fetch("/session-api/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

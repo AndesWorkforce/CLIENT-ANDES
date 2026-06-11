@@ -1,10 +1,7 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { applyAuthSessionCookies } from "@/lib/set-auth-session";
 
-const AUTH_COOKIE = "auth_token";
-const USER_INFO_COOKIE = "user_info";
-const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 días
-
+/** @deprecated Preferir POST /session-api/set (no interceptado por proxy /api → Nest). */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -13,44 +10,18 @@ export async function POST(request: Request) {
     if (!token || !user) {
       return NextResponse.json(
         { success: false, error: "Token and user required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    console.log("[Set Session] 🍪 Setting cookies for user:", user.correo);
-
-    const cookieStore = await cookies();
-
-    // Set auth_token (httpOnly for security)
-    cookieStore.set({
-      name: AUTH_COOKIE,
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: COOKIE_MAX_AGE,
-      path: "/",
-      sameSite: "strict",
-    });
-
-    // Set user_info (client-readable)
-    cookieStore.set({
-      name: USER_INFO_COOKIE,
-      value: JSON.stringify(user),
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: COOKIE_MAX_AGE,
-      path: "/",
-      sameSite: "strict",
-    });
-
-    console.log("[Set Session] ✅ Cookies set successfully");
+    await applyAuthSessionCookies(token, user);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[Set Session] ❌ Error setting cookies:", error);
+    console.error("[Set Session] ❌ Error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to set session" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

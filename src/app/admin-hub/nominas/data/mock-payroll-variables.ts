@@ -1,6 +1,10 @@
+import type { IncomeVariableCategory } from "./income-variable-categories";
+import type { DeductionTipo } from "./deduction-types";
+
 export type PayrollVariableType =
   | "Overtime"
   | "Deducción"
+  | "Income Variable"
   | "Ausencia"
   | "Holiday";
 
@@ -9,11 +13,16 @@ export type PayrollVariableCategory =
   | "ausencias"
   | "overtimes"
   | "holidays"
-  | "deducciones";
+  | "deducciones"
+  | "incomeVariables";
 
 export type PayrollVariableStatus = "Pendiente" | "Aprobado" | "Rechazado";
 
-export type PayrollVariableDrawerType = "ausencia" | "overtime" | "holidays" | "deducciones";
+export type PayrollVariableDrawerType =
+  | "overtime"
+  | "holidays"
+  | "deducciones"
+  | "incomeVariables";
 
 export interface PayrollVariable {
   id: string;
@@ -26,6 +35,13 @@ export interface PayrollVariable {
   amount: number;
   status: PayrollVariableStatus;
   createdBy: string;
+  /** Período de nómina (ej. Marzo 2026) */
+  period: string;
+  /** Fecha a aplicar DD.MM.YYYY */
+  applyDate: string;
+  incomeCategory?: IncomeVariableCategory;
+  /** Tipo dentro de Deductions (ej. Ausencia) */
+  deductionTipo?: DeductionTipo;
 }
 
 export const PAYROLL_VARIABLE_TABS: {
@@ -37,6 +53,7 @@ export const PAYROLL_VARIABLE_TABS: {
   { key: "overtimes", label: "Overtimes" },
   { key: "holidays", label: "Holidays" },
   { key: "deducciones", label: "Deducciones" },
+  { key: "incomeVariables", label: "Income Variables" },
 ];
 
 export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
@@ -51,18 +68,23 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 50,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.03.2026",
   },
   {
     id: "pv-2",
     date: "03.21.26",
     contractor: "Ana Gomez",
     client: "BK",
-    type: "Deducción",
+    type: "Ausencia",
     category: "deducciones",
     description: "Ausencia injustificada",
     amount: -50,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    deductionTipo: "Ausencia",
+    period: "Marzo 2026",
+    applyDate: "03.05.2026",
   },
   {
     id: "pv-3",
@@ -75,6 +97,38 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.10.2026",
+  },
+  {
+    id: "pv-9",
+    date: "03.21.26",
+    contractor: "Ana Gomez",
+    client: "BK",
+    type: "Income Variable",
+    category: "incomeVariables",
+    description: "Bono desempeño",
+    amount: 200,
+    status: "Pendiente",
+    createdBy: "Violeta Q",
+    incomeCategory: "Bonus",
+    period: "Marzo 2026",
+    applyDate: "03.03.2026",
+  },
+  {
+    id: "pv-10",
+    date: "03.21.26",
+    contractor: "Luis Lee",
+    client: "Rocket",
+    type: "Income Variable",
+    category: "incomeVariables",
+    description: "Ajuste manual",
+    amount: -200,
+    status: "Pendiente",
+    createdBy: "Violeta Q",
+    incomeCategory: "Other",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-4",
@@ -87,6 +141,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.08.2026",
   },
   {
     id: "pv-5",
@@ -99,6 +155,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 50,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.12.2026",
   },
   {
     id: "pv-6",
@@ -111,6 +169,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 50,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.18.2026",
   },
   {
     id: "pv-7",
@@ -123,6 +183,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -50,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.20.2026",
   },
   {
     id: "pv-8",
@@ -135,6 +197,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.19.2026",
   },
   {
     id: "pv-9",
