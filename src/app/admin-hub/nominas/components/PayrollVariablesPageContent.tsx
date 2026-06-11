@@ -5,6 +5,7 @@ import { Filter, Plus } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubDateRangePicker from "../../components/AdminHubDateRangePicker";
+import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
 import {
   addPayrollVariable,
