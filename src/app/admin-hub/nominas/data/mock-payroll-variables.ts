@@ -211,6 +211,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 150,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-10",
@@ -223,6 +225,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -75,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-11",
@@ -235,6 +239,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-12",
@@ -247,6 +253,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -50,
     status: "Rechazado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-13",
@@ -259,6 +267,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 120,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-14",
@@ -271,6 +281,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 200,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-15",
@@ -283,6 +295,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -40,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-16",
@@ -295,6 +309,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-17",
@@ -307,6 +323,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 80,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-18",
@@ -319,6 +337,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -120,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-19",
@@ -331,6 +351,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 180,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-20",
@@ -343,6 +365,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -60,
     status: "Rechazado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-21",
@@ -355,6 +379,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 220,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-22",
@@ -367,6 +393,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -150,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-23",
@@ -379,6 +407,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 160,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-24",
@@ -391,6 +421,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-25",
@@ -403,6 +435,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -90,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-26",
@@ -415,6 +449,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 110,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-27",
@@ -427,6 +463,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 140,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-28",
@@ -439,6 +477,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -30,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-29",
@@ -451,6 +491,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-30",
@@ -463,6 +505,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 90,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-31",
@@ -475,6 +519,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 180,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-32",
@@ -487,6 +533,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-33",
@@ -499,6 +547,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -200,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-34",
@@ -511,6 +561,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -200,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-35",
@@ -523,6 +575,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 250,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-36",
@@ -535,6 +589,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 75,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-37",
@@ -547,6 +603,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -40,
     status: "Rechazado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-38",
@@ -559,6 +617,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 130,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-39",
@@ -571,6 +631,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 170,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-40",
@@ -583,6 +645,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-41",
@@ -595,6 +659,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-42",
@@ -607,6 +673,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 95,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-43",
@@ -619,6 +687,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -80,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-44",
@@ -631,6 +701,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-45",
@@ -643,6 +715,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-46",
@@ -655,6 +729,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -60,
     status: "Rechazado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-47",
@@ -667,6 +743,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 200,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-48",
@@ -679,6 +757,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 110,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-49",
@@ -691,6 +771,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -55,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-50",
@@ -703,6 +785,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 85,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-51",
@@ -715,6 +799,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-52",
@@ -727,6 +813,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   // === 2025 ===
   {
@@ -740,6 +828,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 90,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-54",
@@ -752,6 +842,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -65,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-55",
@@ -764,6 +856,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 140,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-56",
@@ -776,6 +870,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-57",
@@ -788,6 +884,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -120,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-58",
@@ -800,6 +898,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 70,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-59",
@@ -812,6 +912,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 110,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-60",
@@ -824,6 +926,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -50,
     status: "Rechazado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-61",
@@ -836,6 +940,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 180,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-62",
@@ -848,6 +954,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-63",
@@ -860,6 +968,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -200,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-64",
@@ -872,6 +982,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-65",
@@ -884,6 +996,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 240,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-66",
@@ -896,6 +1010,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 130,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-67",
@@ -908,6 +1024,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -40,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-68",
@@ -920,6 +1038,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 95,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-69",
@@ -932,6 +1052,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 220,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-70",
@@ -944,6 +1066,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -90,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-71",
@@ -956,6 +1080,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 260,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-72",
@@ -968,6 +1094,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -80,
     status: "Rechazado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-73",
@@ -980,6 +1108,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 150,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-74",
@@ -992,6 +1122,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-75",
@@ -1004,6 +1136,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-76",
@@ -1016,6 +1150,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 175,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-77",
@@ -1028,6 +1164,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 120,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-78",
@@ -1040,6 +1178,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -150,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-79",
@@ -1052,6 +1192,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 130,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-80",
@@ -1064,6 +1206,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -70,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-81",
@@ -1076,6 +1220,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-82",
@@ -1088,6 +1234,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 200,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-83",
@@ -1100,6 +1248,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 85,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-84",
@@ -1112,6 +1262,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -45,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-85",
@@ -1124,6 +1276,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   // === 2026 (meses restantes) ===
   {
@@ -1137,6 +1291,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-87",
@@ -1149,6 +1305,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 95,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-88",
@@ -1161,6 +1319,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -50,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-89",
@@ -1173,6 +1333,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-90",
@@ -1185,6 +1347,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 140,
     status: "Aprobado",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-91",
@@ -1197,6 +1361,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -250,
     status: "Aprobado",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-92",
@@ -1209,6 +1375,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-93",
@@ -1221,6 +1389,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 160,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-94",
@@ -1233,6 +1403,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -30,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-95",
@@ -1245,6 +1417,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 110,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-96",
@@ -1257,6 +1431,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-97",
@@ -1269,6 +1445,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 200,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-98",
@@ -1281,6 +1459,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-99",
@@ -1293,6 +1473,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -75,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-100",
@@ -1305,6 +1487,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-101",
@@ -1317,6 +1501,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 180,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-102",
@@ -1329,6 +1515,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: -60,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-103",
@@ -1341,6 +1529,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-104",
@@ -1353,6 +1543,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 170,
     status: "Pendiente",
     createdBy: "Camilo R",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
   {
     id: "pv-105",
@@ -1365,6 +1557,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     amount: 100,
     status: "Pendiente",
     createdBy: "Violeta Q",
+    period: "Marzo 2026",
+    applyDate: "03.15.2026",
   },
 ];
 
