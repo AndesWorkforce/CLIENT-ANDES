@@ -104,6 +104,290 @@ export const MOCK_CONTRACTORS: MockContractor[] = [
       },
     ],
   },
+  {
+    id: "ctr-7",
+    name: "Carla Ruiz",
+    countryCode: "CO",
+    countryName: "Colombia",
+    contracts: [
+      {
+        id: "CNT-PORT-027",
+        position: "Analista QA",
+        client: "Port",
+        baseSalary: 2700,
+      },
+    ],
+  },
+  {
+    id: "ctr-8",
+    name: "Pedro Soto",
+    countryCode: "MX",
+    countryName: "México",
+    contracts: [
+      {
+        id: "CNT-BK-031",
+        position: "Desarrollador Frontend",
+        client: "BK",
+        baseSalary: 3000,
+      },
+    ],
+  },
+  {
+    id: "ctr-9",
+    name: "Sofia Morales",
+    countryCode: "AR",
+    countryName: "Argentina",
+    contracts: [
+      {
+        id: "CNT-BK-040",
+        position: "Data Engineer",
+        client: "BK",
+        baseSalary: 4200,
+      },
+      {
+        id: "CNT-VE-041",
+        position: "Consultora BI",
+        client: "Ve",
+        baseSalary: 1800,
+      },
+    ],
+  },
+  {
+    id: "ctr-10",
+    name: "Roberto Silva",
+    countryCode: "MX",
+    countryName: "México",
+    contracts: [
+      {
+        id: "CNT-RKT-052",
+        position: "DevOps Engineer",
+        client: "Rocket",
+        baseSalary: 4400,
+      },
+    ],
+  },
+  {
+    id: "ctr-11",
+    name: "Laura Vega",
+    countryCode: "CO",
+    countryName: "Colombia",
+    contracts: [
+      {
+        id: "CNT-PORT-060",
+        position: "Scrum Master",
+        client: "Port",
+        baseSalary: 3900,
+      },
+    ],
+  },
+  {
+    id: "ctr-12",
+    name: "Diego Campos",
+    countryCode: "AR",
+    countryName: "Argentina",
+    contracts: [
+      {
+        id: "CNT-VE-068",
+        position: "Mobile Developer",
+        client: "Ve",
+        baseSalary: 3500,
+      },
+    ],
+  },
+  {
+    id: "ctr-13",
+    name: "Valentina Torres",
+    countryCode: "CO",
+    countryName: "Colombia",
+    contracts: [
+      {
+        id: "CNT-BK-074",
+        position: "UI Designer",
+        client: "BK",
+        baseSalary: 2900,
+      },
+    ],
+  },
+  {
+    id: "ctr-14",
+    name: "Andrés Castro",
+    countryCode: "MX",
+    countryName: "México",
+    contracts: [
+      {
+        id: "CNT-PORT-081",
+        position: "Arquitecto de Software",
+        client: "Port",
+        baseSalary: 5200,
+      },
+    ],
+  },
+  {
+    id: "ctr-15",
+    name: "Camila Herrera",
+    countryCode: "AR",
+    countryName: "Argentina",
+    contracts: [
+      {
+        id: "CNT-RKT-089",
+        position: "Product Owner",
+        client: "Rocket",
+        baseSalary: 4600,
+      },
+    ],
+  },
+  {
+    id: "ctr-16",
+    name: "Felipe Núñez",
+    countryCode: "CO",
+    countryName: "Colombia",
+    contracts: [
+      {
+        id: "CNT-RKT-094",
+        position: "Ingeniero de Datos",
+        client: "Rocket",
+        baseSalary: 4000,
+      },
+    ],
+  },
+  {
+    id: "ctr-17",
+    name: "Gabriela Ríos",
+    countryCode: "MX",
+    countryName: "México",
+    contracts: [
+      {
+        id: "CNT-VE-102",
+        position: "Product Designer",
+        client: "Ve",
+        baseSalary: 3300,
+      },
+      {
+        id: "CNT-BK-103",
+        position: "Brand Designer",
+        client: "BK",
+        baseSalary: 2200,
+      },
+    ],
+  },
+  {
+    id: "ctr-18",
+    name: "Mateo Fernández",
+    countryCode: "AR",
+    countryName: "Argentina",
+    contracts: [
+      {
+        id: "CNT-PORT-110",
+        position: "SRE",
+        client: "Port",
+        baseSalary: 4700,
+      },
+    ],
+  },
+  {
+    id: "ctr-19",
+    name: "Lucía Mendoza",
+    countryCode: "CO",
+    countryName: "Colombia",
+    contracts: [
+      {
+        id: "CNT-BK-118",
+        position: "Recruiter Tech",
+        client: "BK",
+        baseSalary: 2500,
+      },
+    ],
+  },
+  {
+    id: "ctr-20",
+    name: "Tomás Vargas",
+    countryCode: "MX",
+    countryName: "México",
+    contracts: [
+      {
+        id: "CNT-RKT-125",
+        position: "Tech Lead",
+        client: "Rocket",
+        baseSalary: 4800,
+      },
+    ],
+  },
+  {
+    id: "ctr-21",
+    name: "Isabela Restrepo",
+    countryCode: "CO",
+    countryName: "Colombia",
+    contracts: [
+      {
+        id: "CNT-VE-130",
+        position: "Customer Success",
+        client: "Ve",
+        baseSalary: 2300,
+      },
+    ],
+  },
+  {
+    id: "ctr-22",
+    name: "Joaquín Pereyra",
+    countryCode: "AR",
+    countryName: "Argentina",
+    contracts: [
+      {
+        id: "CNT-BK-138",
+        position: "Backend Senior",
+        client: "BK",
+        baseSalary: 4300,
+      },
+    ],
+  },
+  {
+    id: "ctr-23",
+    name: "Renata López",
+    countryCode: "MX",
+    countryName: "México",
+    contracts: [
+      {
+        id: "CNT-PORT-146",
+        position: "Analista Financiero",
+        client: "Port",
+        baseSalary: 3100,
+      },
+    ],
+  },
+  {
+    id: "ctr-24",
+    name: "Bruno Acosta",
+    countryCode: "AR",
+    countryName: "Argentina",
+    contracts: [
+      {
+        id: "CNT-RKT-153",
+        position: "Frontend Senior",
+        client: "Rocket",
+        baseSalary: 4100,
+      },
+    ],
+  },
+  {
+    id: "ctr-25",
+    name: "Daniela Ortiz",
+    countryCode: "CO",
+    countryName: "Colombia",
+    contracts: [
+      {
+        id: "CNT-VE-160",
+        position: "QA Automation",
+        client: "Ve",
+        baseSalary: 3200,
+      },
+      {
+        id: "CNT-BK-161",
+        position: "QA Lead",
+        client: "BK",
+        baseSalary: 3700,
+      },
+    ],
+  },
 ];
 
 export function findContractor(contractorId: string): MockContractor | undefined {

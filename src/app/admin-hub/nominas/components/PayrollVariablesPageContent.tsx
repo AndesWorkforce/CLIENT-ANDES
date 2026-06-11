@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Filter, Plus, Search } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
+import AdminHubDateRangePicker from "../../components/AdminHubDateRangePicker";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
 import {
   addPayrollVariable,
@@ -27,6 +28,35 @@ function buildFilterOptions<T>(items: T[], getValue: (item: T) => string) {
   }));
 }
 
+/**
+ * Convierte una fecha en formato MM.DD.YY a formato ISO YYYY-MM-DD
+ * Ejemplo: "03.21.26" -> "2026-03-21"
+ */
+function parseDisplayDateToIso(displayDate: string): string | null {
+  if (!displayDate) return null;
+  const parts = displayDate.split(".");
+  if (parts.length !== 3) return null;
+  
+  const [month, day, year] = parts;
+  // Asumimos que años de 2 dígitos son del siglo 21 (20XX)
+  const fullYear = `20${year}`;
+  
+  return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
+/**
+ * Compara si una fecha está dentro de un rango (inclusive)
+ */
+function isDateInRange(dateStr: string, fromDate: string, toDate: string): boolean {
+  const date = parseDisplayDateToIso(dateStr);
+  if (!date) return true; // Si no se puede parsear, incluir por defecto
+  
+  if (fromDate && date < fromDate) return false;
+  if (toDate && date > toDate) return false;
+  
+  return true;
+}
+
 const STATUS_FILTER_OPTIONS: { value: PayrollVariableStatus; label: string }[] = [
   { value: "Pendiente", label: "Pendiente" },
   { value: "Aprobado", label: "Aprobado" },
@@ -46,6 +76,8 @@ export default function PayrollVariablesPageContent() {
   const [clientFilter, setClientFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const filteredVariables = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -78,8 +110,12 @@ export default function PayrollVariablesPageContent() {
       result = result.filter((item) => item.status === statusFilter);
     }
 
+    if (fromDate || toDate) {
+      result = result.filter((item) => isDateInRange(item.date, fromDate, toDate));
+    }
+
     return result;
-  }, [variables, activeTab, searchQuery, clientFilter, typeFilter, statusFilter]);
+  }, [variables, activeTab, searchQuery, clientFilter, typeFilter, statusFilter, fromDate, toDate]);
 
   function refreshVariables() {
     setVariables([...getPayrollVariables()]);
@@ -115,6 +151,8 @@ export default function PayrollVariablesPageContent() {
     setClientFilter("");
     setTypeFilter("");
     setStatusFilter("");
+    setFromDate("");
+    setToDate("");
     addNotification(PAYROLL_VARIABLE_CREATED_TOAST, "success", "compact");
   }
 
@@ -122,9 +160,11 @@ export default function PayrollVariablesPageContent() {
     setClientFilter("");
     setTypeFilter("");
     setStatusFilter("");
+    setFromDate("");
+    setToDate("");
   }
 
-  const hasActiveFilters = Boolean(clientFilter || typeFilter || statusFilter);
+  const hasActiveFilters = Boolean(clientFilter || typeFilter || statusFilter || fromDate || toDate);
 
   const clientFilterOptions = buildFilterOptions(variables, (item) => item.client);
   const typeFilterOptions = buildFilterOptions(variables, (item) => item.type);
@@ -202,40 +242,48 @@ export default function PayrollVariablesPageContent() {
         </div>
 
         {filtersOpen && (
-          <div className="flex flex-wrap items-center gap-4">
-            <InvoiceFilterSelect
-              label="Filtrar por Cliente"
-              placeholder="Cliente"
-              value={clientFilter}
-              onChange={setClientFilter}
-              options={clientFilterOptions}
+          <div className="flex flex-col gap-4">
+            <AdminHubDateRangePicker
+              fromDate={fromDate}
+              toDate={toDate}
+              onFromDateChange={setFromDate}
+              onToDateChange={setToDate}
             />
-            <InvoiceFilterSelect
-              label="Filtrar por Tipo"
-              placeholder="Tipo"
-              value={typeFilter}
-              onChange={setTypeFilter}
-              options={typeFilterOptions}
-            />
-            <InvoiceFilterSelect
-              label="Filtrar por Estado"
-              placeholder="Pendiente"
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={STATUS_FILTER_OPTIONS}
-            />
-            <button
-              type="button"
-              onClick={clearFilters}
-              disabled={!hasActiveFilters}
-              className={`shrink-0 text-[14px] leading-[1.1] tracking-[0.28px] transition-colors ${
-                hasActiveFilters
-                  ? "text-[#0097B2] hover:text-[#008099] cursor-pointer"
-                  : "text-[#C8C8C8] cursor-default"
-              }`}
-            >
-              Limpiar filtros
-            </button>
+            <div className="flex flex-wrap items-center gap-4">
+              <InvoiceFilterSelect
+                label="Filtrar por Cliente"
+                placeholder="Cliente"
+                value={clientFilter}
+                onChange={setClientFilter}
+                options={clientFilterOptions}
+              />
+              <InvoiceFilterSelect
+                label="Filtrar por Tipo"
+                placeholder="Tipo"
+                value={typeFilter}
+                onChange={setTypeFilter}
+                options={typeFilterOptions}
+              />
+              <InvoiceFilterSelect
+                label="Filtrar por Estado"
+                placeholder="Pendiente"
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={STATUS_FILTER_OPTIONS}
+              />
+              <button
+                type="button"
+                onClick={clearFilters}
+                disabled={!hasActiveFilters}
+                className={`shrink-0 text-[14px] leading-[1.1] tracking-[0.28px] transition-colors ${
+                  hasActiveFilters
+                    ? "text-[#0097B2] hover:text-[#008099] cursor-pointer"
+                    : "text-[#C8C8C8] cursor-default"
+                }`}
+              >
+                Limpiar filtros
+              </button>
+            </div>
           </div>
         )}
       </div>
