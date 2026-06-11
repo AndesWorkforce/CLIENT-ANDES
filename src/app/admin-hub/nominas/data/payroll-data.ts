@@ -21,6 +21,8 @@ export interface PayrollRow {
 }
 
 export const NOMINA_MONTH_OPTIONS = [
+  "Enero del 2025",
+  "Febrero del 2025",
   "Marzo del 2025",
   "Abril del 2025",
   "Mayo del 2025",
@@ -31,9 +33,18 @@ export const NOMINA_MONTH_OPTIONS = [
   "Octubre del 2025",
   "Noviembre del 2025",
   "Diciembre del 2025",
+  "Enero del 2026",
+  "Febrero del 2026",
   "Marzo del 2026",
   "Abril del 2026",
   "Mayo del 2026",
+  "Junio del 2026",
+  "Julio del 2026",
+  "Agosto del 2026",
+  "Septiembre del 2026",
+  "Octubre del 2026",
+  "Noviembre del 2026",
+  "Diciembre del 2026",
 ];
 
 export function monthOptionToPeriod(monthOption: string): string {

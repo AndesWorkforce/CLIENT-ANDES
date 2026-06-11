@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Filter } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Filter, Search } from "lucide-react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
   ADMIN_HUB_CLEAR_FILTERS_CLASS,
@@ -10,6 +10,7 @@ import {
 } from "../../components/admin-hub-filter-styles";
 import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import AdminHubSelect from "../../components/AdminHubSelect";
+import AdminHubDateRangePicker from "../../components/AdminHubDateRangePicker";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
 import {
   buildPayrollRows,
@@ -28,21 +29,87 @@ function buildFilterOptions(values: string[]) {
   return Array.from(new Set(values)).map((value) => ({ value, label: value }));
 }
 
+/**
+ * Convierte una fecha en formato MM.DD.YY a formato ISO YYYY-MM-DD
+ * Ejemplo: "03.21.26" -> "2026-03-21"
+ */
+function parseDisplayDateToIso(displayDate: string): string | null {
+  if (!displayDate) return null;
+  const parts = displayDate.split(".");
+  if (parts.length !== 3) return null;
+  
+  const [month, day, year] = parts;
+  // Asumimos que años de 2 dígitos son del siglo 21 (20XX)
+  const fullYear = `20${year}`;
+  
+  return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
+/**
+ * Convierte una fecha ISO (YYYY-MM-DD) al formato de mes de NOMINA_MONTH_OPTIONS
+ * Ejemplo: "2026-03-21" -> "Marzo 2026"
+ */
+function isoDateToMonthOption(isoDate: string): string | null {
+  if (!isoDate) return null;
+  
+  const date = new Date(isoDate + "T00:00:00");
+  const monthNames = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+  
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${month} ${year}`;
+}
+
+/**
+ * Compara si una fecha está dentro de un rango (inclusive)
+ */
+function isDateInRange(dateStr: string, fromDate: string, toDate: string): boolean {
+  const date = parseDisplayDateToIso(dateStr);
+  if (!date) return true; // Si no se puede parsear, incluir por defecto
+  
+  if (fromDate && date < fromDate) return false;
+  if (toDate && date > toDate) return false;
+  
+  return true;
+}
+
 export default function NominasPageContent() {
-  const [selectedMonth, setSelectedMonth] = useState(
-    NOMINA_MONTH_OPTIONS.find((m) => m.includes("2026")) ?? NOMINA_MONTH_OPTIONS[0]
-  );
+  const defaultMonth = NOMINA_MONTH_OPTIONS.find((m) => m.includes("2026")) ?? NOMINA_MONTH_OPTIONS[0];
+  
+  const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  // Cuando se selecciona un rango de fechas, actualizar automáticamente el mes seleccionado
+  useEffect(() => {
+    if (fromDate) {
+      const monthOption = isoDateToMonthOption(fromDate);
+      if (monthOption && NOMINA_MONTH_OPTIONS.includes(monthOption)) {
+        setSelectedMonth(monthOption);
+      }
+    }
+  }, [fromDate]);
 
   const period = monthOptionToPeriod(selectedMonth);
-  const variables = getPayrollVariables();
+  const allVariables = getPayrollVariables();
+
+  // Filtrar variables por rango de fechas si está activo
+  const filteredVariables = useMemo(() => {
+    if (!fromDate && !toDate) return allVariables;
+    return allVariables.filter((variable) => isDateInRange(variable.date, fromDate, toDate));
+  }, [allVariables, fromDate, toDate]);
 
   const allRows = useMemo(
-    () => buildPayrollRows(period, variables),
-    [period, variables]
+    () => buildPayrollRows(period, filteredVariables),
+    [period, filteredVariables]
   );
 
   const filteredRows = useMemo(() => {
@@ -75,9 +142,13 @@ export default function NominasPageContent() {
   function clearFilters() {
     setClientFilter("");
     setStatusFilter("");
+    setFromDate("");
+    setToDate("");
+    setSelectedMonth(defaultMonth);
   }
 
-  const hasActiveFilters = Boolean(clientFilter || statusFilter);
+  const hasActiveFilters = Boolean(clientFilter || statusFilter || fromDate || toDate);
+  const isMonthFilterDisabled = Boolean(fromDate || toDate);
 
   return (
     <div className="flex flex-col gap-6">
@@ -89,6 +160,7 @@ export default function NominasPageContent() {
         onChange={setSelectedMonth}
         options={NOMINA_MONTH_OPTIONS.map((month) => ({ value: month, label: month }))}
         variant="filter"
+        disabled={isMonthFilterDisabled}
       />
 
       <div className="flex flex-col gap-6">
@@ -111,33 +183,41 @@ export default function NominasPageContent() {
         </div>
 
         {filtersOpen && (
-          <div className={ADMIN_HUB_FILTERS_ROW_CLASS}>
-            <InvoiceFilterSelect
-              label="Filtrar por Cliente"
-              placeholder="Cliente"
-              value={clientFilter}
-              onChange={setClientFilter}
-              options={clientFilterOptions}
+          <div className="flex flex-col gap-4">
+            <AdminHubDateRangePicker
+              fromDate={fromDate}
+              toDate={toDate}
+              onFromDateChange={setFromDate}
+              onToDateChange={setToDate}
             />
-            <InvoiceFilterSelect
-              label="Filtrar por Estado"
-              placeholder="Pendiente"
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={STATUS_FILTER_OPTIONS}
-            />
-            <button
-              type="button"
-              onClick={clearFilters}
-              disabled={!hasActiveFilters}
-              className={`${ADMIN_HUB_CLEAR_FILTERS_CLASS} ${
-                hasActiveFilters
-                  ? "text-[#0097B2] hover:text-[#008099] cursor-pointer"
-                  : "text-[#C8C8C8] cursor-default"
-              }`}
-            >
-              Limpiar filtros
-            </button>
+            <div className="flex flex-wrap items-center gap-4">
+              <InvoiceFilterSelect
+                label="Filtrar por Cliente"
+                placeholder="Cliente"
+                value={clientFilter}
+                onChange={setClientFilter}
+                options={clientFilterOptions}
+              />
+              <InvoiceFilterSelect
+                label="Filtrar por Estado"
+                placeholder="Pendiente"
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={STATUS_FILTER_OPTIONS}
+              />
+              <button
+                type="button"
+                onClick={clearFilters}
+                disabled={!hasActiveFilters}
+                className={`shrink-0 text-[14px] leading-[1.1] tracking-[0.28px] transition-colors ${
+                  hasActiveFilters
+                    ? "text-[#0097B2] hover:text-[#008099] cursor-pointer"
+                    : "text-[#C8C8C8] cursor-default"
+                }`}
+              >
+                Limpiar filtros
+              </button>
+            </div>
           </div>
         )}
       </div>
