@@ -49,17 +49,14 @@ const createTransporter = async () => {
 
 export const sendInterviewInvitation = async (
   candidateName: string,
-  candidateEmail: string
+  candidateEmail: string,
+  jobTitle: string
 ) => {
   try {
-    const bookingLink =
-      "https://outlook.office.com/book/AndesWorkforceInterview@teamandes.com/?ismsaljsauthenabled";
-
-    // Stage 2: Invite to Interview
     const emailHtml = await render(
       InterviewInvitationEmail({
         candidateName,
-        bookingLink,
+        jobTitle,
       })
     );
 
@@ -68,7 +65,7 @@ export const sendInterviewInvitation = async (
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
-      subject: "Scheduling a Call to Discuss Opportunities at Andes Workforce",
+      subject: "Next Step in Your Application",
       html: emailHtml,
     });
 
@@ -132,7 +129,7 @@ export const sendRejectionEmail = async (
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
-      subject: "Update on Your Application Status",
+      subject: "Andes Workforce | Update on Your Application",
       html: emailHtml,
     });
 
@@ -210,7 +207,7 @@ export const sendAssignJobNotification = async (
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
-      subject: "You have been assigned to a new job opportunity",
+      subject: `Andes Workforce | Good News! You've Been Assigned to ${jobTitle}`,
       html: emailHtml,
     });
 
@@ -345,7 +342,7 @@ export const sendRemovalNotification = async (
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
-      subject: "Update on Your Application Status",
+      subject: "Andes Workforce | Update on Your Application",
       html: emailHtml,
     });
 

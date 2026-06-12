@@ -517,6 +517,7 @@ export default function PostulantsPage() {
               applicant.id,
               getPostulantDisplayName(applicant),
               applicant.correo,
+              applicant.lastRelevantPostulacion?.titulo || "the position",
             )
           }
         >
@@ -677,6 +678,7 @@ export default function PostulantsPage() {
     candidateId: string,
     candidateName: string,
     candidateEmail: string,
+    jobTitle: string,
   ) => {
     try {
       // Actualización optimista del estado local
@@ -700,6 +702,7 @@ export default function PostulantsPage() {
         const emailResponse = await sendInterviewInvitation(
           candidateName,
           candidateEmail,
+          jobTitle,
         );
 
         if (emailResponse && emailResponse.success) {
@@ -1335,6 +1338,8 @@ export default function PostulantsPage() {
                                       applicant.id,
                                       getPostulantDisplayName(applicant),
                                       applicant.correo,
+                                      applicant.lastRelevantPostulacion?.titulo ||
+                                        "the position",
                                     )
                                   }
                                 >

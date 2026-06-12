@@ -2056,7 +2056,8 @@ export default function ApplicantsModal({
         // Enviar email de invitación a entrevista
         const emailResponse = await sendInterviewInvitation(
           candidateName,
-          candidateEmail
+          candidateEmail,
+          serviceTitle
         );
 
         if (emailResponse && emailResponse.success) {
@@ -2370,7 +2371,8 @@ export default function ApplicantsModal({
           );
           const emailResponse = await sendInterviewInvitation(
             candidateName,
-            candidateEmail
+            candidateEmail,
+            serviceTitle
           );
 
           if (emailResponse && emailResponse.success) {
