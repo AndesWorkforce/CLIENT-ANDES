@@ -30,12 +30,6 @@ body {
   font-family: var(--font-inter);
 }
 
-/* Espaciador para el navbar fijo */
-.navbar-spacer {
-  height: var(--navbar-height);
-  width: 100%;
-}
-
 /* Ocultar scrollbar pero mantener funcionalidad */
 .scrollbar-hide {
   -ms-overflow-style: none; /* IE and Edge */
