@@ -127,12 +127,12 @@ export default function PartnersSection() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {/* Desktop: Grid de 4 columnas */}
+          <div className="hidden md:grid grid-cols-4 gap-4">
             {[
-              { stat: "48h", title: "Fast Hiring", desc: "Pre-evaluated expert talent ready to join your team today" },
+              { stat: "40h", title: "Fast Hiring", desc: "Pre-evaluated expert talent ready to join your team today" },
               { stat: "60%", title: "Cost Effective", desc: "Reduce your payroll costs by hiring elite professionals" },
               { stat: "10–15%", title: "Top of talent", desc: "Carefully selected through a rigorous, multi‑step selection process"},
-              { stat: "0", title: "Hour Difference", desc: "Fluid collaboration working in your same time zone" },
               { stat: "100%", title: "Cybersecurity", desc: "Full protection under international protocols" },
             ].map((item) => (
               <div
@@ -144,6 +144,29 @@ export default function PartnersSection() {
                 <p className="text-base text-[#676565] leading-snug">{item.desc}</p>
               </div>
             ))}
+          </div>
+
+          {/* Mobile: Carrusel con 2 tarjetas visibles */}
+          <div className="md:hidden relative">
+            <div className="overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+              <div className="flex gap-4 pb-2">
+                {[
+                  { stat: "40h", title: "Fast Hiring", desc: "Pre-evaluated expert talent ready to join your team today" },
+                  { stat: "60%", title: "Cost Effective", desc: "Reduce your payroll costs by hiring elite professionals" },
+                  { stat: "10–15%", title: "Top of talent", desc: "Carefully selected through a rigorous, multi‑step selection process"},
+                  { stat: "100%", title: "Cybersecurity", desc: "Full protection under international protocols" },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    className="border border-gray-200 rounded-2xl p-6 flex flex-col gap-2 min-w-[260px] snap-start"
+                  >
+                    <span className="text-4xl font-bold text-[#0097b2]">{item.stat}</span>
+                    <h3 className="text-lg font-bold text-[#00224d]">{item.title}</h3>
+                    <p className="text-sm text-[#676565] leading-snug">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>

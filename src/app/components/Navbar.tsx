@@ -16,6 +16,12 @@ import {
   HelpCircle,
   Phone,
   Mail,
+  Home,
+  Users,
+  Headphones,
+  Handshake,
+  Globe,
+  Menu,
 } from "lucide-react";
 import { FaSquareFacebook, FaLinkedin } from "react-icons/fa6";
 import { AiFillInstagram, AiFillTikTok } from "react-icons/ai";
@@ -24,7 +30,6 @@ import Link from "next/link";
 import Logo from "@/components/ui/Logo";
 import useRouteExclusion from "@/hooks/useRouteExclusion";
 import useOutsideClick from "@/hooks/useOutsideClick";
-import useScrollShadow from "@/hooks/useScrollShadow";
 import {
   getCurrentContract,
   getCurrentUserBasic,
@@ -32,11 +37,11 @@ import {
 } from "../pages/offers/actions/jobs.actions";
 
 const navigation = [
-  { name: "Home", href: "/pages/home" },
-  { name: "About Us", href: "/pages/about" },
-  { name: "Our Services", href: "/pages/services" },
-  { name: "Join Our Team", href: "/pages/offers" },
-  { name: "Contact Us", href: "/pages/contact" },
+  { name: "Home", href: "/pages/home", icon: Home },
+  { name: "About Us", href: "/pages/about", icon: Users },
+  { name: "Our Services", href: "/pages/services", icon: Headphones },
+  { name: "Join Our Team", href: "/pages/offers", icon: Handshake },
+  { name: "Contact Us", href: "/pages/contact", icon: Globe },
 ];
 
 const socialLinks = [
@@ -87,7 +92,6 @@ export default function Navbar() {
   const router = useRouter();
   const { user, logout, isAuthenticated, isLoading } = useAuthStore();
   const { isNavbarExcluded } = useRouteExclusion();
-  const { scrollRef, showLeftShadow, showRightShadow } = useScrollShadow();
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
   const [currentContractStatus, setCurrentContractStatus] =
@@ -295,9 +299,6 @@ export default function Navbar() {
     return null;
   }
 
-  // Spacer that compensates for the fixed navbar height
-  const NavbarSpacer = () => <div className="h-[85px]" aria-hidden="true" />;
-
   const renderUserMenu = () => (
     <>
       <div className="px-4 py-3 border-b border-gray-100">
@@ -481,10 +482,19 @@ export default function Navbar() {
                 </Link>
                 <button
                   type="button"
-                  className="bg-[#0097B2] text-white h-[34px] px-[25px] py-[5px] rounded-[15px] text-[16px] font-normal hover:bg-[#007a94] transition-colors cursor-pointer"
+                  className="hidden md:flex bg-[#0097B2] text-white h-[34px] px-[25px] py-[5px] rounded-[15px] text-[16px] font-normal hover:bg-[#007a94] transition-colors cursor-pointer"
                   onClick={() => router.push("/auth/login")}
                 >
                   Login
+                </button>
+                {/* Mobile Menu Button for Non-Authenticated Users */}
+                <button
+                  type="button"
+                  className="md:hidden text-[#0097B2] hover:text-[#007a94] transition-colors cursor-pointer p-2"
+                  onClick={() => setShowMobileSidebar(true)}
+                  aria-label="Open menu"
+                >
+                  <Menu size={28} strokeWidth={2} />
                 </button>
               </>
             ) : (
@@ -507,9 +517,10 @@ export default function Navbar() {
                     <div className="md:hidden">
                       <button
                         onClick={() => setShowMobileSidebar(true)}
-                        className="text-[16px] text-[#0097B2] hover:text-[#007a94] px-3 py-2 font-normal transition-colors cursor-pointer"
+                        className="text-[#0097B2] hover:text-[#007a94] transition-colors cursor-pointer p-2"
+                        aria-label="Open menu"
                       >
-                        {getNavbarDisplayName(user, aliasFromServer)}
+                        <Menu size={28} strokeWidth={2} />
                       </button>
                     </div>
                   </>
@@ -615,9 +626,10 @@ export default function Navbar() {
                     <div className="md:hidden">
                       <button
                         onClick={() => setShowMobileSidebar(true)}
-                        className="text-[16px] text-[#0097B2] hover:text-[#007a94] px-3 py-2 font-normal transition-colors cursor-pointer"
+                        className="text-[#0097B2] hover:text-[#007a94] transition-colors cursor-pointer p-2"
+                        aria-label="Open menu"
                       >
-                        {getNavbarDisplayName(user, aliasFromServer)}
+                        <Menu size={28} strokeWidth={2} />
                       </button>
                     </div>
                   </>
@@ -626,253 +638,299 @@ export default function Navbar() {
             )}
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        <div className="md:hidden relative pb-2">
-          {showLeftShadow && (
-            <div className="absolute top-0 left-0 w-8 h-full z-10 scroll-shadow-left" />
-          )}
-
-          <div
-            ref={scrollRef}
-            className="overflow-x-auto scrollbar-hide -mx-4 px-4"
-          >
-            <div className="flex space-x-2 min-w-max">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center justify-center px-4 py-1.5 border text-sm font-medium transition-colors whitespace-nowrap rounded-md ${
-                    isActive(item.href)
-                      ? "bg-[#0097B2] text-white border-[#0097B2]"
-                      : "bg-white text-black border-gray-200 hover:text-[#0097B2] hover:border-[#0097B2]"
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              {isAuthenticated && user?.rol === "CANDIDATO" && (
-                <Link
-                  href="/pages/open-contracts"
-                  className={`flex items-center justify-center px-4 py-1.5 border text-sm font-medium transition-colors whitespace-nowrap rounded-md ${
-                    isActive("/pages/open-contracts")
-                      ? "bg-[#0097B2] text-white border-[#0097B2]"
-                      : "bg-white text-black border-gray-200 hover:text-[#0097B2] hover:border-[#0097B2]"
-                  }`}
-                >
-                  Open Contracts
-                </Link>
-              )}
-            </div>
-          </div>
-
-          {showRightShadow && (
-            <div className="absolute top-0 right-0 w-8 h-full z-10 scroll-shadow-right" />
-          )}
-        </div>
       </div>
 
       {showMobileSidebar && (
         <div
-          className="fixed inset-0 bg-[#08252A33] z-50 md:hidden animate-fade-in"
-          onClick={() => setShowMobileSidebar(false)}
+          className="fixed inset-0 bg-white z-50 md:hidden"
+          onClick={(e) => e.stopPropagation()}
         >
           <div
             ref={sidebarRef}
-            className="absolute right-0 top-0 h-full w-[250px] bg-white shadow-xl animate-slide-in-right"
-            onClick={(e) => e.stopPropagation()}
+            className="h-full w-full bg-white flex flex-col"
           >
-            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+            {/* Header with Logo and Close Button */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <Logo />
               <button
                 onClick={() => setShowMobileSidebar(false)}
-                className="text-gray-500 cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
+                aria-label="Close menu"
               >
-                <X size={24} />
+                <X size={24} strokeWidth={2} />
               </button>
             </div>
 
-            <div className="p-2">
-              <div className="flex flex-col space-y-1 py-2">
-                <p className="px-4 text-[#0097B2] font-medium">
-                  {isValidProfileUserState !== undefined && (
-                    <span
-                      className={`text-[10px] block ${
-                        isValidProfileUserState
-                          ? "text-green-500"
-                          : "text-red-500"
-                      }`}
-                    >
-                      {isValidProfileUserState ? "Completed" : "Incomplete"}
-                    </span>
-                  )}
-                  {getNavbarDisplayName(user, aliasFromServer)}
-                </p>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+              {/* If not authenticated, show Sign Up button and navigation */}
+              {!isAuthenticated ? (
+                <div className="p-6 space-y-4">
+                  {/* Sign Up Button */}
+                  <button
+                    type="button"
+                    className="w-full bg-[#0097B2] text-white h-[45px] px-6 rounded-[8px] text-[16px] font-medium hover:bg-[#007a94] transition-colors cursor-pointer flex items-center justify-center gap-2"
+                    onClick={() => {
+                      router.push("/auth/register");
+                      setShowMobileSidebar(false);
+                    }}
+                  >
+                    <UserCircle size={20} />
+                    Sign Up
+                  </button>
 
-                {user?.rol === "CANDIDATO" ? (
-                  <>
-                    <Link
-                      href="/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md cursor-pointer"
-                      onClick={() => setShowMobileSidebar(false)}
-                    >
-                      <UserCircle size={20} className="mr-2 text-[#0097B2]" />
-                      <div className="relative">
-                        My Profile
-                        {isValidProfileUserState !== undefined && (
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 6 6"
-                            fill={
-                              isValidProfileUserState ? "#10B981" : "#EF4444"
-                            }
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="absolute -top-2 -right-2"
-                          >
-                            <circle cx="3" cy="3" r="3" />
-                          </svg>
-                        )}
-                      </div>
-                    </Link>
-
-                    <Link
-                      href="/applications"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setShowMobileSidebar(false)}
-                    >
-                      <FileText size={20} className="mr-2 text-[#0097B2]" />
-                      My Applications
-                    </Link>
-
-                    <Link
-                      href="/pages/open-contracts"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setShowMobileSidebar(false)}
-                    >
-                      <Briefcase size={20} className="mr-2 text-[#0097B2]" />
-                      Open Contracts
-                    </Link>
-
-                    {currentContractStatus && (
-                      <Link
-                        href="/currentApplication"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                        onClick={() => setShowMobileSidebar(false)}
-                      >
-                        <Briefcase size={20} className="mr-2 text-[#0097B2]" />
-                        Current Contract
-                      </Link>
-                    )}
-
-                    {currentContractStatus && (
-                      <Link
-                        href="/bonifications"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                        onClick={() => setShowMobileSidebar(false)}
-                      >
-                        <Briefcase size={20} className="mr-2 text-[#0097B2]" />
-                        Additional Incentives & Holidays
-                      </Link>
-                    )}
-
-                    <Link
-                      href="/faq"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setShowMobileSidebar(false)}
-                    >
-                      <HelpCircle size={20} className="mr-2 text-[#0097B2]" />
-                      Frequently Asked Questions
-                    </Link>
-
-                    <Link
-                      href="/account"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                      onClick={() => setShowMobileSidebar(false)}
-                    >
-                      <User size={20} className="mr-2 text-[#0097B2]" />
-                      My Account
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    {user?.rol === "EMPRESA" ||
-                    user?.rol === "EMPLEADO_EMPRESA" ? (
-                      <>
+                  {/* Main Navigation */}
+                  <nav className="space-y-1">
+                    {navigation.map((item) => {
+                      const Icon = item.icon;
+                      return (
                         <Link
-                          href="/companies/dashboard"
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                          key={item.name}
+                          href={item.href}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] transition-colors ${
+                            isActive(item.href)
+                              ? "text-[#0097B2] bg-[#0097B2]/10"
+                              : "text-gray-600 hover:text-[#0097B2] hover:bg-gray-50"
+                          }`}
                           onClick={() => setShowMobileSidebar(false)}
                         >
-                          <LayoutDashboard
-                            size={20}
-                            className="mr-2 text-[#0097B2]"
-                          />
-                          Company Panel
+                          <Icon size={20} strokeWidth={2} />
+                          {item.name}
                         </Link>
-                      </>
-                    ) : (
-                      <>
-                        {user?.rol === "ADMIN" && (
-                          <>
-                            <Link
-                              href="/admin/superAdmin"
-                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                              onClick={() => setShowMobileSidebar(false)}
-                            >
-                              <Settings
-                                size={20}
-                                className="mr-2 text-[#0097B2]"
-                              />
-                              Super Admin Panel
-                            </Link>
-                            <hr className="my-1 border-gray-200" />
-                          </>
-                        )}
+                      );
+                    })}
+                  </nav>
+                </div>
+              ) : (
+                <div className="p-6 space-y-4">
+                  {/* User Info */}
+                  <div className="pb-4 border-b border-gray-100">
+                    <p className="text-[#0097B2] font-medium text-[16px]">
+                      {getNavbarDisplayName(user, aliasFromServer)}
+                    </p>
+                    {user?.rol === "CANDIDATO" && isValidProfileUserState !== undefined && (
+                      <span
+                        className={`text-[12px] ${
+                          isValidProfileUserState
+                            ? "text-green-500"
+                            : "text-red-500"
+                        }`}
+                      >
+                        {isValidProfileUserState
+                          ? "Profile Completed"
+                          : "Profile Incomplete"}
+                      </span>
+                    )}
+                  </div>
 
-                        {(user?.rol === "ADMIN" ||
-                          user?.rol === "ADMIN_RECLUTAMIENTO") && (
+                  {/* Navigation for authenticated users */}
+                  {user?.rol === "CANDIDATO" ? (
+                    <nav className="space-y-1">
+                      {/* Main navigation items */}
+                      {navigation.map((item) => {
+                        const Icon = item.icon;
+                        return (
                           <Link
-                            href="/admin/dashboard"
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                            key={item.name}
+                            href={item.href}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] transition-colors ${
+                              isActive(item.href)
+                                ? "text-[#0097B2] bg-[#0097B2]/10"
+                                : "text-gray-600 hover:text-[#0097B2] hover:bg-gray-50"
+                            }`}
                             onClick={() => setShowMobileSidebar(false)}
                           >
-                            <LayoutDashboard
-                              size={20}
-                              className="mr-2 text-[#0097B2]"
-                            />
-                            {user?.rol === "ADMIN"
-                              ? "Offers Management"
-                              : "Dashboard"}
+                            <Icon size={20} strokeWidth={2} />
+                            {item.name}
                           </Link>
-                        )}
-                      </>
-                    )}
-                  </>
+                        );
+                      })}
+
+                      {/* Open Contracts */}
+                      <Link
+                        href="/pages/open-contracts"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] transition-colors ${
+                          isActive("/pages/open-contracts")
+                            ? "text-[#0097B2] bg-[#0097B2]/10"
+                            : "text-gray-600 hover:text-[#0097B2] hover:bg-gray-50"
+                        }`}
+                        onClick={() => setShowMobileSidebar(false)}
+                      >
+                        <Briefcase size={20} strokeWidth={2} />
+                        Open Contracts
+                      </Link>
+
+                      {/* Separator */}
+                      <div className="py-2">
+                        <div className="border-t border-gray-200"></div>
+                      </div>
+
+                      {/* User specific items */}
+                      <Link
+                        href="/profile"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-[#0097B2] hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowMobileSidebar(false)}
+                      >
+                        <UserCircle size={20} strokeWidth={2} />
+                        My Profile
+                      </Link>
+
+                      <Link
+                        href="/applications"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-[#0097B2] hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowMobileSidebar(false)}
+                      >
+                        <FileText size={20} strokeWidth={2} />
+                        My Applications
+                      </Link>
+
+                      {currentContractStatus && (
+                        <Link
+                          href="/currentApplication"
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-[#0097B2] hover:bg-gray-50 transition-colors"
+                          onClick={() => setShowMobileSidebar(false)}
+                        >
+                          <Briefcase size={20} strokeWidth={2} />
+                          Current Contract
+                        </Link>
+                      )}
+
+                      {currentContractStatus && (
+                        <Link
+                          href="/bonifications"
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-[#0097B2] hover:bg-gray-50 transition-colors"
+                          onClick={() => setShowMobileSidebar(false)}
+                        >
+                          <Briefcase size={20} strokeWidth={2} />
+                          Additional Incentives & Holidays
+                        </Link>
+                      )}
+
+                      <Link
+                        href="/faq"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-[#0097B2] hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowMobileSidebar(false)}
+                      >
+                        <HelpCircle size={20} strokeWidth={2} />
+                        FAQ
+                      </Link>
+                    </nav>
+                  ) : user?.rol === "EMPRESA" || user?.rol === "EMPLEADO_EMPRESA" ? (
+                    <nav className="space-y-1">
+                      {/* Main navigation items */}
+                      {navigation.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] transition-colors ${
+                              isActive(item.href)
+                                ? "text-[#0097B2] bg-[#0097B2]/10"
+                                : "text-gray-600 hover:text-[#0097B2] hover:bg-gray-50"
+                            }`}
+                            onClick={() => setShowMobileSidebar(false)}
+                          >
+                            <Icon size={20} strokeWidth={2} />
+                            {item.name}
+                          </Link>
+                        );
+                      })}
+
+                      {/* Separator */}
+                      <div className="py-2">
+                        <div className="border-t border-gray-200"></div>
+                      </div>
+
+                      <Link
+                        href="/companies/dashboard"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-[#0097B2] hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowMobileSidebar(false)}
+                      >
+                        <LayoutDashboard size={20} strokeWidth={2} />
+                        Company Dashboard
+                      </Link>
+                    </nav>
+                  ) : (user?.rol === "ADMIN" || user?.rol === "ADMIN_RECLUTAMIENTO") && (
+                    <nav className="space-y-1">
+                      {/* Main navigation items */}
+                      {navigation.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] transition-colors ${
+                              isActive(item.href)
+                                ? "text-[#0097B2] bg-[#0097B2]/10"
+                                : "text-gray-600 hover:text-[#0097B2] hover:bg-gray-50"
+                            }`}
+                            onClick={() => setShowMobileSidebar(false)}
+                          >
+                            <Icon size={20} strokeWidth={2} />
+                            {item.name}
+                          </Link>
+                        );
+                      })}
+
+                      {/* Separator */}
+                      <div className="py-2">
+                        <div className="border-t border-gray-200"></div>
+                      </div>
+
+                      {user?.rol === "ADMIN" && (
+                        <Link
+                          href="/admin/superAdmin"
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-[#0097B2] hover:bg-gray-50 transition-colors"
+                          onClick={() => setShowMobileSidebar(false)}
+                        >
+                          <Settings size={20} strokeWidth={2} />
+                          Super Admin Panel
+                        </Link>
+                      )}
+                      <Link
+                        href="/admin/dashboard"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-[#0097B2] hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowMobileSidebar(false)}
+                      >
+                        <LayoutDashboard size={20} strokeWidth={2} />
+                        {user?.rol === "ADMIN" ? "Offers Management" : "Dashboard"}
+                      </Link>
+                    </nav>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer - Configuration and Logout (only when authenticated) */}
+            {isAuthenticated && (
+              <div className="border-t border-gray-200 p-6 space-y-1">
+                {user?.rol === "CANDIDATO" && (
+                  <Link
+                    href="/account"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-[#0097B2] hover:bg-gray-50 transition-colors"
+                    onClick={() => setShowMobileSidebar(false)}
+                  >
+                    <Settings size={20} strokeWidth={2} />
+                    Configuration
+                  </Link>
                 )}
-
-                <hr className="my-1 border-gray-200" />
-
                 <button
                   onClick={() => {
                     handleLogout();
                     setShowMobileSidebar(false);
                   }}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md text-left w-full cursor-pointer"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-red-500 hover:bg-red-50 transition-colors w-full text-left cursor-pointer"
                 >
-                  <LogOut
-                    size={20}
-                    className="mr-2 text-[#0097B2] cursor-pointer"
-                  />
-                  {user?.rol === "CANDIDATO" ? "Logout" : "Logout"}
+                  <LogOut size={20} strokeWidth={2} />
+                  Logout
                 </button>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
     </header>
-      <NavbarSpacer />
     </>
   );
 }

@@ -213,29 +213,7 @@ export const teamMembers: TeamMember[] = [
         bullets: [
           "Senior nap executive; majestic fluff with grumpy charm and zero tolerance for nonsense.",
         ],
-      },
-      {
-        id: "casper",
-        name: "Casper",
-        role: "Director of Purr\u2011sonal Affairs",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/casper.jpg",
-        bullets: [
-          "Master of emotional support and spontaneous cuddle sessions.",
-          "Expert in stress relief via purring and lap occupation.",
-          "Responsible for daily office patrols and sunbeam lounging.",
-        ],
-      },
-      {
-        id: "bagheera",
-        name: "Bagheera",
-        role: "Director of Purr\u2011sonal Affairs",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/bagheera.jpg",
-        bullets: [
-          "Master of emotional support and spontaneous cuddle sessions.",
-          "Expert in stress relief via purring and lap occupation.",
-          "Responsible for daily office patrols and sunbeam lounging.",
-        ],
-      },
+      }
     ],
   },
 
@@ -255,17 +233,6 @@ export const teamMembers: TeamMember[] = [
     ],
     imageClass: "object-cover",
     pets: [
-      {
-        id: "ozzy",
-        name: "Ozzy",
-        role: "Junior Pawblic Relations Intern",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/ozzy.jpg",
-        bullets: [
-          "Mastering the art of chew\u2011toy diplomacy.",
-          "Brings boundless energy and puppy\u2011eyed charm to every meeting.",
-          "Still learning the ropes but already a pro at stealing hearts.",
-        ],
-      },
       {
         id: "panela",
         name: "Panela",
