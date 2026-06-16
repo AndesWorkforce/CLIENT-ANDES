@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { ChevronDown, MoreVertical } from "lucide-react";
 import AdminHubTableShell, {
   ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS,
@@ -13,6 +14,7 @@ import {
   formatVariableColumn,
   type PayrollRow,
 } from "../data/payroll-data";
+import { payrollRowToDetailPath } from "../data/mock-payroll-detail";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
 
 interface NominasTableProps {
@@ -196,14 +198,14 @@ export default function NominasTable({ rows }: NominasTableProps) {
                       role="menu"
                       className="absolute right-0 top-full z-50 mt-1 min-w-[148px] rounded-[8px] border border-[#EFEFEF] bg-white py-1 shadow-[0px_2px_8px_rgba(112,112,112,0.15)]"
                     >
-                      <button
-                        type="button"
+                      <Link
+                        href={payrollRowToDetailPath(row)}
                         role="menuitem"
                         onClick={() => setOpenMenuId(null)}
                         className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] hover:bg-[#F8F8F8] transition-colors cursor-pointer"
                       >
                         Ver detalle
-                      </button>
+                      </Link>
                       <button
                         type="button"
                         role="menuitem"

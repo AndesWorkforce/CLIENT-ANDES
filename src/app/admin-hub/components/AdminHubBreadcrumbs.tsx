@@ -38,6 +38,22 @@ export function getAdminHubBreadcrumbItems(pathname: string): AdminHubBreadcrumb
     ];
   }
 
+  if (/^\/admin-hub\/contratos\/[^/]+$/.test(pathname)) {
+    return [
+      { label: "Administrador", href: "/admin-hub/dashboard" },
+      { label: "Contratos", href: "/admin-hub/contratos" },
+      { label: "Detalle de contrato" },
+    ];
+  }
+
+  if (/^\/admin-hub\/nominas\/[^/]+$/.test(pathname) && pathname !== "/admin-hub/nominas/variables") {
+    return [
+      { label: "Administrador", href: "/admin-hub/dashboard" },
+      { label: "Nóminas", href: "/admin-hub/nominas" },
+      { label: "Detalle de nómina" },
+    ];
+  }
+
   if (/^\/admin-hub\/pagos\/facturas\/[^/]+$/.test(pathname)) {
     return [
       { label: "Administrador", href: "/admin-hub/dashboard" },

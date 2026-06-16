@@ -101,7 +101,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.10.2026",
   },
   {
-    id: "pv-9",
+    id: "pv-4",
     date: "03.21.26",
     contractor: "Ana Gomez",
     client: "BK",
@@ -116,7 +116,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.03.2026",
   },
   {
-    id: "pv-10",
+    id: "pv-5",
     date: "03.21.26",
     contractor: "Luis Lee",
     client: "Rocket",
@@ -131,7 +131,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.15.2026",
   },
   {
-    id: "pv-4",
+    id: "pv-6",
     date: "03.21.26",
     contractor: "Martin Diaz",
     client: "Rocket",
@@ -145,7 +145,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.08.2026",
   },
   {
-    id: "pv-5",
+    id: "pv-7",
     date: "03.21.26",
     contractor: "María Rodriguez",
     client: "Port",
@@ -159,7 +159,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.12.2026",
   },
   {
-    id: "pv-6",
+    id: "pv-8",
     date: "03.21.26",
     contractor: "Sol Martin",
     client: "Ve",
@@ -173,7 +173,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.18.2026",
   },
   {
-    id: "pv-7",
+    id: "pv-9",
     date: "03.20.26",
     contractor: "Carla Ruiz",
     client: "Port",
@@ -187,7 +187,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.20.2026",
   },
   {
-    id: "pv-8",
+    id: "pv-10",
     date: "03.19.26",
     contractor: "Pedro Soto",
     client: "BK",
@@ -201,7 +201,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.19.2026",
   },
   {
-    id: "pv-9",
+    id: "pv-11",
     date: "02.15.26",
     contractor: "Sofia Morales",
     client: "BK",
@@ -215,7 +215,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.15.2026",
   },
   {
-    id: "pv-10",
+    id: "pv-12",
     date: "04.10.26",
     contractor: "Roberto Silva",
     client: "Rocket",
@@ -229,7 +229,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.15.2026",
   },
   {
-    id: "pv-11",
+    id: "pv-106",
     date: "01.05.26",
     contractor: "Laura Vega",
     client: "Port",
@@ -243,7 +243,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.15.2026",
   },
   {
-    id: "pv-12",
+    id: "pv-107",
     date: "05.22.26",
     contractor: "Diego Campos",
     client: "Ve",
