@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Instagram, Facebook } from "lucide-react";
 
 import {
   contactFormSchema,
   type ContactFormValues,
 } from "../schema/contact-schema";
-// import { submitContactForm } from "../actions/contact-actions";
 import { submitContactFormMicrosoft } from "../actions/microsoft-email-actions";
 
 export default function ContactForm() {
@@ -18,15 +16,13 @@ export default function ContactForm() {
     success: boolean;
     message: string;
   } | null>(null);
-  const [countryCode, setCountryCode] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
 
   const {
     register,
     handleSubmit,
     formState: { errors, isValid },
     reset,
-    setValue,
+    watch,
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
@@ -34,60 +30,38 @@ export default function ContactForm() {
       lastName: "",
       email: "",
       phone: "",
-      smsConsent: false,
-      service: undefined,
+      companyName: "",
+      supportTypes: [],
+      teamSize: undefined,
       message: "",
     },
     mode: "onChange",
   });
-
-  // Cuando cambie cualquiera de los dos inputs, actualizar el valor en el formulario
-  useEffect(() => {
-    // Concatenar código de país y número
-    setValue("phone", `${countryCode}${phoneNumber}` || "", {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-  }, [countryCode, phoneNumber, setValue]);
-
-  const fieldLabels: Record<string, string> = {
-    firstName: "First Name",
-    lastName: "Last Name",
-    email: "Email",
-    phone: "Phone Number",
-    service: "Select a Service",
-    message: "Message",
-  };
-
-  const invalidFields = Object.keys(errors)
-    .filter((field) => field !== "smsConsent")
-    .map((field) => fieldLabels[field] ?? field);
 
   const onSubmit = async (data: ContactFormValues) => {
     setIsSubmitting(true);
     setFormResponse(null);
 
     try {
-      // Asegurar que phone y smsConsent nunca sean undefined
-      const formData = {
-        ...data,
-        phone: data.phone || "",
-        smsConsent: !!data.smsConsent,
+      // Adaptar los datos al formato que espera la función de envío
+      const adaptedData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        smsConsent: false,
+        service: "talent" as const,
+        message: `Company: ${data.companyName}\n\nSupport Types: ${data.supportTypes.join(", ")}\n\nTeam Size: ${data.teamSize}\n\n${data.message}`,
       };
 
-      // const response = await submitContactForm(formData);
-      const response = await submitContactFormMicrosoft(formData);
+      const response = await submitContactFormMicrosoft(adaptedData);
       setFormResponse(response);
 
       if (response.success) {
-        // Track Google Ads conversion event - contact page form submit
         if (typeof window !== "undefined" && window.gtag) {
           window.gtag("event", "ads_conversion_Form_ContactPage", {});
         }
-
         reset();
-        setCountryCode("");
-        setPhoneNumber("");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -100,353 +74,376 @@ export default function ContactForm() {
     }
   };
 
+  const supportOptions = [
+    { id: "administrative", label: "Administrative Support" },
+    { id: "customer", label: "Customer Service" },
+    { id: "legal", label: "Legal Support" },
+    { id: "data", label: "Data & Operations" },
+    { id: "virtual", label: "Virtual Assistance" },
+    { id: "other", label: "Other" },
+  ];
+
+  const teamSizeOptions = [
+    { value: "1", label: "1" },
+    { value: "2-5", label: "2-5" },
+    { value: "6-10", label: "6-10" },
+    { value: "+10", label: "+10" },
+  ];
+
   return (
-    <div className="container mx-auto px-4 max-w-4xl">
-      {/* Sección de título */}
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-[#08252A] mb-2">
-          Get in Touch!
-        </h1>
-        <p className="text-[#08252A]">We are here for you! How can we help?</p>
-        <p className="text-sm text-[#B6B4B4] mt-2">
-          Fields marked with <span className="text-red-600">*</span> are
-          required.
-        </p>
+    <div className="min-h-screen">
+      {/* Hero Section with Banner Image */}
+      <div className="relative h-[505px] flex items-center overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/contact_us/contact_us_banner.png')",
+          }}
+        >
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#2A5F6F]/90 to-[#1A4F5F]/70"></div>
+        </div>
+
+        <div className="container mx-auto px-4 md:px-20 relative z-10">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+              Let's build your remote team
+            </h1>
+            <p className="text-lg text-white/90 drop-shadow">
+              Tell us about your business needs and we'll help you find the
+              right talent.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {formResponse && (
+      {/* Combined Form and Opportunities Section with Single Background */}
+      <div className="relative">
+        {/* Background Pattern - Single instance covering all content */}
         <div
-          className={`p-4 mb-6 rounded ${
-            formResponse.success
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {formResponse.message}
-        </div>
-      )}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/contact_us/Fondo+Contact+US.png')",
+          }}
+        ></div>
 
-      {/* Formulario de contacto */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6"
-      >
-        {/* Primera columna */}
-        <div>
-          <label
-            htmlFor="firstName"
-            className="block text-[#0097B2] font-medium mb-1"
-          >
-            First Name <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="text"
-            id="firstName"
-            required
-            aria-invalid={!!errors.firstName}
-            placeholder="Enter your first name"
-            className={`w-full px-3 py-2 border-b ${
-              errors.firstName ? "border-red-500" : "border-gray-300"
-            } focus:outline-none focus:border-b-2 focus:border-[#0097B2]`}
-            {...register("firstName")}
-          />
-          {errors.firstName && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.firstName.message}
+        {/* Solid Color Overlay */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundColor: "rgba(4, 78, 92, 0.9)",
+          }}
+        ></div>
+
+        {/* Decorative Blur Circles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* First blur circle */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "948px",
+              height: "950px",
+              left: "-300px",
+              top: "800px",
+              backgroundColor: "rgba(34, 188, 216, 0.18)",
+              filter: "blur(300px)",
+            }}
+          ></div>
+          {/* Second blur circle */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "504px",
+              height: "517px",
+              left: "-800px",
+              top: "-300px",
+              backgroundColor: "rgba(34, 188, 216, 0.13)",
+              filter: "blur(300px)",
+            }}
+          ></div>
+        </div>
+
+        {/* Form Section */}
+        <div className="container mx-auto px-4 md:px-20 py-16 relative z-10">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-white mb-3">
+              Tell us what you need
+            </h2>
+            <p className="text-white/80 text-sm">
+              Share a few details about your business needs and our team will
+              help you find the right support for your company.
             </p>
-          )}
-        </div>
-
-        {/* Segunda columna */}
-        <div>
-          <label
-            htmlFor="lastName"
-            className="block text-[#0097B2] font-medium mb-1"
-          >
-            Last Name <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="text"
-            id="lastName"
-            required
-            aria-invalid={!!errors.lastName}
-            placeholder="Enter your last name"
-            className={`w-full px-3 py-2 border-b ${
-              errors.lastName ? "border-red-500" : "border-gray-300"
-            } focus:outline-none focus:border-b-2 focus:border-[#0097B2]`}
-            {...register("lastName")}
-          />
-          {errors.lastName && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.lastName.message}
+            <p className="text-white/60 text-xs mt-2">
+              *No commitment required. We'll review your request and get in
+              touch to better understand your needs and discuss possible
+              solutions.
             </p>
-          )}
-        </div>
+          </div>
 
-        {/* Email */}
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-[#0097B2] font-medium mb-1"
-          >
-            Email <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            required
-            aria-invalid={!!errors.email}
-            placeholder="Enter your email"
-            className={`w-full px-3 py-2 border-b ${
-              errors.email ? "border-red-500" : "border-gray-300"
-            } focus:outline-none focus:border-b-2 focus:border-[#0097B2]`}
-            {...register("email")}
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+          {formResponse && (
+            <div
+              className={`p-4 mb-6 rounded ${
+                formResponse.success
+                  ? "bg-green-500/20 border border-green-500 text-green-100"
+                  : "bg-red-500/20 border border-red-500 text-red-100"
+              }`}
+            >
+              {formResponse.message}
+            </div>
           )}
-        </div>
 
-        {/* Teléfono */}
-        <div>
-          <label
-            htmlFor="phone"
-            className="block text-[#0097B2] font-medium mb-1"
-          >
-            Phone Number <span className="text-[#B6B4B4]">(optional)</span>
-          </label>
-          <div className="flex">
-            <div className="shrink-0">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Name Fields */}
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label
+                  htmlFor="firstName"
+                  className="block text-white font-medium mb-2 text-sm"
+                >
+                  First Name*
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  placeholder="Name"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                  {...register("firstName")}
+                />
+                {errors.firstName && (
+                  <p className="mt-1 text-sm text-red-300">
+                    {errors.firstName.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="lastName"
+                  className="block text-white font-medium mb-2 text-sm"
+                >
+                  Last Name*
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  placeholder="Hario"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                  {...register("lastName")}
+                />
+                {errors.lastName && (
+                  <p className="mt-1 text-sm text-red-300">
+                    {errors.lastName.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Email and Phone */}
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-white font-medium mb-2 text-sm"
+                >
+                  Work Mail*
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  placeholder="username@dados.com"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                  {...register("email")}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-300">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="block text-white font-medium mb-2 text-sm"
+                >
+                  Phone Number*
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  placeholder="+34 6 223 541 4853"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                  {...register("phone")}
+                />
+                {errors.phone && (
+                  <p className="mt-1 text-sm text-red-300">
+                    {errors.phone.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Company Name */}
+            <div>
+              <label
+                htmlFor="companyName"
+                className="block text-white font-medium mb-2 text-sm"
+              >
+                Company Name*
+              </label>
               <input
                 type="text"
-                aria-invalid={!!errors.phone}
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                placeholder="+1"
-                className="w-14 px-3 py-2 border-b border-gray-300 mr-2 focus:outline-none focus:border-b-2 focus:border-[#0097B2]"
+                id="companyName"
+                placeholder="Dados"
+                className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                {...register("companyName")}
               />
+              {errors.companyName && (
+                <p className="mt-1 text-sm text-red-300">
+                  {errors.companyName.message}
+                </p>
+              )}
             </div>
-            <input
-              type="tel"
-              id="phone"
-              aria-invalid={!!errors.phone}
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Example: 757 237 3612"
-              className={`grow px-3 py-2 border-b ${
-                errors.phone ? "border-red-500" : "border-gray-300"
-              } focus:outline-none focus:border-b-2 focus:border-[#0097B2]`}
-            />
-          </div>
-          <p className="mt-1 text-xs text-[#B6B4B4]">
-            US example: +1 757 237 3612
-          </p>
-          {errors.phone && (
-            <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
-          )}
-          <div className="mt-1">
-            <label className="inline-flex items-center text-sm text-gray-600">
-              <input
-                type="checkbox"
-                className="form-checkbox h-4 w-4 text-[#0097B2]"
-                {...register("smsConsent")}
-              />
-              <span className="ml-2 text-[#B6B4B4]">
-                Opt-in to receive sms messages (optional)
-              </span>
-            </label>
-          </div>
-        </div>
 
-        {/* Selección de servicio - abarca dos columnas en móvil */}
-        <div className="md:col-span-2">
-          <p className="block text-[#0097B2] font-medium mb-2">
-            Select a Service <span className="text-red-600">*</span>
-          </p>
-          <div className="space-y-2">
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                className="form-radio h-4 w-4 text-[#0097B2]"
-                value="talent"
-                {...register("service")}
-              />
-              <span className="ml-2 text-[#B6B4B4]">
-                I&apos;m looking for a talent/service
-              </span>
-            </label>
-            <div>
-              <label className="inline-flex items-center">
-                <input
-                  type="radio"
-                  className="form-radio h-4 w-4 text-[#0097B2]"
-                  value="job"
-                  {...register("service")}
-                />
-                <span className="ml-2 text-[#B6B4B4]">
-                  I&apos;m want to offer my services
-                </span>
-              </label>
+            {/* Support Types and Team Size */}
+            <div className="grid grid-cols-1 gap-8">
+              {/* Support Types */}
+              <div>
+                <label className="block text-white font-medium mb-3 text-sm">
+                  What type of support are you looking for? *
+                </label>
+                <div className="space-y-2">
+                  {supportOptions.map((option) => (
+                    <label
+                      key={option.id}
+                      className="flex items-center text-white/90 cursor-pointer hover:text-white transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        value={option.id}
+                        className="w-4 h-4 text-[#0097B2] bg-white/10 border-white/30 rounded focus:ring-[#0097B2] focus:ring-2"
+                        {...register("supportTypes")}
+                      />
+                      <span className="ml-2 text-sm">{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {errors.supportTypes && (
+                  <p className="mt-2 text-sm text-red-300">
+                    {errors.supportTypes.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Team Size */}
+              <div>
+                <label className="block text-white font-medium mb-3 text-sm">
+                  How many team members are you looking to hire?
+                </label>
+                <div className="space-y-2">
+                  {teamSizeOptions.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex items-center text-white/90 cursor-pointer hover:text-white transition-colors"
+                    >
+                      <input
+                        type="radio"
+                        value={option.value}
+                        className="w-4 h-4 text-[#0097B2] bg-white/10 border-white/30 focus:ring-[#0097B2] focus:ring-2"
+                        {...register("teamSize")}
+                      />
+                      <span className="ml-2 text-sm">{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {errors.teamSize && (
+                  <p className="mt-2 text-sm text-red-300">
+                    {errors.teamSize.message}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-          {errors.service && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.service.message}
-            </p>
-          )}
-        </div>
 
-        {/* Contenedor para mensaje e información de contacto - dos columnas */}
-        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          {/* Columna izquierda: Mensaje, botón y texto legal */}
-          <div>
-            {/* Mensaje */}
+            {/* Message */}
             <div>
               <label
                 htmlFor="message"
-                className="block text-[#0097B2] font-medium mb-1"
+                className="block text-white font-medium mb-2 text-sm"
               >
-                Message <span className="text-red-600">*</span>
+                Message*
               </label>
               <textarea
                 id="message"
-                rows={6}
-                required
-                aria-invalid={!!errors.message}
-                placeholder="In a few words please explain your requirement"
-                className={`w-full px-3 py-2 border ${
-                  errors.message ? "border-red-500" : "border-gray-300"
-                } rounded focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent`}
+                rows={5}
+                placeholder="Hello! My name is..."
+                className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent resize-none"
                 {...register("message")}
               ></textarea>
               {errors.message && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-red-300">
                   {errors.message.message}
                 </p>
               )}
             </div>
 
-            {/* Botón de envío - mismo ancho que textarea */}
-            <div className="mt-4">
+            {/* Submit Button */}
+            <div>
               <button
                 type="submit"
                 disabled={isSubmitting || !isValid}
-                className={`w-full bg-[#0097B2] text-white py-3 rounded flex items-center justify-center shadow-sm hover:bg-opacity-90 transition-colors cursor-pointer ${
+                className={`px-8 py-3 bg-white text-[#2A5F6F] font-semibold rounded-lg shadow-lg hover:bg-gray-100 transition-all ${
                   isSubmitting || !isValid
                     ? "opacity-50 cursor-not-allowed"
-                    : ""
+                    : "hover:shadow-xl"
                 }`}
               >
-                {isSubmitting ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <span className="mr-2 text-white">
-                      <svg
-                        width="22"
-                        height="22"
-                        viewBox="0 0 26 26"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M2 12.4211L24 2L13.5789 24L11.2632 14.7368L2 12.4211Z"
-                          stroke="white"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>{" "}
-                    Send Information
-                  </>
-                )}
+                {isSubmitting ? "Sending..." : "Contact Us"}
               </button>
-              {!isSubmitting && !isValid && (
-                <p className="mt-2 text-sm text-red-600">
-                  Complete all required fields (*) to enable Send Information
-                  {invalidFields.length > 0
-                    ? `: ${invalidFields.join(", ")}.`
-                    : "."}
-                </p>
-              )}
             </div>
+          </form>
+        </div>
+      </div>
 
-            {/* Texto de consentimiento - mismo ancho que textarea */}
-            <div className="text-sm text-gray-500 mt-4">
-              <p className="mb-2">
-                By providing a telephone number and submitting the form you are
-                consenting to be contacted by SMS text message. Message & data
-                rates may apply. Reply STOP to opt out of further messaging.
-              </p>
-              <p>
-                No mobile information will be shared with third
-                parties/affiliates for marketing/promotional purposes. All other
-                categories exclude text messaging originator opt-in data and
-                consent; this information will not be shared with any third
-                parties.
-              </p>
-            </div>
-          </div>
-
-          {/* Columna derecha: Información de contacto */}
-          <div className="flex flex-col justify-start mt-7 md:mt-4 items-center md:items-start space-y-6 md:ml-10">
-            {/* Iconos de redes sociales */}
-            <div className="flex gap-3">
-              <a
-                href="https://www.instagram.com/andesworkforce/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#0097B2] text-white p-2 rounded-full hover:bg-opacity-90 transition-colors"
+        {/* Opportunities Section - Same container, no separate background */}
+        <div className="container mx-auto md:px-20 pb-full relative z-10">
+          <div className="max-w-5xl mx-auto">
+            <div className="w-full bg-white/10 backdrop-blur-md md:rounded-3xl p-8 md:p-12 border border-white/20">
+              <h3 
+                className="text-2xl md:text-3xl font-bold text-white mb-4"
+                style={{
+                  textShadow: "0px 4px 4px rgba(17, 17, 17, 0.25)",
+                }}
               >
-                <Instagram size={24} />
-              </a>
-              <a
-                href="https://www.facebook.com/profile.php?id=61553675729226&mibextid=LQQJ4d"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#0097B2] text-white p-2 rounded-full hover:bg-opacity-90 transition-colors"
-              >
-                <Facebook size={24} />
-              </a>
-            </div>
-
-            {/* Información de contacto */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-[#08252A]">✉</span>
-                <p className="text-[#08252A]">info@andes-workforce.com</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[#08252A]">📞</span>
-                <p className="text-[#08252A]">+1 7572373612</p>
+                {/* Mobile: sin "?" | Desktop: con "?" */}
+                <span className="md:hidden">Looking for opportunities</span>
+                <span className="hidden md:inline">Looking for opportunities?</span>
+              </h3>
+              <p className="text-white/90 text-base mb-6 font-medium">
+                To explore available opportunities and view open positions,
+                please create an account or sign in to our talent portal.
+              </p>
+              {/* Mobile: vertical | Desktop: horizontal */}
+              <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+                <a
+                  href="/auth/register"
+                  className="w-full md:w-auto px-8 py-3.5 bg-white text-[#2A5F6F] font-semibold rounded-full hover:bg-gray-100 transition-colors text-center shadow-sm"
+                >
+                  Create Account
+                </a>
+                <a
+                  href="/auth/login"
+                  className="w-full md:w-auto px-8 py-3.5 bg-transparent border-2 border-white text-white font-semibold rounded-full hover:bg-white/10 transition-colors text-center"
+                >
+                  Sign In
+                </a>
               </div>
             </div>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
