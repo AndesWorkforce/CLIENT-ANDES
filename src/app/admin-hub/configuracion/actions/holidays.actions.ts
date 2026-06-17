@@ -42,8 +42,6 @@ export async function getHolidays(
     });
 
     if (response.status === 200) {
-      // El backend retorna { data: {...}, meta: {...} } con TransformResponseInterceptor
-      // Dentro de data viene { data: holidays[], total, page, limit, totalPages }
       const backendData = response.data?.data || response.data;
       
       return {
@@ -90,7 +88,7 @@ export async function createHoliday(
     const response = await axios.post("holidays", data);
 
     if (response.status === 201) {
-      revalidatePath("/admin/superAdmin/settings");
+      revalidatePath("/admin-hub/configuracion/dias-festivos");
       return {
         success: true,
         message: "Holiday created successfully",
@@ -124,7 +122,7 @@ export async function updateHoliday(
     const response = await axios.patch(`holidays/${id}`, data);
 
     if (response.status === 200) {
-      revalidatePath("/admin/superAdmin/settings");
+      revalidatePath("/admin-hub/configuracion/dias-festivos");
       return {
         success: true,
         message: "Holiday updated successfully",
@@ -155,7 +153,7 @@ export async function deleteHoliday(id: string): Promise<ApiResponse> {
     const response = await axios.delete(`holidays/${id}`);
 
     if (response.status === 200) {
-      revalidatePath("/admin/superAdmin/settings");
+      revalidatePath("/admin-hub/configuracion/dias-festivos");
       return {
         success: true,
         message: "Holiday deleted successfully",
@@ -307,7 +305,7 @@ export async function syncHolidays(
     const response = await axios.post("holidays/sync", data);
 
     if (response.status === 200 || response.status === 201) {
-      revalidatePath("/admin/superAdmin/settings");
+      revalidatePath("/admin-hub/configuracion/dias-festivos");
       return {
         success: true,
         message: "Synchronization completed successfully",

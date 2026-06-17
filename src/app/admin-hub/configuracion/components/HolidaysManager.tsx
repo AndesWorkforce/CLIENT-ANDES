@@ -14,7 +14,7 @@ import {
   type HolidayPreview,
 } from "../actions/holidays.actions";
 import { PlusIcon, Search, Calendar, Edit, Trash2, X, RefreshCw, Sparkles } from "lucide-react";
-import TableSkeleton from "../../../dashboard/components/TableSkeleton";
+import TableSkeleton from "../../dashboard/components/TableSkeleton";
 
 const COUNTRIES = [
   { name: "Colombia", code: "CO" },
@@ -54,6 +54,7 @@ export default function HolidaysManager() {
     pais: "Colombia",
     codigoPais: "CO",
   });
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   const fetchHolidays = async () => {
     setLoading(true);
@@ -134,6 +135,10 @@ export default function HolidaysManager() {
         pais: holiday.pais,
         codigoPais: holiday.codigoPais,
       });
+      // Set date in format YYYY-MM-DD for date input
+      const year = new Date().getFullYear();
+      const dateStr = `${year}-${String(holiday.mes).padStart(2, '0')}-${String(holiday.dia).padStart(2, '0')}`;
+      setSelectedDate(dateStr);
     } else {
       setEditingHoliday(null);
       setFormData({
@@ -143,8 +148,21 @@ export default function HolidaysManager() {
         pais: "Colombia",
         codigoPais: "CO",
       });
+      setSelectedDate("");
     }
     setShowModal(true);
+  };
+
+  const handleDateChange = (dateString: string) => {
+    setSelectedDate(dateString);
+    if (dateString) {
+      const date = new Date(dateString);
+      setFormData({
+        ...formData,
+        dia: date.getDate(),
+        mes: date.getMonth() + 1,
+      });
+    }
   };
 
   const handleCloseModal = () => {
@@ -510,65 +528,31 @@ export default function HolidaysManager() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Day
-                    </label>
-                    <select
-                      value={formData.dia}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          dia: parseInt(e.target.value),
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha del Día Festivo
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => handleDateChange(e.target.value)}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0097B2] focus:border-[#0097B2] cursor-pointer"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <Calendar size={18} className="text-gray-400" />
+                    </div>
+                  </div>
+                  {selectedDate && (
+                    <p className="mt-2 text-sm text-gray-600">
+                      Día: {formData.dia} de {
+                        new Date(2000, formData.mes - 1).toLocaleDateString("es-ES", {
+                          month: "long",
                         })
                       }
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0097B2] focus:border-[#0097B2]"
-                    >
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                        <option key={day} value={day}>
-                          {day}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Month
-                    </label>
-                    <select
-                      value={formData.mes}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          mes: parseInt(e.target.value),
-                        })
-                      }
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0097B2] focus:border-[#0097B2]"
-                    >
-                      {[
-                        { value: 1, label: "January" },
-                        { value: 2, label: "February" },
-                        { value: 3, label: "March" },
-                        { value: 4, label: "April" },
-                        { value: 5, label: "May" },
-                        { value: 6, label: "June" },
-                        { value: 7, label: "July" },
-                        { value: 8, label: "August" },
-                        { value: 9, label: "September" },
-                        { value: 10, label: "October" },
-                        { value: 11, label: "November" },
-                        { value: 12, label: "December" },
-                      ].map((month) => (
-                        <option key={month.value} value={month.value}>
-                          {month.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    </p>
+                  )}
                 </div>
 
                 <div>
