@@ -4,6 +4,7 @@ import { getDiscretionaryBonusLabel } from "../../contratos/data/contract-detail
 import type { DiscretionaryBonusType } from "../../contratos/data/mock-contract-detail";
 import {
   findContractor,
+  MOCK_CONTRACTORS,
   type ContractorPersonaProfile,
   type MockContract,
   type MockContractor,
