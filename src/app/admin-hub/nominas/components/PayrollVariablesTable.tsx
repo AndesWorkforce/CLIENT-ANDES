@@ -181,6 +181,11 @@ export default function PayrollVariablesTable({
     onDelete(itemId);
   }
 
+  function handleEdit(itemId: string) {
+    closeMenu();
+    router.push(`/admin-hub/nominas/variables/${itemId}`);
+  }
+
   function handleRowClick(itemId: string, event: React.MouseEvent) {
     // No navegar si se hizo clic en el checkbox o en el botón de menú
     const target = event.target as HTMLElement;
@@ -368,8 +373,8 @@ export default function PayrollVariablesTable({
             <button
               type="button"
               role="menuitem"
-              onClick={closeMenu}
-              className={`${menuItemClass} text-[#858585]`}
+              onClick={() => handleEdit(openMenuItem.id)}
+              className={menuItemClass}
             >
               Editar
             </button>

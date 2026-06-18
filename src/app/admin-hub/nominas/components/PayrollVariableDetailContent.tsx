@@ -72,10 +72,16 @@ export default function PayrollVariableDetailContent({
     const duracion = isEditingBasePago ? basePagoEdit.duracion : detail.duracion;
     const cantidad = isEditingBasePago ? basePagoEdit.cantidad : detail.cantidad;
     
-    // Para deducciones, el cálculo podría ser: -(sueldoBase / duracion) * cantidad
-    // Este es un cálculo simplificado
+    // Cálculo según tipo de variable
     const montoBase = (base / duracion) * cantidad;
-    return -Math.abs(montoBase);
+    
+    // Deducciones y Ausencias tienen impacto negativo
+    if (detail.type === "Deducción" || detail.type === "Ausencia") {
+      return -Math.abs(montoBase);
+    }
+    
+    // Overtime, Income Variable y Holiday tienen impacto positivo
+    return Math.abs(montoBase);
   }, [detail, basePagoEdit, isEditingBasePago]);
 
   function handleEdit(section: string) {
@@ -139,7 +145,7 @@ export default function PayrollVariableDetailContent({
           Variable - {detail.id}
         </h1>
         <p className="text-[16px] leading-[1.3] text-[#343434]">
-          {detail.contratista} - Deducción
+          {detail.contratista} - {detail.type}
         </p>
       </div>
 
@@ -372,11 +378,20 @@ export default function PayrollVariableDetailContent({
                   min="0"
                 />
               </div>
-              <div className="rounded-[8px] bg-[#FFF5F5] p-4">
-                <p className="text-[14px] text-[#E33434]">
-                  Nota: En Deducciones el impacto es negativo — el monto se muestra como valor a restar.
-                </p>
-              </div>
+              {(detail.type === "Deducción" || detail.type === "Ausencia") && (
+                <div className="rounded-[8px] bg-[#FFF5F5] p-4">
+                  <p className="text-[14px] text-[#E33434]">
+                    Nota: En {detail.type === "Deducción" ? "Deducciones" : "Ausencias"} el impacto es negativo — el monto se muestra como valor a restar.
+                  </p>
+                </div>
+              )}
+              {(detail.type === "Overtime" || detail.type === "Income Variable" || detail.type === "Holiday") && (
+                <div className="rounded-[8px] bg-[#E8F9FF] p-4">
+                  <p className="text-[14px] text-[#0097B2]">
+                    Nota: En {detail.type} el impacto es positivo — el monto se muestra como valor a sumar.
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -395,11 +410,20 @@ export default function PayrollVariableDetailContent({
                 label="Cantidad"
                 value={detail.cantidad}
               />
-              <div className="rounded-[8px] bg-[#FFF5F5] p-4">
-                <p className="text-[14px] text-[#E33434]">
-                  Nota: En Deducciones el impacto es negativo — el monto se muestra como valor a restar.
-                </p>
-              </div>
+              {(detail.type === "Deducción" || detail.type === "Ausencia") && (
+                <div className="rounded-[8px] bg-[#FFF5F5] p-4">
+                  <p className="text-[14px] text-[#E33434]">
+                    Nota: En {detail.type === "Deducción" ? "Deducciones" : "Ausencias"} el impacto es negativo — el monto se muestra como valor a restar.
+                  </p>
+                </div>
+              )}
+              {(detail.type === "Overtime" || detail.type === "Income Variable" || detail.type === "Holiday") && (
+                <div className="rounded-[8px] bg-[#E8F9FF] p-4">
+                  <p className="text-[14px] text-[#0097B2]">
+                    Nota: En {detail.type} el impacto es positivo — el monto se muestra como valor a sumar.
+                  </p>
+                </div>
+              )}
             </>
           )}
         </PayrollVariableInfoCard>
@@ -409,19 +433,42 @@ export default function PayrollVariableDetailContent({
           <PayrollVariableInfoRow
             icon={DollarSign}
             label="Monto (calculado)"
-            value={`-$${Math.abs(montoCalculado).toFixed(2)}`}
+            value={montoCalculado < 0 ? `-$${Math.abs(montoCalculado).toFixed(2)}` : `$${montoCalculado.toFixed(2)}`}
             isLast
           />
           <div className="rounded-[8px] bg-[#F8F8F8] p-4">
             <p className="text-[14px] text-[#858585]">
-              El monto es calculado localmente como valor negativo (deducción).
+              El monto es calculado localmente según el tipo de variable.
             </p>
           </div>
         </PayrollVariableInfoCard>
 
-        {/* Detalles Adicionales */}
+        {/* Campos específicos por tipo */}
+        {detail.type === "Income Variable" && detail.incomeCategory && (
+          <PayrollVariableInfoCard title="Categoría de Ingreso">
+            <PayrollVariableInfoRow
+              icon={FileText}
+              label="Categoría"
+              value={detail.incomeCategory}
+              isLast
+            />
+          </PayrollVariableInfoCard>
+        )}
+
+        {(detail.type === "Deducción" || detail.type === "Ausencia") && detail.deductionTipo && (
+          <PayrollVariableInfoCard title="Tipo de Deducción">
+            <PayrollVariableInfoRow
+              icon={FileText}
+              label="Tipo"
+              value={detail.deductionTipo}
+              isLast
+            />
+          </PayrollVariableInfoCard>
+        )}
+
+        {/* Detalles Adicionales / Descripción */}
         <PayrollVariableInfoCard
-          title="Detalles Adicionales"
+          title={detail.type === "Deducción" || detail.type === "Ausencia" ? "Detalles Adicionales" : "Descripción"}
           onEdit={() => handleEdit("detalles")}
         >
           {isEditingDetalles ? (
