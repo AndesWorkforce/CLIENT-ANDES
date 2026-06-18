@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { ChevronDown, MoreVertical } from "lucide-react";
 import AdminHubTableShell, {
   ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS,
@@ -33,6 +34,7 @@ export default function PayrollVariablesTable({
   onReject,
   onDelete,
 }: PayrollVariablesTableProps) {
+  const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortByDate, setSortByDate] = useState<"asc" | "desc" | null>(null);
   const [sortByAmount, setSortByAmount] = useState<"asc" | "desc" | null>(null);
@@ -179,6 +181,18 @@ export default function PayrollVariablesTable({
     onDelete(itemId);
   }
 
+  function handleRowClick(itemId: string, event: React.MouseEvent) {
+    // No navegar si se hizo clic en el checkbox o en el botón de menú
+    const target = event.target as HTMLElement;
+    if (
+      target.closest('input[type="checkbox"]') ||
+      target.closest('[data-payroll-row-menu]')
+    ) {
+      return;
+    }
+    router.push(`/admin-hub/nominas/variables/${itemId}`);
+  }
+
   const menuButtonClass = (itemId: string) =>
     `rounded p-1 transition-colors ${
       openMenuId === itemId
@@ -275,7 +289,8 @@ export default function PayrollVariablesTable({
             {displayedVariables.map((item, index) => (
               <tr
                 key={item.id}
-                className={ADMIN_HUB_TABLE_ROW}
+                className={`${ADMIN_HUB_TABLE_ROW} cursor-pointer`}
+                onClick={(e) => handleRowClick(item.id, e)}
               >
                 <td className="px-6 py-6">
                   <input
