@@ -189,7 +189,9 @@ export default function AdminHubDatePicker({
         ? new ResizeObserver(reposition)
         : null;
 
-    resizeObserver?.observe(panel);
+    if (resizeObserver && panel) {
+      resizeObserver.observe(panel);
+    }
 
     window.addEventListener("resize", reposition);
     window.addEventListener("scroll", reposition, true);
