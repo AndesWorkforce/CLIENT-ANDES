@@ -23,6 +23,15 @@ export interface AdminHubBreadcrumbItem {
 }
 
 export function getAdminHubBreadcrumbItems(pathname: string): AdminHubBreadcrumbItem[] {
+  if (/^\/admin-hub\/nominas\/variables\/[^/]+$/.test(pathname)) {
+    return [
+      { label: "Administrador", href: "/admin-hub/dashboard" },
+      { label: "Nóminas", href: "/admin-hub/nominas" },
+      { label: "Variables de nóminas", href: "/admin-hub/nominas/variables" },
+      { label: "Detalle de variable" },
+    ];
+  }
+
   if (pathname.startsWith("/admin-hub/nominas/variables")) {
     return [
       { label: "Administrador", href: "/admin-hub/dashboard" },
