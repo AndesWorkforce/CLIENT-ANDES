@@ -13,9 +13,10 @@ import InvoiceStatusBadge from "./InvoiceStatusBadge";
 
 interface InvoicesTableProps {
   invoices: Invoice[];
+  displayPeriod: string;
 }
 
-export default function InvoicesTable({ invoices }: InvoicesTableProps) {
+export default function InvoicesTable({ invoices, displayPeriod }: InvoicesTableProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortByAmount, setSortByAmount] = useState<"asc" | "desc" | null>(null);
@@ -143,7 +144,7 @@ export default function InvoicesTable({ invoices }: InvoicesTableProps) {
                 {invoice.client}
               </td>
               <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
-                {invoice.period}
+                {displayPeriod}
               </td>
               <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
                 {invoice.totalAmount}

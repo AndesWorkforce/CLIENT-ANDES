@@ -11,8 +11,12 @@ import {
 import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import AdminHubSelect from "../../components/AdminHubSelect";
 import {
+  buildNominaMonthOptions,
+  getCurrentNominaMonthOption,
+  monthOptionToPeriod,
+} from "../../nominas/data/payroll-data";
+import {
   MOCK_INVOICES,
-  MONTH_OPTIONS,
   type Invoice,
   type InvoiceStatus,
 } from "../data/mock-invoices";
@@ -57,16 +61,22 @@ function matchesAmountRange(amount: string, range: string): boolean {
 }
 
 export default function InvoicesPageContent() {
-  const [selectedMonth, setSelectedMonth] = useState(MONTH_OPTIONS[0]);
+  const monthOptions = useMemo(() => buildNominaMonthOptions(), []);
+  const currentMonthOption = useMemo(() => getCurrentNominaMonthOption(), []);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthOption);
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState("");
   const [amountFilter, setAmountFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
+  const selectedPeriod = monthOptionToPeriod(selectedMonth);
+
   const filteredInvoices = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    let result: Invoice[] = [...MOCK_INVOICES];
+    let result: Invoice[] = MOCK_INVOICES.filter(
+      (inv) => inv.period === selectedPeriod
+    );
 
     if (query) {
       result = result.filter(
@@ -90,7 +100,7 @@ export default function InvoicesPageContent() {
     }
 
     return result;
-  }, [searchQuery, clientFilter, amountFilter, statusFilter]);
+  }, [searchQuery, clientFilter, amountFilter, statusFilter, selectedPeriod]);
 
   function clearFilters() {
     setClientFilter("");
@@ -109,7 +119,7 @@ export default function InvoicesPageContent() {
         <AdminHubSelect
           value={selectedMonth}
           onChange={setSelectedMonth}
-          options={MONTH_OPTIONS.map((month) => ({ value: month, label: month }))}
+          options={monthOptions.map((month) => ({ value: month, label: month }))}
           variant="filter"
         />
 
@@ -180,7 +190,7 @@ export default function InvoicesPageContent() {
         )}
       </div>
 
-      <InvoicesTable invoices={filteredInvoices} />
+      <InvoicesTable invoices={filteredInvoices} displayPeriod={selectedPeriod} />
     </div>
   );
 }
