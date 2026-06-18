@@ -22,12 +22,16 @@ import {
   Handshake,
   Globe,
   Menu,
+  LifeBuoy,
 } from "lucide-react";
 import { FaSquareFacebook, FaLinkedin } from "react-icons/fa6";
 import { AiFillInstagram, AiFillTikTok } from "react-icons/ai";
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
+import ItSupportRedirectModal, {
+  IT_SUPPORT_PORTAL_URL,
+} from "./ItSupportRedirectModal";
 import useRouteExclusion from "@/hooks/useRouteExclusion";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import {
@@ -94,6 +98,7 @@ export default function Navbar() {
   const { isNavbarExcluded } = useRouteExclusion();
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
+  const [showItSupportModal, setShowItSupportModal] = useState<boolean>(false);
   const [currentContractStatus, setCurrentContractStatus] =
     useState<boolean>(false);
   const [stepContract, setStepContract] = useState<string>("");
@@ -291,6 +296,16 @@ export default function Navbar() {
     }
   };
 
+  function openItSupportModal() {
+    setShowUserMenu(false);
+    setShowMobileSidebar(false);
+    setShowItSupportModal(true);
+  }
+
+  function handleAcceptItSupportRedirect() {
+    window.location.href = IT_SUPPORT_PORTAL_URL;
+  }
+
   const isActive = (itemHref: string) => {
     return pathname === itemHref || pathname.startsWith(itemHref);
   };
@@ -357,6 +372,15 @@ export default function Navbar() {
           Additional Incentives & Holidays
         </Link>
       )}
+
+      <button
+        type="button"
+        onClick={openItSupportModal}
+        className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+      >
+        <LifeBuoy size={16} className="mr-2 text-[#0097B2]" />
+        Request IT Support
+      </button>
 
       <Link
         href="/faq"
@@ -806,6 +830,15 @@ export default function Navbar() {
                         </Link>
                       )}
 
+                      <button
+                        type="button"
+                        onClick={openItSupportModal}
+                        className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-[16px] text-gray-600 transition-colors hover:bg-gray-50 hover:text-[#0097B2]"
+                      >
+                        <LifeBuoy size={20} strokeWidth={2} />
+                        Request IT Support
+                      </button>
+
                       <Link
                         href="/faq"
                         className="flex items-center gap-3 px-4 py-3 rounded-lg text-[16px] text-gray-600 hover:text-[#0097B2] hover:bg-gray-50 transition-colors"
@@ -931,6 +964,12 @@ export default function Navbar() {
         </div>
       )}
     </header>
+
+      <ItSupportRedirectModal
+        open={showItSupportModal}
+        onClose={() => setShowItSupportModal(false)}
+        onAccept={handleAcceptItSupportRedirect}
+      />
     </>
   );
 }
