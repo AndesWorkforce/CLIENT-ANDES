@@ -111,6 +111,15 @@ function buildPayrollHistory(
     .slice(0, 6);
 }
 
+function mapVariableCategory(
+  variable: PayrollVariable
+): ContractPayrollVariableRow["categoria"] {
+  if (variable.type === "Ausencia") {
+    return "deducciones";
+  }
+  return variable.category;
+}
+
 function buildVariablesRows(variables: PayrollVariable[]): ContractPayrollVariableRow[] {
   if (variables.length === 0) {
     return [
@@ -130,7 +139,7 @@ function buildVariablesRows(variables: PayrollVariable[]): ContractPayrollVariab
         impacto: -50,
         descripcion: "Tramite",
         estado: "Aprobada",
-        categoria: "ausencias",
+        categoria: "deducciones",
       },
       {
         id: "cv-3",
@@ -139,7 +148,7 @@ function buildVariablesRows(variables: PayrollVariable[]): ContractPayrollVariab
         impacto: -50,
         descripcion: "Tramite",
         estado: "Aprobada",
-        categoria: "ausencias",
+        categoria: "deducciones",
       },
     ];
   }
@@ -151,7 +160,7 @@ function buildVariablesRows(variables: PayrollVariable[]): ContractPayrollVariab
     impacto: variable.amount,
     descripcion: variable.description,
     estado: mapVariableStatus(variable.status),
-    categoria: variable.category,
+    categoria: mapVariableCategory(variable),
   }));
 }
 

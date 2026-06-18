@@ -24,6 +24,7 @@ import {
 import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubTableShell, {
+  ADMIN_HUB_TABLE_HEAD_FIRST_CELL,
   ADMIN_HUB_TABLE_HEAD_LAST_CELL,
   ADMIN_HUB_TABLE_ROW,
 } from "../../components/AdminHubTableShell";
@@ -45,11 +46,17 @@ interface ContractDetailContentProps {
   detail: ContractDetail;
 }
 
+type ContractVariableTab = (typeof PAYROLL_VARIABLE_TABS)[number]["key"];
+
 export default function ContractDetailContent({ detail }: ContractDetailContentProps) {
   const { addNotification } = useNotificationStore();
-  const [activeVariableTab, setActiveVariableTab] = useState<
-    (typeof PAYROLL_VARIABLE_TABS)[number]["key"]
-  >("todos");
+  const [activeVariableTab, setActiveVariableTab] = useState<ContractVariableTab>("todos");
+  const [selectedPayrollHistoryIds, setSelectedPayrollHistoryIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedVariableIds, setSelectedVariableIds] = useState<Set<string>>(new Set());
+
+  const checkboxClass = "size-4 rounded border-[#EFEFEF] accent-[#0097B2]";
 
   const breadcrumbItems = useMemo(
     () => [
@@ -62,13 +69,65 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
 
   const filteredVariables = useMemo(() => {
     if (activeVariableTab === "todos") return detail.variablesNomina;
-    return detail.variablesNomina.filter((variable) => variable.categoria === activeVariableTab);
+    return detail.variablesNomina.filter(
+      (variable) => variable.categoria === activeVariableTab
+    );
   }, [activeVariableTab, detail.variablesNomina]);
 
   const payrollTotal = useMemo(
     () => detail.historialNomina.reduce((sum, row) => sum + row.totalPagado, 0),
     [detail.historialNomina]
   );
+
+  const allPayrollHistorySelected =
+    detail.historialNomina.length > 0 &&
+    detail.historialNomina.every((row) => selectedPayrollHistoryIds.has(row.id));
+
+  const allVariablesSelected =
+    filteredVariables.length > 0 &&
+    filteredVariables.every((variable) => selectedVariableIds.has(variable.id));
+
+  function togglePayrollHistoryAll() {
+    if (allPayrollHistorySelected) {
+      setSelectedPayrollHistoryIds(new Set());
+    } else {
+      setSelectedPayrollHistoryIds(new Set(detail.historialNomina.map((row) => row.id)));
+    }
+  }
+
+  function togglePayrollHistoryOne(id: string) {
+    setSelectedPayrollHistoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleVariablesAll() {
+    if (allVariablesSelected) {
+      setSelectedVariableIds((prev) => {
+        const next = new Set(prev);
+        filteredVariables.forEach((variable) => next.delete(variable.id));
+        return next;
+      });
+    } else {
+      setSelectedVariableIds((prev) => {
+        const next = new Set(prev);
+        filteredVariables.forEach((variable) => next.add(variable.id));
+        return next;
+      });
+    }
+  }
+
+  function toggleVariableOne(id: string) {
+    setSelectedVariableIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   function handleEdit(section: string) {
     addNotification(`La edición de ${section} estará disponible próximamente.`, "info");
@@ -260,7 +319,15 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
             <table className="w-full min-w-[700px] border-collapse bg-white">
               <thead>
                 <tr className="border-b border-[#EFEFEF]">
-                  <th className="w-16 rounded-tl-[12px] px-6 py-5" />
+                  <th className={ADMIN_HUB_TABLE_HEAD_FIRST_CELL}>
+                    <input
+                      type="checkbox"
+                      checked={allPayrollHistorySelected}
+                      onChange={togglePayrollHistoryAll}
+                      className={checkboxClass}
+                      aria-label="Seleccionar todo el historial de nómina"
+                    />
+                  </th>
                   <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                     Período
                   </th>
@@ -279,7 +346,9 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                     <td className="px-6 py-6">
                       <input
                         type="checkbox"
-                        className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
+                        checked={selectedPayrollHistoryIds.has(row.id)}
+                        onChange={() => togglePayrollHistoryOne(row.id)}
+                        className={checkboxClass}
                         aria-label={`Seleccionar ${row.periodo}`}
                       />
                     </td>
@@ -354,7 +423,16 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
             <table className="w-full min-w-[900px] border-collapse bg-white">
               <thead>
                 <tr className="border-b border-[#EFEFEF]">
-                  <th className="rounded-tl-[12px] px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+                  <th className={ADMIN_HUB_TABLE_HEAD_FIRST_CELL}>
+                    <input
+                      type="checkbox"
+                      checked={allVariablesSelected}
+                      onChange={toggleVariablesAll}
+                      className={checkboxClass}
+                      aria-label="Seleccionar todas las variables de nómina"
+                    />
+                  </th>
+                  <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                     Periodo
                   </th>
                   <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
@@ -375,6 +453,15 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
               <tbody>
                 {filteredVariables.map((variable) => (
                   <tr key={variable.id} className={ADMIN_HUB_TABLE_ROW}>
+                    <td className="px-6 py-6">
+                      <input
+                        type="checkbox"
+                        checked={selectedVariableIds.has(variable.id)}
+                        onChange={() => toggleVariableOne(variable.id)}
+                        className={checkboxClass}
+                        aria-label={`Seleccionar ${variable.tipo} — ${variable.periodo}`}
+                      />
+                    </td>
                     <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
                       {variable.periodo}
                     </td>

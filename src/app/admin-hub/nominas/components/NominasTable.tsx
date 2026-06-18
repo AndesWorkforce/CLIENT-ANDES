@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ChevronDown, MoreVertical } from "lucide-react";
 import AdminHubTableShell, {
@@ -22,20 +23,54 @@ interface NominasTableProps {
 }
 
 type SortKey = "clientPrice" | "variableAmount" | "totalAmount" | null;
+type MenuPosition = { top: number; left: number };
+
+const MENU_MIN_WIDTH = 148;
 
 export default function NominasTable({ rows }: NominasTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
+  const menuButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  const updateMenuPosition = useCallback((rowId: string) => {
+    const button = menuButtonRefs.current[rowId];
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    setMenuPosition({
+      top: rect.bottom + 4,
+      left: Math.max(8, rect.right - MENU_MIN_WIDTH),
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!openMenuId) return;
+
+    const handleReposition = () => updateMenuPosition(openMenuId);
+
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
+
+    return () => {
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
+    };
+  }, [openMenuId, updateMenuPosition]);
 
   useEffect(() => {
     if (!openMenuId) return;
 
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement;
-      if (!target.closest("[data-nomina-row-menu]")) {
+      if (
+        !target.closest("[data-nomina-row-menu]") &&
+        !target.closest("[data-nomina-row-menu-dropdown]")
+      ) {
         setOpenMenuId(null);
+        setMenuPosition(null);
       }
     }
 
@@ -80,6 +115,25 @@ export default function NominasTable({ rows }: NominasTableProps) {
       return next;
     });
   }
+
+  function closeMenu() {
+    setOpenMenuId(null);
+    setMenuPosition(null);
+  }
+
+  function toggleRowMenu(rowId: string) {
+    if (openMenuId === rowId) {
+      closeMenu();
+      return;
+    }
+
+    setOpenMenuId(rowId);
+    requestAnimationFrame(() => updateMenuPosition(rowId));
+  }
+
+  const openMenuRow = openMenuId
+    ? displayedRows.find((row) => row.id === openMenuId)
+    : undefined;
 
   const cellClass = "px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585] whitespace-nowrap";
 
@@ -176,14 +230,17 @@ export default function NominasTable({ rows }: NominasTableProps) {
               <td className="px-3 py-6">
                 <PayrollVariableStatusBadge status={row.status} />
               </td>
-              <td className="px-6 py-6 text-center">
+              <td className="overflow-visible px-6 py-6 text-center">
                 <div className="relative inline-block" data-nomina-row-menu>
                   <button
+                    ref={(el) => {
+                      menuButtonRefs.current[row.id] = el;
+                    }}
                     type="button"
                     aria-label="Más opciones"
                     aria-expanded={openMenuId === row.id}
                     aria-haspopup="menu"
-                    onClick={() => setOpenMenuId((prev) => (prev === row.id ? null : row.id))}
+                    onClick={() => toggleRowMenu(row.id)}
                     className={`rounded p-1 transition-colors ${
                       openMenuId === row.id
                         ? "text-[#0097B2] bg-[#DFFAFF]"
@@ -192,36 +249,43 @@ export default function NominasTable({ rows }: NominasTableProps) {
                   >
                     <MoreVertical size={18} />
                   </button>
-
-                  {openMenuId === row.id && (
-                    <div
-                      role="menu"
-                      className="absolute right-0 top-full z-50 mt-1 min-w-[148px] rounded-[8px] border border-[#EFEFEF] bg-white py-1 shadow-[0px_2px_8px_rgba(112,112,112,0.15)]"
-                    >
-                      <Link
-                        href={payrollRowToDetailPath(row)}
-                        role="menuitem"
-                        onClick={() => setOpenMenuId(null)}
-                        className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] hover:bg-[#F8F8F8] transition-colors cursor-pointer"
-                      >
-                        Ver detalle
-                      </Link>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => setOpenMenuId(null)}
-                        className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] hover:bg-[#F8F8F8] transition-colors cursor-pointer"
-                      >
-                        Editar
-                      </button>
-                    </div>
-                  )}
                 </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {openMenuId &&
+        openMenuRow &&
+        menuPosition &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            data-nomina-row-menu-dropdown
+            role="menu"
+            className="fixed z-[200] min-w-[148px] rounded-[8px] border border-[#EFEFEF] bg-white py-1 shadow-[0px_2px_8px_rgba(112,112,112,0.15)]"
+            style={{ top: menuPosition.top, left: menuPosition.left }}
+          >
+            <Link
+              href={payrollRowToDetailPath(openMenuRow)}
+              role="menuitem"
+              onClick={closeMenu}
+              className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] hover:bg-[#F8F8F8] transition-colors cursor-pointer"
+            >
+              Ver detalle
+            </Link>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={closeMenu}
+              className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] hover:bg-[#F8F8F8] transition-colors cursor-pointer"
+            >
+              Editar
+            </button>
+          </div>,
+          document.body
+        )}
     </AdminHubTableShell>
   );
 }

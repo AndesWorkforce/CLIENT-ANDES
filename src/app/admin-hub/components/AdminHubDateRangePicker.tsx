@@ -83,14 +83,14 @@ export default function AdminHubDateRangePicker({
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-[14px] text-[#858585]">
-          <Calendar size={18} />
-          <span className="font-medium">Rango de fechas:</span>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="flex min-w-0 items-center gap-2 text-[14px] text-[#858585]">
+          <Calendar size={18} className="shrink-0" />
+          <span className="font-medium whitespace-nowrap">Rango de fechas:</span>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <div className="w-[180px]">
+
+        <div className="flex min-w-0 flex-wrap items-end gap-2">
+          <div className="w-[min(180px,100%)]">
             <AdminHubDatePicker
               label={fromLabel}
               value={fromDate}
@@ -100,10 +100,10 @@ export default function AdminHubDateRangePicker({
               maxDate={toDate || todayIso}
             />
           </div>
-          
-          <span className="text-[14px] text-[#858585]">-</span>
-          
-          <div className="w-[180px]">
+
+          <span className="hidden pb-3 text-[14px] text-[#858585] sm:inline">-</span>
+
+          <div className="w-[min(180px,100%)]">
             <AdminHubDatePicker
               label={toLabel}
               value={toDate}
@@ -118,7 +118,7 @@ export default function AdminHubDateRangePicker({
       </div>
 
       {validationError && (
-        <div className="flex items-center gap-2 text-[12px] text-[#E33434] ml-[124px]">
+        <div className="flex items-center gap-2 text-[12px] text-[#E33434] sm:ml-[124px]">
           <AlertCircle size={14} />
           <span>{validationError}</span>
         </div>

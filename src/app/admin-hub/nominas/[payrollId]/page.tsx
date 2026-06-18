@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getPayrollDetail } from "../data/mock-payroll-detail";
-import { monthOptionToPeriod, NOMINA_MONTH_OPTIONS } from "../data/payroll-data";
+import { getCurrentNominaMonthOption, monthOptionToPeriod } from "../data/payroll-data";
 import PayrollDetailContent from "../components/PayrollDetailContent";
 
 interface PayrollDetailPageProps {
@@ -15,11 +15,7 @@ export default async function PayrollDetailPage({
   const { payrollId } = await params;
   const { period: periodParam } = await searchParams;
 
-  const defaultPeriod =
-    monthOptionToPeriod(
-      NOMINA_MONTH_OPTIONS.find((month) => month.includes("2026")) ??
-        NOMINA_MONTH_OPTIONS[0]
-    );
+  const defaultPeriod = monthOptionToPeriod(getCurrentNominaMonthOption());
 
   const detail = getPayrollDetail(payrollId, periodParam ?? defaultPeriod);
 

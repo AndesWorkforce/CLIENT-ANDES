@@ -10,7 +10,6 @@ export type PayrollVariableType =
 
 export type PayrollVariableCategory =
   | "todos"
-  | "ausencias"
   | "overtimes"
   | "holidays"
   | "deducciones"
@@ -49,12 +48,19 @@ export const PAYROLL_VARIABLE_TABS: {
   label: string;
 }[] = [
   { key: "todos", label: "Todos" },
-  { key: "ausencias", label: "Ausencias" },
   { key: "overtimes", label: "Overtimes" },
   { key: "holidays", label: "Holidays" },
   { key: "deducciones", label: "Deducciones" },
   { key: "incomeVariables", label: "Income Variables" },
 ];
+
+export function matchesPayrollVariableCategory(
+  variable: PayrollVariable,
+  category: PayrollVariableCategory
+): boolean {
+  if (category === "todos") return true;
+  return variable.category === category;
+}
 
 export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
   {
@@ -178,7 +184,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Carla Ruiz",
     client: "Port",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Licencia médica",
     amount: -50,
     status: "Pendiente",
@@ -220,7 +227,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Roberto Silva",
     client: "Rocket",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Ausencia programada",
     amount: -75,
     status: "Aprobado",
@@ -290,7 +298,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Camila Herrera",
     client: "Rocket",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Cita médica",
     amount: -40,
     status: "Aprobado",
@@ -360,7 +369,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Lucía Mendoza",
     client: "BK",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Permiso familiar",
     amount: -60,
     status: "Rechazado",
@@ -430,7 +440,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Bruno Acosta",
     client: "Rocket",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Enfermedad común",
     amount: -90,
     status: "Pendiente",
@@ -472,7 +483,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Juan Perez",
     client: "BK",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Cita odontológica",
     amount: -30,
     status: "Aprobado",
@@ -598,7 +610,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Pedro Soto",
     client: "BK",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Trámite personal",
     amount: -40,
     status: "Rechazado",
@@ -696,7 +709,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Mateo Fernández",
     client: "Port",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Licencia paternidad",
     amount: -100,
     status: "Aprobado",
@@ -766,7 +780,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Renata López",
     client: "Port",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Licencia médica corta",
     amount: -55,
     status: "Aprobado",
@@ -837,7 +852,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Ana Gomez",
     client: "BK",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Licencia médica",
     amount: -65,
     status: "Aprobado",
@@ -921,7 +937,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Sofia Morales",
     client: "BK",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Mudanza",
     amount: -50,
     status: "Rechazado",
@@ -1019,7 +1036,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Felipe Núñez",
     client: "Rocket",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Cita médica especialista",
     amount: -40,
     status: "Aprobado",
@@ -1089,7 +1107,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Isabela Restrepo",
     client: "Ve",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Vacaciones no programadas",
     amount: -80,
     status: "Rechazado",
@@ -1201,7 +1220,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Carla Ruiz",
     client: "Port",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Licencia médica",
     amount: -70,
     status: "Aprobado",
@@ -1314,7 +1334,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Diego Campos",
     client: "Ve",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Trámite consular",
     amount: -50,
     status: "Aprobado",
@@ -1398,7 +1419,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Felipe Núñez",
     client: "Rocket",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Cita odontológica",
     amount: -30,
     status: "Pendiente",
@@ -1510,7 +1532,8 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     contractor: "Bruno Acosta",
     client: "Rocket",
     type: "Ausencia",
-    category: "ausencias",
+    category: "deducciones",
+    deductionTipo: "Ausencia",
     description: "Estudio universitario",
     amount: -60,
     status: "Pendiente",

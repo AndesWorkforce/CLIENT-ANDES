@@ -20,35 +20,68 @@ export interface PayrollRow {
   status: PayrollVariableStatus;
 }
 
-export const NOMINA_MONTH_OPTIONS = [
-  "Enero del 2025",
-  "Febrero del 2025",
-  "Marzo del 2025",
-  "Abril del 2025",
-  "Mayo del 2025",
-  "Junio del 2025",
-  "Julio del 2025",
-  "Agosto del 2025",
-  "Septiembre del 2025",
-  "Octubre del 2025",
-  "Noviembre del 2025",
-  "Diciembre del 2025",
-  "Enero del 2026",
-  "Febrero del 2026",
-  "Marzo del 2026",
-  "Abril del 2026",
-  "Mayo del 2026",
-  "Junio del 2026",
-  "Julio del 2026",
-  "Agosto del 2026",
-  "Septiembre del 2026",
-  "Octubre del 2026",
-  "Noviembre del 2026",
-  "Diciembre del 2026",
-];
+const NOMINA_MONTH_NAMES = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+] as const;
+
+/** Formato del selector: "Marzo del 2026" */
+export function formatNominaMonthOption(year: number, monthIndex: number): string {
+  return `${NOMINA_MONTH_NAMES[monthIndex]} del ${year}`;
+}
+
+/**
+ * Mes-año desde el actual hacia atrás, un mes por opción.
+ * Ejemplo en junio 2026: Junio del 2026, Mayo del 2026, Abril del 2026, ...
+ */
+export function buildNominaMonthOptions(monthsBack = 36): string[] {
+  const options: string[] = [];
+  const now = new Date();
+  let year = now.getFullYear();
+  let month = now.getMonth();
+
+  for (let i = 0; i < monthsBack; i++) {
+    options.push(formatNominaMonthOption(year, month));
+    month -= 1;
+    if (month < 0) {
+      month = 11;
+      year -= 1;
+    }
+  }
+
+  return options;
+}
+
+export function getCurrentNominaMonthOption(): string {
+  const now = new Date();
+  return formatNominaMonthOption(now.getFullYear(), now.getMonth());
+}
+
+/** @deprecated Preferir `buildNominaMonthOptions()` para lista actualizada */
+export const NOMINA_MONTH_OPTIONS = buildNominaMonthOptions();
 
 export function monthOptionToPeriod(monthOption: string): string {
   return monthOption.replace(" del ", " ");
+}
+
+/** Convierte ISO (YYYY-MM-DD) al formato del selector de nóminas */
+export function isoDateToNominaMonthOption(isoDate: string): string | null {
+  if (!isoDate) return null;
+
+  const date = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return formatNominaMonthOption(date.getFullYear(), date.getMonth());
 }
 
 let payrollVariables: PayrollVariable[] = [...MOCK_PAYROLL_VARIABLES];
@@ -83,6 +116,9 @@ export function formatVariableColumn(amount: number): string {
   if (amount > 0) return `+$${amount.toLocaleString("es-ES")}`;
   return `-$${Math.abs(amount).toLocaleString("es-ES")}`;
 }
+
+/** Días laborables base del período de nómina (regulares + holidays = este total). */
+export const PAYROLL_WORKING_DAYS_PER_MONTH = 20;
 
 export function formatMoney(amount: number): string {
   return `$${amount.toLocaleString("es-ES")}`;

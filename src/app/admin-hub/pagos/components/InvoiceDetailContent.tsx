@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Filter, Plus } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import { formatClientPrice } from "../../nominas/data/mock-contractors";
@@ -131,6 +131,36 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   const [contractorFilter, setContractorFilter] = useState("");
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
   const [emitModal, setEmitModal] = useState<InvoiceEmitModalVariant | null>(null);
+  const [isFooterDocked, setIsFooterDocked] = useState(false);
+  const [footerHeight, setFooterHeight] = useState(0);
+  const footerDockSentinelRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      setFooterHeight(entry.contentRect.height);
+    });
+
+    resizeObserver.observe(footer);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const sentinel = footerDockSentinelRef.current;
+    const scrollRoot = sentinel?.closest("main");
+    if (!sentinel || !scrollRoot) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsFooterDocked(entry.isIntersecting),
+      { root: scrollRoot, threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   const invoiceLineItems = useMemo(
     () => invoice.sections.flatMap((section) => section.items),
@@ -611,25 +641,40 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
           )}
         </div>
 
-        <div className="flex w-full items-center justify-between rounded-[8px] border border-[#0097B2] bg-white px-6 py-4">
-          <span className="text-[18px] font-bold text-[#0097B2]">Total</span>
-          <span className="text-[18px] font-semibold text-[#0097B2]">{invoice.grandTotal}</span>
-        </div>
+        <div ref={footerDockSentinelRef} className="h-px w-full shrink-0" aria-hidden />
 
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          <button
-            type="button"
-            className="inline-flex h-9 items-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] text-[#0097B2] leading-5 hover:bg-[#DFFAFF] transition-colors"
-          >
-            Guardar Cambios
-          </button>
-          <button
-            type="button"
-            onClick={handleEmitInvoiceClick}
-            className="inline-flex h-9 items-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors"
-          >
-            Emitir Invoice
-          </button>
+        {!isFooterDocked && footerHeight > 0 ? (
+          <div aria-hidden style={{ height: footerHeight }} />
+        ) : null}
+
+        <div
+          ref={footerRef}
+          className={`z-30 flex flex-col gap-3 border-t border-[#EFEFEF] bg-[#F8F8F8] px-6 py-4 shadow-[0_-4px_16px_rgba(112,112,112,0.08)] ${
+            isFooterDocked
+              ? "relative -mx-6 -mb-6 mt-6"
+              : "fixed bottom-0 left-[280px] right-0"
+          }`}
+        >
+          <div className="flex w-full items-center justify-between rounded-[8px] border border-[#0097B2] bg-white px-6 py-4">
+            <span className="text-[18px] font-bold text-[#0097B2]">Total</span>
+            <span className="text-[18px] font-semibold text-[#0097B2]">{invoice.grandTotal}</span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <button
+              type="button"
+              className="inline-flex h-9 items-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] text-[#0097B2] leading-5 hover:bg-[#DFFAFF] transition-colors"
+            >
+              Guardar Cambios
+            </button>
+            <button
+              type="button"
+              onClick={handleEmitInvoiceClick}
+              className="inline-flex h-9 items-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors"
+            >
+              Emitir Invoice
+            </button>
+          </div>
         </div>
       </div>
 

@@ -15,6 +15,7 @@ import {
   updatePayrollVariableStatus,
 } from "../data/payroll-data";
 import {
+  matchesPayrollVariableCategory,
   PAYROLL_VARIABLE_TABS,
   type PayrollVariable,
   type PayrollVariableCategory,
@@ -86,7 +87,7 @@ export default function PayrollVariablesPageContent() {
     let result = [...variables];
 
     if (activeTab !== "todos") {
-      result = result.filter((item) => item.category === activeTab);
+      result = result.filter((item) => matchesPayrollVariableCategory(item, activeTab));
     }
 
     if (query) {

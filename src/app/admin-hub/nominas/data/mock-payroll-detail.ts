@@ -6,6 +6,7 @@ import {
 import {
   formatMoney,
   getPayrollVariables,
+  PAYROLL_WORKING_DAYS_PER_MONTH,
   type PayrollRow,
 } from "./payroll-data";
 import type { PayrollVariable, PayrollVariableStatus } from "./mock-payroll-variables";
@@ -106,13 +107,18 @@ function buildPaymentLines(
   | "totalDeductions"
   | "totalAmount"
 > {
-  const positiveVariables = variables.filter((variable) => variable.amount > 0);
+  const holidayVariables = variables.filter((variable) => variable.type === "Holiday");
+  const otherPositiveVariables = variables.filter(
+    (variable) => variable.amount > 0 && variable.type !== "Holiday"
+  );
   const negativeVariables = variables.filter((variable) => variable.amount < 0);
 
-  const totalVariableEarnings = positiveVariables.reduce(
-    (sum, variable) => sum + variable.amount,
-    0
-  );
+  const holidayCount = holidayVariables.length;
+  const regularDays = Math.max(0, PAYROLL_WORKING_DAYS_PER_MONTH - holidayCount);
+
+  const totalVariableEarnings = variables
+    .filter((variable) => variable.amount > 0)
+    .reduce((sum, variable) => sum + variable.amount, 0);
 
   const totalDeductions = negativeVariables.reduce(
     (sum, variable) => sum + Math.abs(variable.amount),
@@ -123,8 +129,15 @@ function buildPaymentLines(
   const totalAmount = totalEarnings - totalDeductions;
 
   const earnings: PayrollDetailPaymentLine[] = [
-    { id: "base-salary", label: "Sueldo Base", value: formatMoney(baseSalary) },
-    ...positiveVariables.map((variable) => ({
+    { id: "regular-days", label: "Días regulares", value: String(regularDays) },
+    ...holidayVariables.map((variable) => ({
+      id: variable.id,
+      label: variable.description
+        ? `${variableLineLabel(variable)} — ${variable.description}`
+        : variableLineLabel(variable),
+      value: "1",
+    })),
+    ...otherPositiveVariables.map((variable) => ({
       id: variable.id,
       label: variable.description
         ? `${variableLineLabel(variable)} — ${variable.description}`

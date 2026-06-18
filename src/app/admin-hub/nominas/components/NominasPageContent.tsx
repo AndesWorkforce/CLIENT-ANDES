@@ -14,9 +14,11 @@ import AdminHubDateRangePicker from "../../components/AdminHubDateRangePicker";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
 import {
   buildPayrollRows,
+  buildNominaMonthOptions,
+  getCurrentNominaMonthOption,
   getPayrollVariables,
+  isoDateToNominaMonthOption,
   monthOptionToPeriod,
-  NOMINA_MONTH_OPTIONS,
 } from "../data/payroll-data";
 import type { PayrollVariableStatus } from "../data/mock-payroll-variables";
 import NominasTable from "./NominasTable";
@@ -45,42 +47,21 @@ function parseDisplayDateToIso(displayDate: string): string | null {
   return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
 
-/**
- * Convierte una fecha ISO (YYYY-MM-DD) al formato de mes de NOMINA_MONTH_OPTIONS
- * Ejemplo: "2026-03-21" -> "Marzo 2026"
- */
-function isoDateToMonthOption(isoDate: string): string | null {
-  if (!isoDate) return null;
-  
-  const date = new Date(isoDate + "T00:00:00");
-  const monthNames = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-  ];
-  
-  const month = monthNames[date.getMonth()];
-  const year = date.getFullYear();
-  
-  return `${month} ${year}`;
-}
-
-/**
- * Compara si una fecha está dentro de un rango (inclusive)
- */
 function isDateInRange(dateStr: string, fromDate: string, toDate: string): boolean {
   const date = parseDisplayDateToIso(dateStr);
-  if (!date) return true; // Si no se puede parsear, incluir por defecto
-  
+  if (!date) return true;
+
   if (fromDate && date < fromDate) return false;
   if (toDate && date > toDate) return false;
-  
+
   return true;
 }
 
 export default function NominasPageContent() {
-  const defaultMonth = NOMINA_MONTH_OPTIONS.find((m) => m.includes("2026")) ?? NOMINA_MONTH_OPTIONS[0];
-  
-  const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
+  const monthOptions = useMemo(() => buildNominaMonthOptions(), []);
+  const currentMonthOption = useMemo(() => getCurrentNominaMonthOption(), []);
+
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthOption);
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState("");
@@ -91,12 +72,12 @@ export default function NominasPageContent() {
   // Cuando se selecciona un rango de fechas, actualizar automáticamente el mes seleccionado
   useEffect(() => {
     if (fromDate) {
-      const monthOption = isoDateToMonthOption(fromDate);
-      if (monthOption && NOMINA_MONTH_OPTIONS.includes(monthOption)) {
+      const monthOption = isoDateToNominaMonthOption(fromDate);
+      if (monthOption && monthOptions.includes(monthOption)) {
         setSelectedMonth(monthOption);
       }
     }
-  }, [fromDate]);
+  }, [fromDate, monthOptions]);
 
   const period = monthOptionToPeriod(selectedMonth);
   const allVariables = getPayrollVariables();
@@ -144,7 +125,7 @@ export default function NominasPageContent() {
     setStatusFilter("");
     setFromDate("");
     setToDate("");
-    setSelectedMonth(defaultMonth);
+    setSelectedMonth(currentMonthOption);
   }
 
   const hasActiveFilters = Boolean(clientFilter || statusFilter || fromDate || toDate);
@@ -158,7 +139,7 @@ export default function NominasPageContent() {
       <AdminHubSelect
         value={selectedMonth}
         onChange={setSelectedMonth}
-        options={NOMINA_MONTH_OPTIONS.map((month) => ({ value: month, label: month }))}
+        options={monthOptions.map((month) => ({ value: month, label: month }))}
         variant="filter"
         disabled={isMonthFilterDisabled}
       />

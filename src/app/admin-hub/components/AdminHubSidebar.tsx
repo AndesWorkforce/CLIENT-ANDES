@@ -80,7 +80,7 @@ export default function AdminHubSidebar() {
 
   return (
     <aside className="flex w-[280px] shrink-0 flex-col min-h-screen border-r border-[#C8C8C8] bg-white">
-      <div className="px-4 py-5 border-b border-[#EFEFEF]">
+      <div className="px-4 py-5">
         <Link href="/">
           <img src="/logo-andes.png" alt="Andes Workforce" className="h-8" />
         </Link>
