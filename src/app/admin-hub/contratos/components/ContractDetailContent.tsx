@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   BriefcaseBusiness,
   Building2,
@@ -38,6 +39,8 @@ import {
   getDiscretionaryBonusLabel,
 } from "../data/contract-detail-display";
 import type { ContractDetail } from "../data/mock-contract-detail";
+import { personaToDetailPath } from "../../personas/data/mock-persona-detail";
+import { MOCK_CONTRACTORS } from "../../nominas/data/mock-contractors";
 import ContractApprovalBadge from "./ContractApprovalBadge";
 import ContractDetailInfoRow from "./ContractDetailInfoRow";
 import ContractInfoCard from "./ContractInfoCard";
@@ -49,6 +52,7 @@ interface ContractDetailContentProps {
 type ContractVariableTab = (typeof PAYROLL_VARIABLE_TABS)[number]["key"];
 
 export default function ContractDetailContent({ detail }: ContractDetailContentProps) {
+  const router = useRouter();
   const { addNotification } = useNotificationStore();
   const [activeVariableTab, setActiveVariableTab] = useState<ContractVariableTab>("todos");
   const [selectedPayrollHistoryIds, setSelectedPayrollHistoryIds] = useState<Set<string>>(
@@ -138,7 +142,16 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
   }
 
   function handleGoToProfile() {
-    addNotification("El perfil del contratista estará disponible próximamente.", "info");
+    const contractor = MOCK_CONTRACTORS.find(
+      (item) => item.name === detail.nombreCompleto
+    );
+
+    if (contractor) {
+      router.push(personaToDetailPath(contractor));
+      return;
+    }
+
+    addNotification("No se encontró el perfil del contratista.", "info");
   }
 
   const paisDisplay = getPaisDisplay(detail.paisCodigo, detail.paisFacturacion);

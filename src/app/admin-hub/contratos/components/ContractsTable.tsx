@@ -18,6 +18,8 @@ import {
 } from "../data/contract-display";
 import type { MockProcesoContratacion } from "../data/mock-contracts";
 import { contractToDetailPath } from "../data/mock-contract-detail";
+import { MOCK_CONTRACTORS } from "../../nominas/data/mock-contractors";
+import { personaToDetailPath } from "../../personas/data/mock-persona-detail";
 import ContractStatusBadge from "./ContractStatusBadge";
 
 interface ContractsTableProps {
@@ -167,20 +169,41 @@ export default function ContractsTable({ contracts }: ContractsTableProps) {
                         >
                           Ver Contrato
                         </Link>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            addNotification(
-                              "El perfil del contratista estará disponible próximamente.",
-                              "info"
+                        {(() => {
+                          const contractor = MOCK_CONTRACTORS.find(
+                            (item) => item.name === contract.nombreCompleto
+                          );
+
+                          if (!contractor) {
+                            return (
+                              <button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  addNotification(
+                                    "No se encontró el perfil del contratista.",
+                                    "info"
+                                  );
+                                }}
+                                className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] transition-colors hover:bg-[#F8F8F8]"
+                              >
+                                Ver Contratista
+                              </button>
                             );
-                          }}
-                          className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] transition-colors hover:bg-[#F8F8F8]"
-                        >
-                          Ver Contratista
-                        </button>
+                          }
+
+                          return (
+                            <Link
+                              href={personaToDetailPath(contractor)}
+                              role="menuitem"
+                              onClick={() => setOpenMenuId(null)}
+                              className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] transition-colors hover:bg-[#F8F8F8]"
+                            >
+                              Ver Contratista
+                            </Link>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>

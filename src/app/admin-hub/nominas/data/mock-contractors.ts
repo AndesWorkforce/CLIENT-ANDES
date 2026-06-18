@@ -7,12 +7,46 @@ export interface MockContract {
   contractStartDate: string;
 }
 
+/** Perfil extendido del contratista (vista Personas / detalle). */
+export interface ContractorPersonaProfile {
+  status: "Activo" | "Inactivo";
+  personalEmail: string;
+  workEmail: string;
+  phone: string;
+  documentNumber: string;
+  birthDate: string;
+  nationality: string;
+  state: string;
+  city: string;
+  street: string;
+  streetNumber: string;
+  postalCode: string;
+  contractType: string;
+  currency: string;
+  hrRateHolidays: number;
+  bonusLabel: string;
+  ipbBalance: string;
+  billingCountry: string;
+  paymentMethod: string;
+  dollarTag: string | null;
+  personalBank: string | null;
+  personalAccountNumber: string | null;
+  billingBankName: string | null;
+  billingAccountNumber: string | null;
+  howDidYouHear: string;
+  wasReferred: string;
+  referredBy: string | null;
+  notes: string;
+}
+
 export interface MockContractor {
   id: string;
   name: string;
   countryCode: string;
   countryName: string;
   contracts: MockContract[];
+  /** Perfil completo; si falta, se deriva en `getPersonaDetail`. */
+  profile?: ContractorPersonaProfile;
 }
 
 export const MOCK_CONTRACTORS: MockContractor[] = [

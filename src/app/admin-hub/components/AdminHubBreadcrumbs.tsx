@@ -47,6 +47,14 @@ export function getAdminHubBreadcrumbItems(pathname: string): AdminHubBreadcrumb
     ];
   }
 
+  if (/^\/admin-hub\/personas\/[^/]+$/.test(pathname)) {
+    return [
+      { label: "Administrador", href: "/admin-hub/dashboard" },
+      { label: "Personas", href: "/admin-hub/personas" },
+      { label: "Contratista" },
+    ];
+  }
+
   if (/^\/admin-hub\/contratos\/[^/]+$/.test(pathname)) {
     return [
       { label: "Administrador", href: "/admin-hub/dashboard" },
