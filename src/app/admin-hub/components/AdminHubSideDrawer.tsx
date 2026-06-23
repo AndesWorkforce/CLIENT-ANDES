@@ -9,6 +9,7 @@ interface AdminHubSideDrawerProps {
   onClose: () => void;
   title: string;
   subtitle?: string;
+  headerExtra?: ReactNode;
   titleId?: string;
   children: ReactNode;
   footer: ReactNode;
@@ -19,6 +20,7 @@ export default function AdminHubSideDrawer({
   onClose,
   title,
   subtitle,
+  headerExtra,
   titleId = "admin-hub-drawer-title",
   children,
   footer,
@@ -73,6 +75,7 @@ export default function AdminHubSideDrawer({
               {subtitle && (
                 <p className="text-[16px] leading-[1.3] text-[#343434]">{subtitle}</p>
               )}
+              {headerExtra}
             </div>
           </div>
         </header>

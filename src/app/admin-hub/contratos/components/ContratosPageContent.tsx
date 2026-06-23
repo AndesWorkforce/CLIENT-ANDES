@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { Filter, Plus } from "lucide-react";
-import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
   ADMIN_HUB_FILTER_BUTTON_CLASS,
@@ -18,14 +17,15 @@ import {
 } from "../data/contract-display";
 import { getMockContracts } from "../data/mock-contracts";
 import ContractsTable from "./ContractsTable";
+import CreateContractDrawer from "./CreateContractDrawer";
 
 function buildFilterOptions(values: string[]) {
   return Array.from(new Set(values)).map((value) => ({ value, label: value }));
 }
 
 export default function ContratosPageContent() {
-  const { addNotification } = useNotificationStore();
   const allContracts = useMemo(() => getMockContracts(), []);
+  const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState("");
@@ -121,7 +121,7 @@ export default function ContratosPageContent() {
   );
 
   function handleCreateContract() {
-    addNotification("La creación de contratos estará disponible próximamente.", "info");
+    setCreateDrawerOpen(true);
   }
 
   return (
@@ -214,6 +214,11 @@ export default function ContratosPageContent() {
       </div>
 
       <ContractsTable contracts={filteredContracts} />
+
+      <CreateContractDrawer
+        open={createDrawerOpen}
+        onClose={() => setCreateDrawerOpen(false)}
+      />
     </div>
   );
 }
