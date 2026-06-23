@@ -5,6 +5,8 @@ interface AdminHubDrawerFooterProps {
   primaryDisabled?: boolean;
   cancelLabel?: string;
   cancelVariant?: "cancel" | "back";
+  /** Estilo activo (teal). Inactivo: gris. El botón siempre permanece clickeable. */
+  cancelActive?: boolean;
 }
 
 export default function AdminHubDrawerFooter({
@@ -14,11 +16,16 @@ export default function AdminHubDrawerFooter({
   primaryDisabled = false,
   cancelLabel = "Cancelar",
   cancelVariant = "cancel",
+  cancelActive = false,
 }: AdminHubDrawerFooterProps) {
   const cancelClass =
     cancelVariant === "back"
-      ? "border-[#0097B2] text-[#0097B2]"
-      : "border-[#858585] text-[#858585]";
+      ? cancelActive
+        ? "border-[#0097B2] text-[#0097B2] hover:bg-[#F8FCFD]"
+        : "border-[#707070] text-[#707070] hover:bg-white"
+      : cancelActive
+        ? "border-[#0097B2] text-[#0097B2] hover:bg-[#F8FCFD]"
+        : "border-[#858585] text-[#858585] hover:bg-white";
 
   return (
     <footer className="shrink-0 border-t border-[#C8C8C8] bg-[#F8F8F8] px-8 py-7">
@@ -26,7 +33,7 @@ export default function AdminHubDrawerFooter({
         <button
           type="button"
           onClick={onCancel}
-          className={`inline-flex h-9 items-center justify-center rounded-[8px] border bg-white px-[22px] text-[14px] leading-5 transition-colors hover:bg-white ${cancelClass}`}
+          className={`inline-flex h-9 items-center justify-center rounded-[8px] border bg-white px-[22px] text-[14px] font-medium leading-5 transition-colors ${cancelClass}`}
         >
           {cancelLabel}
         </button>

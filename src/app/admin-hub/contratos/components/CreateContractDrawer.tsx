@@ -48,6 +48,9 @@ export default function CreateContractDrawer({ open, onClose }: CreateContractDr
         ? isGeneralInfoComplete(formData)
         : isResidenceComplete(formData);
 
+  const cancelActive =
+    step === "select-type" ? selectedType !== null : canGoNext;
+
   const showTypeSubtitle = step !== "select-type" && selectedType !== null;
 
   function handleSecondaryAction() {
@@ -104,6 +107,7 @@ export default function CreateContractDrawer({ open, onClose }: CreateContractDr
           onCancel={handleSecondaryAction}
           cancelLabel={step === "select-type" ? "Cancelar" : "Atrás"}
           cancelVariant={step === "select-type" ? "cancel" : "back"}
+          cancelActive={cancelActive}
           primaryLabel="Siguiente"
           onPrimary={handleNext}
           primaryDisabled={!canGoNext}
