@@ -5,13 +5,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ChevronDown } from "lucide-react";
-import Image from "next/image";
 import { submitContactFormMicrosoft } from "@/app/pages/contact/actions/microsoft-email-actions";
 
 interface Country {
-  name: { common: string };
-  flags: { png: string };
-  cca3: string;
+  country: string;
+  iso2: string;
+  iso3: string;
+}
+
+interface CountriesAPIResponse {
+  error: boolean;
+  msg: string;
+  data: Country[];
 }
 
 const offersContactSchema = z.object({
@@ -47,14 +52,53 @@ export default function ContactFormSection() {
       setLoadingCountries(true);
       try {
         const response = await fetch(
-          "https://restcountries.com/v3.1/all?fields=name,cca3,flags"
+          "https://countriesnow.space/api/v0.1/countries"
         );
         if (!response.ok) throw new Error("Error fetching countries");
-        const data = await response.json();
-        const sorted = data.sort((a: Country, b: Country) =>
-          a.name.common.localeCompare(b.name.common)
+        const result: CountriesAPIResponse = await response.json();
+        
+        if (result.error) {
+          throw new Error(result.msg);
+        }
+        
+        // Ordenar alfabéticamente primero
+        const sorted = result.data.sort((a, b) =>
+          a.country.localeCompare(b.country)
         );
-        setCountries(sorted);
+
+        // Países prioritarios al inicio
+        const priorityCountries = ["United States", "Colombia", "Canada"];
+        
+        // Países latinoamericanos
+        const latinCountries = [
+          "Argentina", "Bolivia", "Brazil", "Chile", "Costa Rica", "Cuba",
+          "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", 
+          "Honduras", "Mexico", "Nicaragua", "Panama", "Paraguay", 
+          "Peru", "Uruguay", "Venezuela"
+        ];
+
+        // Separar países prioritarios
+        const priority = sorted.filter(c => priorityCountries.includes(c.country));
+        
+        // Separar países latinoamericanos (excluyendo Colombia que ya está en prioritarios)
+        const latin = sorted.filter(c => 
+          latinCountries.includes(c.country) && !priorityCountries.includes(c.country)
+        );
+        
+        // Resto de países
+        const rest = sorted.filter(c => 
+          !priorityCountries.includes(c.country) && !latinCountries.includes(c.country)
+        );
+
+        // Reordenar: prioritarios en orden específico
+        const orderedPriority = priorityCountries
+          .map(name => priority.find(c => c.country === name))
+          .filter((c): c is Country => c !== undefined);
+
+        // Combinar en el orden deseado
+        const finalList = [...orderedPriority, ...latin, ...rest];
+        
+        setCountries(finalList);
       } catch (error) {
         console.error("Error fetching countries:", error);
       } finally {
@@ -104,51 +148,125 @@ export default function ContactFormSection() {
   };
 
   return (
-    <section
-      id="contact-form"
-      className="relative w-full h-full flex flex-col md:flex-row items-stretch"
-    >
-      {/* Left side - Image with gradient overlay */}
-      <div className="relative hidden md:block w-1/2 min-h-[500px] max-h-[700px]">
-        <Image
-          src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/contactus_offers.jpg"
-          alt="Office workspace"
-          fill
-          className="object-cover"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to right, rgba(0,151,178,0) 50%, #0097b2 100%)",
-          }}
-        />
+    <section id="contact-form" className="relative w-full h-[749px] flex">
+      {/* Left side - Image with content overlay */}
+      <div className="relative flex-1 h-full flex items-center">
+        {/* Background Images */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <img
+            src="https://www.figma.com/api/mcp/asset/55ddcadb-79d4-4350-886f-20aaaecb688c"
+            alt="Background"
+            className="absolute w-full h-full object-cover"
+          />
+          <img
+            src="https://www.figma.com/api/mcp/asset/8ffe2980-2010-459f-944d-3080c0ccd5c0"
+            alt="Overlay"
+            className="absolute w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="relative z-10 px-[79px] py-[169px] w-full">
+          <div className="flex flex-col gap-[20px]">
+            {/* Available Now Badge */}
+            <div className="inline-flex items-center gap-[7px] bg-[rgba(255,255,255,0.22)] border border-white rounded-[20px] px-[14px] py-[7px] self-start">
+              <img
+                src="https://www.figma.com/api/mcp/asset/5b263ebc-a748-48bb-a0c0-5e51484568c1"
+                alt="Available"
+                className="w-[25px] h-[25px]"
+              />
+              <span className="text-white font-semibold text-[16px] leading-[1.3]">
+                Available now
+              </span>
+            </div>
+
+            {/* Title */}
+            <h2 className="text-white font-bold text-[48px] leading-[1.3] h-[123px] max-w-[574px]">
+              Let's build your team-together
+            </h2>
+
+            {/* Description */}
+            <p className="text-white font-medium text-[20px] leading-[1.2] max-w-[574px]">
+              Our team typically replies within 24 hours with role-mathed candidates and
+              pricing
+            </p>
+
+            {/* Stats Section */}
+            <div className="flex flex-col gap-[29px] max-w-[574px]">
+              <div className="relative w-full h-[1px]">
+                <img
+                  src="https://www.figma.com/api/mcp/asset/d952f047-ae2b-467b-820b-916f9a68e194"
+                  alt=""
+                  className="absolute inset-0 w-full h-auto"
+                />
+              </div>
+
+              <div className="flex gap-[32px]">
+                {/* +300 Contractors */}
+                <div className="flex flex-col gap-[3px] w-[145px]">
+                  <p className="text-white font-bold text-[24px] leading-[1.3]">+300</p>
+                  <p className="text-white font-semibold text-[18px] leading-[1.3]">
+                    Contractors
+                  </p>
+                </div>
+
+                {/* Vertical separator */}
+                <div className="flex items-center justify-center w-0 h-[78px]">
+                  <img
+                    src="https://www.figma.com/api/mcp/asset/2632d7bd-35a0-46b3-a9c9-9f0588bdaecd"
+                    alt=""
+                    className="h-full w-auto rotate-90"
+                  />
+                </div>
+
+                {/* +15 US-based clients */}
+                <div className="flex flex-col gap-[3px] w-[145px]">
+                  <p className="text-white font-bold text-[24px] leading-[1.3]">+15</p>
+                  <p className="text-white font-semibold text-[18px] leading-[1.3]">
+                    US-based clients
+                  </p>
+                </div>
+
+                {/* Vertical separator */}
+                <div className="flex items-center justify-center w-0 h-[78px]">
+                  <img
+                    src="https://www.figma.com/api/mcp/asset/2632d7bd-35a0-46b3-a9c9-9f0588bdaecd"
+                    alt=""
+                    className="h-full w-auto rotate-90"
+                  />
+                </div>
+
+                {/* 24h Response */}
+                <div className="flex flex-col gap-[3px] w-[145px]">
+                  <p className="text-white font-bold text-[24px] leading-[1.3]">24 h</p>
+                  <p className="text-white font-semibold text-[18px] leading-[1.3]">
+                    Response
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Right side - Form */}
-      <div
-        className="w-full md:w-1/2 flex items-center justify-center px-6 sm:px-10 md:px-16 py-12 md:py-0"
-        style={{
-          background:
-            "linear-gradient(90.31deg, rgb(0, 151, 178) 5.218%, rgb(0, 100, 118) 99.736%)",
-        }}
-      >
-        <div className="w-full max-w-xl space-y-8">
+      <div className="flex-1 h-full bg-[#F6FBFC] flex items-center justify-center px-[77px] py-[48px]">
+        <div className="bg-white rounded-[24px] shadow-[7px_10px_10px_rgba(195,195,195,0.5)] w-full max-w-[652px] px-[36px] pt-[66px] pb-[50px]">
           {/* Header */}
-          <div className="text-white space-y-2">
-            <h2 className="text-3xl md:text-4xl font-bold">Contact Us</h2>
-            <p className="text-sm">
-              Fill out the form for a consultation. Our Andes Workforce team typically
-              reaches out within 24 hours.
+          <div className="mb-[66px]">
+            <h3 className="text-black font-bold text-[32px] leading-[1.3] mb-[11px]">
+              Contact Us
+            </h3>
+            <p className="text-black font-medium text-[16px] leading-[1.2]">
+              Fill out for a consultation. Our Andes Workforce team typically reaches out
+              within 24 hours.
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-[11px]">
             {formResponse && (
               <div
-                className={`p-3 rounded-lg text-sm font-medium ${
+                className={`p-3 rounded-lg text-sm font-medium mb-[11px] ${
                   formResponse.success
                     ? "bg-green-100 text-green-800"
                     : "bg-red-100 text-red-800"
@@ -159,86 +277,97 @@ export default function ContactFormSection() {
             )}
 
             {/* Name Field */}
-            <div className="space-y-1">
-              <label className="text-white text-base font-medium block">Full Name</label>
+            <div className="relative h-[59px]">
               <input
                 type="text"
-                placeholder="Ex: Alexander Hamilton"
+                placeholder="Juan Perez"
                 {...register("name")}
-                className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#0097b2]"
+                className="absolute top-[9px] w-full h-[50px] bg-white border border-[#C8C8C8] rounded-[8px] px-[16px] py-[17px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2]"
               />
+              <label className="absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]">
+                Full Name*
+              </label>
               {errors.name && (
-                <p className="text-red-200 text-xs">{errors.name.message}</p>
+                <p className="absolute -bottom-5 left-0 text-red-500 text-xs">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
             {/* Email Field */}
-            <div className="space-y-1">
-              <label className="text-white text-base font-medium block">Email Address</label>
+            <div className="relative h-[59px]">
               <input
                 type="email"
-                placeholder="Ex: alexander@company.com"
+                placeholder="Jperez@adds.com"
                 {...register("email")}
-                className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#0097b2]"
+                className="absolute top-[9px] w-full h-[50px] bg-white border border-[#C8C8C8] rounded-[8px] px-[16px] py-[17px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2]"
               />
+              <label className="absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]">
+                Email Address*
+              </label>
               {errors.email && (
-                <p className="text-red-200 text-xs">{errors.email.message}</p>
+                <p className="absolute -bottom-5 left-0 text-red-500 text-xs">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
-            {/* Country and Phone Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Country Select */}
-              <div className="space-y-1">
-                <label className="text-white text-base font-medium block">Country</label>
-                <div className="relative">
-                  <select
-                    {...register("country")}
-                    className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#0097b2] cursor-pointer"
-                    disabled={loadingCountries}
-                  >
-                    <option value="">Select option here...</option>
-                    {countries.map((country) => (
-                      <option key={country.cca3} value={country.name.common}>
-                        {country.name.common}
-                      </option>
-                    ))}
-                  </select>
-                  {loadingCountries ? (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <div className="animate-spin h-4 w-4 border-2 border-[#0097b2] border-t-transparent rounded-full" />
-                    </div>
-                  ) : (
-                    <ChevronDown
-                      size={16}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
-                    />
-                  )}
-                </div>
-                {errors.country && (
-                  <p className="text-red-200 text-xs">{errors.country.message}</p>
+            {/* Country Field */}
+            <div className="relative h-[59px]">
+              <div className="absolute top-[9px] w-full h-[50px]">
+                <select
+                  {...register("country")}
+                  className="w-full h-full appearance-none bg-white border border-[#C8C8C8] rounded-[8px] px-[16px] py-[17px] pr-[40px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2] cursor-pointer"
+                  disabled={loadingCountries}
+                >
+                  <option value="">Select your country...</option>
+                  {countries.map((country) => (
+                    <option key={country.iso3} value={country.country}>
+                      {country.country}
+                    </option>
+                  ))}
+                </select>
+                {loadingCountries ? (
+                  <div className="absolute right-[16px] top-1/2 -translate-y-1/2">
+                    <div className="animate-spin h-4 w-4 border-2 border-[#0097b2] border-t-transparent rounded-full" />
+                  </div>
+                ) : (
+                  <ChevronDown
+                    size={18}
+                    className="absolute right-[16px] top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
+                  />
                 )}
               </div>
+              <label className="absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]">
+                Country
+              </label>
+              {errors.country && (
+                <p className="absolute -bottom-5 left-0 text-red-500 text-xs">
+                  {errors.country.message}
+                </p>
+              )}
+            </div>
 
-              {/* Phone Field */}
-              <div className="space-y-1">
-                <label className="text-white text-base font-medium block">Phone (Optional)</label>
-                <input
-                  type="tel"
-                  placeholder="+1 (555) 123-4567"
-                  {...register("phone")}
-                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#0097b2]"
-                />
-              </div>
+            {/* Phone Field */}
+            <div className="relative h-[59px]">
+              <input
+                type="tel"
+                placeholder="+54 9 011 485 5276"
+                {...register("phone")}
+                className="absolute top-[9px] w-full h-[50px] bg-white border border-[#C8C8C8] rounded-[8px] px-[16px] py-[17px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2]"
+              />
+              <label className="absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]">
+                Phone
+              </label>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#FFFFFF] hover:bg-gray-100 text-[#0097b2] px-8 py-3 rounded-2xl font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-[48px] bg-[#0097B2] hover:bg-[#007A8F] text-white font-semibold text-[14px] leading-[1.3] rounded-[8px] mt-[55px] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Sending..." : "Submit"}
+              {isSubmitting ? "Sending..." : "Submit Request"}
             </button>
           </form>
         </div>
