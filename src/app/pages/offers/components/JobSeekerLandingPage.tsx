@@ -22,7 +22,7 @@ const steps = [
   },
   {
     number: "04",
-    title: "Apply for a Contract",
+    title: "Get Hired",
     description: "Apply, get selected, and start your remote career",
   },
 ];
@@ -30,9 +30,9 @@ const steps = [
 const benefits = [
   {
     icon: Globe,
-    title: "100% Remote",
+    title: "100% Remote Work",
     description:
-      "Collaborate remotely from anywhere in Latin America...",
+      "Work from anywhere in Latin America with top US and international companies",
   },
   {
     icon: Briefcase,
@@ -56,20 +56,20 @@ const benefits = [
     icon: Clock,
     title: "Flexible Opportunities",
     description:
-      "Wide range of remote opportunities across industries and time zones.",
+      "Full-time and part-time roles across various industries and specializations",
   },
   {
     icon: Award,
     title: "Performance Bonuses",
     description:
-      "Earn extra with referral bonuses, performance incentives, and seniority benefits",
+      "Earn extra with referral bonuses, performance incentives, and seniority rewards",
   },
 ];
 
 const stats = [
   { value: "50+", label: "Partner Companies" },
   { value: "200+", label: "Professionals Hired" },
-  { value: "$1K–$3K", label: "Monthly Payment Rent" },
+  { value: "$1K - $3K", label: "Monthly Salary Range" },
   { value: "10+", label: "Countries Represented" },
 ];
 
@@ -79,7 +79,7 @@ export default function JobSeekerLandingPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}
-      <section className="relative w-full h-[500px] md:h-[600px] flex items-center px-6 sm:px-10 md:px-16 py-20">
+      <section className="relative w-full h-[500px] md:h-[600px] flex items-end px-6 sm:px-10 md:px-16 py-16 md:pb-20">
         <div className="absolute inset-0 z-0">
           <Image
             src="/images/teamwork.jpg"
@@ -92,11 +92,6 @@ export default function JobSeekerLandingPage() {
         </div>
 
         <div className="relative z-10 max-w-[660px] text-white flex flex-col gap-6 md:gap-8">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 rounded-full w-fit">
-            <span className="w-2 h-2 bg-[#00e5ff] rounded-full animate-pulse" />
-            <span className="text-sm font-medium">New positions available now</span>
-          </div>
 
           {/* Heading */}
           <h1 className="text-[34px] sm:text-[46px] md:text-[58px] font-bold leading-tight font-[family-name:var(--font-outfit)]">
@@ -149,29 +144,24 @@ export default function JobSeekerLandingPage() {
               How It Works
             </h2>
             <p className="text-gray-600 max-w-xl mx-auto">
-              From registration to your first payment — simple and
-              straightforward
+              From registration to your first paycheck - simple and straightforward
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 max-w-5xl mx-auto">
             {steps.map((step, i) => (
               <div
-                key={step.number}
+                key={step.title}
                 className="relative flex flex-col items-center text-center gap-4"
               >
-                {/* Connector line (desktop only) */}
-                {i < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-7 left-[calc(50%+28px)] w-[calc(100%-56px)] h-[2px] bg-[#0097B2]/20" />
-                )}
-                <div className="w-14 h-14 rounded-full bg-[#0097B2]/10 border-2 border-[#0097B2] flex items-center justify-center flex-shrink-0 z-10">
-                  <span className="text-[#0097B2] font-bold text-lg">
+                <div className="w-[73px] h-[73px] rounded-full bg-[#DFFAFF] border-2 border-[#0097B2] flex items-center justify-center flex-shrink-0 z-10">
+                  <span className="text-[#0097B2] font-bold text-[22px]">
                     {step.number}
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#08252A] mb-1">{step.title}</h3>
-                  <p className="text-sm text-gray-600">{step.description}</p>
+                  <h3 className="font-bold text-[#08252A] text-[20px] mb-2">{step.title}</h3>
+                  <p className="text-[14px] text-[#707070] leading-relaxed">{step.description}</p>
                 </div>
               </div>
             ))}
@@ -214,24 +204,24 @@ export default function JobSeekerLandingPage() {
       {/* Final CTA */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-[#08252A] to-[#0097B2] text-white text-center">
         <div className="container mx-auto px-4 max-w-2xl">
-          <h2 className="text-[28px] sm:text-[36px] md:text-[44px] font-bold mb-4">
-            Ready to Start?
+          <h2 className="text-[28px] sm:text-[36px] md:text-[48px] font-bold mb-4">
+            Ready to start?
           </h2>
-          <p className="text-white/80 mb-8 text-base sm:text-lg">
-            Be part of a growing Latin American professional community partnering remotely with top companies worldwide.
+          <p className="text-white/90 mb-8 text-base sm:text-lg leading-relaxed">
+            Join our growing community of Latin American professionals working remotely with top global companies
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <button
               onClick={() => router.push("/auth/register")}
               className="bg-white text-[#0097B2] hover:bg-gray-100 px-10 py-3 rounded-[20px] text-base font-semibold transition-colors cursor-pointer shadow-md"
             >
-              Create Free Account
+              Create Account
             </button>
             <button
               onClick={() => router.push("/auth/login")}
-              className="border border-white/50 text-white hover:bg-white/10 px-10 py-3 rounded-[20px] text-base font-semibold transition-colors cursor-pointer"
+              className="border border-white text-white hover:bg-white/10 px-10 py-3 rounded-[20px] text-base font-semibold transition-colors cursor-pointer shadow-[0px_4px_4px_rgba(255,255,255,0.15)]"
             >
-              Login
+              Sign In
             </button>
           </div>
         </div>
