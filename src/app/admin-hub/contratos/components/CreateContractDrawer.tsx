@@ -12,14 +12,19 @@ import {
   CONTRACT_TYPE_LABELS,
   CONTRACT_TYPE_OPTIONS,
   emptyCreateContractForm,
-  isGeneralInfoComplete,
-  isResidenceComplete,
+  getNextStep,
+  getPreviousStep,
+  isStepComplete,
   type ContractCreationStep,
   type ContractCreationType,
   type CreateContractFormData,
 } from "../data/contract-creation-types";
+import CreateContractAdditionalIncomeForm from "./CreateContractAdditionalIncomeForm";
+import CreateContractFinancialForm from "./CreateContractFinancialForm";
 import CreateContractGeneralInfoForm from "./CreateContractGeneralInfoForm";
+import CreateContractLaborForm from "./CreateContractLaborForm";
 import CreateContractResidenceForm from "./CreateContractResidenceForm";
+import CreateContractReviewStep from "./CreateContractReviewStep";
 
 interface CreateContractDrawerProps {
   open: boolean;
@@ -41,17 +46,13 @@ export default function CreateContractDrawer({ open, onClose }: CreateContractDr
   }, [open]);
 
   const stepMeta = CONTRACT_STEP_META[step];
-  const canGoNext =
-    step === "select-type"
-      ? selectedType !== null
-      : step === "general-info"
-        ? isGeneralInfoComplete(formData)
-        : isResidenceComplete(formData);
+  const canGoNext = isStepComplete(step, formData, selectedType);
 
   const cancelActive =
     step === "select-type" ? selectedType !== null : canGoNext;
 
   const showTypeSubtitle = step !== "select-type" && selectedType !== null;
+  const isReviewStep = step === "review";
 
   function handleSecondaryAction() {
     if (step === "select-type") {
@@ -59,30 +60,30 @@ export default function CreateContractDrawer({ open, onClose }: CreateContractDr
       return;
     }
 
-    if (step === "general-info") {
-      setStep("select-type");
-      return;
-    }
-
-    if (step === "residence") {
-      setStep("general-info");
+    const previousStep = getPreviousStep(step);
+    if (previousStep) {
+      setStep(previousStep);
     }
   }
 
   function handleNext() {
+    if (!canGoNext) return;
+
     if (step === "select-type" && selectedType) {
       setFormData(emptyCreateContractForm());
       setStep("general-info");
       return;
     }
 
-    if (step === "general-info" && isGeneralInfoComplete(formData)) {
-      setStep("residence");
+    if (step === "review") {
+      addNotification("Contrato creado correctamente.", "success");
+      onClose();
       return;
     }
 
-    if (step === "residence" && isResidenceComplete(formData)) {
-      addNotification("Los siguientes pasos estarán disponibles próximamente.", "info");
+    const nextStep = getNextStep(step);
+    if (nextStep) {
+      setStep(nextStep);
     }
   }
 
@@ -108,7 +109,7 @@ export default function CreateContractDrawer({ open, onClose }: CreateContractDr
           cancelLabel={step === "select-type" ? "Cancelar" : "Atrás"}
           cancelVariant={step === "select-type" ? "cancel" : "back"}
           cancelActive={cancelActive}
-          primaryLabel="Siguiente"
+          primaryLabel={isReviewStep ? "Crear contrato" : "Siguiente"}
           onPrimary={handleNext}
           primaryDisabled={!canGoNext}
         />
@@ -129,6 +130,22 @@ export default function CreateContractDrawer({ open, onClose }: CreateContractDr
 
       {step === "residence" && (
         <CreateContractResidenceForm formData={formData} onChange={setFormData} />
+      )}
+
+      {step === "labor-info" && (
+        <CreateContractLaborForm formData={formData} onChange={setFormData} />
+      )}
+
+      {step === "financial-info" && (
+        <CreateContractFinancialForm formData={formData} onChange={setFormData} />
+      )}
+
+      {step === "additional-income" && (
+        <CreateContractAdditionalIncomeForm formData={formData} onChange={setFormData} />
+      )}
+
+      {step === "review" && selectedType && (
+        <CreateContractReviewStep formData={formData} selectedType={selectedType} />
       )}
     </AdminHubSideDrawer>
   );

@@ -1,10 +1,29 @@
+import type { DiscretionaryBonusType } from "./mock-contract-detail";
+
 export type ContractCreationType =
   | "permanente"
   | "por-periodo"
   | "por-proyecto"
   | "contractor-freelance";
 
-export type ContractCreationStep = "select-type" | "general-info" | "residence";
+export type ContractCreationStep =
+  | "select-type"
+  | "general-info"
+  | "residence"
+  | "labor-info"
+  | "financial-info"
+  | "additional-income"
+  | "review";
+
+export const CONTRACT_CREATION_STEP_ORDER: ContractCreationStep[] = [
+  "select-type",
+  "general-info",
+  "residence",
+  "labor-info",
+  "financial-info",
+  "additional-income",
+  "review",
+];
 
 export const CONTRACT_CREATION_TOTAL_STEPS = 7;
 
@@ -32,6 +51,10 @@ export const CONTRACT_STEP_META: Record<
   "select-type": { stepNumber: 1, label: "Tipo de contrato" },
   "general-info": { stepNumber: 2, label: "Información General" },
   residence: { stepNumber: 3, label: "Dirección de Residencia" },
+  "labor-info": { stepNumber: 4, label: "Información Laboral" },
+  "financial-info": { stepNumber: 5, label: "Información Financiera" },
+  "additional-income": { stepNumber: 6, label: "Ingresos adicionales" },
+  review: { stepNumber: 7, label: "Confirmación" },
 };
 
 export interface CreateContractFormData {
@@ -48,6 +71,24 @@ export interface CreateContractFormData {
   calle: string;
   altura: string;
   codigoPostal: string;
+  fechaInicioContrato: string;
+  posicion: string;
+  cliente: string;
+  salario: string;
+  hrRateHolidays: string;
+  paidHolidays: string;
+  discretionaryBonus: DiscretionaryBonusType | "";
+  paisFacturacion: string;
+  metodoPago: string;
+  dollarTag: string;
+  bancoPersonal: string;
+  numeroCuentaPersonal: string;
+  bancoFacturacion: string;
+  numeroBancoFacturacion: string;
+  comoNosConocio: string;
+  fueRecomendado: string;
+  porQuien: string;
+  notas: string;
 }
 
 export function emptyCreateContractForm(): CreateContractFormData {
@@ -65,6 +106,24 @@ export function emptyCreateContractForm(): CreateContractFormData {
     calle: "",
     altura: "",
     codigoPostal: "",
+    fechaInicioContrato: "",
+    posicion: "",
+    cliente: "",
+    salario: "",
+    hrRateHolidays: "",
+    paidHolidays: "",
+    discretionaryBonus: "",
+    paisFacturacion: "",
+    metodoPago: "",
+    dollarTag: "",
+    bancoPersonal: "",
+    numeroCuentaPersonal: "",
+    bancoFacturacion: "",
+    numeroBancoFacturacion: "",
+    comoNosConocio: "",
+    fueRecomendado: "",
+    porQuien: "",
+    notas: "",
   };
 }
 
@@ -89,4 +148,66 @@ export function isResidenceComplete(data: CreateContractFormData): boolean {
       data.altura.trim() &&
       data.codigoPostal.trim()
   );
+}
+
+export function isLaborInfoComplete(data: CreateContractFormData): boolean {
+  return Boolean(
+    data.fechaInicioContrato &&
+      data.posicion &&
+      data.cliente &&
+      data.salario.trim() &&
+      data.hrRateHolidays &&
+      data.paidHolidays &&
+      data.discretionaryBonus
+  );
+}
+
+export function isFinancialInfoComplete(data: CreateContractFormData): boolean {
+  return Boolean(data.paisFacturacion && data.metodoPago);
+}
+
+export function isAdditionalIncomeComplete(data: CreateContractFormData): boolean {
+  const baseComplete = Boolean(data.comoNosConocio && data.fueRecomendado);
+  if (!baseComplete) return false;
+  if (data.fueRecomendado === "Si") {
+    return Boolean(data.porQuien.trim());
+  }
+  return true;
+}
+
+export function isStepComplete(
+  step: ContractCreationStep,
+  data: CreateContractFormData,
+  selectedType: ContractCreationType | null
+): boolean {
+  switch (step) {
+    case "select-type":
+      return selectedType !== null;
+    case "general-info":
+      return isGeneralInfoComplete(data);
+    case "residence":
+      return isResidenceComplete(data);
+    case "labor-info":
+      return isLaborInfoComplete(data);
+    case "financial-info":
+      return isFinancialInfoComplete(data);
+    case "additional-income":
+      return isAdditionalIncomeComplete(data);
+    case "review":
+      return true;
+    default:
+      return false;
+  }
+}
+
+export function getPreviousStep(step: ContractCreationStep): ContractCreationStep | null {
+  const index = CONTRACT_CREATION_STEP_ORDER.indexOf(step);
+  if (index <= 0) return null;
+  return CONTRACT_CREATION_STEP_ORDER[index - 1];
+}
+
+export function getNextStep(step: ContractCreationStep): ContractCreationStep | null {
+  const index = CONTRACT_CREATION_STEP_ORDER.indexOf(step);
+  if (index < 0 || index >= CONTRACT_CREATION_STEP_ORDER.length - 1) return null;
+  return CONTRACT_CREATION_STEP_ORDER[index + 1];
 }
