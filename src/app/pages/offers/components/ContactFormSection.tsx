@@ -150,23 +150,23 @@ export default function ContactFormSection() {
   return (
     <section id="contact-form" className="relative w-full h-[749px] flex">
       {/* Left side - Image with content overlay */}
-      <div className="relative flex-1 h-full flex items-center">
-        {/* Background Images */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <img
-            src="https://www.figma.com/api/mcp/asset/55ddcadb-79d4-4350-886f-20aaaecb688c"
-            alt="Background"
-            className="absolute w-full h-full object-cover"
-          />
-          <img
-            src="https://www.figma.com/api/mcp/asset/8ffe2980-2010-459f-944d-3080c0ccd5c0"
-            alt="Overlay"
-            className="absolute w-full h-full object-cover"
-          />
-        </div>
+      <div className="relative flex-1 h-full">
+        {/* Background Image */}
+        <img
+          src="https://www.figma.com/api/mcp/asset/55ddcadb-79d4-4350-886f-20aaaecb688c"
+          alt="Background"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Overlay */}
+        <img
+          src="https://www.figma.com/api/mcp/asset/8ffe2980-2010-459f-944d-3080c0ccd5c0"
+          alt="Overlay"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
 
-        <div className="relative z-10 px-[79px] py-[169px] w-full">
-          <div className="flex flex-col gap-[20px]">
+        {/* Content */}
+        <div className="relative z-10 px-[79px] py-[169px] h-full flex items-center">
+          <div className="flex flex-col gap-[20px] max-w-[574px]">
             {/* Available Now Badge */}
             <div className="inline-flex items-center gap-[7px] bg-[rgba(255,255,255,0.22)] border border-white rounded-[20px] px-[14px] py-[7px] self-start">
               <img
@@ -192,13 +192,8 @@ export default function ContactFormSection() {
 
             {/* Stats Section */}
             <div className="flex flex-col gap-[29px] max-w-[574px]">
-              <div className="relative w-full h-[1px]">
-                <img
-                  src="https://www.figma.com/api/mcp/asset/d952f047-ae2b-467b-820b-916f9a68e194"
-                  alt=""
-                  className="absolute inset-0 w-full h-auto"
-                />
-              </div>
+              {/* Horizontal line */}
+              <div className="w-full h-[1px] bg-white opacity-30" />
 
               <div className="flex gap-[32px]">
                 {/* +300 Contractors */}
@@ -210,13 +205,7 @@ export default function ContactFormSection() {
                 </div>
 
                 {/* Vertical separator */}
-                <div className="flex items-center justify-center w-0 h-[78px]">
-                  <img
-                    src="https://www.figma.com/api/mcp/asset/2632d7bd-35a0-46b3-a9c9-9f0588bdaecd"
-                    alt=""
-                    className="h-full w-auto rotate-90"
-                  />
-                </div>
+                <div className="w-[1px] h-[78px] bg-white opacity-30" />
 
                 {/* +15 US-based clients */}
                 <div className="flex flex-col gap-[3px] w-[145px]">
@@ -227,13 +216,7 @@ export default function ContactFormSection() {
                 </div>
 
                 {/* Vertical separator */}
-                <div className="flex items-center justify-center w-0 h-[78px]">
-                  <img
-                    src="https://www.figma.com/api/mcp/asset/2632d7bd-35a0-46b3-a9c9-9f0588bdaecd"
-                    alt=""
-                    className="h-full w-auto rotate-90"
-                  />
-                </div>
+                <div className="w-[1px] h-[78px] bg-white opacity-30" />
 
                 {/* 24h Response */}
                 <div className="flex flex-col gap-[3px] w-[145px]">
