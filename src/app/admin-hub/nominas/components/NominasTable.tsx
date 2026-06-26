@@ -20,6 +20,8 @@ import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
 
 interface NominasTableProps {
   rows: PayrollRow[];
+  selectedIds: Set<string>;
+  onSelectedIdsChange: (selectedIds: Set<string>) => void;
 }
 
 type SortKey = "clientPrice" | "variableAmount" | "totalAmount" | null;
@@ -27,8 +29,7 @@ type MenuPosition = { top: number; left: number };
 
 const MENU_MIN_WIDTH = 148;
 
-export default function NominasTable({ rows }: NominasTableProps) {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }: NominasTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -101,19 +102,17 @@ export default function NominasTable({ rows }: NominasTableProps) {
 
   function toggleAll() {
     if (allSelected) {
-      setSelectedIds(new Set());
+      onSelectedIdsChange(new Set());
     } else {
-      setSelectedIds(new Set(displayedRows.map((row) => row.id)));
+      onSelectedIdsChange(new Set(displayedRows.map((row) => row.id)));
     }
   }
 
   function toggleOne(id: string) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    onSelectedIdsChange(next);
   }
 
   function closeMenu() {
