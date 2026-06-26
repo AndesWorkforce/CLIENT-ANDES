@@ -59,10 +59,10 @@ export default function MemberModal({ member, onClose }: MemberModalProps) {
         </button>
 
         {/* Mobile: Vertical Layout | Desktop: Horizontal Layout */}
-        <div className="flex flex-col md:flex-row w-full">
+        <div className="flex flex-col md:flex-row w-full md:h-full">
           {/* Image Section */}
           <div className="w-full md:w-2/5 md:bg-gradient-to-br md:from-gray-100 md:to-gray-200 flex-shrink-0">
-            <div className="flex items-center justify-center p-[33px] md:p-0">
+            <div className="flex items-center justify-center p-[33px] md:p-0 h-full">
               <div className="relative w-full max-w-[317px] h-[346px] md:max-w-none md:h-full rounded-[12px] md:rounded-none overflow-hidden">
                 {member.image ? (
                   <Image
