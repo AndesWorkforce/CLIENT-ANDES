@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { TeamMember } from "../../team/team.data";
 
@@ -17,29 +17,102 @@ export default function TeamMembersGrid({
 }: TeamMembersGridProps) {
   const [showAll, setShowAll] = useState(false);
   const visibleMembers = showAll ? members : members.slice(0, INITIAL_COUNT);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+  const autoScrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isAutoScrollingRef = useRef(true); // Para rastrear si el scroll es automático
 
   const rows: TeamMember[][] = [];
   for (let i = 0; i < visibleMembers.length; i += 4) {
     rows.push(visibleMembers.slice(i, i + 4));
   }
 
-  // ~3.5s per card for a smooth continuous scroll feel
-  const carouselDuration = `${members.length * 3.5}s`;
+  // Auto-scroll effect for mobile
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    const startAutoScroll = () => {
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current);
+      }
+
+      autoScrollIntervalRef.current = setInterval(() => {
+        if (!scrollContainer || !isAutoScrolling) return;
+
+        // Marcar que este scroll es automático
+        isAutoScrollingRef.current = true;
+
+        const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+        const currentScroll = scrollContainer.scrollLeft;
+        
+        // Calcular el ancho de una tarjeta más el gap (201px + 19px = 220px)
+        const cardWidth = 220;
+        // Punto donde terminan los miembros originales (antes de los duplicados)
+        const originalEndPoint = cardWidth * members.length;
+
+        // Si llegamos al punto donde empiezan los duplicados, volver al inicio
+        if (currentScroll >= originalEndPoint - cardWidth) {
+          scrollContainer.scrollLeft = 0;
+        } else {
+          // Avanzamos suavemente
+          scrollContainer.scrollBy({ left: 1, behavior: "auto" });
+        }
+      }, 20); // Velocidad de scroll
+    };
+
+    if (isAutoScrolling) {
+      startAutoScroll();
+    }
+
+    return () => {
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current);
+      }
+    };
+  }, [isAutoScrolling, members.length]);
+
+  // Detectar scroll manual del usuario
+  const handleScroll = () => {
+    // Si el scroll es automático, no hacer nada
+    if (isAutoScrollingRef.current) {
+      isAutoScrollingRef.current = false;
+      return;
+    }
+
+    // El usuario hizo scroll manualmente
+    setIsAutoScrolling(false);
+
+    // Limpiar timeout anterior
+    if (userScrollTimeoutRef.current) {
+      clearTimeout(userScrollTimeoutRef.current);
+    }
+
+    // Reanudar auto-scroll después de 3 segundos de inactividad
+    userScrollTimeoutRef.current = setTimeout(() => {
+      setIsAutoScrolling(true);
+    }, 3000);
+  };
+
+  // Detectar cuando el usuario toca el contenedor
+  const handleTouchStart = () => {
+    isAutoScrollingRef.current = false;
+    setIsAutoScrolling(false);
+
+    // Limpiar timeout anterior
+    if (userScrollTimeoutRef.current) {
+      clearTimeout(userScrollTimeoutRef.current);
+    }
+
+    // Reanudar auto-scroll después de 3 segundos de inactividad
+    userScrollTimeoutRef.current = setTimeout(() => {
+      setIsAutoScrolling(true);
+    }, 3000);
+  };
 
   return (
     <section className="relative w-full overflow-hidden py-[33px] sm:py-[109px]">
-      <style>{`
-        @keyframes teamMembersScroll {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
-        }
-        .team-members-carousel {
-          will-change: transform;
-        }
-        .team-members-carousel:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
 
       {/* Background image */}
       <Image
@@ -63,18 +136,23 @@ export default function TeamMembersGrid({
           </p>
         </div>
 
-        {/* Mobile: infinite auto-scroll carousel */}
-        <div className="md:hidden -mx-[21px] overflow-hidden w-[calc(100%+42px)]">
-          <div
-            className="team-members-carousel flex gap-[19px] pl-[19px]"
-            style={{
-              width: "max-content",
-              animation: `teamMembersScroll ${carouselDuration} linear infinite`,
-            }}
-          >
-            {/* Duplicate cards for seamless looping */}
-            {[...members, ...members].map((member, i) => (
-              <div key={`carousel-${member.id}-${i}`} className="w-[201px] flex-shrink-0">
+        {/* Mobile: auto-scroll + manual scroll carousel */}
+        <div 
+          ref={scrollRef}
+          onScroll={handleScroll}
+          onTouchStart={handleTouchStart}
+          className="md:hidden -mx-[21px] overflow-x-auto w-[calc(100%+42px)] scrollbar-hide"
+        >
+          <div className="flex gap-[19px] px-[21px] pb-[11px]">
+            {/* Mostrar todos los miembros */}
+            {members.map((member) => (
+              <div key={`carousel-${member.id}`} className="w-[201px] flex-shrink-0">
+                <MemberCard member={member} onMemberClick={onMemberClick} />
+              </div>
+            ))}
+            {/* Duplicar solo los primeros 3 miembros para el loop */}
+            {members.slice(0, 3).map((member, idx) => (
+              <div key={`carousel-loop-${member.id}-${idx}`} className="w-[201px] flex-shrink-0">
                 <MemberCard member={member} onMemberClick={onMemberClick} />
               </div>
             ))}
