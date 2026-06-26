@@ -15,7 +15,7 @@ export type PayrollVariableCategory =
   | "deducciones"
   | "incomeVariables";
 
-export type PayrollVariableStatus = "Pendiente" | "Aprobado" | "Rechazado";
+export type PayrollVariableStatus = "Pendiente" | "Aprobado" | "Rechazado" | "Emitido";
 
 export type PayrollVariableDrawerType =
   | "overtime"

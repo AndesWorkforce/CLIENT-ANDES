@@ -138,8 +138,18 @@ function resolveStatus(
   const related = variables.filter(
     (v) => v.contractor === contractorName && v.client === client
   );
-  if (related.length === 0) return "Pendiente";
-  return related.every((v) => v.status === "Pendiente") ? "Pendiente" : "Pendiente";
+  
+  // Si no hay variables, la nómina base está aprobada
+  if (related.length === 0) return "Aprobado";
+  
+  // Si alguna variable está rechazada, la nómina está rechazada
+  if (related.some((v) => v.status === "Rechazado")) return "Rechazado";
+  
+  // Si todas las variables están aprobadas, la nómina está aprobada
+  if (related.every((v) => v.status === "Aprobado")) return "Aprobado";
+  
+  // Si hay alguna variable pendiente, la nómina está pendiente
+  return "Pendiente";
 }
 
 export function buildPayrollRows(
