@@ -418,7 +418,7 @@ export default function Navbar() {
   return (
     <>
       {/* Espaciador para compensar el header fixed */}
-      <div className="h-[70px] md:h-[85px]" aria-hidden="true" />
+      <div className="h-[45px] md:h-[85px]" aria-hidden="true" />
       
       <header className="fixed top-0 w-full bg-white z-50 shadow-[0px_4px_4px_0px_rgba(210,210,210,0.25)]">
       {/* Top Header - Contact & Social */}

@@ -77,7 +77,7 @@ const STATIC_TALENT: TalentCard[] = [
     id: "static-1",
     name: "Carlos Soto",
     country: "Colombia",
-    countryCode: "CO",
+    countryCode: "🇨🇴",
     profesion: "Industrial Engineer",
     position: "Team Lead, VA Department",
     company: "US Law Firm",
@@ -89,7 +89,7 @@ const STATIC_TALENT: TalentCard[] = [
     id: "static-2",
     name: "Celeste Lacomba",
     country: "Mexico",
-    countryCode: "MX",
+    countryCode: "🇲🇽",
     profesion: "Graphic Designer with a Master's in International Business Administration",
     position: "Case Manager, Social Security-Hearing Level",
     company: "US Law Firm",
@@ -101,7 +101,7 @@ const STATIC_TALENT: TalentCard[] = [
     id: "static-3",
     name: "Fernando Casamalhuapa",
     country: "El Salvador",
-    countryCode: "SV",
+    countryCode: "🇸🇻",
     profesion: "International Business and Law Student",
     position: "Legal Assistant - Workers Comp",
     company: "US Law Firm",
@@ -113,7 +113,7 @@ const STATIC_TALENT: TalentCard[] = [
     id: "static-4",
     name: "Pedro Barahona",
     country: "Honduras",
-    countryCode: "HN",
+    countryCode: "🇭🇳",
     profesion: "Technology engineer",
     position: "IT Assistant",
     company: "US Law Firm",
@@ -125,7 +125,7 @@ const STATIC_TALENT: TalentCard[] = [
     id: "static-5",
     name: "Marco Pabon",
     country: "Colombia",
-    countryCode: "CO",
+    countryCode: "🇨🇴",
     profesion: "Bachelor's Degree in English Language Teaching",
     position: "Team Lead - VA and SSA",
     company: "US Law Firm",
@@ -177,39 +177,39 @@ export default function FeaturedTalentSection() {
   if (loading || featuredTalent.length === 0) return null;
 
   return (
-    <section className="relative w-full bg-[#F6FBFC] py-[55px] px-[75px]">
+    <section className="relative w-full bg-[#F6FBFC] py-[44px] md:py-[55px] px-0 md:px-[75px]">
       <div className="max-w-[1284px] mx-auto">
         {/* Header */}
-        <div className="text-center mb-[33px]">
-          <p className="text-[#0097B2] font-semibold text-[14px] leading-[1.3] mb-[11px]">
-            MEET OUR TALENT
+        <div className="text-center mb-[22px] md:mb-[33px] px-[18px] md:px-0">
+          <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">
+            MEET OUT TALENT
           </p>
-          <h2 className="text-[#343434] font-bold text-[52px] leading-[1.3] mb-[22px]">
+          <h2 className="text-[#343434] font-bold text-[24px] md:text-[52px] leading-[1.3] mb-[11px] md:mb-[22px]">
             Meet Our Featured Talent
           </h2>
-          <p className="text-[#525252] font-medium text-[22px] leading-[1.2] max-w-[1026px] mx-auto">
+          <p className="text-[#343434] md:text-[#525252] font-medium text-[14px] md:text-[22px] leading-[1.2] max-w-[1026px] mx-auto">
             Discover the potential of our specialized talent. High-level professionals
-            committed to excellence, available from $2,000 USD per month. Get maximum
+            committed to excellence, available from $2,000 USD per month. Geet maximum
             performance for a competitive investment.
           </p>
         </div>
 
-        {/* Grid de tarjetas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
+        {/* Grid de tarjetas - Desktop | Scroll horizontal - Mobile */}
+        <div className="md:grid md:grid-cols-2 md:gap-[24px] flex md:flex-none overflow-x-auto gap-[11px] px-[18px] md:px-0 pb-[11px] md:pb-0 scrollbar-hide">
           {featuredTalent.map((talent) => (
             <div
               key={talent.id}
-              className="bg-white border border-[#C8C8C8] rounded-[24px] p-[29px] flex gap-[18px]"
+              className="bg-white border border-[#C8C8C8] rounded-[24px] p-[21px] md:p-[29px] flex gap-[18px] flex-shrink-0 w-[355px] md:w-auto"
             >
               {/* Left side - Photo and Experience */}
               <div className="flex flex-col gap-[13px] items-center">
                 <ProfileAvatar
                   src={talent.fotoPerfil}
                   name={talent.name}
-                  sizeClass="w-[119px] h-[173px]"
+                  sizeClass="w-[119px] h-[167px]"
                 />
                 {talent.experience && (
-                  <div className="bg-black px-[11px] py-[5px] rounded-[12px] flex items-center gap-[6px]">
+                  <div className="bg-[rgba(4,78,92,0.8)] px-[11px] py-[5px] rounded-[12px] flex items-center gap-[6px]">
                     <svg
                       width="16"
                       height="16"
@@ -233,19 +233,19 @@ export default function FeaturedTalentSection() {
               {/* Right side - Info */}
               <div className="flex-1 flex flex-col gap-[8px]">
                 {/* Name and Country */}
-                <div className="flex flex-col gap-[10px]">
-                  <h3 className="text-black font-bold text-[20px] leading-[1.3]">
+                <div className="flex flex-col gap-[7px]">
+                  <h3 className="text-black font-bold text-[18px] md:text-[20px] leading-[1.3]">
                     {talent.name}
                   </h3>
                   <div className="flex items-center gap-[5px]">
-                    <span className="text-black font-semibold text-[14px] leading-[1.3]">
+                    <span className="text-black font-semibold text-[12px] md:text-[14px] leading-[1.3]">
                       {talent.countryCode || talent.country.substring(0, 2).toUpperCase()}
                     </span>
-                    <span className="text-[#343434] font-medium text-[14px] leading-[1.2]">
+                    <span className="text-[#343434] font-medium text-[12px] md:text-[14px] leading-[1.2]">
                       {talent.country}
                     </span>
                   </div>
-                  <p className="text-[#343434] font-medium text-[14px] leading-[1.2]">
+                  <p className="text-[#343434] font-medium text-[12px] md:text-[14px] leading-[1.2]">
                     {talent.profesion}
                   </p>
                 </div>
@@ -254,31 +254,32 @@ export default function FeaturedTalentSection() {
                 <div className="w-full h-[1px] bg-[#EFEFEF]" />
 
                 {/* Current Role */}
-                <div className="flex flex-col gap-[10px]">
-                  <p className="text-[#0097B2] font-semibold text-[14px] leading-[1.3]">
+                <div className="flex flex-col gap-[7px]">
+                  <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3]">
                     CURRENT ROLE
                   </p>
-                  <p className="text-[#343434] font-semibold text-[16px] leading-[1.3]">
+                  <p className="text-[#343434] font-semibold text-[12px] md:text-[16px] leading-[1.3]">
                     {talent.position}
                   </p>
                   {talent.company && (
-                    <p className="text-[#343434] font-medium text-[14px] leading-[1.2]">
+                    <p className="text-[#343434] font-medium text-[12px] md:text-[14px] leading-[1.2]">
                       at {talent.company}
                     </p>
                   )}
                 </div>
 
                 {/* Stars */}
-                <div className="flex gap-[4px] mt-[10px]">
+                <div className="flex gap-[4px] mt-0 md:mt-[10px]">
                   {[...Array(5)].map((_, idx) => (
                     <svg
                       key={idx}
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      className="md:w-[20px] md:h-[20px]"
                       fill="#FFD700"
                     >
-                      <path d="M10 1L12.9389 7.0491L19.5106 8.0451L14.7553 12.7009L15.8779 19.4549L10 16.4L4.12215 19.4549L5.24472 12.7009L0.489435 8.0451L7.06107 7.0491L10 1Z" />
+                      <path d="M8 0.8L10.3511 5.6393L15.6085 6.436L11.8043 10.1607L12.7023 15.564L8 13.12L3.29772 15.564L4.19575 10.1607L0.391548 6.436L5.64886 5.6393L8 0.8Z" />
                     </svg>
                   ))}
                 </div>

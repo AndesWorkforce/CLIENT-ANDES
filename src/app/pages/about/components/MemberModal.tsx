@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useEffect } from "react";
 import type { TeamMember } from "../../team/team.data";
 
 interface MemberModalProps {
@@ -7,17 +8,34 @@ interface MemberModalProps {
 }
 
 export default function MemberModal({ member, onClose }: MemberModalProps) {
-  if (!member) return null;
+  const memberPets = member?.pets ?? [];
 
-  const memberPets = member.pets ?? [];
+  // Bloquear scroll del body cuando el modal está abierto
+  useEffect(() => {
+    // Solo bloquear si hay un member
+    if (!member) return;
+
+    // Guardar el overflow original
+    const originalOverflow = document.body.style.overflow;
+    
+    // Bloquear scroll
+    document.body.style.overflow = "hidden";
+
+    // Restaurar overflow cuando se desmonte el componente
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [member]);
+
+  if (!member) return null;
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 bg-black/60 z-50 flex items-start md:items-center justify-center overflow-y-auto animate-fadeIn"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] shadow-2xl animate-scaleIn overflow-hidden flex flex-col md:flex-row"
+        className="bg-white rounded-[12px] w-full max-w-[355px] md:max-w-4xl min-h-full md:min-h-0 md:max-h-[90vh] shadow-2xl animate-scaleIn overflow-hidden flex flex-col md:flex-row my-0 md:my-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -40,112 +58,118 @@ export default function MemberModal({ member, onClose }: MemberModalProps) {
           </svg>
         </button>
 
-        {/* Left Side: Image */}
-        <div className="w-full md:w-2/5 flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200">
-          <div className="relative w-full h-64 md:h-full overflow-hidden">
-            {member.image ? (
-              <Image
-                src={member.image}
-                alt={member.name}
-                fill
-                className={member.imageClass || "object-cover"}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl">
-                No Image
+        {/* Mobile: Vertical Layout | Desktop: Horizontal Layout */}
+        <div className="flex flex-col md:flex-row w-full">
+          {/* Image Section */}
+          <div className="w-full md:w-2/5 md:bg-gradient-to-br md:from-gray-100 md:to-gray-200 flex-shrink-0">
+            <div className="flex items-center justify-center p-[33px] md:p-0">
+              <div className="relative w-full max-w-[317px] h-[346px] md:max-w-none md:h-full rounded-[12px] md:rounded-none overflow-hidden">
+                {member.image ? (
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    fill
+                    sizes="(max-width: 768px) 317px, 40vw"
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl bg-gray-200">
+                    No Image
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Side: Info */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header Info */}
-          <div className="flex-shrink-0 text-center px-8 py-8 border-b border-gray-100">
-            <h3 className="text-2xl md:text-3xl font-bold text-[#08252A] mb-2">
-              {member.name}
-            </h3>
-            <p className="text-base md:text-lg text-[#0097B2] font-semibold mb-2">
-              {member.role}
-            </p>
-            {member.summary && (
-              <p className="text-sm text-gray-600 italic mb-2">
-                {member.summary}
-              </p>
-            )}
-            {member.group && (
-              <span className="inline-block mt-2 px-4 py-1 bg-[#e6f6f9] text-[#007c92] rounded-full text-xs md:text-sm font-medium">
-                {member.group}
-              </span>
-            )}
+            </div>
           </div>
 
-          {/* Bullets Section with scroll */}
-          <div className="flex-1 overflow-y-auto px-6 py-6">
-            {member.bullets && member.bullets.length > 0 && (
-              <div>
-                <h4 className="text-base md:text-lg font-semibold text-[#08252A] mb-4">
-                  About
-                </h4>
-                <ul className="space-y-3">
-                  {member.bullets.map((bullet, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      <span className="text-[#0097B2] mt-1 flex-shrink-0 text-base">
-                        •
-                      </span>
-                      <span className="text-sm md:text-base text-gray-700 leading-relaxed">
-                        {bullet}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+          {/* Info Section */}
+          <div className="flex-1 flex flex-col w-full md:overflow-hidden">
+            <div className="flex flex-col gap-[22px] p-[33px] md:p-0 md:flex-1 md:overflow-y-auto">
+              {/* Header */}
+              <div className="flex flex-col gap-[11px] items-center text-center md:px-8 md:py-8 md:border-b md:border-gray-100">
+                <p className="font-bold text-[24px] md:text-3xl text-black leading-[1.3]">
+                  {member.name}
+                </p>
+                <p className="font-semibold text-[16px] md:text-lg text-black leading-[1.3]">
+                  {member.role}
+                </p>
+                {member.summary && (
+                  <p className="text-sm text-gray-600 italic">
+                    {member.summary}
+                  </p>
+                )}
+                {member.group && (
+                  <div className="bg-[#dde2ff] px-[9px] py-[5px] rounded-[12px]">
+                    <p className="font-semibold text-[14px] text-[#4356a6] leading-[1.3]">
+                      {member.group}
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* Their furry teammate section */}
-            {memberPets.length > 0 && (
-              <div className="mt-6 pt-5 border-t border-gray-100">
-                <h4 className="text-base md:text-lg font-semibold text-[#08252A] mb-3">
-                  🐾 Their furry teammate{memberPets.length > 1 ? "s" : ""}
-                </h4>
-                <div className="flex flex-col gap-3">
-                  {memberPets.map((pet) => (
-                    <div key={pet.id} className="flex items-center gap-3">
-                      {/* Pet thumbnail */}
-                      <div className="relative w-[81px] h-[81px] rounded-xl overflow-hidden flex-shrink-0">
-                        {pet.image ? (
-                          <Image
-                            src={pet.image}
-                            alt={pet.name}
-                            fill
-                            sizes="81px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-[#0097B2] flex items-center justify-center text-2xl">
-                            🐾
+              {/* Content */}
+              <div className="flex flex-col gap-[33px] md:px-6">
+                {/* About Us */}
+                {member.bullets && member.bullets.length > 0 && (
+                  <div className="flex flex-col gap-[14px]">
+                    <p className="font-semibold text-[18px] text-black leading-[1.3]">
+                      About Us
+                    </p>
+                    <ul className="list-disc text-[14px] text-black leading-[1.5] ms-[21px]">
+                      {member.bullets.map((bullet, idx) => (
+                        <li key={idx} className="mb-0">
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Their furry teammate */}
+                {memberPets.length > 0 && (
+                  <div className="flex flex-col gap-[14px]">
+                    <p className="font-semibold text-[18px] text-black leading-[1.3]">
+                      Their furry teammate{memberPets.length > 1 ? "s" : ""}
+                    </p>
+                    <div className="flex flex-col gap-[11px]">
+                      {memberPets.map((pet) => (
+                        <div key={pet.id} className="flex gap-[11px]">
+                          {/* Pet image */}
+                          <div className="relative w-[76px] h-[76px] rounded-[12px] overflow-hidden flex-shrink-0">
+                            {pet.image ? (
+                              <Image
+                                src={pet.image}
+                                alt={pet.name}
+                                fill
+                                sizes="76px"
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-[#0097B2] flex items-center justify-center text-2xl">
+                                🐾
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      {/* Pet info */}
-                      <div className="flex flex-col">
-                        <span className="text-[16px] font-semibold text-[#08252A] leading-tight">
-                          {pet.name}
-                        </span>
-                        <span className="text-[14px] font-medium text-[#0097B2] leading-snug">
-                          {pet.role}
-                        </span>
-                        {pet.bullets[0] && (
-                          <span className="text-[12px] font-normal text-gray-500 tracking-[0.24px] leading-relaxed mt-0.5 line-clamp-2">
-                            {pet.bullets[0]}
-                          </span>
-                        )}
-                      </div>
+                          {/* Pet info */}
+                          <div className="flex flex-col gap-[3px] flex-1">
+                            <p className="font-semibold text-[16px] text-black leading-[1.3]">
+                              {pet.name}
+                            </p>
+                            <p className="font-medium text-[14px] text-black leading-[1.2]">
+                              {pet.role}
+                            </p>
+                            {pet.bullets[0] && (
+                              <p className="font-normal text-[12px] text-black tracking-[0.24px] leading-[1.3]">
+                                {pet.bullets[0]}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
