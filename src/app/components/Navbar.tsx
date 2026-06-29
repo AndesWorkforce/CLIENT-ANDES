@@ -23,6 +23,7 @@ import {
   Globe,
   Menu,
   LifeBuoy,
+  BookOpen,
 } from "lucide-react";
 import { FaSquareFacebook, FaLinkedin } from "react-icons/fa6";
 import { AiFillInstagram, AiFillTikTok } from "react-icons/ai";
@@ -44,6 +45,7 @@ const navigation = [
   { name: "Home", href: "/pages/home", icon: Home },
   { name: "About Us", href: "/pages/about", icon: Users },
   { name: "Our Services", href: "/pages/services", icon: Headphones },
+  { name: "Blog", href: "/pages/blog", icon: BookOpen },
   { name: "Join Our Team", href: "/pages/offers", icon: Handshake },
   { name: "Contact Us", href: "/pages/contact", icon: Globe },
 ];
