@@ -40,6 +40,8 @@ import AssessmentModal from "./AssessmentModal";
 import {
   saveAssessment,
   removeAssessment,
+  saveBackgroundCheck,
+  removeBackgroundCheck,
 } from "@/app/profile/actions/identification-actions";
 
 interface CandidateProfileModalProps {
@@ -274,8 +276,14 @@ export default function CandidateProfileModal({
   const canSeeAssessment = isAdminRole || isCompanyRole;
   const canUploadAssessment = isAdminRole;
   const assessmentUrl = profile?.assessmentUrl ?? null;
+  const backgroundCheckUrl = profile?.backgroundCheckUrl ?? null;
+  const showBackgroundCheck = profile?.gating?.showBackgroundCheck === true;
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [isBackgroundCheckModalOpen, setIsBackgroundCheckModalOpen] =
+    useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showBackgroundCheckDeleteConfirmModal, setShowBackgroundCheckDeleteConfirmModal] =
+    useState(false);
 
   const userId =
     profile && "id" in profile && profile.id ? profile.id : candidateId;
@@ -317,6 +325,46 @@ export default function CandidateProfileModal({
       setManualReload((prev) => prev + 1);
     } catch {
       addNotification("Error al eliminar el assessment", "error");
+    }
+  };
+
+  const handleBackgroundCheckUpload = async (file: File) => {
+    if (!userId || !file) return;
+
+    try {
+      const pdfUrl = await uploadImage(file, "pdf");
+      const response = await saveBackgroundCheck(
+        userId as string,
+        pdfUrl as string
+      );
+
+      if (!response.success) {
+        throw new Error(
+          response.error || "Error al guardar la URL del background check"
+        );
+      }
+
+      addNotification("Background check saved successfully", "success");
+      setManualReload((prev) => prev + 1);
+    } catch {
+      addNotification("Error saving background check", "error");
+    }
+  };
+
+  const handleBackgroundCheckRemove = async () => {
+    if (!userId) return;
+
+    try {
+      const response = await removeBackgroundCheck(userId as string);
+
+      if (!response.success) {
+        throw new Error(response.error || "Error al eliminar background check");
+      }
+
+      addNotification("Background check removed successfully", "success");
+      setManualReload((prev) => prev + 1);
+    } catch {
+      addNotification("Error removing background check", "error");
     }
   };
 
@@ -1339,6 +1387,102 @@ export default function CandidateProfileModal({
                             onClick={() => {
                               handleAssessmentRemove();
                               setShowDeleteConfirmModal(false);
+                            }}
+                            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Background Check */}
+              {showBackgroundCheck && canSeeAssessment && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden p-4 mb-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-medium text-gray-900">
+                      Background Check
+                    </h2>
+                    {canUploadAssessment && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setIsBackgroundCheckModalOpen(true)}
+                          className="p-2 text-[#0097B2] hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                          title={
+                            backgroundCheckUrl
+                              ? "Replace Background Check"
+                              : "Upload Background Check"
+                          }
+                        >
+                          <Edit size={16} />
+                        </button>
+                        {backgroundCheckUrl && (
+                          <button
+                            onClick={() =>
+                              setShowBackgroundCheckDeleteConfirmModal(true)
+                            }
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                            title="Remove Background Check"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2">
+                    {backgroundCheckUrl ? (
+                      <a
+                        href={
+                          typeof backgroundCheckUrl === "string" &&
+                          backgroundCheckUrl
+                            ? backgroundCheckUrl
+                            : ""
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#0097B2] underline hover:text-[#007A8C]"
+                      >
+                        View Background Check PDF
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">
+                        No background check uploaded
+                      </span>
+                    )}
+                  </div>
+                  <AssessmentModal
+                    isOpen={isBackgroundCheckModalOpen}
+                    onClose={() => setIsBackgroundCheckModalOpen(false)}
+                    onUpload={handleBackgroundCheckUpload}
+                  />
+
+                  {showBackgroundCheckDeleteConfirmModal && (
+                    <div className="fixed inset-0 bg-black/40 z-[70] flex items-center justify-center p-4">
+                      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                          Confirm remove background check
+                        </h3>
+                        <p className="text-gray-600 mb-6">
+                          Are you sure you want to remove the background check?
+                          This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() =>
+                              setShowBackgroundCheckDeleteConfirmModal(false)
+                            }
+                            className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleBackgroundCheckRemove();
+                              setShowBackgroundCheckDeleteConfirmModal(false);
                             }}
                             className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                           >

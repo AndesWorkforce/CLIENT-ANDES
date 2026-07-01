@@ -92,6 +92,7 @@ export interface PerfilCompleto {
   aceptaPoliticaDatos: boolean;
   videoPresentacion: string;
   assessmentUrl?: string | null;
+  backgroundCheckUrl?: string | null;
   bankInfo?: {
     usaDollarApp: boolean | null;
     dollarTag: string | null;
@@ -105,6 +106,7 @@ export interface PerfilCompleto {
   gating?: {
     hasActiveProcess: boolean;
     hasFinalizedContract: boolean;
+    showBackgroundCheck?: boolean;
   };
 }
 

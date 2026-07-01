@@ -451,9 +451,9 @@ export default function SendAnnexModal({
   }));
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [proposals, setProposals] = useState<{ id: string; titulo: string }[]>(
-    []
-  );
+  const [proposals, setProposals] = useState<
+    { id: string; titulo: string; clienteNombre: string }[]
+  >([]);
   const [selectedProposalId, setSelectedProposalId] = useState<string>("");
   const [proposalSearch, setProposalSearch] = useState<string>("");
   const [showProposalDropdown, setShowProposalDropdown] =
@@ -480,6 +480,12 @@ export default function SendAnnexModal({
           const mapped = rows.map((offer: any) => ({
             id: offer.id as string,
             titulo: offer.titulo as string,
+            clienteNombre: (offer.empresasAsociadas ?? [])
+              .map((asociacion: { empresa?: { nombre?: string } }) =>
+                asociacion.empresa?.nombre?.trim()
+              )
+              .filter(Boolean)
+              .join(", "),
           }));
           setProposals(mapped);
           // Preseleccionar una propuesta cuyo título coincida con el puesto actual, si existe
@@ -981,11 +987,13 @@ export default function SendAnnexModal({
                         {showProposalDropdown && (
                           <div className="absolute z-30 mt-1 w-full max-h-60 overflow-auto bg-white border border-gray-200 rounded-md shadow-lg text-sm">
                             {proposals
-                              .filter((p) =>
-                                p.titulo
-                                  .toLowerCase()
-                                  .includes(proposalSearch.toLowerCase())
-                              )
+                              .filter((p) => {
+                                const search = proposalSearch.toLowerCase();
+                                return (
+                                  p.titulo.toLowerCase().includes(search) ||
+                                  p.clienteNombre.toLowerCase().includes(search)
+                                );
+                              })
                               .map((proposal) => (
                                 <button
                                   key={proposal.id}
@@ -999,20 +1007,29 @@ export default function SendAnnexModal({
                                     }));
                                     setShowProposalDropdown(false);
                                   }}
-                                  className={`w-full text-left px-3 py-1.5 hover:bg-[#E6F7FA] ${
+                                  className={`w-full text-left px-3 py-2 hover:bg-[#E6F7FA] ${
                                     proposal.id === selectedProposalId
                                       ? "bg-[#E6F7FA]"
                                       : ""
                                   }`}
                                 >
-                                  {proposal.titulo}
+                                  <span className="block text-sm leading-snug">
+                                    {proposal.titulo}
+                                  </span>
+                                  {proposal.clienteNombre && (
+                                    <span className="block text-[10px] text-gray-500 leading-snug mt-0.5">
+                                      {proposal.clienteNombre}
+                                    </span>
+                                  )}
                                 </button>
                               ))}
-                            {proposals.filter((p) =>
-                              p.titulo
-                                .toLowerCase()
-                                .includes(proposalSearch.toLowerCase())
-                            ).length === 0 && (
+                            {proposals.filter((p) => {
+                              const search = proposalSearch.toLowerCase();
+                              return (
+                                p.titulo.toLowerCase().includes(search) ||
+                                p.clienteNombre.toLowerCase().includes(search)
+                              );
+                            }).length === 0 && (
                               <div className="px-3 py-2 text-xs text-gray-500">
                                 No proposals found
                               </div>

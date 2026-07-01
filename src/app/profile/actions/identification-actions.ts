@@ -175,3 +175,123 @@ export async function removeAssessment(userId: string) {
     };
   }
 }
+
+export async function saveBackgroundCheck(
+  userId: string,
+  backgroundCheckUrl: string
+) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
+
+    if (!token) {
+      return { success: false, error: "No hay token de autenticación" };
+    }
+
+    const apiUrl = `${getApiUrl()}users/${userId}/profile-images`;
+
+    const payload = {
+      backgroundCheckUrl,
+    };
+
+    const response = await fetch(apiUrl, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    let responseData;
+    const responseText = await response.text();
+
+    try {
+      responseData = responseText ? JSON.parse(responseText) : {};
+    } catch (e) {
+      console.error("[saveBackgroundCheck] Error al analizar la respuesta:", e);
+      responseData = { message: responseText };
+    }
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error:
+          responseData.message ||
+          `Error ${response.status} al guardar URL de background check`,
+      };
+    }
+
+    revalidatePath("/profile");
+    revalidatePath("/admin/dashboard/postulants");
+    revalidatePath("/admin/dashboard/team-members");
+
+    return { success: true, data: responseData };
+  } catch (error) {
+    console.error("[saveBackgroundCheck] Error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+export async function removeBackgroundCheck(userId: string) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
+
+    if (!token) {
+      return { success: false, error: "No hay token de autenticación" };
+    }
+
+    const apiUrl = `${getApiUrl()}users/${userId}/profile-images`;
+
+    const payload = {
+      backgroundCheckUrl: null,
+    };
+
+    const response = await fetch(apiUrl, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    let responseData;
+    const responseText = await response.text();
+
+    try {
+      responseData = responseText ? JSON.parse(responseText) : {};
+    } catch (e) {
+      console.error(
+        "[removeBackgroundCheck] Error al analizar la respuesta:",
+        e
+      );
+      responseData = { message: responseText };
+    }
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error:
+          responseData.message ||
+          `Error ${response.status} al eliminar background check`,
+      };
+    }
+
+    revalidatePath("/profile");
+    revalidatePath("/admin/dashboard/postulants");
+    revalidatePath("/admin/dashboard/team-members");
+
+    return { success: true, data: responseData };
+  } catch (error) {
+    console.error("[removeBackgroundCheck] Error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}

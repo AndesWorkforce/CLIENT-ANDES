@@ -27,7 +27,6 @@ export default function EmailTemplateModal({
     nombre: template?.nombre || "",
     asunto: template?.asunto || "",
     contenido: template?.contenido || "",
-    descripcion: template?.descripcion || "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -50,7 +49,7 @@ export default function EmailTemplateModal({
     formData.set("nombre", form.nombre);
     formData.set("asunto", form.asunto);
     formData.set("contenido", form.contenido);
-    formData.set("descripcion", form.descripcion);
+    formData.set("descripcion", "");
     try {
       const result = await saveEmailTemplate(formData, isEdit, template?.id);
       if (!result.success) {
@@ -133,15 +132,6 @@ export default function EmailTemplateModal({
               </code>
             ))}
           </p>
-        </div>
-        <div className="mb-3">
-          <label className="block mb-1">Description</label>
-          <input
-            name="descripcion"
-            value={form.descripcion}
-            onChange={handleChange}
-            className="border rounded px-2 py-1 w-full"
-          />
         </div>
         <div className="flex justify-end gap-2 mt-4">
           <button

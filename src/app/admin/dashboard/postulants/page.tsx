@@ -25,7 +25,7 @@ import {
 import CandidateActionModal from "../components/CandidateActionModal";
 import SendEmailModal from "../components/SendEmailModal";
 import SignContractModal from "./components/SignContractModal";
-import { sendInterviewInvitation } from "../actions/sendEmail.actions";
+import { sendPreliminaryInterviewInvitationEmail } from "../actions/sendEmail.actions";
 import UpdateStatusModal from "../components/UpdateStatusModal";
 import { EstadoPostulacion } from "../types/application-status.types";
 
@@ -699,10 +699,9 @@ export default function PostulantsPage() {
 
       if (dbResponse.success) {
         // Si se marcó exitosamente en DB, enviar el email
-        const emailResponse = await sendInterviewInvitation(
+        const emailResponse = await sendPreliminaryInterviewInvitationEmail(
           candidateName,
           candidateEmail,
-          jobTitle,
         );
 
         if (emailResponse && emailResponse.success) {

@@ -75,10 +75,10 @@ export default function EmailTemplatesPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-2 sm:px-4">
+    <div className="w-full max-w-screen-2xl mx-auto py-8 px-4 sm:px-6">
       {/* DESKTOP TABLE */}
       <div
-        className="hidden md:flex bg-white rounded-lg shadow-lg w-full max-w-4xl mx-auto flex-col"
+        className="hidden md:flex bg-white rounded-lg shadow-lg w-full flex-col"
         style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
       >
         <div className="p-4 sm:p-6 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -93,16 +93,13 @@ export default function EmailTemplatesPage() {
           </button>
         </div>
         <div className="w-full overflow-x-auto">
-          <table className="min-w-[500px] w-full border-collapse">
+          <table className="min-w-[500px] w-full border-collapse table-fixed">
             <thead className="sticky top-0 bg-white z-20 shadow-sm">
               <tr className="border-b border-gray-200">
                 <th className="text-left py-2 px-2 sm:py-3 sm:px-4 font-medium text-gray-700">
                   Title
                 </th>
-                <th className="text-left py-2 px-2 sm:py-3 sm:px-4 font-medium text-gray-700">
-                  Description
-                </th>
-                <th className="text-center py-2 px-2 sm:py-3 sm:px-4 font-medium text-gray-700">
+                <th className="text-center py-2 px-2 sm:py-3 sm:px-4 font-medium text-gray-700 w-[120px]">
                   Actions
                 </th>
               </tr>
@@ -110,13 +107,13 @@ export default function EmailTemplatesPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={3} className="py-6 text-center text-gray-500">
+                  <td colSpan={2} className="py-6 text-center text-gray-500">
                     Loading...
                   </td>
                 </tr>
               ) : templates.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="py-6 text-center text-gray-500">
+                  <td colSpan={2} className="py-6 text-center text-gray-500">
                     No templates found.
                   </td>
                 </tr>
@@ -126,11 +123,8 @@ export default function EmailTemplatesPage() {
                     key={tpl.id}
                     className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                   >
-                    <td className="py-3 px-2 sm:px-4 text-gray-700 max-w-[120px] sm:max-w-[200px] truncate align-middle">
-                      {tpl.nombre}
-                    </td>
-                    <td className="py-3 px-2 sm:px-4 text-gray-700 max-w-[140px] sm:max-w-[300px] truncate align-middle">
-                      {tpl.descripcion}
+                    <td className="py-3 px-2 sm:px-4 text-gray-700 align-middle">
+                      <span className="block truncate">{tpl.nombre}</span>
                     </td>
                     <td className="py-3 px-2 sm:px-4 align-middle">
                       <div className="flex justify-center space-x-2">
@@ -185,11 +179,8 @@ export default function EmailTemplatesPage() {
                   key={tpl.id}
                   className="w-full bg-white rounded-xl shadow border border-gray-200 px-4 py-3 flex flex-col gap-2"
                 >
-                  <div className="font-semibold text-gray-800 text-base mb-1 truncate">
+                  <div className="font-semibold text-gray-800 text-base truncate">
                     {tpl.nombre}
-                  </div>
-                  <div className="text-gray-600 text-sm mb-2 truncate">
-                    {tpl.descripcion}
                   </div>
                   <div className="flex justify-end gap-2 mt-2">
                     <button

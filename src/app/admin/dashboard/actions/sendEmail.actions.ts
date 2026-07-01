@@ -2,6 +2,7 @@
 
 import nodemailer from "nodemailer";
 import { InterviewInvitationEmail } from "../emails/InterviewInvitation";
+import { PreliminaryInterviewInvitation } from "../emails/PreliminaryInterviewInvitation";
 import { RejectPositionEmail } from "../emails/RejectPosition";
 import { render } from "@react-email/render";
 import { ContractJob } from "../emails/ContratJob";
@@ -76,6 +77,37 @@ export const sendInterviewInvitation = async (
     };
   } catch (error) {
     console.error("Error sending email:", error);
+    return { success: false, error };
+  }
+};
+
+export const sendPreliminaryInterviewInvitationEmail = async (
+  candidateName: string,
+  candidateEmail: string
+) => {
+  try {
+    const emailHtml = await render(
+      PreliminaryInterviewInvitation({
+        candidateName,
+      })
+    );
+
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
+      from: "Andes Workforce <no-reply@teamandes.com>",
+      to: [candidateEmail],
+      subject: "Andes Workforce | Schedule Your Preliminary Interview",
+      html: emailHtml,
+    });
+
+    return {
+      success: true,
+      message: "Preliminary interview invitation sent successfully",
+      data: info,
+    };
+  } catch (error) {
+    console.error("Error sending preliminary interview email:", error);
     return { success: false, error };
   }
 };
