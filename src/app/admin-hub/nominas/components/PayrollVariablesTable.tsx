@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { ChevronDown, MoreVertical } from "lucide-react";
+import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubTableShell, {
   ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS,
   ADMIN_HUB_TABLE_HEAD_FIRST_CELL,
@@ -16,6 +17,7 @@ import {
 } from "../data/mock-payroll-variables";
 import { applyDateToSortable } from "../lib/payroll-apply-date";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
+import DeletePayrollVariableModal from "./DeletePayrollVariableModal";
 
 const MENU_MIN_WIDTH = 148;
 
@@ -35,12 +37,16 @@ export default function PayrollVariablesTable({
   onDelete,
 }: PayrollVariablesTableProps) {
   const router = useRouter();
+  const { addNotification } = useNotificationStore();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortByDate, setSortByDate] = useState<"asc" | "desc" | null>(null);
   const [sortByAmount, setSortByAmount] = useState<"asc" | "desc" | null>(null);
   const [sortByApplyDate, setSortByApplyDate] = useState<"asc" | "desc" | null>(null);
+  const [sortByStatus, setSortByStatus] = useState<"asc" | "desc" | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [variableToDelete, setVariableToDelete] = useState<PayrollVariable | null>(null);
   const menuButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const updateMenuPosition = useCallback((itemId: string) => {
@@ -105,10 +111,15 @@ export default function PayrollVariablesTable({
       result.sort((a, b) =>
         sortByAmount === "asc" ? a.amount - b.amount : b.amount - a.amount
       );
+    } else if (sortByStatus) {
+      result.sort((a, b) => {
+        const cmp = a.status.localeCompare(b.status);
+        return sortByStatus === "asc" ? cmp : -cmp;
+      });
     }
 
     return result;
-  }, [variables, sortByDate, sortByApplyDate, sortByAmount]);
+  }, [variables, sortByDate, sortByApplyDate, sortByAmount, sortByStatus]);
 
   const allSelected =
     displayedVariables.length > 0 &&
@@ -134,12 +145,14 @@ export default function PayrollVariablesTable({
   function toggleDateSort() {
     setSortByAmount(null);
     setSortByApplyDate(null);
+    setSortByStatus(null);
     setSortByDate((prev) => (prev === null ? "desc" : prev === "desc" ? "asc" : null));
   }
 
   function toggleApplyDateSort() {
     setSortByDate(null);
     setSortByAmount(null);
+    setSortByStatus(null);
     setSortByApplyDate((prev) =>
       prev === null ? "desc" : prev === "desc" ? "asc" : null
     );
@@ -148,7 +161,15 @@ export default function PayrollVariablesTable({
   function toggleAmountSort() {
     setSortByDate(null);
     setSortByApplyDate(null);
+    setSortByStatus(null);
     setSortByAmount((prev) => (prev === null ? "desc" : prev === "desc" ? "asc" : null));
+  }
+
+  function toggleStatusSort() {
+    setSortByDate(null);
+    setSortByApplyDate(null);
+    setSortByAmount(null);
+    setSortByStatus((prev) => (prev === null ? "desc" : prev === "desc" ? "asc" : null));
   }
 
   function closeMenu() {
@@ -177,8 +198,34 @@ export default function PayrollVariablesTable({
   }
 
   function handleDelete(itemId: string) {
+    const variable = displayedVariables.find((v) => v.id === itemId);
+    if (!variable) return;
+
+    // No permitir eliminar si el estado es "Emitido"
+    if (variable.status === "Emitido") {
+      closeMenu();
+      addNotification(
+        "No se puede eliminar una variable con estado 'Emitido'.",
+        "error"
+      );
+      return;
+    }
+
     closeMenu();
-    onDelete(itemId);
+    setVariableToDelete(variable);
+    setDeleteModalOpen(true);
+  }
+
+  function confirmDelete() {
+    if (!variableToDelete) return;
+    onDelete(variableToDelete.id);
+    setDeleteModalOpen(false);
+    setVariableToDelete(null);
+  }
+
+  function cancelDelete() {
+    setDeleteModalOpen(false);
+    setVariableToDelete(null);
   }
 
   function handleEdit(itemId: string) {
@@ -269,7 +316,17 @@ export default function PayrollVariablesTable({
                 </button>
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Estado
+                <button
+                  type="button"
+                  onClick={toggleStatusSort}
+                  className="inline-flex items-center gap-1 hover:text-[#0097B2]"
+                >
+                  Estado
+                  <ChevronDown
+                    size={18}
+                    className={`transition-transform ${sortByStatus === "asc" ? "rotate-180" : ""}`}
+                  />
+                </button>
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 Creado por
@@ -382,13 +439,30 @@ export default function PayrollVariablesTable({
               type="button"
               role="menuitem"
               onClick={() => handleDelete(openMenuItem.id)}
-              className={`${menuItemClass} text-[#E33434] hover:bg-[#FFF5F5]`}
+              disabled={openMenuItem.status === "Emitido"}
+              className={`${menuItemClass} ${
+                openMenuItem.status === "Emitido"
+                  ? "cursor-not-allowed text-[#C8C8C8] hover:bg-transparent"
+                  : "text-[#E33434] hover:bg-[#FFF5F5]"
+              }`}
+              title={
+                openMenuItem.status === "Emitido"
+                  ? "No se puede eliminar una variable con estado 'Emitido'"
+                  : undefined
+              }
             >
               Eliminar
             </button>
           </div>,
           document.body
         )}
+
+      <DeletePayrollVariableModal
+        variable={variableToDelete}
+        open={deleteModalOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+      />
     </>
   );
 }

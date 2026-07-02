@@ -183,14 +183,14 @@ export default function NominasPageContent() {
       });
     }
 
-    // Validación 3: Verificar que están en estado Pendiente o Aprobado
-    const nominasRechazadas = nominasSeleccionadas.filter(
-      (row) => row.status === "Rechazado"
+    // Validación 3: Verificar que TODAS están en estado Aprobado
+    const nominasNoAprobadas = nominasSeleccionadas.filter(
+      (row) => row.status !== "Aprobado"
     );
-    if (nominasRechazadas.length > 0) {
-      errors.push("Las siguientes nóminas están rechazadas y no pueden emitirse:");
-      nominasRechazadas.forEach((row) => {
-        errors.push(`  • ${row.contractorName} (${row.client})`);
+    if (nominasNoAprobadas.length > 0) {
+      errors.push("Todas las nóminas deben estar aprobadas antes de emitirse. Las siguientes nóminas NO están aprobadas:");
+      nominasNoAprobadas.forEach((row) => {
+        errors.push(`  • ${row.contractorName} (${row.client}) - Estado actual: ${row.status}`);
       });
     }
 

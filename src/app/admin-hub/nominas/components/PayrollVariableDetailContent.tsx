@@ -1,16 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   BriefcaseBusiness,
   Building2,
   CalendarDays,
+  ChevronDown,
   CircleUser,
   Clock,
   DollarSign,
   Download,
   FileText,
   Hash,
+  Pencil,
   Scale,
   Trash2,
   User,
@@ -18,9 +21,12 @@ import {
 import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import type { PayrollVariableDetail } from "../data/mock-variable-detail";
+import { removePayrollVariable } from "../data/payroll-data";
+import type { PayrollVariable } from "../data/mock-payroll-variables";
 import PayrollVariableInfoCard from "./PayrollVariableInfoCard";
 import PayrollVariableInfoRow from "./PayrollVariableInfoRow";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
+import DeletePayrollVariableModal from "./DeletePayrollVariableModal";
 
 interface PayrollVariableDetailContentProps {
   detail: PayrollVariableDetail;
@@ -29,22 +35,13 @@ interface PayrollVariableDetailContentProps {
 export default function PayrollVariableDetailContent({
   detail: initialDetail,
 }: PayrollVariableDetailContentProps) {
+  const router = useRouter();
   const { addNotification } = useNotificationStore();
   const [detail, setDetail] = useState(initialDetail);
-  const [isEditingContext, setIsEditingContext] = useState(false);
   const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [isEditingBasePago, setIsEditingBasePago] = useState(false);
   const [isEditingDetalles, setIsEditingDetalles] = useState(false);
-
-  // Estado local de edición
-  const [contextEdit, setContextEdit] = useState({
-    contratista: detail.contratista,
-    idContrato: detail.idContrato,
-    puesto: detail.puesto,
-    cliente: detail.cliente,
-    desde: detail.desde,
-    hasta: detail.hasta,
-  });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const [statusEdit, setStatusEdit] = useState(detail.estado);
 
@@ -55,6 +52,40 @@ export default function PayrollVariableDetailContent({
   });
 
   const [detallesEdit, setDetallesEdit] = useState(detail.descripcion);
+
+  // Función para convertir fechas al formato USA (MM/DD/YYYY)
+  const formatDateToUSA = (dateString: string): string => {
+    // Si la fecha está en formato DD.MM.YYYY
+    if (dateString.includes('.')) {
+      const [day, month, year] = dateString.split('.');
+      return `${month}/${day}/${year}`;
+    }
+    // Si la fecha está en formato DD/MM/YYYY
+    if (dateString.includes('/')) {
+      const parts = dateString.split('/');
+      if (parts.length === 3) {
+        const [day, month, year] = parts;
+        // Si ya está en formato USA (mes es <= 12 y día > 12), retornar tal cual
+        if (Number.parseInt(day) > 12 && Number.parseInt(month) <= 12) {
+          return dateString;
+        }
+        return `${month}/${day}/${year}`;
+      }
+    }
+    // Si la fecha está en formato ISO o no se reconoce, intentar parsearla
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}/${day}/${year}`;
+      }
+    } catch {
+      // Si falla, retornar la fecha original
+    }
+    return dateString;
+  };
 
   const breadcrumbItems = useMemo(
     () => [
@@ -86,14 +117,6 @@ export default function PayrollVariableDetailContent({
 
   function handleEdit(section: string) {
     switch (section) {
-      case "contexto":
-        if (isEditingContext) {
-          // Guardar cambios
-          setDetail({ ...detail, ...contextEdit });
-          addNotification("Los cambios en el contexto se guardaron localmente.", "success", "compact");
-        }
-        setIsEditingContext(!isEditingContext);
-        break;
       case "estado":
         if (isEditingStatus) {
           // Guardar cambios
@@ -133,366 +156,453 @@ export default function PayrollVariableDetailContent({
   }
 
   function handleDelete() {
-    addNotification("La eliminación de la variable estará disponible próximamente.", "info");
+    // No permitir eliminar si el estado es "Emitido"
+    if (detail.estado === "Emitido") {
+      addNotification(
+        "No se puede eliminar una variable con estado 'Emitido'.",
+        "error"
+      );
+      return;
+    }
+
+    setDeleteModalOpen(true);
   }
+
+  function confirmDelete() {
+    removePayrollVariable(detail.id);
+    addNotification("La variable fue eliminada.", "success", "compact");
+    // Redirigir a la lista de variables después de eliminar
+    router.push("/admin-hub/nominas/variables");
+  }
+
+  function cancelDelete() {
+    setDeleteModalOpen(false);
+  }
+
+  // Convertir PayrollVariableDetail a PayrollVariable para el modal
+  const variableForModal: PayrollVariable = {
+    id: detail.id,
+    date: detail.fechaCreacion,
+    contractor: detail.contratista,
+    client: detail.cliente,
+    type: detail.type,
+    category: detail.type === "Overtime" ? "overtimes" : 
+              detail.type === "Holiday" ? "holidays" : 
+              detail.type === "Deducción" || detail.type === "Ausencia" ? "deducciones" : 
+              "incomeVariables",
+    description: detail.descripcion,
+    amount: detail.monto,
+    status: detail.estado,
+    createdBy: detail.creadoPor,
+    period: `${detail.desde} - ${detail.hasta}`,
+    applyDate: detail.hasta,
+    incomeCategory: detail.incomeCategory,
+    deductionTipo: detail.deductionTipo,
+  };
 
   return (
     <div className="flex flex-col gap-6">
       <AdminHubBreadcrumbs items={breadcrumbItems} />
 
-      <div className="flex flex-col gap-1">
-        <h1 className="text-[32px] font-bold leading-[1.3] text-black">
-          Variable - {detail.id}
-        </h1>
-        <p className="text-[16px] leading-[1.3] text-[#343434]">
-          {detail.contratista} - {detail.type}
-        </p>
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[32px] font-bold leading-[1.3] text-black">
+            Variable de nóminas
+          </h1>
+          <p className="text-[16px] leading-[1.3] text-[#858585]">
+            {detail.type}
+          </p>
+        </div>
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={detail.estado === "Emitido"}
+            className={`inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] border px-[22px] text-[14px] font-medium leading-[1.2] transition-colors ${
+              detail.estado === "Emitido"
+                ? "cursor-not-allowed border-[#C8C8C8] text-[#C8C8C8]"
+                : "border-[#E33434] text-[#E33434] hover:bg-[#FFF5F5]"
+            }`}
+            title={
+              detail.estado === "Emitido"
+                ? "No se puede eliminar una variable con estado 'Emitido'"
+                : undefined
+            }
+          >
+            <Trash2 size={20} />
+            Eliminar
+          </button>
+          <button
+            type="button"
+            onClick={handleExport}
+            className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
+          >
+            <Download size={20} />
+            Exportar
+          </button>
+        </div>
       </div>
 
-      <div className="flex justify-end gap-4">
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] border border-[#E33434] px-[22px] text-[14px] font-medium leading-[1.2] text-[#E33434] transition-colors hover:bg-[#FFF5F5]"
-        >
-          <Trash2 size={20} />
-          Eliminar
-        </button>
-        <button
-          type="button"
-          onClick={handleExport}
-          className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
-        >
-          <Download size={20} />
-          Exportar
-        </button>
-      </div>
-
-      <div className="flex flex-col gap-[18px]">
-        {/* Contexto */}
-        <PayrollVariableInfoCard
-          title="Contexto"
-          onEdit={() => handleEdit("contexto")}
-        >
-          {isEditingContext ? (
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_424px]">
+        {/* Columna Izquierda */}
+        <div className="flex flex-col gap-4">
+          {/* Contexto */}
+          <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-[18px] font-bold leading-[1.3] text-black">Contexto</h2>
+            </div>
             <div className="flex flex-col gap-4">
-              <div>
-                <label className="mb-1 block text-[14px] text-[#343434]">
+              {/* Contratista */}
+              <div className="relative">
+                <select
+                  value={detail.contratista}
+                  disabled
+                  className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                >
+                  <option value={detail.contratista}>{detail.contratista}</option>
+                </select>
+                <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
                   Contratista*
                 </label>
-                <input
-                  type="text"
-                  value={contextEdit.contratista}
-                  onChange={(e) => setContextEdit({ ...contextEdit, contratista: e.target.value })}
-                  className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
-                />
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
               </div>
-              <div>
-                <label className="mb-1 block text-[14px] text-[#343434]">
-                  ID Contrato*
-                </label>
-                <input
-                  type="text"
-                  value={contextEdit.idContrato}
-                  onChange={(e) => setContextEdit({ ...contextEdit, idContrato: e.target.value })}
-                  className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
-                />
+
+              {/* ID Contrato y Puesto en una fila */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+                  <select
+                    value={detail.idContrato}
+                    disabled
+                    className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                  >
+                    <option value={detail.idContrato}>{detail.idContrato}</option>
+                  </select>
+                  <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                    ID Contrato*
+                  </label>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                </div>
+
+                <div className="relative">
+                  <select
+                    value={detail.puesto}
+                    disabled
+                    className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                  >
+                    <option value={detail.puesto}>{detail.puesto}</option>
+                  </select>
+                  <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                    Puesto*
+                  </label>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                </div>
               </div>
-              <div>
-                <label className="mb-1 block text-[14px] text-[#343434]">
-                  Puesto*
-                </label>
-                <input
-                  type="text"
-                  value={contextEdit.puesto}
-                  onChange={(e) => setContextEdit({ ...contextEdit, puesto: e.target.value })}
-                  className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-[14px] text-[#343434]">
+
+              {/* Cliente */}
+              <div className="relative">
+                <select
+                  value={detail.cliente}
+                  disabled
+                  className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                >
+                  <option value={detail.cliente}>{detail.cliente}</option>
+                </select>
+                <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
                   Cliente*
                 </label>
-                <input
-                  type="text"
-                  value={contextEdit.cliente}
-                  onChange={(e) => setContextEdit({ ...contextEdit, cliente: e.target.value })}
-                  className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
-                />
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-[14px] text-[#343434]">
-                    Desde*
+
+              {/* Variable (Categoría principal) */}
+              <div className="relative">
+                <select
+                  value={detail.type}
+                  disabled
+                  className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                >
+                  <option value={detail.type}>{detail.type}</option>
+                </select>
+                <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                  Variable*
+                </label>
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+              </div>
+
+              {/* Tipo (Subtipo específico) */}
+              {(detail.deductionTipo || detail.incomeCategory) && (
+                <div className="relative">
+                  <select
+                    value={detail.deductionTipo || detail.incomeCategory || ""}
+                    disabled
+                    className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                  >
+                    <option value={detail.deductionTipo || detail.incomeCategory}>
+                      {detail.deductionTipo || detail.incomeCategory}
+                    </option>
+                  </select>
+                  <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                    Tipo*
                   </label>
-                  <input
-                    type="text"
-                    value={contextEdit.desde}
-                    onChange={(e) => setContextEdit({ ...contextEdit, desde: e.target.value })}
-                    className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
-                    placeholder="DD.MM.YYYY"
-                  />
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                 </div>
-                <div>
-                  <label className="mb-1 block text-[14px] text-[#343434]">
-                    Hasta*
-                  </label>
-                  <input
-                    type="text"
-                    value={contextEdit.hasta}
-                    onChange={(e) => setContextEdit({ ...contextEdit, hasta: e.target.value })}
-                    className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
-                    placeholder="DD.MM.YYYY"
-                  />
-                </div>
+              )}
+
+              {/* Fecha */}
+              <div className="relative">
+                <select
+                  value={`${formatDateToUSA(detail.desde)}`}
+                  disabled
+                  className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                >
+                  <option value={`${formatDateToUSA(detail.desde)}`}>{formatDateToUSA(detail.desde)}</option>
+                </select>
+                <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                  Fecha*
+                </label>
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
               </div>
             </div>
-          ) : (
-            <>
-              <PayrollVariableInfoRow
-                icon={CircleUser}
-                label="Contratista"
-                value={detail.contratista}
-              />
-              <PayrollVariableInfoRow
-                icon={Hash}
-                label="ID Contrato"
-                value={detail.idContrato}
-              />
-              <PayrollVariableInfoRow
-                icon={BriefcaseBusiness}
-                label="Puesto"
-                value={detail.puesto}
-              />
-              <PayrollVariableInfoRow
-                icon={Building2}
-                label="Cliente"
-                value={detail.cliente}
-              />
-              <PayrollVariableInfoRow
-                icon={CalendarDays}
-                label="Desde"
-                value={detail.desde}
-              />
-              <PayrollVariableInfoRow
-                icon={CalendarDays}
-                label="Hasta"
-                value={detail.hasta}
-                isLast
-              />
-            </>
-          )}
-        </PayrollVariableInfoCard>
+          </div>
 
-        <div className="grid gap-[18px] lg:grid-cols-2">
-          {/* Estado de la nómina */}
-          <PayrollVariableInfoCard
-            title="Estado de la nómina"
-            onEdit={() => handleEdit("estado")}
-          >
-            {isEditingStatus ? (
-              <div>
-                <label className="mb-1 block text-[14px] text-[#343434]">
-                  Estado*
-                </label>
-                <select
-                  value={statusEdit}
-                  onChange={(e) => setStatusEdit(e.target.value as any)}
-                  className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
+          {/* Base de pago */}
+          <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-[18px] font-bold leading-[1.3] text-black">Base de pago</h2>
+              {!isEditingBasePago ? (
+                <button
+                  type="button"
+                  onClick={() => handleEdit("base-pago")}
+                  className="flex size-8 items-center justify-center rounded-full border border-[#0097B2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
                 >
-                  <option value="Pendiente">Pendiente</option>
-                  <option value="Aprobado">Aprobado</option>
-                  <option value="Rechazado">Rechazado</option>
-                </select>
-              </div>
-            ) : (
-              <div className="flex gap-4">
-                <Scale size={24} className="shrink-0 text-[#858585]" />
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <div className="text-[14px] leading-[1.3] text-[#343434]">Estado</div>
-                  <div>
-                    <PayrollVariableStatusBadge status={detail.estado} />
-                  </div>
-                </div>
-              </div>
-            )}
-          </PayrollVariableInfoCard>
-
-          {/* Registro de creación */}
-          <PayrollVariableInfoCard title="Registro de creación">
-            <PayrollVariableInfoRow
-              icon={User}
-              label="Creado por"
-              value={detail.creadoPor}
-            />
-            <PayrollVariableInfoRow
-              icon={CalendarDays}
-              label="Fecha de creación"
-              value={detail.fechaCreacion}
-              isLast
-            />
-          </PayrollVariableInfoCard>
-        </div>
-
-        {/* Base de pago */}
-        <PayrollVariableInfoCard
-          title="Base de pago"
-          onEdit={() => handleEdit("base-pago")}
-        >
-          {isEditingBasePago ? (
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="mb-1 block text-[14px] text-[#343434]">
+                  <Pencil size={16} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleEdit("base-pago")}
+                  className="text-[14px] font-medium text-[#0097B2] hover:underline"
+                >
+                  Guardar
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              {/* Sueldo Base */}
+              <div className="relative">
+                {isEditingBasePago ? (
+                  <input
+                    type="number"
+                    value={basePagoEdit.sueldoBase}
+                    onChange={(e) => setBasePagoEdit({ ...basePagoEdit, sueldoBase: Number(e.target.value) })}
+                    className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                  />
+                ) : (
+                  <>
+                    <select
+                      value={detail.sueldoBase}
+                      disabled
+                      className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                    >
+                      <option value={detail.sueldoBase}>${detail.sueldoBase}</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                  </>
+                )}
+                <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
                   Sueldo Base*
                 </label>
-                <input
-                  type="number"
-                  value={basePagoEdit.sueldoBase}
-                  onChange={(e) => setBasePagoEdit({ ...basePagoEdit, sueldoBase: Number(e.target.value) })}
-                  className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
-                  min="0"
-                  step="0.01"
-                />
               </div>
-              <div>
-                <label className="mb-1 block text-[14px] text-[#343434]">
-                  Duración (horas)*
+
+              {/* Duración */}
+              <div className="relative">
+                {isEditingBasePago ? (
+                  <input
+                    type="text"
+                    value={basePagoEdit.duracion}
+                    onChange={(e) => setBasePagoEdit({ ...basePagoEdit, duracion: Number(e.target.value) })}
+                    className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                  />
+                ) : (
+                  <>
+                    <select
+                      value={detail.duracion}
+                      disabled
+                      className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                    >
+                      <option value={detail.duracion}>Dia</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                  </>
+                )}
+                <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                  Duración*
                 </label>
-                <input
-                  type="number"
-                  value={basePagoEdit.duracion}
-                  onChange={(e) => setBasePagoEdit({ ...basePagoEdit, duracion: Number(e.target.value) })}
-                  className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
-                  min="0"
-                />
               </div>
-              <div>
-                <label className="mb-1 block text-[14px] text-[#343434]">
+
+              {/* Cantidad */}
+              <div className="relative">
+                {isEditingBasePago ? (
+                  <input
+                    type="number"
+                    value={basePagoEdit.cantidad}
+                    onChange={(e) => setBasePagoEdit({ ...basePagoEdit, cantidad: Number(e.target.value) })}
+                    className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                  />
+                ) : (
+                  <>
+                    <select
+                      value={detail.cantidad}
+                      disabled
+                      className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                    >
+                      <option value={detail.cantidad}>{detail.cantidad}</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                  </>
+                )}
+                <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
                   Cantidad*
                 </label>
-                <input
-                  type="number"
-                  value={basePagoEdit.cantidad}
-                  onChange={(e) => setBasePagoEdit({ ...basePagoEdit, cantidad: Number(e.target.value) })}
-                  className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
-                  min="0"
-                />
               </div>
-              {(detail.type === "Deducción" || detail.type === "Ausencia") && (
-                <div className="rounded-[8px] bg-[#FFF5F5] p-4">
-                  <p className="text-[14px] text-[#E33434]">
-                    Nota: En {detail.type === "Deducción" ? "Deducciones" : "Ausencias"} el impacto es negativo — el monto se muestra como valor a restar.
-                  </p>
-                </div>
-              )}
-              {(detail.type === "Overtime" || detail.type === "Income Variable" || detail.type === "Holiday") && (
-                <div className="rounded-[8px] bg-[#E8F9FF] p-4">
-                  <p className="text-[14px] text-[#0097B2]">
-                    Nota: En {detail.type} el impacto es positivo — el monto se muestra como valor a sumar.
-                  </p>
-                </div>
+            </div>
+          </div>
+
+          {/* Ingresos Adicionales / Descripción */}
+          <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-[18px] font-bold leading-[1.3] text-black">
+                {detail.type === "Income Variable" ? "Ingresos Adicionales" : "Descripción"}
+              </h2>
+              {!isEditingDetalles ? (
+                <button
+                  type="button"
+                  onClick={() => handleEdit("detalles")}
+                  className="flex size-8 items-center justify-center rounded-full border border-[#0097B2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
+                >
+                  <Pencil size={16} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleEdit("detalles")}
+                  className="text-[14px] font-medium text-[#0097B2] hover:underline"
+                >
+                  Guardar
+                </button>
               )}
             </div>
-          ) : (
-            <>
-              <PayrollVariableInfoRow
-                icon={DollarSign}
-                label="Sueldo Base"
-                value={`$${detail.sueldoBase.toFixed(2)}`}
-              />
-              <PayrollVariableInfoRow
-                icon={Clock}
-                label="Duración"
-                value={`${detail.duracion} horas`}
-              />
-              <PayrollVariableInfoRow
-                icon={Hash}
-                label="Cantidad"
-                value={detail.cantidad}
-              />
-              {(detail.type === "Deducción" || detail.type === "Ausencia") && (
-                <div className="rounded-[8px] bg-[#FFF5F5] p-4">
-                  <p className="text-[14px] text-[#E33434]">
-                    Nota: En {detail.type === "Deducción" ? "Deducciones" : "Ausencias"} el impacto es negativo — el monto se muestra como valor a restar.
-                  </p>
-                </div>
+            <div className="relative">
+              {isEditingDetalles ? (
+                <textarea
+                  value={detallesEdit}
+                  onChange={(e) => setDetallesEdit(e.target.value)}
+                  rows={4}
+                  className="w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                />
+              ) : (
+                <>
+                  <select
+                    value={detail.descripcion}
+                    disabled
+                    className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                  >
+                    <option value={detail.descripcion}>{detail.descripcion}</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                </>
               )}
-              {(detail.type === "Overtime" || detail.type === "Income Variable" || detail.type === "Holiday") && (
-                <div className="rounded-[8px] bg-[#E8F9FF] p-4">
-                  <p className="text-[14px] text-[#0097B2]">
-                    Nota: En {detail.type} el impacto es positivo — el monto se muestra como valor a sumar.
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-        </PayrollVariableInfoCard>
-
-        {/* Impacto */}
-        <PayrollVariableInfoCard title="Impacto">
-          <PayrollVariableInfoRow
-            icon={DollarSign}
-            label="Monto (calculado)"
-            value={montoCalculado < 0 ? `-$${Math.abs(montoCalculado).toFixed(2)}` : `$${montoCalculado.toFixed(2)}`}
-            isLast
-          />
-          <div className="rounded-[8px] bg-[#F8F8F8] p-4">
-            <p className="text-[14px] text-[#858585]">
-              El monto es calculado localmente según el tipo de variable.
-            </p>
-          </div>
-        </PayrollVariableInfoCard>
-
-        {/* Campos específicos por tipo */}
-        {detail.type === "Income Variable" && detail.incomeCategory && (
-          <PayrollVariableInfoCard title="Categoría de Ingreso">
-            <PayrollVariableInfoRow
-              icon={FileText}
-              label="Categoría"
-              value={detail.incomeCategory}
-              isLast
-            />
-          </PayrollVariableInfoCard>
-        )}
-
-        {(detail.type === "Deducción" || detail.type === "Ausencia") && detail.deductionTipo && (
-          <PayrollVariableInfoCard title="Tipo de Deducción">
-            <PayrollVariableInfoRow
-              icon={FileText}
-              label="Tipo"
-              value={detail.deductionTipo}
-              isLast
-            />
-          </PayrollVariableInfoCard>
-        )}
-
-        {/* Detalles Adicionales / Descripción */}
-        <PayrollVariableInfoCard
-          title={detail.type === "Deducción" || detail.type === "Ausencia" ? "Detalles Adicionales" : "Descripción"}
-          onEdit={() => handleEdit("detalles")}
-        >
-          {isEditingDetalles ? (
-            <div>
-              <label className="mb-1 block text-[14px] text-[#343434]">
+              <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
                 Descripción*
               </label>
-              <textarea
-                value={detallesEdit}
-                onChange={(e) => setDetallesEdit(e.target.value)}
-                className="w-full rounded-[8px] border border-[#EFEFEF] px-4 py-2 text-[14px] focus:border-[#0097B2] focus:outline-none"
-                rows={4}
-              />
             </div>
-          ) : (
-            <PayrollVariableInfoRow
-              icon={FileText}
-              label="Descripción"
-              value={detail.descripcion}
-              isLast
-            />
-          )}
-        </PayrollVariableInfoCard>
+          </div>
+        </div>
+
+        {/* Columna Derecha */}
+        <div className="flex flex-col gap-4">
+          {/* Estado de la nómina */}
+          <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-[18px] font-bold leading-[1.3] text-black">Estado de la nómina</h2>
+              {!isEditingStatus ? (
+                <button
+                  type="button"
+                  onClick={() => handleEdit("estado")}
+                  className="flex size-8 items-center justify-center rounded-full border border-[#0097B2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
+                >
+                  <Pencil size={16} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleEdit("estado")}
+                  className="text-[14px] font-medium text-[#0097B2] hover:underline"
+                >
+                  Guardar
+                </button>
+              )}
+            </div>
+            <div className="relative">
+              <select
+                value={isEditingStatus ? statusEdit : detail.estado}
+                onChange={(e) => isEditingStatus && setStatusEdit(e.target.value as any)}
+                disabled={!isEditingStatus}
+                className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+              >
+                <option value="Pendiente">Pendiente</option>
+                <option value="Aprobado">Aprobado</option>
+                <option value="Rechazado">Rechazado</option>
+              </select>
+              <label className="absolute left-[13px] top-0 bg-white px-1 text-[14px] text-[#525252]">
+                Estado*
+              </label>
+              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+            </div>
+          </div>
+
+          {/* Registro de creación */}
+          <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
+            <h2 className="mb-6 text-[18px] font-bold leading-[1.3] text-black">Registro de creación</h2>
+            <div className="flex flex-col gap-4">
+              {/* Creado por */}
+              <div className="relative">
+                <label className="mb-1 block text-[12px] text-[#858585]">Creado por</label>
+                <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
+                  <p className="text-[14px] text-[#525252]">{detail.creadoPor}</p>
+                </div>
+              </div>
+
+              {/* Fecha de creación */}
+              <div className="relative">
+                <label className="mb-1 block text-[12px] text-[#858585]">Fecha de creación</label>
+                <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
+                  <p className="text-[14px] text-[#525252]">{formatDateToUSA(detail.fechaCreacion)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Impacto */}
+          <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
+            <h2 className="mb-6 text-[18px] font-bold leading-[1.3] text-black">Impacto</h2>
+            <div className="relative">
+              <label className="mb-1 block text-[12px] text-[#858585]">Monto*</label>
+              <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
+                <p className="text-[14px] text-[#525252]">
+                  {montoCalculado < 0 ? `-$${Math.abs(montoCalculado).toFixed(2)}` : `$${montoCalculado.toFixed(2)}`}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <DeletePayrollVariableModal
+        variable={variableForModal}
+        open={deleteModalOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

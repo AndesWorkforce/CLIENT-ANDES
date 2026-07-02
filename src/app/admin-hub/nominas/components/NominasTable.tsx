@@ -24,7 +24,7 @@ interface NominasTableProps {
   onSelectedIdsChange: (selectedIds: Set<string>) => void;
 }
 
-type SortKey = "clientPrice" | "variableAmount" | "totalAmount" | null;
+type SortKey = "clientPrice" | "variableAmount" | "totalAmount" | "status" | null;
 type MenuPosition = { top: number; left: number };
 
 const MENU_MIN_WIDTH = 148;
@@ -83,6 +83,10 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
     if (!sortKey) return rows;
 
     return [...rows].sort((a, b) => {
+      if (sortKey === "status") {
+        const cmp = a.status.localeCompare(b.status);
+        return sortDir === "asc" ? cmp : -cmp;
+      }
       const diff = a[sortKey] - b[sortKey];
       return sortDir === "asc" ? diff : -diff;
     });
@@ -197,7 +201,7 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
               <SortableHeader label="Monto total" sortField="totalAmount" />
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Estado
+              <SortableHeader label="Estado" sortField="status" />
             </th>
             <th className={ADMIN_HUB_TABLE_HEAD_LAST_CELL} />
           </tr>
