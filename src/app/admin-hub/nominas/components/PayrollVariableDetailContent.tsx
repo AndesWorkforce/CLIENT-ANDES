@@ -455,9 +455,9 @@ export default function PayrollVariableDetailContent({
                             className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
                           >
                             <option value="Bonus">Bonus</option>
-                            <option value="Commission">Commission</option>
-                            <option value="Allowance">Allowance</option>
                             <option value="Reimbursement">Reimbursement</option>
+                            <option value="Invoice Expense">Invoice Expense</option>
+                            <option value="Referral">Referral</option>
                             <option value="Other">Other</option>
                           </select>
                           <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
@@ -778,9 +778,9 @@ export default function PayrollVariableDetailContent({
                   <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
                     <p className="text-[14px] font-medium text-[#525252]">
                       {detail.incomeCategory === "Bonus" ? "Bono" :
-                       detail.incomeCategory === "Commission" ? "Comisión" :
-                       detail.incomeCategory === "Allowance" ? "Asignación" :
                        detail.incomeCategory === "Reimbursement" ? "Reembolso" :
+                       detail.incomeCategory === "Invoice Expense" ? "Gasto de Factura" :
+                       detail.incomeCategory === "Referral" ? "Referido" :
                        "Otro"}
                     </p>
                   </div>
