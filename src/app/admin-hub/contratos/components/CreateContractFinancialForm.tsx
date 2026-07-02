@@ -9,6 +9,8 @@ import {
 import type { CreateContractFormData } from "../data/contract-creation-types";
 import ContractFormSection from "./ContractFormSection";
 
+const ARQ_APP_PAYMENT_METHOD = "ARQ App";
+
 interface CreateContractFinancialFormProps {
   formData: CreateContractFormData;
   onChange: (data: CreateContractFormData) => void;
@@ -18,8 +20,17 @@ export default function CreateContractFinancialForm({
   formData,
   onChange,
 }: CreateContractFinancialFormProps) {
+  const showArqTag = formData.metodoPago === ARQ_APP_PAYMENT_METHOD;
+
   function patch(partial: Partial<CreateContractFormData>) {
     onChange({ ...formData, ...partial });
+  }
+
+  function handlePaymentMethodChange(metodoPago: string) {
+    patch({
+      metodoPago,
+      arqTag: metodoPago === ARQ_APP_PAYMENT_METHOD ? formData.arqTag : "",
+    });
   }
 
   return (
@@ -36,18 +47,20 @@ export default function CreateContractFinancialForm({
         type="select"
         label="Metódo de pago"
         value={formData.metodoPago}
-        onChange={(metodoPago) => patch({ metodoPago })}
+        onChange={handlePaymentMethodChange}
         options={PAYMENT_METHOD_OPTIONS}
         placeholder="Transferencia bancaria"
       />
-      <AdminHubFormField
-        type="input"
-        label="Dollar Tag"
-        required={false}
-        value={formData.dollarTag}
-        onChange={(dollarTag) => patch({ dollarTag })}
-        placeholder="#juanpe"
-      />
+      {showArqTag ? (
+        <AdminHubFormField
+          type="input"
+          label="ARQ Tag"
+          required={false}
+          value={formData.arqTag}
+          onChange={(arqTag) => patch({ arqTag })}
+          placeholder="#juanpe"
+        />
+      ) : null}
       <AdminHubFormField
         type="select"
         label="Banco Personal"

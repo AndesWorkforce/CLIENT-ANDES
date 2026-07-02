@@ -38,6 +38,8 @@ export interface ContractPayrollVariableRow {
 
 export interface ContractDetail extends MockProcesoContratacion {
   codigoContrato: string;
+  fechaInicioContrato: string;
+  fechaUltimaModificacionContrato: string;
   telefono: string;
   documentoIdentidad: string;
   fechaNacimiento: string;
@@ -59,6 +61,14 @@ function generateCodigoContrato(id: string): string {
   const num =
     id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % 900000 + 100000;
   return `AD-${num}`;
+}
+
+function getTodayIsoDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function mapVariableStatus(status: PayrollVariable["status"]): "Pendiente" | "Aprobada" {
@@ -249,6 +259,8 @@ export function getContractDetail(contractId: string): ContractDetail | null {
     ...contract,
     ...usuario,
     codigoContrato: generateCodigoContrato(contract.id),
+    fechaInicioContrato: getTodayIsoDate(),
+    fechaUltimaModificacionContrato: getTodayIsoDate(),
     historialCambios: buildChangeHistory(contract),
     historialNomina: buildPayrollHistory(contract, relatedVariables),
     variablesNomina: buildVariablesRows(relatedVariables),

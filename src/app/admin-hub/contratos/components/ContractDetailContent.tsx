@@ -2,28 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  BriefcaseBusiness,
-  Building2,
-  CalendarDays,
-  CircleUser,
-  Download,
-  Gift,
-  Globe,
-  Hash,
-  House,
-  IdCard,
-  Landmark,
-  Mail,
-  MapPin,
-  Phone,
-  Receipt,
-  Scale,
-  Tag,
-  WalletCards,
-} from "lucide-react";
+import { Download } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
+import AdminHubDatePicker from "../../components/AdminHubDatePicker";
+import AdminHubFormField from "../../components/AdminHubFormField";
 import AdminHubTableShell, {
   ADMIN_HUB_TABLE_HEAD_FIRST_CELL,
   ADMIN_HUB_TABLE_HEAD_LAST_CELL,
@@ -34,7 +17,6 @@ import { formatMoney } from "../../nominas/data/payroll-data";
 import { getMetodoPagoDisplay, getPaisDisplay } from "../data/contract-display";
 import {
   formatContractSalary,
-  formatIsoDateToDisplay,
   formatVariableImpact,
   getDiscretionaryBonusLabel,
 } from "../data/contract-detail-display";
@@ -42,7 +24,6 @@ import type { ContractDetail } from "../data/mock-contract-detail";
 import { personaToDetailPath } from "../../personas/data/mock-persona-detail";
 import { MOCK_CONTRACTORS } from "../../nominas/data/mock-contractors";
 import ContractApprovalBadge from "./ContractApprovalBadge";
-import ContractDetailInfoRow from "./ContractDetailInfoRow";
 import ContractInfoCard from "./ContractInfoCard";
 
 interface ContractDetailContentProps {
@@ -50,10 +31,85 @@ interface ContractDetailContentProps {
 }
 
 type ContractVariableTab = (typeof PAYROLL_VARIABLE_TABS)[number]["key"];
+type EditableSection = "general" | "residence" | "labor" | "financial";
+
+interface ContractFormState {
+  nombreCompleto: string;
+  correo: string;
+  telefono: string;
+  documentoIdentidad: string;
+  fechaNacimiento: string;
+  pais: string;
+  estadoResidencia: string;
+  ciudadResidencia: string;
+  direccionResidencia: string;
+  codigoContrato: string;
+  fechaInicioContrato: string;
+  fechaUltimaModificacionContrato: string;
+  puestoTrabajo: string;
+  empresaNombre: string;
+  salario: string;
+  tarifaHrNacional: string;
+  bonusLabel: string;
+  ipbBalance: string;
+  paisFacturacion: string;
+  metodoPago: string;
+  dollarTag: string;
+  bancoNombre: string;
+  numeroCuentaBancaria: string;
+  bancoFacturacionNombre: string;
+  numeroCuentaFacturacion: string;
+}
+
+function displayOptional(value: string | null): string {
+  return value ?? "No especificado";
+}
+
+function buildContractFormState(detail: ContractDetail): ContractFormState {
+  const pais = getPaisDisplay(detail.paisCodigo, detail.paisFacturacion);
+  const metodoPago = detail.usaDollarApp
+    ? "Transferencia Bancaria"
+    : getMetodoPagoDisplay(detail);
+
+  return {
+    nombreCompleto: detail.nombreCompleto,
+    correo: detail.correo,
+    telefono: detail.telefono,
+    documentoIdentidad: detail.documentoIdentidad,
+    fechaNacimiento: detail.fechaNacimiento,
+    pais,
+    estadoResidencia: detail.estadoResidencia,
+    ciudadResidencia: detail.ciudadResidencia,
+    direccionResidencia: detail.direccionResidencia,
+    codigoContrato: detail.codigoContrato,
+    fechaInicioContrato: detail.fechaInicioContrato,
+    fechaUltimaModificacionContrato: detail.fechaUltimaModificacionContrato,
+    puestoTrabajo: detail.puestoTrabajo,
+    empresaNombre: detail.empresaNombre,
+    salario: formatContractSalary(detail.ofertaSalarial, detail.monedaSalario),
+    tarifaHrNacional: detail.tarifaHrNacional.toFixed(1),
+    bonusLabel: detail.bonusLabel,
+    ipbBalance: getDiscretionaryBonusLabel(detail.discretionaryBonusType),
+    paisFacturacion: pais,
+    metodoPago,
+    dollarTag: displayOptional(detail.dollarTag),
+    bancoNombre: displayOptional(detail.bancoNombre),
+    numeroCuentaBancaria: displayOptional(detail.numeroCuentaBancaria),
+    bancoFacturacionNombre: displayOptional(detail.bancoFacturacionNombre),
+    numeroCuentaFacturacion: displayOptional(detail.numeroCuentaFacturacion),
+  };
+}
 
 export default function ContractDetailContent({ detail }: ContractDetailContentProps) {
   const router = useRouter();
   const { addNotification } = useNotificationStore();
+  const [form, setForm] = useState<ContractFormState>(() => buildContractFormState(detail));
+  const [editingSections, setEditingSections] = useState<Record<EditableSection, boolean>>({
+    general: false,
+    residence: false,
+    labor: false,
+    financial: false,
+  });
   const [activeVariableTab, setActiveVariableTab] = useState<ContractVariableTab>("todos");
   const [selectedPayrollHistoryIds, setSelectedPayrollHistoryIds] = useState<Set<string>>(
     new Set()
@@ -133,12 +189,27 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
     });
   }
 
-  function handleEdit(section: string) {
-    addNotification(`La edición de ${section} estará disponible próximamente.`, "info");
+  function updateField<K extends keyof ContractFormState>(key: K, value: ContractFormState[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function toggleSectionEdit(section: EditableSection) {
+    if (editingSections[section]) {
+      setEditingSections((prev) => ({ ...prev, [section]: false }));
+      addNotification("Cambios guardados correctamente.", "success");
+      return;
+    }
+
+    setEditingSections((prev) => ({ ...prev, [section]: true }));
   }
 
   function handleExport() {
     addNotification("La exportación del contrato estará disponible próximamente.", "info");
+  }
+
+  function handleGoToPayrollVariables() {
+    const params = new URLSearchParams({ contractor: detail.nombreCompleto });
+    router.push(`/admin-hub/nominas/variables?${params.toString()}`);
   }
 
   function handleGoToProfile() {
@@ -153,11 +224,6 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
 
     addNotification("No se encontró el perfil del contratista.", "info");
   }
-
-  const paisDisplay = getPaisDisplay(detail.paisCodigo, detail.paisFacturacion);
-  const metodoPagoDisplay = detail.usaDollarApp
-    ? "Transferencia Bancaria"
-    : getMetodoPagoDisplay(detail);
 
   return (
     <div className="flex flex-col gap-6">
@@ -194,44 +260,84 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
         <div className="grid gap-[18px] lg:grid-cols-2">
           <ContractInfoCard
             title="Información General"
-            onEdit={() => handleEdit("información general")}
+            isEditing={editingSections.general}
+            onEditClick={() => toggleSectionEdit("general")}
           >
-            <ContractDetailInfoRow
-              icon={CircleUser}
+            <AdminHubFormField
+              type="input"
               label="Nombre completo"
-              value={detail.nombreCompleto}
+              value={form.nombreCompleto}
+              onChange={(value) => updateField("nombreCompleto", value)}
+              viewOnly={!editingSections.general}
             />
-            <ContractDetailInfoRow icon={Mail} label="Email" value={detail.correo} />
-            <ContractDetailInfoRow icon={Phone} label="Télefono" value={detail.telefono} />
-            <ContractDetailInfoRow
-              icon={IdCard}
+            <AdminHubFormField
+              type="input"
+              label="Email"
+              value={form.correo}
+              onChange={(value) => updateField("correo", value)}
+              viewOnly={!editingSections.general}
+            />
+            <AdminHubFormField
+              type="input"
+              label="Télefono"
+              value={form.telefono}
+              onChange={(value) => updateField("telefono", value)}
+              viewOnly={!editingSections.general}
+            />
+            <AdminHubFormField
+              type="input"
               label="N° de documento"
-              value={detail.documentoIdentidad}
+              value={form.documentoIdentidad}
+              onChange={(value) => updateField("documentoIdentidad", value)}
+              viewOnly={!editingSections.general}
             />
-            <ContractDetailInfoRow
-              icon={CalendarDays}
+            <AdminHubDatePicker
               label="Fecha de nacimiento"
-              value={formatIsoDateToDisplay(detail.fechaNacimiento)}
+              value={form.fechaNacimiento}
+              onChange={(value) => updateField("fechaNacimiento", value)}
+              viewOnly={!editingSections.general}
             />
-            <ContractDetailInfoRow icon={Globe} label="País" value={paisDisplay} isLast />
+            <AdminHubFormField
+              type="input"
+              label="País"
+              value={form.pais}
+              onChange={(value) => updateField("pais", value)}
+              viewOnly={!editingSections.general}
+            />
           </ContractInfoCard>
 
           <ContractInfoCard
             title="Dirección de Residencia"
-            onEdit={() => handleEdit("dirección de residencia")}
+            isEditing={editingSections.residence}
+            onEditClick={() => toggleSectionEdit("residence")}
           >
-            <ContractDetailInfoRow icon={Globe} label="País" value={paisDisplay} />
-            <ContractDetailInfoRow
-              icon={MapPin}
-              label="Estado"
-              value={detail.estadoResidencia}
+            <AdminHubFormField
+              type="input"
+              label="País"
+              value={form.pais}
+              onChange={(value) => updateField("pais", value)}
+              viewOnly={!editingSections.residence}
             />
-            <ContractDetailInfoRow icon={Phone} label="Ciudad" value={detail.ciudadResidencia} />
-            <ContractDetailInfoRow
-              icon={House}
+            <AdminHubFormField
+              type="input"
+              label="Estado"
+              value={form.estadoResidencia}
+              onChange={(value) => updateField("estadoResidencia", value)}
+              viewOnly={!editingSections.residence}
+            />
+            <AdminHubFormField
+              type="input"
+              label="Ciudad"
+              value={form.ciudadResidencia}
+              onChange={(value) => updateField("ciudadResidencia", value)}
+              viewOnly={!editingSections.residence}
+            />
+            <AdminHubFormField
+              type="input"
               label="Dirección"
-              value={detail.direccionResidencia}
-              isLast
+              value={form.direccionResidencia}
+              onChange={(value) => updateField("direccionResidencia", value)}
+              viewOnly={!editingSections.residence}
             />
           </ContractInfoCard>
         </div>
@@ -239,86 +345,130 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
         <div className="grid gap-[18px] lg:grid-cols-2">
           <ContractInfoCard
             title="Información Laboral"
-            onEdit={() => handleEdit("información laboral")}
+            isEditing={editingSections.labor}
+            onEditClick={() => toggleSectionEdit("labor")}
           >
-            <ContractDetailInfoRow
-              icon={Hash}
+            <AdminHubFormField
+              type="input"
               label="ID Contrato"
-              value={detail.codigoContrato}
+              value={form.codigoContrato}
+              onChange={(value) => updateField("codigoContrato", value)}
+              viewOnly={!editingSections.labor}
             />
-            <ContractDetailInfoRow
-              icon={BriefcaseBusiness}
+            <AdminHubDatePicker
+              label="Fecha inicio de Contrato"
+              value={form.fechaInicioContrato}
+              onChange={(value) => updateField("fechaInicioContrato", value)}
+              viewOnly={!editingSections.labor}
+            />
+            <AdminHubDatePicker
+              label="Fecha última modificación de Contrato"
+              value={form.fechaUltimaModificacionContrato}
+              onChange={(value) => updateField("fechaUltimaModificacionContrato", value)}
+              viewOnly={!editingSections.labor}
+            />
+            <AdminHubFormField
+              type="input"
               label="Posición"
-              value={detail.puestoTrabajo}
+              value={form.puestoTrabajo}
+              onChange={(value) => updateField("puestoTrabajo", value)}
+              viewOnly={!editingSections.labor}
             />
-            <ContractDetailInfoRow
-              icon={Building2}
+            <AdminHubFormField
+              type="input"
               label="Cliente"
-              value={detail.empresaNombre}
+              value={form.empresaNombre}
+              onChange={(value) => updateField("empresaNombre", value)}
+              viewOnly={!editingSections.labor}
             />
-            <ContractDetailInfoRow
-              icon={Receipt}
+            <AdminHubFormField
+              type="input"
               label="Salario"
-              value={formatContractSalary(detail.ofertaSalarial, detail.monedaSalario)}
+              value={form.salario}
+              onChange={(value) => updateField("salario", value)}
+              viewOnly={!editingSections.labor}
             />
-            <ContractDetailInfoRow
-              icon={CalendarDays}
+            <AdminHubFormField
+              type="input"
               label="HR Rate Holidays"
-              value={detail.tarifaHrNacional.toFixed(1)}
+              value={form.tarifaHrNacional}
+              onChange={(value) => updateField("tarifaHrNacional", value)}
+              viewOnly={!editingSections.labor}
             />
-            <ContractDetailInfoRow icon={Gift} label="Bonos" value={detail.bonusLabel} />
-            <ContractDetailInfoRow
-              icon={Scale}
+            <AdminHubFormField
+              type="input"
+              label="Bonos"
+              value={form.bonusLabel}
+              onChange={(value) => updateField("bonusLabel", value)}
+              viewOnly={!editingSections.labor}
+            />
+            <AdminHubFormField
+              type="input"
               label="IPB Balance"
-              value={getDiscretionaryBonusLabel(detail.discretionaryBonusType)}
-              isLast
+              value={form.ipbBalance}
+              onChange={(value) => updateField("ipbBalance", value)}
+              viewOnly={!editingSections.labor}
             />
           </ContractInfoCard>
 
           <ContractInfoCard
             title="Información Financiera"
-            onEdit={() => handleEdit("información financiera")}
+            isEditing={editingSections.financial}
+            onEditClick={() => toggleSectionEdit("financial")}
           >
-            <ContractDetailInfoRow
-              icon={Globe}
+            <AdminHubFormField
+              type="input"
               label="País de Facturación"
-              value={paisDisplay}
+              value={form.paisFacturacion}
+              onChange={(value) => updateField("paisFacturacion", value)}
+              viewOnly={!editingSections.financial}
             />
-            <ContractDetailInfoRow
-              icon={WalletCards}
+            <AdminHubFormField
+              type="input"
               label="Método de pago"
-              value={metodoPagoDisplay}
+              value={form.metodoPago}
+              onChange={(value) => updateField("metodoPago", value)}
+              viewOnly={!editingSections.financial}
             />
-            <ContractDetailInfoRow
-              icon={Tag}
+            <AdminHubFormField
+              type="input"
               label="Dollar Tag"
-              value={detail.dollarTag ?? "No especificado"}
-              mutedValue={!detail.dollarTag}
+              required={false}
+              value={form.dollarTag}
+              onChange={(value) => updateField("dollarTag", value)}
+              viewOnly={!editingSections.financial}
             />
-            <ContractDetailInfoRow
-              icon={Landmark}
+            <AdminHubFormField
+              type="input"
               label="Banco Personal"
-              value={detail.bancoNombre ?? "No especificado"}
-              mutedValue={!detail.bancoNombre}
+              required={false}
+              value={form.bancoNombre}
+              onChange={(value) => updateField("bancoNombre", value)}
+              viewOnly={!editingSections.financial}
             />
-            <ContractDetailInfoRow
-              icon={Hash}
+            <AdminHubFormField
+              type="input"
               label="Numero de cuenta bancaria personal"
-              value={detail.numeroCuentaBancaria ?? "No especificado"}
-              mutedValue={!detail.numeroCuentaBancaria}
+              required={false}
+              value={form.numeroCuentaBancaria}
+              onChange={(value) => updateField("numeroCuentaBancaria", value)}
+              viewOnly={!editingSections.financial}
             />
-            <ContractDetailInfoRow
-              icon={Landmark}
+            <AdminHubFormField
+              type="input"
               label="Nombre del Banco de Facturación"
-              value={detail.bancoFacturacionNombre ?? "No especificado"}
-              mutedValue={!detail.bancoFacturacionNombre}
+              required={false}
+              value={form.bancoFacturacionNombre}
+              onChange={(value) => updateField("bancoFacturacionNombre", value)}
+              viewOnly={!editingSections.financial}
             />
-            <ContractDetailInfoRow
-              icon={Hash}
+            <AdminHubFormField
+              type="input"
               label="Numero de cuenta de Facturación"
-              value={detail.numeroCuentaFacturacion ?? "No especificado"}
-              mutedValue={!detail.numeroCuentaFacturacion}
-              isLast
+              required={false}
+              value={form.numeroCuentaFacturacion}
+              onChange={(value) => updateField("numeroCuentaFacturacion", value)}
+              viewOnly={!editingSections.financial}
             />
           </ContractInfoCard>
         </div>
@@ -399,14 +549,23 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
             <h2 className="text-[18px] font-bold leading-[1.3] text-black">
               Variable de la nómina
             </h2>
-            <button
-              type="button"
-              onClick={handleExport}
-              className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
-            >
-              <Download size={20} />
-              Exportar
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleGoToPayrollVariables}
+                className="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
+              >
+                Ir
+              </button>
+              <button
+                type="button"
+                onClick={handleExport}
+                className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
+              >
+                <Download size={20} />
+                Exportar
+              </button>
+            </div>
           </div>
 
           <div className="mb-6 border-b border-[#EFEFEF]">

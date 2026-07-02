@@ -26,12 +26,16 @@ interface AdminHubFormInputProps extends BaseProps {
 
 type AdminHubFormFieldProps = (AdminHubFormSelectProps | AdminHubFormInputProps) & {
   readOnly?: boolean;
+  /** Solo lectura sin cursor bloqueado (vista de detalle). */
+  viewOnly?: boolean;
 };
 
 export default function AdminHubFormField(props: AdminHubFormFieldProps) {
-  const { label, required = true, readOnly = false } = props;
+  const { label, required = true, readOnly = false, viewOnly = false } = props;
+  const isLocked = readOnly && !viewOnly;
   const readOnlyClass =
     "cursor-not-allowed bg-[#F8F8F8] text-[#525252] focus:ring-0";
+  const viewOnlyClass = "cursor-default bg-white text-[#525252] focus:ring-0";
 
   if (props.type === "select") {
     return (
@@ -42,7 +46,8 @@ export default function AdminHubFormField(props: AdminHubFormFieldProps) {
         onChange={props.onChange}
         options={props.options}
         placeholder={props.placeholder}
-        disabled={readOnly}
+        disabled={isLocked}
+        viewOnly={viewOnly}
         variant="form"
         labelBackground="#FFFFFF"
       />
@@ -58,13 +63,17 @@ export default function AdminHubFormField(props: AdminHubFormFieldProps) {
       <input
         type={props.inputType ?? "text"}
         value={props.value}
-        readOnly={readOnly}
-        disabled={readOnly}
+        readOnly={isLocked || viewOnly}
+        disabled={isLocked}
         onChange={(e) => props.onChange(e.target.value)}
         placeholder={props.placeholder}
         inputMode={props.inputMode}
         className={`h-[50px] w-full rounded-[8px] border border-[#EFEFEF] px-4 text-[14px] leading-[1.3] tracking-[0.28px] placeholder:text-[#C8C8C8] focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
-          readOnly ? readOnlyClass : "bg-white text-[#343434]"
+          viewOnly
+            ? viewOnlyClass
+            : isLocked
+              ? readOnlyClass
+              : "bg-white text-[#343434]"
         }`}
       />
     </div>

@@ -1,10 +1,6 @@
 import type { DiscretionaryBonusType } from "./mock-contract-detail";
 
-export type ContractCreationType =
-  | "permanente"
-  | "por-periodo"
-  | "por-proyecto"
-  | "contractor-freelance";
+export type ContractCreationType = "full-time" | "part-time";
 
 export type ContractCreationStep =
   | "select-type"
@@ -31,17 +27,19 @@ export const CONTRACT_TYPE_OPTIONS: {
   id: ContractCreationType;
   label: string;
 }[] = [
-  { id: "permanente", label: "Permanente" },
-  { id: "por-periodo", label: "Por periodo" },
-  { id: "por-proyecto", label: "Por proyecto" },
-  { id: "contractor-freelance", label: "Contractor / Freelance" },
+  { id: "full-time", label: "Full Time" },
+  { id: "part-time", label: "Part Time" },
 ];
 
 export const CONTRACT_TYPE_LABELS: Record<ContractCreationType, string> = {
-  permanente: "Permanente",
-  "por-periodo": "Por periodo",
-  "por-proyecto": "Por proyecto",
-  "contractor-freelance": "Contractor / Freelance",
+  "full-time": "Full Time",
+  "part-time": "Part Time",
+};
+
+export const PART_TIME_LOCKED_LABOR_VALUES = {
+  paidHolidays: "No",
+  discretionaryBonus: "NONE" as const,
+  ipbBonus: "No",
 };
 
 export const CONTRACT_STEP_META: Record<
@@ -78,9 +76,10 @@ export interface CreateContractFormData {
   hrRateHolidays: string;
   paidHolidays: string;
   discretionaryBonus: DiscretionaryBonusType | "";
+  ipbBonus: string;
   paisFacturacion: string;
   metodoPago: string;
-  dollarTag: string;
+  arqTag: string;
   bancoPersonal: string;
   numeroCuentaPersonal: string;
   bancoFacturacion: string;
@@ -113,9 +112,10 @@ export function emptyCreateContractForm(): CreateContractFormData {
     hrRateHolidays: "",
     paidHolidays: "",
     discretionaryBonus: "",
+    ipbBonus: "",
     paisFacturacion: "",
     metodoPago: "",
-    dollarTag: "",
+    arqTag: "",
     bancoPersonal: "",
     numeroCuentaPersonal: "",
     bancoFacturacion: "",
@@ -158,7 +158,8 @@ export function isLaborInfoComplete(data: CreateContractFormData): boolean {
       data.salario.trim() &&
       data.hrRateHolidays &&
       data.paidHolidays &&
-      data.discretionaryBonus
+      data.discretionaryBonus &&
+      data.ipbBonus
   );
 }
 

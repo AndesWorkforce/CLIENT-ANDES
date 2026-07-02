@@ -132,8 +132,12 @@ export default function CreateContractDrawer({ open, onClose }: CreateContractDr
         <CreateContractResidenceForm formData={formData} onChange={setFormData} />
       )}
 
-      {step === "labor-info" && (
-        <CreateContractLaborForm formData={formData} onChange={setFormData} />
+      {step === "labor-info" && selectedType && (
+        <CreateContractLaborForm
+          formData={formData}
+          onChange={setFormData}
+          contractType={selectedType}
+        />
       )}
 
       {step === "financial-info" && (

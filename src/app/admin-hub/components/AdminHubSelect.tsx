@@ -15,6 +15,8 @@ interface AdminHubSelectProps {
   options: AdminHubSelectOption[];
   placeholder?: string;
   disabled?: boolean;
+  /** Solo lectura sin cursor bloqueado (vista de detalle). */
+  viewOnly?: boolean;
   /** Campo de formulario (50px) o filtro con label (40px) / compacto (36px) */
   variant?: "form" | "filter";
   label?: string;
@@ -39,6 +41,7 @@ export default function AdminHubSelect({
   options,
   placeholder = "Seleccionar",
   disabled = false,
+  viewOnly = false,
   variant = "form",
   label,
   labelBackground = "#FFFFFF",
@@ -63,7 +66,7 @@ export default function AdminHubSelect({
   const isForm = variant === "form";
   const isFilterWithLabel = !isForm && Boolean(label);
   const isCompactFilter = !label && variant === "filter";
-  const showFilterClear = clearable && isFilterWithLabel && hasValue && !disabled;
+  const showFilterClear = clearable && isFilterWithLabel && hasValue && !disabled && !viewOnly;
 
   const triggerClass = isForm
     ? `flex h-[50px] w-full items-center rounded-[8px] border border-[#EFEFEF] bg-white px-4 pr-10 text-left text-[14px] leading-[1.3] tracking-[0.28px] focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
@@ -81,7 +84,7 @@ export default function AdminHubSelect({
   }
 
   function handleTriggerClick() {
-    if (disabled) return;
+    if (disabled || viewOnly) return;
     setIsOpen((prev) => !prev);
   }
 
@@ -92,7 +95,7 @@ export default function AdminHubSelect({
   }
 
   function handleKeyDown(event: React.KeyboardEvent) {
-    if (disabled) return;
+    if (disabled || viewOnly) return;
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       setIsOpen((prev) => !prev);
@@ -117,8 +120,12 @@ export default function AdminHubSelect({
         onClick={handleTriggerClick}
         onKeyDown={handleKeyDown}
         className={`${triggerClass} ${
-          disabled ? "cursor-not-allowed bg-[#F8F8F8] text-[#525252]" : "cursor-pointer"
-        } ${isOpen && !disabled ? "ring-1 ring-[#0097B2]" : ""}`}
+          viewOnly
+            ? "cursor-default text-[#525252]"
+            : disabled
+              ? "cursor-not-allowed bg-[#F8F8F8] text-[#525252]"
+              : "cursor-pointer"
+        } ${isOpen && !disabled && !viewOnly ? "ring-1 ring-[#0097B2]" : ""}`}
       >
         <span className="min-w-0 truncate">{displayLabel}</span>
       </button>
@@ -140,7 +147,7 @@ export default function AdminHubSelect({
         />
       )}
 
-      {isOpen && !disabled && (
+      {isOpen && !disabled && !viewOnly && (
         <div className={`${MENU_PANEL_CLASS} ${menuClassName}`} role="listbox">
           <ul className={MENU_LIST_CLASS}>
             {options.map((option) => {

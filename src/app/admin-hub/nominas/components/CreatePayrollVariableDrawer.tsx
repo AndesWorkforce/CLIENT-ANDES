@@ -7,6 +7,7 @@ import AdminHubSideDrawer from "../../components/AdminHubSideDrawer";
 import AdminHubTypeSelectStep from "../../components/AdminHubTypeSelectStep";
 import { findContract, findContractor } from "../data/mock-contractors";
 import { findHoliday } from "../data/mock-holidays";
+import { getPayrollDailyRate } from "../data/payroll-data";
 import type { DeductionTipo } from "../data/deduction-types";
 import type { IncomeVariableCategory } from "../data/income-variable-categories";
 import type {
@@ -103,8 +104,7 @@ function computeAmount(
     case "incomeVariables":
       return parseSignedAmountInput(formData.montoContexto);
     case "holidays": {
-      const dailyRate = contract ? contract.baseSalary / 22 : 0;
-      return Math.round(dailyRate);
+      return contract ? getPayrollDailyRate(contract.baseSalary) : 0;
     }
     case "overtime": {
       const hours =

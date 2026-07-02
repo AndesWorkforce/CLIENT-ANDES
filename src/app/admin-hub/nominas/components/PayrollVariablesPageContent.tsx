@@ -70,12 +70,18 @@ const STATUS_FILTER_OPTIONS: { value: PayrollVariableStatus; label: string }[] =
 export const PAYROLL_VARIABLE_CREATED_TOAST =
   "La variable fue creada correctamente.";
 
-export default function PayrollVariablesPageContent() {
+interface PayrollVariablesPageContentProps {
+  initialSearchQuery?: string;
+}
+
+export default function PayrollVariablesPageContent({
+  initialSearchQuery = "",
+}: PayrollVariablesPageContentProps) {
   const { addNotification } = useNotificationStore();
   const [variables, setVariables] = useState<PayrollVariable[]>(() => getPayrollVariables());
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<PayrollVariableCategory>("todos");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");

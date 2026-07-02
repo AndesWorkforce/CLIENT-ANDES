@@ -1,5 +1,7 @@
 import type { IncomeVariableCategory } from "./income-variable-categories";
 import type { DeductionTipo } from "./deduction-types";
+import { MOCK_CONTRACTORS } from "./mock-contractors";
+import { getPayrollDailyRate } from "./payroll-calculations";
 
 export type PayrollVariableType =
   | "Overtime"
@@ -62,7 +64,22 @@ export function matchesPayrollVariableCategory(
   return variable.category === category;
 }
 
-export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
+function withSyncedHolidayAmounts(variables: PayrollVariable[]): PayrollVariable[] {
+  return variables.map((variable) => {
+    if (variable.type !== "Holiday") return variable;
+
+    const contractor = MOCK_CONTRACTORS.find((item) => item.name === variable.contractor);
+    const contract = contractor?.contracts.find((item) => item.client === variable.client);
+    if (!contract) return variable;
+
+    return {
+      ...variable,
+      amount: getPayrollDailyRate(contract.baseSalary),
+    };
+  });
+}
+
+const RAW_MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
   {
     id: "pv-1",
     date: "03.21.26",
@@ -825,7 +842,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     type: "Holiday",
     category: "holidays",
     description: "Independencia Colombia",
-    amount: 100,
+    amount: 160,
     status: "Pendiente",
     createdBy: "Violeta Q",
     period: "Marzo 2026",
@@ -1393,7 +1410,7 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     type: "Holiday",
     category: "holidays",
     description: "Batalla de Boyacá",
-    amount: 100,
+    amount: 160,
     status: "Pendiente",
     createdBy: "Violeta Q",
     period: "Marzo 2026",
@@ -1584,6 +1601,9 @@ export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] = [
     applyDate: "03.15.2026",
   },
 ];
+
+export const MOCK_PAYROLL_VARIABLES: PayrollVariable[] =
+  withSyncedHolidayAmounts(RAW_MOCK_PAYROLL_VARIABLES);
 
 export function formatPayrollAmount(amount: number): string {
   const prefix = amount < 0 ? "-$" : "$";

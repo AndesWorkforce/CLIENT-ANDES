@@ -10,7 +10,6 @@ import {
   Download,
   Globe,
   Mail,
-  Pen,
 } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
@@ -21,6 +20,8 @@ import type { PayrollVariableStatus } from "../data/mock-payroll-variables";
 import PayrollAmountColumn from "./PayrollAmountColumn";
 import PayrollDetailInfoRow from "./PayrollDetailInfoRow";
 import PayrollEmitModal, { type PayrollEmitModalVariant } from "./PayrollEmitModal";
+import PayrollPayslipPreviewModal from "./PayrollPayslipPreviewModal";
+import PayrollPayslipPreviewThumbnail from "./PayrollPayslipPreviewThumbnail";
 
 const STATUS_OPTIONS: { value: PayrollVariableStatus; label: string }[] = [
   { value: "Pendiente", label: "Pendiente" },
@@ -38,6 +39,7 @@ export default function PayrollDetailContent({ detail }: PayrollDetailContentPro
   const [status, setStatus] = useState<PayrollVariableStatus>(detail.status);
   const [notes, setNotes] = useState(detail.notes);
   const [emitModal, setEmitModal] = useState<PayrollEmitModalVariant | null>(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
 
   const allVariablesApproved = useMemo(
     () =>
@@ -104,7 +106,7 @@ export default function PayrollDetailContent({ detail }: PayrollDetailContentPro
       </div>
 
       <div className="rounded-[8px] bg-white px-5 py-6">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-stretch">
           <div className="flex min-w-0 flex-1 flex-col gap-4">
             <section className="rounded-[8px] border border-[#EFEFEF] bg-white px-[30px] py-6">
               <h2 className="mb-2.5 text-[18px] font-bold leading-[1.3] text-black">
@@ -155,21 +157,9 @@ export default function PayrollDetailContent({ detail }: PayrollDetailContentPro
             </section>
 
             <section className="rounded-[8px] border border-[#EFEFEF] bg-white px-[30px] py-6">
-              <div className="mb-2.5 flex items-start justify-between gap-3">
-                <h2 className="text-[18px] font-bold leading-[1.3] text-black">
-                  Base de pago
-                </h2>
-                <button
-                  type="button"
-                  aria-label="Editar base de pago"
-                  onClick={() =>
-                    addNotification("La edición de la base de pago estará disponible próximamente.", "info")
-                  }
-                  className="inline-flex size-[38px] shrink-0 items-center justify-center rounded-[8px] border border-[#0097B2] text-[#0097B2] transition-colors hover:bg-[#F5FAFB]"
-                >
-                  <Pen size={18} />
-                </button>
-              </div>
+              <h2 className="mb-2.5 text-[18px] font-bold leading-[1.3] text-black">
+                Base de pago
+              </h2>
 
               <div className="flex flex-col gap-[27px]">
                 <div className="flex flex-col gap-[15px] lg:flex-row lg:flex-wrap">
@@ -235,7 +225,7 @@ export default function PayrollDetailContent({ detail }: PayrollDetailContentPro
             </section>
           </div>
 
-          <div className="flex w-full flex-col gap-4 xl:w-[424px] xl:shrink-0">
+          <div className="flex w-full flex-col gap-4 xl:w-[424px] xl:shrink-0 xl:self-start">
             <section className="rounded-[8px] border border-[#EFEFEF] bg-white px-[30px] py-6">
               <h2 className="mb-2.5 text-[18px] font-bold leading-[1.3] text-black">
                 Estado de la nómina
@@ -273,8 +263,18 @@ export default function PayrollDetailContent({ detail }: PayrollDetailContentPro
               </div>
             </section>
 
-            <section className="flex min-h-[200px] flex-1 flex-col justify-end rounded-[8px] border border-[#EFEFEF] bg-white px-5 py-6 xl:min-h-[507px]">
-              <div className="ml-auto flex w-max max-w-full items-center gap-2">
+            <section className="flex flex-col gap-4 rounded-[8px] border border-[#EFEFEF] bg-white px-5 py-5">
+              <div className="flex flex-col gap-2">
+                <h2 className="text-[14px] font-semibold leading-[1.3] text-[#525252]">
+                  Previsualización
+                </h2>
+                <PayrollPayslipPreviewThumbnail
+                  detail={detail}
+                  onClick={() => setPreviewModalOpen(true)}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => router.push("/admin-hub/nominas")}
@@ -301,6 +301,12 @@ export default function PayrollDetailContent({ detail }: PayrollDetailContentPro
           </div>
         </div>
       </div>
+
+      <PayrollPayslipPreviewModal
+        open={previewModalOpen}
+        onClose={() => setPreviewModalOpen(false)}
+        detail={detail}
+      />
 
       {emitModal && (
         <PayrollEmitModal

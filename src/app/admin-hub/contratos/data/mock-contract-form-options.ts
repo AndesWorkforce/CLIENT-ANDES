@@ -53,7 +53,7 @@ export const BILLING_COUNTRY_OPTIONS = RESIDENCE_COUNTRIES;
 
 export const PAYMENT_METHOD_OPTIONS = [
   { value: "Transferencia bancaria", label: "Transferencia bancaria" },
-  { value: "Dolar App", label: "Dolar App" },
+  { value: "ARQ App", label: "ARQ App" },
   { value: "Payoneer", label: "Payoneer" },
   { value: "Wise", label: "Wise" },
 ];

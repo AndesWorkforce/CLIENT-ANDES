@@ -11,6 +11,8 @@ import {
 } from "../../components/admin-hub-filter-styles";
 import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import AdminHubTableShell, {
+  ADMIN_HUB_TABLE_HEAD_FIRST_CELL,
+  ADMIN_HUB_TABLE_HEAD_LAST_CELL,
   ADMIN_HUB_TABLE_ROW,
 } from "../../components/AdminHubTableShell";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
@@ -39,6 +41,7 @@ export default function PersonasPageContent() {
   const [clientFilter, setClientFilter] = useState("");
   const [positionFilter, setPositionFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const filteredContractors = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -117,6 +120,29 @@ export default function PersonasPageContent() {
   const hasActiveFilters = Boolean(
     countryFilter || clientFilter || positionFilter || statusFilter
   );
+
+  const allSelected =
+    filteredContractors.length > 0 &&
+    filteredContractors.every((contractor) => selectedIds.has(contractor.id));
+
+  function toggleAll() {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredContractors.map((contractor) => contractor.id)));
+    }
+  }
+
+  function toggleOne(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  const checkboxClass = "size-4 rounded border-[#EFEFEF] accent-[#0097B2]";
 
   const headClass =
     "px-3 py-5 text-left text-[14px] font-bold leading-[1.3] text-[#525252]";
@@ -198,14 +224,23 @@ export default function PersonasPageContent() {
         <table className="w-full min-w-[700px] border-collapse bg-white">
           <thead>
             <tr className="border-b border-[#EFEFEF]">
-              <th className="rounded-tl-[12px] py-5 pl-6 pr-3 text-left text-[14px] font-bold leading-[1.3] text-[#525252]">
+              <th className={ADMIN_HUB_TABLE_HEAD_FIRST_CELL}>
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  className={checkboxClass}
+                  aria-label="Seleccionar todos"
+                />
+              </th>
+              <th className="py-5 pl-3 pr-3 text-left text-[14px] font-bold leading-[1.3] text-[#525252]">
                 Contratista
               </th>
               <th className={headClass}>País</th>
               <th className={headClass}>Cliente</th>
               <th className={headClass}>Puesto</th>
               <th className={headClass}>Estado</th>
-              <th className="w-[108px] rounded-tr-[12px] py-5 pr-6" />
+              <th className={`w-[108px] ${ADMIN_HUB_TABLE_HEAD_LAST_CELL} pr-6`} />
             </tr>
           </thead>
           <tbody>
@@ -215,7 +250,16 @@ export default function PersonasPageContent() {
 
               return (
                 <tr key={contractor.id} className={ADMIN_HUB_TABLE_ROW}>
-                  <td className={`pl-6 pr-3 ${cellClass}`}>{contractor.name}</td>
+                  <td className="px-6 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(contractor.id)}
+                      onChange={() => toggleOne(contractor.id)}
+                      className={checkboxClass}
+                      aria-label={`Seleccionar ${contractor.name}`}
+                    />
+                  </td>
+                  <td className={`pl-3 pr-3 ${cellClass}`}>{contractor.name}</td>
                   <td className={cellClass}>
                     {profile.nationality || contractor.countryName}
                   </td>

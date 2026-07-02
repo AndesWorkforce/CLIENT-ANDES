@@ -19,6 +19,8 @@ interface AdminHubDatePickerProps {
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
+  /** Solo lectura sin cursor bloqueado (vista de detalle). */
+  viewOnly?: boolean;
   minDate?: string;
   maxDate?: string;
   confirmLabel?: string;
@@ -105,6 +107,7 @@ export default function AdminHubDatePicker({
   placeholder = "Fecha",
   required = true,
   disabled = false,
+  viewOnly = false,
   minDate,
   maxDate,
   confirmLabel = "Aplicar",
@@ -204,7 +207,7 @@ export default function AdminHubDatePicker({
   }, [isOpen, viewMonth, updatePanelPosition]);
 
   function openPicker() {
-    if (disabled) return;
+    if (disabled || viewOnly) return;
     const clampedValue =
       value && (minDate || maxDate) ? clampIsoDate(value, minDate, maxDate) : value;
     const initial = parseIsoDate(clampedValue ?? "") ?? new Date();
@@ -373,12 +376,14 @@ export default function AdminHubDatePicker({
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         className={`flex h-[50px] w-full items-center rounded-[8px] border border-[#EFEFEF] bg-white px-4 text-left text-[14px] leading-[1.3] tracking-[0.28px] focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
-          disabled
-            ? "cursor-not-allowed bg-[#F8F8F8] text-[#525252]"
-            : displayValue
-              ? "cursor-pointer text-[#343434]"
-              : "cursor-pointer text-[#C8C8C8]"
-        } ${isOpen && !disabled ? "ring-1 ring-[#0097B2]" : ""}`}
+          viewOnly
+            ? "cursor-default text-[#525252]"
+            : disabled
+              ? "cursor-not-allowed bg-[#F8F8F8] text-[#525252]"
+              : displayValue
+                ? "cursor-pointer text-[#343434]"
+                : "cursor-pointer text-[#C8C8C8]"
+        } ${isOpen && !disabled && !viewOnly ? "ring-1 ring-[#0097B2]" : ""}`}
       >
         {displayValue || placeholder}
       </button>

@@ -4,6 +4,13 @@ import {
   type PayrollVariable,
   type PayrollVariableStatus,
 } from "./mock-payroll-variables";
+export {
+  formatMoney,
+  formatPaymentLineQuantityWithAmount,
+  getPayrollDailyRate,
+  getRegularDaysPayAmount,
+  PAYROLL_WORKING_DAYS_PER_MONTH,
+} from "./payroll-calculations";
 
 export interface PayrollRow {
   id: string;
@@ -115,13 +122,6 @@ export function formatVariableColumn(amount: number): string {
   if (amount === 0) return "+$0";
   if (amount > 0) return `+$${amount.toLocaleString("es-ES")}`;
   return `-$${Math.abs(amount).toLocaleString("es-ES")}`;
-}
-
-/** Días laborables base del período de nómina (regulares + holidays = este total). */
-export const PAYROLL_WORKING_DAYS_PER_MONTH = 20;
-
-export function formatMoney(amount: number): string {
-  return `$${amount.toLocaleString("es-ES")}`;
 }
 
 function sumVariables(contractorName: string, client: string, variables: PayrollVariable[]): number {

@@ -1,5 +1,13 @@
 import PayrollVariablesPageContent from "../components/PayrollVariablesPageContent";
 
-export default function AdminHubNominasVariablesPage() {
-  return <PayrollVariablesPageContent />;
+interface AdminHubNominasVariablesPageProps {
+  searchParams: Promise<{ contractor?: string }>;
+}
+
+export default async function AdminHubNominasVariablesPage({
+  searchParams,
+}: AdminHubNominasVariablesPageProps) {
+  const { contractor } = await searchParams;
+
+  return <PayrollVariablesPageContent initialSearchQuery={contractor ?? ""} />;
 }

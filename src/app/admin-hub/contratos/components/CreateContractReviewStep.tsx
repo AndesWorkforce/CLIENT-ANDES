@@ -124,6 +124,10 @@ export default function CreateContractReviewStep({
           value={getOptionLabel(YES_NO_OPTIONS, formData.paidHolidays)}
         />
         <ReviewField label="Discretionary Bonus" value={discretionaryBonusLabel} />
+        <ReviewField
+          label="IPB Bonus"
+          value={getOptionLabel(YES_NO_OPTIONS, formData.ipbBonus)}
+        />
       </ContractFormSection>
 
       <ContractFormSection title="Información Financiera">
@@ -135,11 +139,13 @@ export default function CreateContractReviewStep({
           label="Metódo de pago"
           value={getOptionLabel(PAYMENT_METHOD_OPTIONS, formData.metodoPago)}
         />
-        <ReviewField
-          label="Dollar Tag"
-          value={formData.dollarTag || "—"}
-          required={false}
-        />
+        {formData.metodoPago === "ARQ App" ? (
+          <ReviewField
+            label="ARQ Tag"
+            value={formData.arqTag || "—"}
+            required={false}
+          />
+        ) : null}
         <ReviewField
           label="Banco Personal"
           value={

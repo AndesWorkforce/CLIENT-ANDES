@@ -5,7 +5,9 @@ import {
 } from "./mock-contractors";
 import {
   formatMoney,
+  formatPaymentLineQuantityWithAmount,
   getPayrollVariables,
+  getRegularDaysPayAmount,
   PAYROLL_WORKING_DAYS_PER_MONTH,
   type PayrollRow,
 } from "./payroll-data";
@@ -128,14 +130,20 @@ function buildPaymentLines(
   const totalEarnings = baseSalary + totalVariableEarnings;
   const totalAmount = totalEarnings - totalDeductions;
 
+  const regularDaysPayAmount = getRegularDaysPayAmount(baseSalary);
+
   const earnings: PayrollDetailPaymentLine[] = [
-    { id: "regular-days", label: "Días regulares", value: String(regularDays) },
+    {
+      id: "regular-days",
+      label: "Días regulares",
+      value: formatPaymentLineQuantityWithAmount(regularDays, regularDaysPayAmount),
+    },
     ...holidayVariables.map((variable) => ({
       id: variable.id,
       label: variable.description
         ? `${variableLineLabel(variable)} — ${variable.description}`
         : variableLineLabel(variable),
-      value: "1",
+      value: formatPaymentLineQuantityWithAmount(1, variable.amount),
     })),
     ...otherPositiveVariables.map((variable) => ({
       id: variable.id,
