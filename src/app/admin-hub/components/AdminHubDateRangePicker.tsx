@@ -12,6 +12,8 @@ interface AdminHubDateRangePickerProps {
   fromLabel?: string;
   toLabel?: string;
   className?: string;
+  /** Fila de filtros: sin encabezado, alineado con otros controles */
+  variant?: "default" | "filter";
 }
 
 /**
@@ -28,6 +30,7 @@ export default function AdminHubDateRangePicker({
   fromLabel = "Desde",
   toLabel = "Hasta",
   className = "",
+  variant = "default",
 }: AdminHubDateRangePickerProps) {
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -81,6 +84,61 @@ export default function AdminHubDateRangePicker({
     onToDateChange(date);
   };
 
+  const isFilterVariant = variant === "filter";
+
+  const filterFieldClass = "max-w-[259px] min-w-[200px] flex-1 shrink-0";
+
+  const dateFields = (
+    <>
+      <div className={isFilterVariant ? filterFieldClass : "w-[min(180px,100%)]"}>
+        <AdminHubDatePicker
+          variant={isFilterVariant ? "filter" : "form"}
+          label={fromLabel}
+          value={fromDate}
+          onChange={handleFromDateChange}
+          placeholder="dd.mm.aa"
+          required={false}
+          maxDate={toDate || todayIso}
+        />
+      </div>
+
+      <span
+        className={`text-[14px] text-[#858585] ${
+          isFilterVariant ? "shrink-0 self-end pb-3" : "hidden pb-3 sm:inline"
+        }`}
+      >
+        -
+      </span>
+
+      <div className={isFilterVariant ? filterFieldClass : "w-[min(180px,100%)]"}>
+        <AdminHubDatePicker
+          variant={isFilterVariant ? "filter" : "form"}
+          label={toLabel}
+          value={toDate}
+          onChange={handleToDateChange}
+          placeholder="dd.mm.aa"
+          required={false}
+          minDate={fromDate || undefined}
+          maxDate={todayIso}
+        />
+      </div>
+    </>
+  );
+
+  if (isFilterVariant) {
+    return (
+      <div className={`flex flex-wrap items-end gap-4 ${className}`}>
+        {dateFields}
+        {validationError ? (
+          <div className="flex w-full basis-full items-center gap-2 text-[12px] text-[#E33434]">
+            <AlertCircle size={14} />
+            <span>{validationError}</span>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
       <div className="flex flex-wrap items-end gap-3">
@@ -89,32 +147,7 @@ export default function AdminHubDateRangePicker({
           <span className="font-medium whitespace-nowrap">Rango de fechas:</span>
         </div>
 
-        <div className="flex min-w-0 flex-wrap items-end gap-2">
-          <div className="w-[min(180px,100%)]">
-            <AdminHubDatePicker
-              label={fromLabel}
-              value={fromDate}
-              onChange={handleFromDateChange}
-              placeholder="dd.mm.aa"
-              required={false}
-              maxDate={toDate || todayIso}
-            />
-          </div>
-
-          <span className="hidden pb-3 text-[14px] text-[#858585] sm:inline">-</span>
-
-          <div className="w-[min(180px,100%)]">
-            <AdminHubDatePicker
-              label={toLabel}
-              value={toDate}
-              onChange={handleToDateChange}
-              placeholder="dd.mm.aa"
-              required={false}
-              minDate={fromDate || undefined}
-              maxDate={todayIso}
-            />
-          </div>
-        </div>
+        <div className="flex min-w-0 flex-wrap items-end gap-2">{dateFields}</div>
       </div>
 
       {validationError && (

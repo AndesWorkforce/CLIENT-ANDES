@@ -6,7 +6,7 @@ import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubDateRangePicker from "../../components/AdminHubDateRangePicker";
 import AdminHubSearchInput from "../../components/AdminHubSearchInput";
-import { ADMIN_HUB_FILTER_BUTTON_CLASS } from "../../components/admin-hub-filter-styles";
+import { ADMIN_HUB_CLEAR_FILTERS_CLASS, ADMIN_HUB_FILTER_BUTTON_CLASS, ADMIN_HUB_FILTERS_ROW_CLASS } from "../../components/admin-hub-filter-styles";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
 import {
   addPayrollVariable,
@@ -240,48 +240,47 @@ export default function PayrollVariablesPageContent({
         </div>
 
         {filtersOpen && (
-          <div className="flex flex-col gap-4">
+          <div className={`${ADMIN_HUB_FILTERS_ROW_CLASS} items-end`}>
             <AdminHubDateRangePicker
+              variant="filter"
               fromDate={fromDate}
               toDate={toDate}
               onFromDateChange={setFromDate}
               onToDateChange={setToDate}
             />
-            <div className="flex flex-wrap items-center gap-4">
-              <InvoiceFilterSelect
-                label="Filtrar por Cliente"
-                placeholder="Cliente"
-                value={clientFilter}
-                onChange={setClientFilter}
-                options={clientFilterOptions}
-              />
-              <InvoiceFilterSelect
-                label="Filtrar por Tipo"
-                placeholder="Tipo"
-                value={typeFilter}
-                onChange={setTypeFilter}
-                options={typeFilterOptions}
-              />
-              <InvoiceFilterSelect
-                label="Filtrar por Estado"
-                placeholder="Pendiente"
-                value={statusFilter}
-                onChange={setStatusFilter}
-                options={STATUS_FILTER_OPTIONS}
-              />
-              <button
-                type="button"
-                onClick={clearFilters}
-                disabled={!hasActiveFilters}
-                className={`shrink-0 text-[14px] leading-[1.1] tracking-[0.28px] transition-colors ${
-                  hasActiveFilters
-                    ? "text-[#0097B2] hover:text-[#008099] cursor-pointer"
-                    : "text-[#C8C8C8] cursor-default"
-                }`}
-              >
-                Limpiar filtros
-              </button>
-            </div>
+            <InvoiceFilterSelect
+              label="Filtrar por Cliente"
+              placeholder="Cliente"
+              value={clientFilter}
+              onChange={setClientFilter}
+              options={clientFilterOptions}
+            />
+            <InvoiceFilterSelect
+              label="Filtrar por Tipo"
+              placeholder="Tipo"
+              value={typeFilter}
+              onChange={setTypeFilter}
+              options={typeFilterOptions}
+            />
+            <InvoiceFilterSelect
+              label="Filtrar por Estado"
+              placeholder="Pendiente"
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={STATUS_FILTER_OPTIONS}
+            />
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              className={`${ADMIN_HUB_CLEAR_FILTERS_CLASS} pb-3 ${
+                hasActiveFilters
+                  ? "cursor-pointer text-[#0097B2] hover:text-[#008099]"
+                  : "cursor-default text-[#C8C8C8]"
+              }`}
+            >
+              Limpiar filtros
+            </button>
           </div>
         )}
       </div>

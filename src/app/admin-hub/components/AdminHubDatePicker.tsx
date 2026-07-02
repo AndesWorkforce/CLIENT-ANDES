@@ -24,6 +24,10 @@ interface AdminHubDatePickerProps {
   minDate?: string;
   maxDate?: string;
   confirmLabel?: string;
+  /** Alineado con `AdminHubSelect` variant filter en barras de filtros */
+  variant?: "form" | "filter";
+  className?: string;
+  labelBackground?: string;
 }
 
 function parseIsoDate(value: string): Date | null {
@@ -111,6 +115,9 @@ export default function AdminHubDatePicker({
   minDate,
   maxDate,
   confirmLabel = "Aplicar",
+  variant = "form",
+  className = "",
+  labelBackground,
 }: AdminHubDatePickerProps) {
   const id = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -244,6 +251,8 @@ export default function AdminHubDatePicker({
   const calendarDays = getCalendarDays(viewMonth);
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
+  const isFilter = variant === "filter";
+  const resolvedLabelBackground = labelBackground ?? (isFilter ? "#F8F8F8" : "#FFFFFF");
 
   const panel =
     isOpen &&
@@ -358,10 +367,11 @@ export default function AdminHubDatePicker({
     );
 
   return (
-    <div className="relative w-full pt-2">
+    <div className={`relative w-full pt-2 ${className}`}>
       <label
         htmlFor={id}
-        className="absolute left-3 top-0 z-10 bg-white px-1 text-[14px] leading-[1.3] tracking-[0.28px] text-[#525252]"
+        className="absolute left-3 top-0 z-10 px-1 text-[14px] leading-[1.3] tracking-[0.28px] text-[#525252]"
+        style={{ backgroundColor: resolvedLabelBackground }}
       >
         {label}
         {required && "*"}
@@ -375,14 +385,18 @@ export default function AdminHubDatePicker({
         onClick={openPicker}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        className={`flex h-[50px] w-full items-center rounded-[8px] border border-[#EFEFEF] bg-white px-4 text-left text-[14px] leading-[1.3] tracking-[0.28px] focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
+        className={`flex w-full items-center rounded-[8px] border bg-white text-left text-[14px] focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
+          isFilter
+            ? `h-11 pl-[22px] pr-4 leading-none ${displayValue ? "text-[#525252]" : "text-[#C8C8C8]"} border-[#C8C8C8]`
+            : `h-[50px] px-4 leading-[1.3] tracking-[0.28px] border-[#EFEFEF] ${
+                displayValue ? "text-[#343434]" : "text-[#C8C8C8]"
+              }`
+        } ${
           viewOnly
             ? "cursor-default text-[#525252]"
             : disabled
               ? "cursor-not-allowed bg-[#F8F8F8] text-[#525252]"
-              : displayValue
-                ? "cursor-pointer text-[#343434]"
-                : "cursor-pointer text-[#C8C8C8]"
+              : "cursor-pointer"
         } ${isOpen && !disabled && !viewOnly ? "ring-1 ring-[#0097B2]" : ""}`}
       >
         {displayValue || placeholder}
