@@ -64,6 +64,7 @@ const STATUS_FILTER_OPTIONS: { value: PayrollVariableStatus; label: string }[] =
   { value: "Pendiente", label: "Pendiente" },
   { value: "Aprobado", label: "Aprobado" },
   { value: "Rechazado", label: "Rechazado" },
+  { value: "Emitido", label: "Emitido" },
 ];
 
 export const PAYROLL_VARIABLE_CREATED_TOAST =
