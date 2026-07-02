@@ -15,6 +15,7 @@ const breadcrumbLabels: Record<string, string> = {
   historial: "Historial",
   configuracion: "Configuración",
   variables: "Variables de nóminas",
+  avisos: "Avisos",
 };
 
 export interface AdminHubBreadcrumbItem {

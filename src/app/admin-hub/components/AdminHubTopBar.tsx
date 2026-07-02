@@ -6,11 +6,13 @@ import { useRef, useState } from "react";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Link from "next/link";
+import { getUnreadAvisosCount } from "../avisos/data/mock-avisos";
 
 export default function AdminHubTopBar() {
   const { user, logout } = useAuthStore();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const unreadAvisosCount = getUnreadAvisosCount();
 
   useOutsideClick(userMenuRef, () => setShowUserMenu(false), showUserMenu);
 
@@ -26,13 +28,22 @@ export default function AdminHubTopBar() {
   return (
     <header className="flex h-[60px] shrink-0 items-center justify-end border-b border-[#EFEFEF] bg-white px-6">
       <div className="flex items-center gap-4">
-        <button
-          type="button"
-          aria-label="Notificaciones"
-          className="text-[#525252] hover:text-[#0097B2] transition-colors"
+        <Link
+          href="/admin-hub/avisos"
+          aria-label={
+            unreadAvisosCount > 0
+              ? `Notificaciones, ${unreadAvisosCount} sin leer`
+              : "Notificaciones"
+          }
+          className="relative inline-flex text-[#525252] transition-colors hover:text-[#0097B2]"
         >
-          <Bell size={20} />
-        </button>
+          <Bell size={25} />
+          {unreadAvisosCount > 0 ? (
+            <span className="absolute -bottom-1 -right-1.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#0097B2] px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
+              {unreadAvisosCount > 9 ? "9+" : unreadAvisosCount}
+            </span>
+          ) : null}
+        </Link>
 
         <div className="relative" ref={userMenuRef}>
           <button
