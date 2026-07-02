@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 interface RelatedArticle {
   id: string;
@@ -58,7 +59,7 @@ export default function RelatedArticlesSection() {
           <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">
             KEEP READING
           </p>
-          <h2 className="text-[#343434] font-bold text-[32px] md:text-[52px] leading-[1.3]">
+          <h2 className="text-[#343434] font-bold text-[24px] md:text-[32px] leading-[1.3]">
             Related Articles
           </h2>
         </div>
@@ -73,7 +74,7 @@ export default function RelatedArticlesSection() {
             >
               <article className="bg-white border border-[#EFEFEF] rounded-[24px] overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col">
                 {/* Article Image */}
-                <div className="relative w-full h-[257px] overflow-hidden">
+                <div className="relative w-full h-[200px] md:h-[257px] overflow-hidden">
                   <Image
                     src={article.imageUrl}
                     alt={article.title}
@@ -92,7 +93,7 @@ export default function RelatedArticlesSection() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="font-bold text-[16px] leading-[1.3] text-black line-clamp-3">
+                  <h3 className="font-bold text-[16px] leading-[1.3] text-black line-clamp-3 min-h-[60px]">
                     {article.title}
                   </h3>
 
@@ -110,25 +111,11 @@ export default function RelatedArticlesSection() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-[4px]">
+                    <div className="flex items-center gap-[4px] flex-shrink-0">
                       <span className="font-semibold text-[14px] text-[#0097B2] leading-[1.3] whitespace-nowrap">
                         Read more
                       </span>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        className="transition-transform duration-300 group-hover:translate-x-1"
-                      >
-                        <path
-                          d="M3.33337 8H12.6667M12.6667 8L8.00004 3.33333M12.6667 8L8.00004 12.6667"
-                          stroke="#0097B2"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                      <ArrowRight className="w-[16px] h-[16px] text-[#0097B2] transition-transform duration-300 group-hover:translate-x-1" />
                     </div>
                   </div>
                 </div>

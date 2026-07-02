@@ -1,40 +1,82 @@
 "use client";
 
 import Image from "next/image";
+import { Clock, CalendarDays } from "lucide-react";
 
 export default function ArticleHeroSection() {
   return (
     <section className="relative w-full bg-white">
       {/* Hero Image */}
-      <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px]">
+      <div className="relative w-full h-[200px] md:h-[312px]">
         <Image
-          src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/blog/hero-miguel-rendon.jpg"
+          src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/blog/hero_blog.jpg"
           alt="Meet Miguel Rendon"
           fill
-          className="object-cover"
+          className="object-cover object-[center_65%]"
           priority
         />
       </div>
 
       {/* Article Header Content */}
-      <div className="max-w-[1284px] mx-auto px-[18px] md:px-[44px] py-[44px] md:py-[66px]">
-        {/* Category Badge */}
-        <div className="inline-flex items-center justify-center px-[16px] py-[5px] bg-[#F8F8F8] rounded-[24px] mb-[22px]">
-          <span className="font-semibold text-[14px] text-[#0097B2] leading-[1.3]">
-            INTERVIEW
-          </span>
-        </div>
+      <div className="max-w-[850px] mx-auto px-[18px] md:px-[44px] py-[44px]">
+        <div className="flex flex-col gap-[33px]">
+          {/* Metadata: Category, Reading Time, Date */}
+          <div className="flex flex-wrap items-center gap-[22px]">
+            {/* Category Badge */}
+            <div className="inline-flex items-center justify-center px-[16px] py-[5px] bg-[#F8F8F8] rounded-[24px]">
+              <span className="font-semibold text-[14px] text-[#0097B2] leading-[1.3]">
+                INTERVIEW
+              </span>
+            </div>
 
-        {/* Title */}
-        <h1 className="font-bold text-[32px] md:text-[52px] leading-[1.3] text-black mb-[22px] max-w-[900px]">
-          Meet Miguel Rendon: From the idea to building careers across Latin America
-        </h1>
+            {/* Reading Time */}
+            <div className="flex items-center gap-[4px]">
+              <Clock className="w-[18px] h-[18px] text-[#707070]" />
+              <span className="font-medium text-[14px] text-[#707070] leading-[1.2]">
+                10 min read
+              </span>
+            </div>
 
-        {/* Meta Info */}
-        <div className="flex items-center gap-[8px] text-[14px]">
-          <span className="font-semibold text-[#343434]">Andes Workforce Team</span>
-          <span className="text-[#525252] font-medium">•</span>
-          <span className="font-medium text-[#525252]">May 28, 2025</span>
+            {/* Date */}
+            <div className="flex items-center gap-[4px]">
+              <CalendarDays className="w-[24px] h-[24px] text-[#707070]" />
+              <span className="font-medium text-[14px] text-[#707070] leading-[1.2]">
+                Jun 25, 2026
+              </span>
+            </div>
+          </div>
+
+          {/* Title */}
+          <h1 className="font-bold text-[24px] md:text-[32px] leading-[1.3] text-black w-full">
+            Meet Miguel Rendon: From the seas to building careers across Latin
+            America
+          </h1>
+
+          {/* Subtitle */}
+          <p className="font-medium text-[16px] md:text-[18px] leading-[1.2] text-[#858585] w-full">
+            From BUD/S Training to founding Andes Workforce — a conversation about
+            purpose, discipline, and the value of planning every step of your life.
+          </p>
+
+          {/* Author Info */}
+          <div className="flex items-center gap-[6px]">
+            <div className="flex items-center justify-center w-[66px] h-[66px] bg-[#DFFAFF] rounded-[33px] p-[20px] flex-shrink-0">
+              <span className="font-semibold text-[18px] text-[#0097B2] leading-[1.3]">
+                AF
+              </span>
+            </div>
+            <div className="flex flex-col w-[250px]">
+              <span className="font-semibold text-[18px] text-[#343434] leading-[1.3]">
+                Andes Workforce Team
+              </span>
+              <span className="font-medium text-[16px] text-[#707070] leading-[1.2]">
+                Editorial
+              </span>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="w-full h-[1px] bg-[#EFEFEF]" />
         </div>
       </div>
     </section>

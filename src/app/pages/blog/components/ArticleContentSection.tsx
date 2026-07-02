@@ -1,176 +1,285 @@
 "use client";
 
 import Image from "next/image";
+import { Quote } from "lucide-react";
 
-interface ArticleSection {
-  type: "text" | "image" | "quote";
-  content: string;
-  imageUrl?: string;
-  imageAlt?: string;
+interface QuoteBlockProps {
+  text: string;
+  author: string;
+}
+
+function QuoteBlock({ text, author }: QuoteBlockProps) {
+  return (
+    <div className="relative bg-[#F8F8F8] border-l-[3.2px] border-[#1A3A5C] rounded-[14px] pl-[35px] md:pl-[51px] pr-[32px] py-[32px] my-[44px]">
+      <Quote className="absolute left-[24px] top-[24px] w-[32px] h-[32px] text-[#1A3A5C]" />
+      <p className="font-semibold text-[20px] md:text-[24px] leading-[1.375] text-[#00224D] mb-[16px]">
+        {text}
+      </p>
+      <p className="font-medium text-[14px] text-[#707070] leading-[1.43]">
+        —<span className="font-bold ml-1">{author}</span>
+      </p>
+    </div>
+  );
 }
 
 export default function ArticleContentSection() {
-  const sections: ArticleSection[] = [
-    {
-      type: "text",
-      content:
-        "Contact: \"Hi Miguel! Thank you for taking the time to chat with us. To start, could you tell us what Andes Workforce is all about?\"",
-    },
-    {
-      type: "text",
-      content:
-        "Miguel: \"Absolutely. Andes Workforce is a workforce solutions company that connects high-performing professionals from Latin America with businesses in the US and Canada. We focus on placing skilled individuals in roles like legal support, project management, and technology—areas where we've seen incredible talent across the region.\"",
-    },
-    {
-      type: "text",
-      content:
-        "Contact: \"That's fascinating. What made you decide to start Andes Workforce?\"",
-    },
-    {
-      type: "text",
-      content:
-        "Miguel: \"The idea came from my own experiences working with companies that relied on remote teams. I saw firsthand how skilled professionals in Latin America were often undervalued or overlooked, while businesses struggled to find cost-effective yet high-quality talent. It felt like there was a real gap we could bridge.\"",
-    },
-    {
-      type: "image",
-      imageUrl: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/blog/team-photo.jpg",
-      imageAlt: "Andes Workforce Team",
-      content: "",
-    },
-    {
-      type: "text",
-      content:
-        "Contact: \"And what has been the most rewarding part of building Andes Workforce?\"",
-    },
-    {
-      type: "text",
-      content:
-        "Miguel: \"Honestly, it's the people. Every time I hear about someone we've placed who's thriving in their new role—or a business that's scaled thanks to the team we've built for them—it reminds me why we do this. We're not just filling positions; we're creating opportunities that transform lives.\"",
-    },
-    {
-      type: "quote",
-      content:
-        "\"I can see life after, I can see you're not dreaming anymore after this war.\"",
-    },
-    {
-      type: "text",
-      content:
-        "Contact: \"That's incredibly inspiring. What sets Andes Workforce apart from other staffing companies?\"",
-    },
-    {
-      type: "text",
-      content:
-        "Miguel: \"A few things. First, we're selective. Every professional we place goes through a rigorous vetting process—we look at skills, adaptability, and cultural fit. Second, we focus on long-term partnerships. We're not here to just make a placement and move on; we stay involved to make sure both the client and the professional succeed. Finally, we're deeply invested in the success of Latin America. Our mission is to showcase the region's talent on a global stage.\"",
-    },
-    {
-      type: "text",
-      content:
-        "Contact: \"You mentioned the importance of cultural fit. How do you ensure that in your placements?\"",
-    },
-    {
-      type: "text",
-      content:
-        "Miguel: \"It starts with understanding our clients' needs on a deeper level—not just the job description, but their company culture, values, and goals. Then, we match them with professionals who align with that vision. We also provide training and onboarding support to make the transition as smooth as possible.\"",
-    },
-    {
-      type: "text",
-      content:
-        "Contact: \"What advice would you give to someone considering a career with Andes Workforce or hiring through your platform?\"",
-    },
-    {
-      type: "text",
-      content:
-        "Miguel: \"For professionals, I'd say: take the leap. Working with international companies can open doors you never imagined. And for businesses, I'd encourage you to think long-term. Building a great team takes time, but it's one of the best investments you can make.\"",
-    },
-    {
-      type: "image",
-      imageUrl: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/blog/team-group.jpg",
-      imageAlt: "Team collaboration",
-      content: "",
-    },
-    {
-      type: "text",
-      content:
-        "Contact: \"Looking ahead, what's next for Andes Workforce?\"",
-    },
-    {
-      type: "text",
-      content:
-        "Miguel: \"We're expanding. Right now, we're working on building deeper partnerships in new industries and exploring ways to support the professional development of the talent we place. Our goal is to be the go-to partner for businesses looking to scale with world-class teams.\"",
-    },
-    {
-      type: "quote",
-      content:
-        "\"I can see life after, I can see you're not dreaming anymore after this war.\"",
-    },
-    {
-      type: "text",
-      content:
-        "Contact: \"That sounds exciting. Finally, what would you say is the most important lesson you've learned so far?\"",
-    },
-    {
-      type: "text",
-      content:
-        "Miguel: \"Trust the process. Building something meaningful takes time, and there will be challenges along the way. But if you stay committed to your mission and the people you're serving, the results will follow.\"",
-    },
-    {
-      type: "text",
-      content:
-        "Contact: \"Miguel, thank you so much for sharing your story. It's clear that Andes Workforce is making a real difference.\"",
-    },
-    {
-      type: "text",
-      content:
-        "Miguel: \"Thank you. It's been a pleasure talking with you.\"",
-    },
-  ];
-
   return (
-    <section className="relative w-full bg-white py-[44px] md:py-[66px]">
-      <div className="max-w-[900px] mx-auto px-[18px] md:px-[44px]">
-        {sections.map((section, index) => {
-          if (section.type === "text") {
-            return (
-              <p
-                key={index}
-                className="font-normal text-[16px] md:text-[18px] leading-[1.6] text-[#343434] mb-[24px]"
-              >
-                {section.content}
-              </p>
-            );
-          }
+    <section className="relative w-full bg-white py-[11px] md:py-[44px]">
+      <div className="max-w-[850px] mx-auto px-[18px] md:px-[44px]">
+        <div className="flex flex-col gap-[44px]">
+          {/* First Image */}
+          <div className="relative w-full h-[250px] md:h-[336px] rounded-[20px] overflow-hidden">
+            <Image
+              src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/blog/97bd6d3c-9d87-4641-9922-2a39a6c392b5.png"
+              alt="Article Image"
+              fill
+              className="object-cover"
+            />
+          </div>
 
-          if (section.type === "image" && section.imageUrl) {
-            return (
-              <div
-                key={index}
-                className="relative w-full h-[300px] md:h-[400px] rounded-[24px] overflow-hidden mb-[44px]"
-              >
+          {/* EDUCATION & CAREER Section */}
+          <div className="flex flex-col gap-[22px]">
+            <p className="font-semibold text-[14px] text-[#044E5C] leading-[1.3]">
+              EDUCATION & CAREER
+            </p>
+            <h2 className="font-semibold text-[18px] md:text-[20px] text-black leading-[1.3]">
+              Numbers, the sea, and a calling that took its own shape
+            </h2>
+            <div className="space-y-[16px]">
+              <p className="font-medium text-[16px] text-black leading-[1.2]">
+                Can you walk me through your educational journey? Which schools did
+                you attend, and what were your favorite subjects?
+              </p>
+              <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                "I finished high school in Colombia, the name of my school is San
+                Antonio Maria Claret, a Catholic School. I wasn't a great or terrible
+                student; I was just average. It didn't take a lot of effort for me to
+                pass my exams, so I was happy to get by without putting in a lot of
+                effort. I always enjoyed numbers though, so my favorite subjects were
+                Math and Chemistry."
+              </p>
+
+              <p className="font-medium text-[16px] text-black leading-[1.2]">
+                How did you choose your career path? Were there any pivotal moments or
+                influences that led you to your profession?
+              </p>
+              <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                "I was always fascinated by the military. When I was in 8th grade, an
+                older cousin joined the Colombian Air Force, and I think that had an
+                impact in me. However, I was more interested in ships and sailing."
+              </p>
+            </div>
+
+            {/* Two Column Layout with Image */}
+            <div className="flex flex-col md:flex-row gap-[22px] mt-[22px]">
+              <div className="flex-1 space-y-[16px]">
+                <p className="font-medium text-[16px] text-black leading-[1.2]">
+                  Can you share some of the most memorable experiences from your
+                  career? Any notable achievements or challenges?
+                </p>
+                <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                  "There was a time when I wanted to become a Navy SEAL, so I went to
+                  BUD/S Training. This was a life-changing experience for me. Although I
+                  didn't finish training, I had the opportunity to lead a 250-student
+                  class, and that was where I learned how to lead people. I also had to
+                  grow up and develop maturity to realize that it wasn't the path for
+                  me."
+                </p>
+              </div>
+              <div className="relative w-full md:w-[494px] h-[250px] md:h-[294px] rounded-[20px] overflow-hidden flex-shrink-0">
                 <Image
-                  src={section.imageUrl}
-                  alt={section.imageAlt || "Article image"}
+                  src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/blog/IMG_4443.JPG"
+                  alt="BUD/S Training"
                   fill
                   className="object-cover"
                 />
               </div>
-            );
-          }
+            </div>
+          </div>
 
-          if (section.type === "quote") {
-            return (
-              <blockquote
-                key={index}
-                className="border-l-[4px] border-[#0097B2] pl-[24px] my-[44px] italic"
-              >
-                <p className="font-semibold text-[20px] md:text-[24px] leading-[1.4] text-[#343434]">
-                  {section.content}
+          {/* Quote Block 1 */}
+          <QuoteBlock
+            text="Although I didn't finish training, I had the opportunity to lead a 250-student class, and that was where I learned how to lead people."
+            author="Miguel Rendon"
+          />
+
+          {/* PERSONAL LIFE Section */}
+          <div className="flex flex-col gap-[22px]">
+            <p className="font-semibold text-[14px] text-[#044E5C] leading-[1.3]">
+              PERSONAL LIFE
+            </p>
+            <h2 className="font-semibold text-[18px] md:text-[20px] text-black leading-[1.3]">
+              Family, mountains, and the art of owning your time
+            </h2>
+            <div className="space-y-[16px]">
+              <p className="font-medium text-[16px] text-black leading-[1.2]">
+                Can you tell me about any significant relationships in your life, such
+                as a partner, close friends, or mentors?
+              </p>
+              <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                "My wife and my son are everything to me, I enjoy doing everything with
+                them. The military kept me away from them for extended periods of time,
+                so now I maximize every opportunity to share special moments with them."
+              </p>
+
+              <p className="font-medium text-[16px] text-black leading-[1.2]">
+                What are some of your passions or interests outside of your
+                professional life?
+              </p>
+              <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                "Hiking! I take every opportunity to climb a mountain, explore a canyon,
+                or find a waterfall somewhere."
+              </p>
+
+              <p className="font-medium text-[16px] text-black leading-[1.2]">
+                How do you balance your work and personal life?
+              </p>
+              <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                "Time management is key. I am a big planner, so I always organize my
+                plans ahead of time to make sure they are evenly distributed. Once I
+                have personal events on my calendar, it is easy to commit to them
+                instead of rescheduling or cancelling."
+              </p>
+            </div>
+
+            {/* Two Column Layout with Image (Image on Left) */}
+            <div className="flex flex-col md:flex-row gap-[22px] mt-[22px]">
+              <div className="relative w-full md:w-[494px] h-[250px] md:h-[294px] rounded-[20px] overflow-hidden flex-shrink-0">
+                <Image
+                  src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/blog/f8248230a0cd4fadf10057e1e8091c630aee7a07+(1).jpg"
+                  alt="Hiking Mountains"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="flex-1 space-y-[16px]">
+                <p className="font-medium text-[16px] text-black leading-[1.2]">
+                  How do you balance your work and personal life?
                 </p>
-              </blockquote>
-            );
-          }
+                <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                  "Time management is key. I am a big planner, so I always organize my
+                  plans ahead of time to make sure they are evenly distributed. Once I
+                  have personal events on my calendar, it is easy to commit to them
+                  instead of rescheduling or cancelling."
+                </p>
+              </div>
+            </div>
+          </div>
 
-          return null;
-        })}
+          {/* REFLECTIONS & ADVICE Section */}
+          <div className="flex flex-col gap-[22px]">
+            <p className="font-semibold text-[14px] text-[#044E5C] leading-[1.3]">
+              REFLECTIONS & ADVICE
+            </p>
+            <h2 className="font-semibold text-[18px] md:text-[20px] text-black leading-[1.3]">
+              Purpose, planning, and living with intention
+            </h2>
+            <div className="space-y-[16px]">
+              <p className="font-medium text-[16px] text-black leading-[1.2]">
+                Looking back, what are some of the most important lessons you've
+                learned in life?
+              </p>
+              <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                "I would have taken better care of myself. I've lived a pretty healthy
+                life, and I am still a pretty healthy person, but I have some issues now
+                that could have been prevented."
+              </p>
+
+              <p className="font-medium text-[16px] text-black leading-[1.2]">
+                Is there anything you would have done differently if given the chance?
+              </p>
+              <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                "I would have taken better care of myself. I've lived a pretty healthy
+                life, and I am still a pretty healthy person, but I have some issues now
+                that could have been prevented."
+              </p>
+
+              <p className="font-medium text-[16px] text-black leading-[1.2]">
+                What advice would you give to someone who is just starting out on their
+                own journey?
+              </p>
+              <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                "Live your life with a purpose. I often get complemented for the things
+                I have achieved at 39, the reason for my achievements is my constant
+                state of planning since I was a young adult. You should constantly be
+                planning and executing a plan throughout your life. This might sound
+                obvious, but I know lots of people who are just living, letting time go
+                by, without any plans or purposes."
+              </p>
+
+              <p className="font-medium text-[16px] text-black leading-[1.2]">
+                Where do you see yourself in five years?
+              </p>
+              <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                "I envision expanding Andes Workforce across more countries in Latin
+                America while also extending our reach to clients throughout the United
+                States. Currently, our operations are limited to a few Latin American
+                countries, with most of our clients based in the US east coast, over the
+                next few years, my primary goal is to create more job opportunities for
+                our team members while driving growth for US businesses."
+              </p>
+
+              <p className="font-medium text-[16px] text-black leading-[1.2]">
+                How do you plan to use your skills and knowledge to make a positive
+                impact on society?
+              </p>
+              <p className="font-normal italic text-[14px] text-black leading-[1.5]">
+                "I believe I am already making a meaningful impact on society. Through
+                our new project at Andes Workforce, we are creating real change for the
+                people who work with us. Job opportunities in Latin America are often
+                limited, and even for those who are employed, fair wages and job
+                satisfaction can be hard to come by. We are committed to providing
+                talented individuals in the region with well paying fulfilling roles in
+                a positive and supportive work environment — empowering them and their
+                families."
+              </p>
+            </div>
+          </div>
+
+          {/* Quote Block 2 */}
+          <QuoteBlock
+            text="Live your life with a purpose. You should constantly be planning and executing a plan throughout your life."
+            author="Miguel Rendón"
+          />
+
+          {/* Final Team Image */}
+          <div className="relative w-full h-[250px] md:h-[294px] rounded-[20px] overflow-hidden">
+            <Image
+              src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/blog/IMG_0546.JPG"
+              alt="Andes Workforce Team"
+              fill
+              className="object-cover"
+            />
+          </div>
+
+          {/* CONCLUSION Section */}
+          <div className="flex flex-col gap-[16px]">
+            <p className="font-semibold text-[14px] text-[#044E5C] leading-[1.3]">
+              CONCLUSION
+            </p>
+            <div className="space-y-[16px]">
+              <p className="font-medium text-[16px] text-black leading-[1.5]">
+                As we wrap up, Miguel leaves us with these words of wisdom: "Become the
+                owner of your time, it is a currency that cannot be replaced." His
+                journey is a testament to resilience, intentional living, and a genuine
+                commitment to creating opportunity for others — and we can't wait to see
+                what the future holds for him.
+              </p>
+              <p className="font-medium text-[16px] text-black leading-[1.5]">
+                What did you find most inspiring about Miguel's story? Share your
+                thoughts in the comments below! Don't forget to follow Miguel on social
+                media for more updates on his journey. Stay tuned for our next interview
+                where we bring you more inspiring stories from extraordinary individuals.
+              </p>
+            </div>
+          </div>
+
+          {/* Final Quote Block */}
+          <QuoteBlock
+            text="Become the owner of your time, it is a currency that cannot be replaced."
+            author="Miguel Rendon"
+          />
+        </div>
       </div>
     </section>
   );
