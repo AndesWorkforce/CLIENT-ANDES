@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Filter } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Filter, MoreVertical } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
   ADMIN_HUB_CLEAR_FILTERS_CLASS,
@@ -42,6 +42,21 @@ export default function PersonasPageContent() {
   const [positionFilter, setPositionFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!openMenuId) return;
+
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      if (!target.closest("[data-persona-row-menu]")) {
+        setOpenMenuId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuId]);
 
   const filteredContractors = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -240,7 +255,7 @@ export default function PersonasPageContent() {
               <th className={headClass}>Cliente</th>
               <th className={headClass}>Puesto</th>
               <th className={headClass}>Estado</th>
-              <th className={`w-[108px] ${ADMIN_HUB_TABLE_HEAD_LAST_CELL} pr-6`} />
+              <th className={ADMIN_HUB_TABLE_HEAD_LAST_CELL} />
             </tr>
           </thead>
           <tbody>
@@ -268,13 +283,43 @@ export default function PersonasPageContent() {
                   <td className="whitespace-nowrap px-3 py-3">
                     <PersonaStatusBadge status={profile.status} />
                   </td>
-                  <td className="w-[108px] whitespace-nowrap py-3 pl-3 pr-6 text-right">
-                    <Link
-                      href={personaToDetailPath(contractor)}
-                      className="inline-block text-[14px] font-medium leading-none text-[#0097B2] transition-colors hover:text-[#008099]"
-                    >
-                      Ver Perfil
-                    </Link>
+                  <td className="px-6 py-3 text-center">
+                    <div className="relative inline-block" data-persona-row-menu>
+                      <button
+                        type="button"
+                        aria-label="Más opciones"
+                        aria-expanded={openMenuId === contractor.id}
+                        aria-haspopup="menu"
+                        onClick={() =>
+                          setOpenMenuId((prev) =>
+                            prev === contractor.id ? null : contractor.id
+                          )
+                        }
+                        className={`rounded p-1 transition-colors ${
+                          openMenuId === contractor.id
+                            ? "bg-[#DFFAFF] text-[#0097B2]"
+                            : "text-[#858585] hover:text-[#0097B2]"
+                        }`}
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+
+                      {openMenuId === contractor.id && (
+                        <div
+                          role="menu"
+                          className="absolute right-0 top-full z-50 mt-1 min-w-[148px] rounded-[8px] border border-[#EFEFEF] bg-white py-1 shadow-[0px_2px_8px_rgba(112,112,112,0.15)]"
+                        >
+                          <Link
+                            href={personaToDetailPath(contractor)}
+                            role="menuitem"
+                            onClick={() => setOpenMenuId(null)}
+                            className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] transition-colors hover:bg-[#F8F8F8]"
+                          >
+                            Ver Perfil
+                          </Link>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
