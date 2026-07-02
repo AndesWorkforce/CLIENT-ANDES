@@ -23,6 +23,7 @@ import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import type { PayrollVariableDetail } from "../data/mock-variable-detail";
 import { removePayrollVariable } from "../data/payroll-data";
 import type { PayrollVariable } from "../data/mock-payroll-variables";
+import { MOCK_CONTRACTORS } from "../data/mock-contractors";
 import PayrollVariableInfoCard from "./PayrollVariableInfoCard";
 import PayrollVariableInfoRow from "./PayrollVariableInfoRow";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
@@ -41,6 +42,7 @@ export default function PayrollVariableDetailContent({
   const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [isEditingBasePago, setIsEditingBasePago] = useState(false);
   const [isEditingDetalles, setIsEditingDetalles] = useState(false);
+  const [isEditingContexto, setIsEditingContexto] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const [statusEdit, setStatusEdit] = useState(detail.estado);
@@ -52,6 +54,15 @@ export default function PayrollVariableDetailContent({
   });
 
   const [detallesEdit, setDetallesEdit] = useState(detail.descripcion);
+
+  const [contextoEdit, setContextoEdit] = useState({
+    idContrato: detail.idContrato,
+    cliente: detail.cliente,
+    type: detail.type,
+    deductionTipo: detail.deductionTipo,
+    incomeCategory: detail.incomeCategory,
+    desde: detail.desde,
+  });
 
   // Función para convertir fechas al formato USA (MM/DD/YYYY)
   const formatDateToUSA = (dateString: string): string => {
@@ -115,6 +126,12 @@ export default function PayrollVariableDetailContent({
     return Math.abs(montoBase);
   }, [detail, basePagoEdit, isEditingBasePago]);
 
+  // Obtener contratos disponibles del contratista
+  const availableContracts = useMemo(() => {
+    const contractor = MOCK_CONTRACTORS.find(c => c.name === detail.contratista);
+    return contractor?.contracts || [];
+  }, [detail.contratista]);
+
   function handleEdit(section: string) {
     switch (section) {
       case "estado":
@@ -124,6 +141,22 @@ export default function PayrollVariableDetailContent({
           addNotification("El estado se actualizó localmente.", "success", "compact");
         }
         setIsEditingStatus(!isEditingStatus);
+        break;
+      case "contexto":
+        if (isEditingContexto) {
+          // Guardar cambios
+          setDetail({ 
+            ...detail, 
+            idContrato: contextoEdit.idContrato,
+            cliente: contextoEdit.cliente,
+            type: contextoEdit.type,
+            deductionTipo: contextoEdit.deductionTipo,
+            incomeCategory: contextoEdit.incomeCategory,
+            desde: contextoEdit.desde,
+          });
+          addNotification("El contexto se actualizó localmente.", "success", "compact");
+        }
+        setIsEditingContexto(!isEditingContexto);
         break;
       case "base-pago":
         if (isEditingBasePago) {
@@ -250,9 +283,26 @@ export default function PayrollVariableDetailContent({
           <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-[18px] font-bold leading-[1.3] text-black">Contexto</h2>
+              {!isEditingContexto ? (
+                <button
+                  type="button"
+                  onClick={() => handleEdit("contexto")}
+                  className="flex size-8 items-center justify-center rounded-full border border-[#0097B2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
+                >
+                  <Pencil size={16} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleEdit("contexto")}
+                  className="text-[14px] font-medium text-[#0097B2] hover:underline"
+                >
+                  Guardar
+                </button>
+              )}
             </div>
             <div className="flex flex-col gap-4">
-              {/* Contratista */}
+              {/* Contratista - NO EDITABLE */}
               <div className="relative">
                 <select
                   value={detail.contratista}
@@ -269,20 +319,41 @@ export default function PayrollVariableDetailContent({
 
               {/* ID Contrato y Puesto en una fila */}
               <div className="grid grid-cols-2 gap-4">
+                {/* ID Contrato - SELECTOR (no editable directamente) */}
                 <div className="relative">
-                  <select
-                    value={detail.idContrato}
-                    disabled
-                    className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
-                  >
-                    <option value={detail.idContrato}>{detail.idContrato}</option>
-                  </select>
+                  {isEditingContexto ? (
+                    <>
+                      <select
+                        value={contextoEdit.idContrato}
+                        onChange={(e) => setContextoEdit({ ...contextoEdit, idContrato: e.target.value })}
+                        className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                      >
+                        {availableContracts.map((contract) => (
+                          <option key={contract.id} value={contract.id}>
+                            {contract.id} - {contract.position} ({contract.client})
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                    </>
+                  ) : (
+                    <>
+                      <select
+                        value={detail.idContrato}
+                        disabled
+                        className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                      >
+                        <option value={detail.idContrato}>{detail.idContrato}</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                    </>
+                  )}
                   <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
                     ID Contrato*
                   </label>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                 </div>
 
+                {/* Puesto - NO EDITABLE */}
                 <div className="relative">
                   <select
                     value={detail.puesto}
@@ -298,76 +369,159 @@ export default function PayrollVariableDetailContent({
                 </div>
               </div>
 
-              {/* Cliente */}
+              {/* Cliente - EDITABLE */}
               <div className="relative">
-                <select
-                  value={detail.cliente}
-                  disabled
-                  className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
-                >
-                  <option value={detail.cliente}>{detail.cliente}</option>
-                </select>
+                {isEditingContexto ? (
+                  <input
+                    type="text"
+                    value={contextoEdit.cliente}
+                    onChange={(e) => setContextoEdit({ ...contextoEdit, cliente: e.target.value })}
+                    className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                  />
+                ) : (
+                  <>
+                    <select
+                      value={detail.cliente}
+                      disabled
+                      className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                    >
+                      <option value={detail.cliente}>{detail.cliente}</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                  </>
+                )}
                 <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
                   Cliente*
                 </label>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
               </div>
 
-              {/* Variable (Categoría principal) */}
+              {/* Variable (Categoría principal) - EDITABLE */}
               <div className="relative">
-                <select
-                  value={detail.type}
-                  disabled
-                  className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
-                >
-                  <option value={detail.type}>{detail.type}</option>
-                </select>
+                {isEditingContexto ? (
+                  <>
+                    <select
+                      value={contextoEdit.type}
+                      onChange={(e) => setContextoEdit({ ...contextoEdit, type: e.target.value as any })}
+                      className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                    >
+                      <option value="Overtime">Overtime</option>
+                      <option value="Holiday">Holiday</option>
+                      <option value="Income Variable">Income Variable</option>
+                      <option value="Deducción">Deducción</option>
+                      <option value="Ausencia">Ausencia</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                  </>
+                ) : (
+                  <>
+                    <select
+                      value={detail.type}
+                      disabled
+                      className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                    >
+                      <option value={detail.type}>{detail.type}</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                  </>
+                )}
                 <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
                   Variable*
                 </label>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
               </div>
 
-              {/* Tipo (Subtipo específico) */}
-              {(detail.deductionTipo || detail.incomeCategory) && (
+              {/* Tipo (Subtipo específico) - EDITABLE */}
+              {(detail.deductionTipo || detail.incomeCategory || isEditingContexto) && (
                 <div className="relative">
-                  <select
-                    value={detail.deductionTipo || detail.incomeCategory || ""}
-                    disabled
-                    className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
-                  >
-                    <option value={detail.deductionTipo || detail.incomeCategory}>
-                      {detail.deductionTipo || detail.incomeCategory}
-                    </option>
-                  </select>
+                  {isEditingContexto ? (
+                    <>
+                      {(contextoEdit.type === "Deducción" || contextoEdit.type === "Ausencia") && (
+                        <>
+                          <select
+                            value={contextoEdit.deductionTipo || ""}
+                            onChange={(e) => setContextoEdit({ ...contextoEdit, deductionTipo: e.target.value as any })}
+                            className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                          >
+                            <option value="Ausencia">Ausencia</option>
+                            <option value="Other">Other</option>
+                          </select>
+                          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                        </>
+                      )}
+                      {contextoEdit.type === "Income Variable" && (
+                        <>
+                          <select
+                            value={contextoEdit.incomeCategory || ""}
+                            onChange={(e) => setContextoEdit({ ...contextoEdit, incomeCategory: e.target.value as any })}
+                            className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                          >
+                            <option value="Bonus">Bonus</option>
+                            <option value="Commission">Commission</option>
+                            <option value="Allowance">Allowance</option>
+                            <option value="Reimbursement">Reimbursement</option>
+                            <option value="Other">Other</option>
+                          </select>
+                          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <select
+                        value={detail.deductionTipo || detail.incomeCategory || ""}
+                        disabled
+                        className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                      >
+                        <option value={detail.deductionTipo || detail.incomeCategory}>
+                          {detail.deductionTipo || detail.incomeCategory}
+                        </option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                    </>
+                  )}
                   <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
                     Tipo*
                   </label>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                 </div>
               )}
 
-              {/* Fecha */}
+              {/* Fecha - EDITABLE */}
               <div className="relative">
-                <select
-                  value={`${formatDateToUSA(detail.desde)}`}
-                  disabled
-                  className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
-                >
-                  <option value={`${formatDateToUSA(detail.desde)}`}>{formatDateToUSA(detail.desde)}</option>
-                </select>
+                {isEditingContexto ? (
+                  <input
+                    type="date"
+                    value={contextoEdit.desde}
+                    onChange={(e) => setContextoEdit({ ...contextoEdit, desde: e.target.value })}
+                    className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                  />
+                ) : (
+                  <>
+                    <select
+                      value={`${formatDateToUSA(detail.desde)}`}
+                      disabled
+                      className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                    >
+                      <option value={`${formatDateToUSA(detail.desde)}`}>{formatDateToUSA(detail.desde)}</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                  </>
+                )}
                 <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
                   Fecha*
                 </label>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
               </div>
             </div>
           </div>
 
-          {/* Base de pago */}
+          {/* Base de pago / Información específica por tipo */}
           <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-[18px] font-bold leading-[1.3] text-black">Base de pago</h2>
+              <h2 className="text-[18px] font-bold leading-[1.3] text-black">
+                {detail.type === "Overtime" ? "Información de Overtime" :
+                 detail.type === "Holiday" ? "Información de Holiday" :
+                 detail.type === "Deducción" || detail.type === "Ausencia" ? "Información de Deducción" :
+                 detail.type === "Income Variable" ? "Detalles del Ingreso Variable" :
+                 "Base de pago"}
+              </h2>
               {!isEditingBasePago ? (
                 <button
                   type="button"
@@ -386,92 +540,294 @@ export default function PayrollVariableDetailContent({
                 </button>
               )}
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              {/* Sueldo Base */}
-              <div className="relative">
-                {isEditingBasePago ? (
-                  <input
-                    type="number"
-                    value={basePagoEdit.sueldoBase}
-                    onChange={(e) => setBasePagoEdit({ ...basePagoEdit, sueldoBase: Number(e.target.value) })}
-                    className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
-                  />
-                ) : (
-                  <>
-                    <select
-                      value={detail.sueldoBase}
-                      disabled
-                      className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
-                    >
-                      <option value={detail.sueldoBase}>${detail.sueldoBase}</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
-                  </>
-                )}
-                <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                  Sueldo Base*
-                </label>
+            
+            {/* OVERTIME - Mostrar horas trabajadas */}
+            {detail.type === "Overtime" && (
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    {isEditingBasePago ? (
+                      <input
+                        type="number"
+                        value={basePagoEdit.cantidad}
+                        onChange={(e) => setBasePagoEdit({ ...basePagoEdit, cantidad: Number(e.target.value) })}
+                        className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                      />
+                    ) : (
+                      <>
+                        <select
+                          value={detail.cantidad}
+                          disabled
+                          className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                        >
+                          <option value={detail.cantidad}>{detail.cantidad} hora{detail.cantidad !== 1 ? 's' : ''}</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                      </>
+                    )}
+                    <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                      Horas Extras Trabajadas*
+                    </label>
+                  </div>
+                  
+                  <div className="relative">
+                    {isEditingBasePago ? (
+                      <input
+                        type="number"
+                        value={basePagoEdit.sueldoBase}
+                        onChange={(e) => setBasePagoEdit({ ...basePagoEdit, sueldoBase: Number(e.target.value) })}
+                        className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                      />
+                    ) : (
+                      <>
+                        <select
+                          value={detail.sueldoBase}
+                          disabled
+                          className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                        >
+                          <option value={detail.sueldoBase}>${detail.sueldoBase}</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                      </>
+                    )}
+                    <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                      Sueldo Base Mensual*
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  {isEditingBasePago ? (
+                    <input
+                      type="number"
+                      value={basePagoEdit.duracion}
+                      onChange={(e) => setBasePagoEdit({ ...basePagoEdit, duracion: Number(e.target.value) })}
+                      className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                    />
+                  ) : (
+                    <>
+                      <select
+                        value={detail.duracion}
+                        disabled
+                        className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                      >
+                        <option value={detail.duracion}>{detail.duracion} horas/día</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                    </>
+                  )}
+                  <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                    Jornada Laboral Diaria*
+                  </label>
+                </div>
               </div>
-
-              {/* Duración */}
-              <div className="relative">
-                {isEditingBasePago ? (
-                  <input
-                    type="text"
-                    value={basePagoEdit.duracion}
-                    onChange={(e) => setBasePagoEdit({ ...basePagoEdit, duracion: Number(e.target.value) })}
-                    className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
-                  />
-                ) : (
-                  <>
-                    <select
-                      value={detail.duracion}
-                      disabled
-                      className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
-                    >
-                      <option value={detail.duracion}>Dia</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
-                  </>
-                )}
-                <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                  Duración*
-                </label>
+            )}
+            
+            {/* HOLIDAY - Mostrar información de holiday */}
+            {detail.type === "Holiday" && (
+              <div className="flex flex-col gap-4">
+                <div className="relative">
+                  <label className="mb-1 block text-[12px] text-[#858585]">Tipo de Holiday</label>
+                  <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
+                    <p className="text-[14px] text-[#525252]">Feriado Nacional - Día Pagado</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    {isEditingBasePago ? (
+                      <input
+                        type="number"
+                        value={basePagoEdit.cantidad}
+                        onChange={(e) => setBasePagoEdit({ ...basePagoEdit, cantidad: Number(e.target.value) })}
+                        className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                      />
+                    ) : (
+                      <>
+                        <select
+                          value={detail.cantidad}
+                          disabled
+                          className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                        >
+                          <option value={detail.cantidad}>{detail.cantidad} día{detail.cantidad !== 1 ? 's' : ''}</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                      </>
+                    )}
+                    <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                      Días de Holiday*
+                    </label>
+                  </div>
+                  
+                  <div className="relative">
+                    {isEditingBasePago ? (
+                      <input
+                        type="number"
+                        value={basePagoEdit.sueldoBase}
+                        onChange={(e) => setBasePagoEdit({ ...basePagoEdit, sueldoBase: Number(e.target.value) })}
+                        className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                      />
+                    ) : (
+                      <>
+                        <select
+                          value={detail.sueldoBase}
+                          disabled
+                          className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                        >
+                          <option value={detail.sueldoBase}>${detail.sueldoBase}</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                      </>
+                    )}
+                    <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                      Sueldo Base Mensual*
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <label className="mb-1 block text-[12px] text-[#858585]">Lógica de Aplicación</label>
+                  <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
+                    <p className="text-[14px] text-[#525252]">
+                      Pago adicional por trabajo en día feriado. Se calcula como: (Sueldo Base / {detail.duracion}) × {detail.cantidad}
+                    </p>
+                  </div>
+                </div>
               </div>
-
-              {/* Cantidad */}
-              <div className="relative">
-                {isEditingBasePago ? (
-                  <input
-                    type="number"
-                    value={basePagoEdit.cantidad}
-                    onChange={(e) => setBasePagoEdit({ ...basePagoEdit, cantidad: Number(e.target.value) })}
-                    className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
-                  />
-                ) : (
-                  <>
-                    <select
-                      value={detail.cantidad}
-                      disabled
-                      className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
-                    >
-                      <option value={detail.cantidad}>{detail.cantidad}</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
-                  </>
-                )}
-                <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                  Cantidad*
-                </label>
+            )}
+            
+            {/* DEDUCCIÓN / AUSENCIA - Mostrar información de deducción */}
+            {(detail.type === "Deducción" || detail.type === "Ausencia") && (
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    {isEditingBasePago ? (
+                      <input
+                        type="number"
+                        value={basePagoEdit.cantidad}
+                        onChange={(e) => setBasePagoEdit({ ...basePagoEdit, cantidad: Number(e.target.value) })}
+                        className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                      />
+                    ) : (
+                      <>
+                        <select
+                          value={detail.cantidad}
+                          disabled
+                          className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                        >
+                          <option value={detail.cantidad}>{detail.cantidad} día{detail.cantidad !== 1 ? 's' : ''}</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                      </>
+                    )}
+                    <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                      {detail.type === "Ausencia" ? "Días de Ausencia*" : "Cantidad*"}
+                    </label>
+                  </div>
+                  
+                  <div className="relative">
+                    {isEditingBasePago ? (
+                      <input
+                        type="number"
+                        value={basePagoEdit.sueldoBase}
+                        onChange={(e) => setBasePagoEdit({ ...basePagoEdit, sueldoBase: Number(e.target.value) })}
+                        className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                      />
+                    ) : (
+                      <>
+                        <select
+                          value={detail.sueldoBase}
+                          disabled
+                          className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                        >
+                          <option value={detail.sueldoBase}>${detail.sueldoBase}</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                      </>
+                    )}
+                    <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                      Sueldo Base Mensual*
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <label className="mb-1 block text-[12px] text-[#858585]">Tipo de Deducción</label>
+                  <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
+                    <p className="text-[14px] text-[#525252]">{detail.deductionTipo || "Other"}</p>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <label className="mb-1 block text-[12px] text-[#858585]">Cálculo de Deducción</label>
+                  <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
+                    <p className="text-[14px] text-[#525252]">
+                      Se descuenta: (Sueldo Base / {detail.duracion}) × {detail.cantidad} = ${Math.abs(montoCalculado).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+            
+            {/* INCOME VARIABLE - Mostrar tipo y monto directo */}
+            {detail.type === "Income Variable" && (
+              <div className="flex flex-col gap-4">
+                {/* Categoría de Ingreso */}
+                <div className="relative">
+                  <label className="mb-1 block text-[12px] text-[#858585]">Categoría de Ingreso*</label>
+                  <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
+                    <p className="text-[14px] font-medium text-[#525252]">
+                      {detail.incomeCategory === "Bonus" ? "Bono" :
+                       detail.incomeCategory === "Commission" ? "Comisión" :
+                       detail.incomeCategory === "Allowance" ? "Asignación" :
+                       detail.incomeCategory === "Reimbursement" ? "Reembolso" :
+                       "Otro"}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Monto del Ingreso Variable */}
+                <div className="relative">
+                  {isEditingBasePago ? (
+                    <input
+                      type="number"
+                      value={Math.abs(montoCalculado)}
+                      onChange={(e) => {
+                        const newMonto = Number(e.target.value);
+                        setBasePagoEdit({ 
+                          sueldoBase: newMonto, 
+                          duracion: 1, 
+                          cantidad: 1 
+                        });
+                      }}
+                      className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
+                      placeholder="Ingrese el monto del ingreso variable"
+                    />
+                  ) : (
+                    <>
+                      <select
+                        value={detail.monto}
+                        disabled
+                        className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
+                      >
+                        <option value={detail.monto}>${Math.abs(detail.monto).toFixed(2)}</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
+                    </>
+                  )}
+                  <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
+                    Monto del Ingreso Variable*
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Ingresos Adicionales / Descripción */}
+          {/* Descripción */}
           <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-[18px] font-bold leading-[1.3] text-black">
-                {detail.type === "Income Variable" ? "Ingresos Adicionales" : "Descripción"}
+                {detail.type === "Income Variable" ? "Descripción del Ingreso Variable" : "Descripción"}
               </h2>
               {!isEditingDetalles ? (
                 <button
@@ -491,12 +847,20 @@ export default function PayrollVariableDetailContent({
                 </button>
               )}
             </div>
+            
             <div className="relative">
               {isEditingDetalles ? (
                 <textarea
                   value={detallesEdit}
                   onChange={(e) => setDetallesEdit(e.target.value)}
                   rows={4}
+                  placeholder={detail.type === "Income Variable" 
+                    ? "Describe el motivo del ingreso variable (ej: Bono por desempeño Q1, Comisión por ventas marzo, etc.)" 
+                    : detail.type === "Overtime" 
+                    ? "Describe el motivo de las horas extras (ej: Problema técnico, Soporte urgente, etc.)"
+                    : detail.type === "Holiday"
+                    ? "Describe el holiday (ej: Feriado nacional, Día festivo, etc.)"
+                    : "Describe el motivo de esta variable"}
                   className="w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
                 />
               ) : (
