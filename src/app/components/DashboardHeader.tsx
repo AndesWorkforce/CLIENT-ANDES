@@ -114,7 +114,7 @@ export default function DashboardHeader({ variant }: DashboardHeaderProps) {
                 {isAdminOrRecruiter && (
                   <>
                     <Link
-                      href="/admin-hub/dashboard"
+                      href="/admin/dashboard"
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
                       onClick={() => setShowUserMenu(false)}
                     >

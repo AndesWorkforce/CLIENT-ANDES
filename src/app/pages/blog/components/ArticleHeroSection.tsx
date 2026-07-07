@@ -18,7 +18,7 @@ export default function ArticleHeroSection() {
       </div>
 
       {/* Article Header Content */}
-      <div className="max-w-[850px] mx-auto px-[18px] md:px-[44px] py-[44px]">
+      <div className="max-w-[850px] mx-auto px-[18px] md:px-[44px] pt-[44px] pb-[11px] md:pb-[22px]">
         <div className="flex flex-col gap-[33px]">
           {/* Metadata: Category, Reading Time, Date */}
           <div className="flex flex-wrap items-center gap-[22px]">
