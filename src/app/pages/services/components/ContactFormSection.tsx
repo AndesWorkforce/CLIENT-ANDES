@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, CircleCheck } from "lucide-react";
 import { submitContactFormMicrosoft } from "@/app/pages/contact/actions/microsoft-email-actions";
+import { servicesAssets } from "../services-assets";
 
 interface Country {
   country: string;
@@ -27,6 +28,12 @@ const offersContactSchema = z.object({
 });
 
 type OffersContactValues = z.infer<typeof offersContactSchema>;
+
+const inputClassName =
+  "w-full h-[50px] bg-white border border-[#C8C8C8] rounded-[8px] px-[16px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2]";
+
+const labelClassName =
+  "absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]";
 
 export default function ContactFormSection() {
   const [countries, setCountries] = useState<Country[]>([]);
@@ -52,53 +59,60 @@ export default function ContactFormSection() {
       setLoadingCountries(true);
       try {
         const response = await fetch(
-          "https://countriesnow.space/api/v0.1/countries"
+          "https://countriesnow.space/api/v0.1/countries",
         );
         if (!response.ok) throw new Error("Error fetching countries");
         const result: CountriesAPIResponse = await response.json();
-        
+
         if (result.error) {
           throw new Error(result.msg);
         }
-        
-        // Ordenar alfabéticamente primero
+
         const sorted = result.data.sort((a, b) =>
-          a.country.localeCompare(b.country)
+          a.country.localeCompare(b.country),
         );
 
-        // Países prioritarios al inicio
         const priorityCountries = ["United States", "Colombia", "Canada"];
-        
-        // Países latinoamericanos
         const latinCountries = [
-          "Argentina", "Bolivia", "Brazil", "Chile", "Costa Rica", "Cuba",
-          "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", 
-          "Honduras", "Mexico", "Nicaragua", "Panama", "Paraguay", 
-          "Peru", "Uruguay", "Venezuela"
+          "Argentina",
+          "Bolivia",
+          "Brazil",
+          "Chile",
+          "Costa Rica",
+          "Cuba",
+          "Dominican Republic",
+          "Ecuador",
+          "El Salvador",
+          "Guatemala",
+          "Honduras",
+          "Mexico",
+          "Nicaragua",
+          "Panama",
+          "Paraguay",
+          "Peru",
+          "Uruguay",
+          "Venezuela",
         ];
 
-        // Separar países prioritarios
-        const priority = sorted.filter(c => priorityCountries.includes(c.country));
-        
-        // Separar países latinoamericanos (excluyendo Colombia que ya está en prioritarios)
-        const latin = sorted.filter(c => 
-          latinCountries.includes(c.country) && !priorityCountries.includes(c.country)
+        const priority = sorted.filter((c) =>
+          priorityCountries.includes(c.country),
         );
-        
-        // Resto de países
-        const rest = sorted.filter(c => 
-          !priorityCountries.includes(c.country) && !latinCountries.includes(c.country)
+        const latin = sorted.filter(
+          (c) =>
+            latinCountries.includes(c.country) &&
+            !priorityCountries.includes(c.country),
+        );
+        const rest = sorted.filter(
+          (c) =>
+            !priorityCountries.includes(c.country) &&
+            !latinCountries.includes(c.country),
         );
 
-        // Reordenar: prioritarios en orden específico
         const orderedPriority = priorityCountries
-          .map(name => priority.find(c => c.country === name))
+          .map((name) => priority.find((c) => c.country === name))
           .filter((c): c is Country => c !== undefined);
 
-        // Combinar en el orden deseado
-        const finalList = [...orderedPriority, ...latin, ...rest];
-        
-        setCountries(finalList);
+        setCountries([...orderedPriority, ...latin, ...rest]);
       } catch (error) {
         console.error("Error fetching countries:", error);
       } finally {
@@ -112,7 +126,6 @@ export default function ContactFormSection() {
     setIsSubmitting(true);
     setFormResponse(null);
 
-    // Split name into firstName / lastName for the shared action
     const parts = data.name.trim().split(/\s+/);
     const firstName = parts[0] ?? data.name;
     const lastName = parts.slice(1).join(" ") || firstName;
@@ -125,13 +138,12 @@ export default function ContactFormSection() {
         phone: data.phone || "",
         smsConsent: false,
         service: "talent",
-        message: `Contact from Open Contracts page. Country: ${data.country}`,
+        message: `Contact from Services page. Country: ${data.country}`,
       });
 
       setFormResponse(response);
       if (response.success) {
         reset();
-        // Track Google Ads conversion event - offers page form submit
         if (typeof window !== "undefined" && window.gtag) {
           window.gtag("event", "ads_conversion_Form_OffersPage", {});
         }
@@ -148,80 +160,80 @@ export default function ContactFormSection() {
   };
 
   return (
-    <section id="contact-form" className="relative w-full h-auto md:h-[749px] flex flex-col md:flex-row">
-      {/* Left side - Image with content overlay */}
-      <div className="relative flex flex-1 h-[280px] md:h-full">
-        {/* Background Image */}
+    <section
+      id="contact-form"
+      className="flex w-full flex-col lg:flex-row lg:h-[749px]"
+    >
+      {/* Left panel — hero */}
+      <div className="relative min-h-[420px] w-full lg:h-[749px] lg:w-[52%] lg:shrink-0">
         <img
-          src="https://www.figma.com/api/mcp/asset/55ddcadb-79d4-4350-886f-20aaaecb688c"
-          alt="Background"
-          className="absolute inset-0 w-full h-full object-cover"
+          src={servicesAssets.contactHeroBg}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        {/* Overlay */}
-        <img
-          src="https://www.figma.com/api/mcp/asset/8ffe2980-2010-459f-944d-3080c0ccd5c0"
-          alt="Overlay"
-          className="absolute inset-0 w-full h-full object-cover"
+        <div
+          className="absolute inset-0"
+          aria-hidden
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(4,78,92,0.82) 18%, rgba(5,100,117,0.72) 52%, rgba(8,166,194,0.35) 78%)",
+          }}
         />
 
-        {/* Content */}
-        <div className="relative z-10 px-[20px] md:px-[79px] py-[40px] md:py-[169px] h-full flex items-center">
-          <div className="flex flex-col gap-[12px] md:gap-[20px] max-w-[574px]">
-            {/* Available Now Badge */}
-            <div className="inline-flex items-center gap-[7px] bg-[rgba(255,255,255,0.22)] border border-white rounded-[20px] px-[14px] py-[7px] self-start">
-              <img
-                src="https://www.figma.com/api/mcp/asset/5b263ebc-a748-48bb-a0c0-5e51484568c1"
-                alt="Available"
-                className="w-[25px] h-[25px]"
+        <div className="relative z-10 flex h-full items-center px-6 py-12 md:px-[79px] md:py-[169px]">
+          <div className="flex max-w-[574px] flex-col gap-5">
+            <div className="inline-flex w-fit items-center gap-[7px] rounded-[20px] border border-white bg-[rgba(255,255,255,0.22)] px-[14px] py-[7px]">
+              <CircleCheck
+                className="h-[25px] w-[25px] text-[#4ADE80]"
+                strokeWidth={2.5}
+                aria-hidden
               />
-              <span className="text-white font-semibold text-[12px] md:text-[16px] leading-[1.3]">
+              <span className="text-[16px] font-semibold leading-[1.3] text-white">
                 Available now
               </span>
             </div>
 
-            {/* Title */}
-            <h2 className="text-white font-bold text-[20px] md:text-[48px] leading-[1.3] max-w-[574px]">
-              Let's build your team-together
+            <h2 className="text-[32px] font-bold leading-[1.3] text-white md:text-[48px]">
+              Let&apos;s build your team-together
             </h2>
 
-            {/* Description */}
-            <p className="text-white font-medium text-[14px] md:text-[20px] leading-[1.2] max-w-[574px]">
-              Our team typically replies within 24 hours with role-mathed candidates and
-              pricing
+            <p className="text-[16px] font-medium leading-[1.2] text-white md:text-[20px]">
+              Our team typically replies within 24 hours with role-matched
+              candidates and pricing
             </p>
 
-            {/* Stats Section */}
-            <div className="flex flex-col gap-[16px] md:gap-[29px] max-w-[574px]">
-              {/* Horizontal line */}
-              <div className="w-full h-[1px] bg-white opacity-30" />
+            <div className="flex max-w-[574px] flex-col gap-[29px]">
+              <div className="h-px w-full bg-white/30" />
 
-              <div className="flex gap-[20px] md:gap-[32px]">
-                {/* +300 Contractors */}
-                <div className="flex flex-col gap-[3px] w-auto md:w-[145px]">
-                  <p className="text-white font-bold text-[18px] md:text-[24px] leading-[1.3]">+300</p>
-                  <p className="text-white font-semibold text-[12px] md:text-[18px] leading-[1.3]">
+              <div className="flex flex-wrap items-start gap-x-8 gap-y-4 md:flex-nowrap">
+                <div className="flex w-[145px] flex-col gap-[3px]">
+                  <p className="text-[24px] font-bold leading-[1.3] text-white">
+                    +300
+                  </p>
+                  <p className="text-[18px] font-semibold leading-[1.3] text-white">
                     Contractors
                   </p>
                 </div>
 
-                {/* Vertical separator */}
-                <div className="w-[1px] h-[50px] md:h-[78px] bg-white opacity-30" />
+                <div className="h-[78px] w-px bg-white/30" />
 
-                {/* +15 US-based clients */}
-                <div className="flex flex-col gap-[3px] w-auto md:w-[145px]">
-                  <p className="text-white font-bold text-[18px] md:text-[24px] leading-[1.3]">+15</p>
-                  <p className="text-white font-semibold text-[12px] md:text-[18px] leading-[1.3]">
+                <div className="flex w-[145px] flex-col gap-[3px]">
+                  <p className="text-[24px] font-bold leading-[1.3] text-white">
+                    +15
+                  </p>
+                  <p className="text-[18px] font-semibold leading-[1.3] text-white">
                     US-based clients
                   </p>
                 </div>
 
-                {/* Vertical separator */}
-                <div className="w-[1px] h-[50px] md:h-[78px] bg-white opacity-30" />
+                <div className="h-[78px] w-px bg-white/30" />
 
-                {/* 24h Response */}
-                <div className="flex flex-col gap-[3px] w-auto md:w-[145px]">
-                  <p className="text-white font-bold text-[18px] md:text-[24px] leading-[1.3]">24 h</p>
-                  <p className="text-white font-semibold text-[12px] md:text-[18px] leading-[1.3]">
+                <div className="flex w-[145px] flex-col gap-[3px]">
+                  <p className="text-[24px] font-bold leading-[1.3] text-white">
+                    24 h
+                  </p>
+                  <p className="text-[18px] font-semibold leading-[1.3] text-white">
                     Response
                   </p>
                 </div>
@@ -231,128 +243,120 @@ export default function ContactFormSection() {
         </div>
       </div>
 
-      {/* Right side - Form */}
-      <div className="flex-1 h-full bg-[#F6FBFC] flex items-center justify-center px-[19px] md:px-[77px] py-[44px] md:py-[48px]">
-        <div className="bg-white rounded-[24px] shadow-[7px_10px_10px_rgba(195,195,195,0.5)] w-full max-w-[355px] md:max-w-[652px] px-[22px] md:px-[36px] pt-[33px] md:pt-[66px] pb-[22px] md:pb-[50px]">
-          {/* Header */}
-          <div className="mb-[22px] md:mb-[66px]">
-            <h3 className="text-black font-bold text-[24px] md:text-[32px] leading-[1.3] mb-[11px]">
-              Contact Us
-            </h3>
-            <p className="text-black font-medium text-[14px] md:text-[16px] leading-[1.2]">
-              Fill out for a consultation. Our Andes Workforce team typically reaches out
-              within 24 hours.
-            </p>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-[7px] md:gap-[11px]">
-            {formResponse && (
-              <div
-                className={`p-3 rounded-lg text-sm font-medium mb-[11px] ${
-                  formResponse.success
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
-                }`}
-              >
-                {formResponse.message}
-              </div>
-            )}
-
-            {/* Name Field */}
-            <div className="relative h-[59px]">
-              <input
-                type="text"
-                placeholder="First Last"
-                {...register("name")}
-                className="absolute top-[9px] w-full h-[50px] bg-white border border-[#EFEFEF] md:border-[#C8C8C8] rounded-[8px] px-[16px] py-[17px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2]"
-              />
-              <label className="absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]">
-                Full Name*
-              </label>
-              {errors.name && (
-                <p className="absolute -bottom-5 left-0 text-red-500 text-xs">
-                  {errors.name.message}
-                </p>
-              )}
+      {/* Right panel — form */}
+      <div className="flex w-full items-start justify-center bg-[#F6FBFC] px-6 py-12 lg:h-[749px] lg:w-[48%] lg:shrink-0 lg:px-[77px] lg:py-[48px]">
+        <div className="w-full max-w-[552px] rounded-[24px] bg-white px-6 py-10 shadow-[7px_10px_10px_rgba(195,195,195,0.5)] md:px-[36px] md:py-[66px]">
+          <div className="flex flex-col gap-[66px]">
+            <div className="flex flex-col gap-[11px]">
+              <h3 className="text-[32px] font-bold leading-[1.3] text-black">
+                Contact Us
+              </h3>
+              <p className="text-[16px] font-medium leading-[1.2] text-black">
+                Fill out for a consultation. Our Andes Workforce team typically
+                reaches out within 24 hours.
+              </p>
             </div>
 
-            {/* Email Field */}
-            <div className="relative h-[59px]">
-              <input
-                type="email"
-                placeholder="name@adds.com"
-                {...register("email")}
-                className="absolute top-[9px] w-full h-[50px] bg-white border border-[#EFEFEF] md:border-[#C8C8C8] rounded-[8px] px-[16px] py-[17px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2]"
-              />
-              <label className="absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]">
-                Email Address*
-              </label>
-              {errors.email && (
-                <p className="absolute -bottom-5 left-0 text-red-500 text-xs">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            {/* Country Field */}
-            <div className="relative h-[59px]">
-              <div className="absolute top-[9px] w-full h-[50px]">
-                <select
-                  {...register("country")}
-                  className="w-full h-full appearance-none bg-white border border-[#EFEFEF] md:border-[#C8C8C8] rounded-[8px] px-[16px] py-[17px] pr-[40px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2] cursor-pointer"
-                  disabled={loadingCountries}
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex flex-col gap-[66px]"
+            >
+              <div className="flex flex-col gap-[11px]">
+              {formResponse && (
+                <div
+                  className={`mb-2 rounded-lg p-3 text-sm font-medium ${
+                    formResponse.success
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
                 >
-                  <option value="">Select your country...</option>
-                  {countries.map((country) => (
-                    <option key={country.iso3} value={country.country}>
-                      {country.country}
-                    </option>
-                  ))}
-                </select>
-                {loadingCountries ? (
-                  <div className="absolute right-[16px] top-1/2 -translate-y-1/2">
-                    <div className="animate-spin h-4 w-4 border-2 border-[#0097b2] border-t-transparent rounded-full" />
-                  </div>
-                ) : (
-                  <ChevronDown
-                    size={18}
-                    className="absolute right-[16px] top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
-                  />
+                  {formResponse.message}
+                </div>
+              )}
+
+              <div className="relative h-[59px]">
+                <input
+                  type="text"
+                  placeholder="First Last"
+                  {...register("name")}
+                  className={`absolute top-[9px] ${inputClassName}`}
+                />
+                <label className={labelClassName}>Full Name*</label>
+                {errors.name && (
+                  <p className="absolute -bottom-5 left-0 text-xs text-red-500">
+                    {errors.name.message}
+                  </p>
                 )}
               </div>
-              <label className="absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]">
-                Country
-              </label>
-              {errors.country && (
-                <p className="absolute -bottom-5 left-0 text-red-500 text-xs">
-                  {errors.country.message}
-                </p>
-              )}
-            </div>
 
-            {/* Phone Field */}
-            <div className="relative h-[59px]">
-              <input
-                type="tel"
-                placeholder="+1 234 567 890"
-                {...register("phone")}
-                className="absolute top-[9px] w-full h-[50px] bg-white border border-[#EFEFEF] md:border-[#C8C8C8] rounded-[8px] px-[16px] py-[17px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2]"
-              />
-              <label className="absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]">
-                Phone
-              </label>
-            </div>
+              <div className="relative h-[59px]">
+                <input
+                  type="email"
+                  placeholder="name@adds.com"
+                  {...register("email")}
+                  className={`absolute top-[9px] ${inputClassName}`}
+                />
+                <label className={labelClassName}>Email Address*</label>
+                {errors.email && (
+                  <p className="absolute -bottom-5 left-0 text-xs text-red-500">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full h-[48px] bg-[#0097B2] hover:bg-[#007A8F] text-white font-semibold text-[14px] leading-[1.3] rounded-[8px] mt-[22px] md:mt-[55px] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? "Sending..." : "Submit Request"}
-            </button>
-          </form>
+              <div className="relative h-[59px]">
+                <div className="absolute top-[9px] h-[50px] w-full">
+                  <select
+                    {...register("country")}
+                    className={`${inputClassName} cursor-pointer appearance-none pr-[40px]`}
+                    disabled={loadingCountries}
+                  >
+                    <option value="">Select your country...</option>
+                    {countries.map((country) => (
+                      <option key={country.iso3} value={country.country}>
+                        {country.country}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingCountries ? (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0097B2] border-t-transparent" />
+                    </div>
+                  ) : (
+                    <ChevronDown
+                      size={18}
+                      className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                    />
+                  )}
+                </div>
+                <label className={labelClassName}>Country</label>
+                {errors.country && (
+                  <p className="absolute -bottom-5 left-0 text-xs text-red-500">
+                    {errors.country.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="relative h-[59px]">
+                <input
+                  type="tel"
+                  placeholder="+1 234 567 890"
+                  {...register("phone")}
+                  className={`absolute top-[9px] ${inputClassName}`}
+                />
+                <label className={labelClassName}>Phone</label>
+              </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-[48px] w-full rounded-[8px] bg-[#0097B2] text-[14px] font-semibold leading-[1.3] text-white transition-colors hover:bg-[#007A8F] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSubmitting ? "Sending..." : "Submit Request"}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </section>
