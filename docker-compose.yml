@@ -17,6 +17,7 @@ services:
       NODE_ENV: production
       PORT: 3000
       HOSTNAME: 0.0.0.0
+      INTERNAL_API_URL: http://andes-api:3000/api/
     networks:
       - traefik
     labels:
