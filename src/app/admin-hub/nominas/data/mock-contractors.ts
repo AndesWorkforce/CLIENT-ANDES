@@ -34,7 +34,7 @@ export interface ContractorPersonaProfile {
   billingBankName: string | null;
   billingAccountNumber: string | null;
   howDidYouHear: string;
-  wasReferred: string;
+  wasReferred: "Si" | "No";
   referredBy: string | null;
   notes: string;
 }
