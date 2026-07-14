@@ -9,9 +9,13 @@ import AdminHubDatePicker from "../../components/AdminHubDatePicker";
 import AdminHubFormField from "../../components/AdminHubFormField";
 import AdminHubSelect from "../../components/AdminHubSelect";
 import { formatBaseSalary } from "../../nominas/data/mock-contractors";
-import type { PersonaDetail } from "../data/mock-persona-detail";
-import { contractStartToIso } from "../data/mock-persona-detail";
-import type { PersonaStatus } from "../data/mock-persona-detail";
+import { updatePersona } from "../actions/personas.actions";
+import type { PersonaDetail, PersonaStatus } from "../types/persona-detail.types";
+import {
+  buildUpdatePayloadFromForm,
+  contractStartToIso,
+  validatePersonaForm,
+} from "../utils/persona-detail.utils";
 import PersonaFormSection from "./PersonaFormSection";
 import PersonaStatusBadge from "./PersonaStatusBadge";
 
@@ -125,8 +129,10 @@ function getInitials(name: string): string {
 export default function PersonaDetailContent({ detail }: PersonaDetailContentProps) {
   const router = useRouter();
   const { addNotification } = useNotificationStore();
+  const [detailState, setDetailState] = useState(detail);
   const [form, setForm] = useState<PersonaFormState>(() => buildFormState(detail));
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const viewOnly = !isEditing;
 
@@ -147,14 +153,37 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
     addNotification("La descarga del perfil estará disponible próximamente.", "info");
   }
 
-  function handleEditClick() {
-    if (isEditing) {
-      addNotification("Cambios guardados correctamente.", "success");
-      setIsEditing(false);
+  async function handleEditClick() {
+    if (!isEditing) {
+      setIsEditing(true);
       return;
     }
 
-    setIsEditing(true);
+    const validationErrors = validatePersonaForm(form);
+    if (validationErrors.length > 0) {
+      addNotification(validationErrors.join(" "), "error");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const result = await updatePersona(
+        detailState.id,
+        buildUpdatePayloadFromForm(form),
+      );
+
+      if (!result.success || !result.data) {
+        addNotification(result.message || "No se pudieron guardar los cambios.", "error");
+        return;
+      }
+
+      setDetailState(result.data);
+      setForm(buildFormState(result.data));
+      setIsEditing(false);
+      addNotification("Cambios guardados correctamente.", "success");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function handleCancel() {
@@ -181,7 +210,7 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
           <div className="flex flex-wrap items-center gap-3">
             <PersonaStatusBadge status={form.status} />
             <span className="text-[16px] font-semibold leading-[1.3] text-black">
-              {detail.countryName}
+              {detailState.countryName}
             </span>
           </div>
         </div>
@@ -191,9 +220,10 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
         <button
           type="button"
           onClick={handleEditClick}
-          className="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#F5FAFB]"
+          disabled={isSaving}
+          className="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#F5FAFB] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isEditing ? "Guardar" : "Editar"}
+          {isSaving ? "Guardando..." : isEditing ? "Guardar" : "Editar"}
         </button>
         <button
           type="button"
