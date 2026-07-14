@@ -1,4 +1,4 @@
-import type { PersonaStatus } from "../data/mock-persona-detail";
+import type { PersonaStatus } from "../types/persona-detail.types";
 
 interface PersonaStatusBadgeProps {
   status: PersonaStatus;

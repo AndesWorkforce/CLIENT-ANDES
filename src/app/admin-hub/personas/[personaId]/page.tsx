@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getPersonaDetail } from "../data/mock-persona-detail";
+import { getPersonaById } from "../actions/personas.actions";
 import PersonaDetailContent from "../components/PersonaDetailContent";
 
 interface PersonaDetailPageProps {
@@ -8,11 +8,11 @@ interface PersonaDetailPageProps {
 
 export default async function PersonaDetailPage({ params }: PersonaDetailPageProps) {
   const { personaId } = await params;
-  const detail = getPersonaDetail(personaId);
+  const result = await getPersonaById(personaId);
 
-  if (!detail) {
+  if (!result.success || !result.data) {
     notFound();
   }
 
-  return <PersonaDetailContent detail={detail} />;
+  return <PersonaDetailContent detail={result.data} />;
 }

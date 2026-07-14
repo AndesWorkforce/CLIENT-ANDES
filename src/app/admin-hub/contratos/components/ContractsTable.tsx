@@ -19,7 +19,7 @@ import {
 import type { MockProcesoContratacion } from "../data/mock-contracts";
 import { contractToDetailPath } from "../data/mock-contract-detail";
 import { MOCK_CONTRACTORS } from "../../nominas/data/mock-contractors";
-import { personaToDetailPath } from "../../personas/data/mock-persona-detail";
+import { personaToDetailPath } from "../../personas/utils/persona-detail.utils";
 import ContractStatusBadge from "./ContractStatusBadge";
 
 interface ContractsTableProps {

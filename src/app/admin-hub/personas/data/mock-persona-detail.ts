@@ -1,3 +1,15 @@
+/**
+ * @deprecated Usar `types/persona-detail.types.ts` y `utils/persona-detail.utils.ts`.
+ * Este archivo se mantiene solo para mocks legacy (nóminas / contratos).
+ */
+export type {
+  PersonaDetail,
+  PersonaStatus,
+  ContractorPersonaProfile,
+} from "../types/persona-detail.types";
+
+export { personaToDetailPath } from "../utils/persona-detail.utils";
+
 import { getMockContracts } from "../../contratos/data/mock-contracts";
 import { getMetodoPagoDisplay, getPaisDisplay } from "../../contratos/data/contract-display";
 import { getDiscretionaryBonusLabel } from "../../contratos/data/contract-detail-display";
@@ -9,36 +21,12 @@ import {
   type MockContract,
   type MockContractor,
 } from "../../nominas/data/mock-contractors";
-
-export type PersonaStatus = "Activo" | "Inactivo";
-
-export interface PersonaDetail {
-  id: string;
-  name: string;
-  countryName: string;
-  primaryContract: MockContract;
-  contractCode: string;
-  profile: ContractorPersonaProfile;
-}
+import type { PersonaDetail } from "../types/persona-detail.types";
 
 function generateCodigoContrato(contractorId: string, contractId: string): string {
   const seed = `${contractorId}-${contractId}`;
   const num = seed.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % 900000 + 100000;
   return `AD-${num}`;
-}
-
-function displayDateFromContract(date: string): string {
-  const parts = date.split(".");
-  if (parts.length !== 3) return date;
-  const [month, day, year] = parts;
-  return `${day}.${month}.20${year}`;
-}
-
-function isoFromContractDate(date: string): string {
-  const parts = date.split(".");
-  if (parts.length !== 3) return date;
-  const [month, day, year] = parts;
-  return `20${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
 
 const RESIDENCE_BY_COUNTRY: Record<
@@ -157,12 +145,14 @@ const JUAN_PEREZ_PROFILE: ContractorPersonaProfile = {
   notes: "",
 };
 
+/** Solo para mocks legacy (nóminas). */
 export function getPersonaProfile(contractor: MockContractor): ContractorPersonaProfile {
   if (contractor.profile) return contractor.profile;
   if (contractor.name === "Juan Perez") return JUAN_PEREZ_PROFILE;
   return buildDefaultProfile(contractor, contractor.contracts[0]);
 }
 
+/** @deprecated Usar `getPersonaById` desde server actions. */
 export function getPersonaDetail(personaId: string): PersonaDetail | null {
   const contractor = findContractor(personaId);
   if (!contractor || contractor.contracts.length === 0) return null;
@@ -182,22 +172,4 @@ export function getPersonaDetail(personaId: string): PersonaDetail | null {
 
 export function findContractorIdByName(name: string): string | undefined {
   return MOCK_CONTRACTORS.find((contractor) => contractor.name === name)?.id;
-}
-
-export function personaToDetailPath(contractor: Pick<MockContractor, "id">): string {
-  return `/admin-hub/personas/${contractor.id}`;
-}
-
-export function formatPersonaBirthDate(isoDate: string): string {
-  const [year, month, day] = isoDate.split("-");
-  if (!year || !month || !day) return isoDate;
-  return `${day}.${month}.${year}`;
-}
-
-export function formatPersonaContractStart(contractStartDate: string): string {
-  return displayDateFromContract(contractStartDate);
-}
-
-export function contractStartToIso(contractStartDate: string): string {
-  return isoFromContractDate(contractStartDate);
 }
