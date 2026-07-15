@@ -396,12 +396,12 @@ export const FAQ_SECTIONS: FaqSection[] = [
     ],
   },
   {
-    id: "organizational-agility",
-    title: "Organizational Agility Area",
+    id: "organizational-effectiveness",
+    title: "Organizational Effectiveness Area",
     items: [
       {
         id: "agility-what-does",
-        question: "What does the Organizational Agility area do?",
+        question: "What does the Organizational Effectiveness area do?",
         answer: [
           {
             type: "paragraph",
@@ -452,7 +452,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         answer: [
           {
             type: "paragraph",
-            text: "Through your Agile Coach, Team Lead request, or when the Agility team identifies an improvement opportunity.",
+            text: "Through your Agile Coach, Team Lead request, or when the Effectiveness team identifies an improvement opportunity.",
           },
         ],
       },
@@ -531,7 +531,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         answer: [
           {
             type: "paragraph",
-            text: "The Agility team prioritizes urgent cases and activates support protocols when necessary.",
+            text: "The Effectiveness team prioritizes urgent cases and activates support protocols when necessary.",
           },
         ],
       },
