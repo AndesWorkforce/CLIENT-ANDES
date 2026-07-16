@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getInvoiceDetail } from "../../data/mock-invoice-details";
+import { getInvoiceDetail } from "../../actions/pagos.actions";
 import InvoiceDetailContent from "../../components/InvoiceDetailContent";
 
 interface InvoiceDetailPageProps {
@@ -8,11 +8,11 @@ interface InvoiceDetailPageProps {
 
 export default async function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const { invoiceId } = await params;
-  const invoice = getInvoiceDetail(invoiceId);
+  const result = await getInvoiceDetail(invoiceId);
 
-  if (!invoice) {
+  if (!result.success || !result.data) {
     notFound();
   }
 
-  return <InvoiceDetailContent invoice={invoice} />;
+  return <InvoiceDetailContent invoice={result.data} />;
 }

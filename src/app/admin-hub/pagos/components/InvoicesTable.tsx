@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, MoreVertical } from "lucide-react";
 import AdminHubTableShell, {
@@ -8,7 +8,7 @@ import AdminHubTableShell, {
   ADMIN_HUB_TABLE_HEAD_LAST_CELL,
   ADMIN_HUB_TABLE_ROW,
 } from "../../components/AdminHubTableShell";
-import type { Invoice } from "../data/mock-invoices";
+import type { Invoice } from "../types/invoice.types";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 
 interface InvoicesTableProps {
@@ -43,6 +43,17 @@ export default function InvoicesTable({ invoices, displayPeriod }: InvoicesTable
   function handleViewInvoice(invoiceId: string) {
     setOpenMenuId(null);
     router.push(`/admin-hub/pagos/facturas/${invoiceId}`);
+  }
+
+  function handleRowClick(invoiceId: string, event: ReactMouseEvent<HTMLTableRowElement>) {
+    const target = event.target as HTMLElement;
+    if (
+      target.closest("input[type='checkbox']") ||
+      target.closest("[data-invoice-row-menu]")
+    ) {
+      return;
+    }
+    handleViewInvoice(invoiceId);
   }
 
   const displayedInvoices = useMemo(() => {
@@ -82,6 +93,13 @@ export default function InvoicesTable({ invoices, displayPeriod }: InvoicesTable
 
   return (
     <AdminHubTableShell>
+      {displayedInvoices.length === 0 ? (
+        <div className="flex min-h-[240px] items-center justify-center bg-white px-6 py-12">
+          <p className="text-[14px] text-[#858585]">
+            No hay facturas para el periodo seleccionado.
+          </p>
+        </div>
+      ) : (
       <table className="w-full min-w-[900px] border-collapse bg-white">
         <thead>
           <tr className="border-b border-[#EFEFEF]">
@@ -126,7 +144,8 @@ export default function InvoicesTable({ invoices, displayPeriod }: InvoicesTable
           {displayedInvoices.map((invoice) => (
             <tr
               key={invoice.id}
-              className={ADMIN_HUB_TABLE_ROW}
+              className={`${ADMIN_HUB_TABLE_ROW} cursor-pointer`}
+              onClick={(event) => handleRowClick(invoice.id, event)}
             >
               <td className="px-6 py-6">
                 <input
@@ -193,6 +212,7 @@ export default function InvoicesTable({ invoices, displayPeriod }: InvoicesTable
           ))}
         </tbody>
       </table>
+      )}
     </AdminHubTableShell>
   );
 }

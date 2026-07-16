@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Filter, Plus } from "lucide-react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
@@ -10,22 +10,19 @@ import {
 } from "../../components/admin-hub-filter-styles";
 import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import AdminHubSelect from "../../components/AdminHubSelect";
+import TableSkeleton from "../../dashboard/components/TableSkeleton";
 import {
   buildNominaMonthOptions,
   getCurrentNominaMonthOption,
   monthOptionToPeriod,
 } from "../../nominas/data/payroll-data";
-import {
-  MOCK_INVOICES,
-  type Invoice,
-  type InvoiceStatus,
-} from "../data/mock-invoices";
+import { getFacturas } from "../actions/pagos.actions";
+import type { Invoice, InvoiceStatus } from "../types/invoice.types";
+import { amountRangeToParams } from "../utils/facturas.utils";
 import InvoiceFilterSelect from "./InvoiceFilterSelect";
 import InvoicesTable from "./InvoicesTable";
 
-const CLIENT_FILTER_OPTIONS = Array.from(
-  new Set(MOCK_INVOICES.map((inv) => inv.client))
-).map((client) => ({ value: client, label: client }));
+const SEARCH_DEBOUNCE_MS = 350;
 
 const AMOUNT_FILTER_OPTIONS = [
   { value: "0-10000", label: "Hasta $10.000" },
@@ -40,24 +37,20 @@ const STATUS_FILTER_OPTIONS: { value: InvoiceStatus; label: string }[] = [
   { value: "Vencido", label: "Vencido" },
 ];
 
-function parseInvoiceAmount(amount: string): number {
-  return parseInt(amount.replace(/[^\d]/g, ""), 10) || 0;
+function buildFilterOptions(invoices: Invoice[]) {
+  return Array.from(new Set(invoices.map((inv) => inv.client))).map((client) => ({
+    value: client,
+    label: client,
+  }));
 }
 
-function matchesAmountRange(amount: string, range: string): boolean {
-  const value = parseInvoiceAmount(amount);
-  switch (range) {
-    case "0-10000":
-      return value <= 10000;
-    case "10000-15000":
-      return value > 10000 && value <= 15000;
-    case "15000-20000":
-      return value > 15000 && value <= 20000;
-    case "20000+":
-      return value > 20000;
-    default:
-      return true;
-  }
+function mergeClientFilterOptions(
+  current: { value: string; label: string }[],
+  incoming: { value: string; label: string }[],
+) {
+  return Array.from(
+    new Map([...current, ...incoming].map((option) => [option.value, option])).values(),
+  );
 }
 
 export default function InvoicesPageContent() {
@@ -65,42 +58,60 @@ export default function InvoicesPageContent() {
   const currentMonthOption = useMemo(() => getCurrentNominaMonthOption(), []);
   const [selectedMonth, setSelectedMonth] = useState(currentMonthOption);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState("");
   const [amountFilter, setAmountFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [clientFilterOptions, setClientFilterOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const selectedPeriod = monthOptionToPeriod(selectedMonth);
 
-  const filteredInvoices = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    let result: Invoice[] = MOCK_INVOICES.filter(
-      (inv) => inv.period === selectedPeriod
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const fetchInvoices = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    const amountParams = amountFilter ? amountRangeToParams(amountFilter) : {};
+
+    const result = await getFacturas({
+      monthOption: selectedMonth,
+      search: debouncedSearch,
+      cliente: clientFilter || undefined,
+      estado: (statusFilter as InvoiceStatus) || undefined,
+      ...amountParams,
+    });
+
+    if (!result.success) {
+      setError(result.message ?? "Error al cargar facturas");
+      setInvoices([]);
+      setLoading(false);
+      return;
+    }
+
+    const items = result.data ?? [];
+    setInvoices(items);
+    setClientFilterOptions((prev) =>
+      mergeClientFilterOptions(prev, buildFilterOptions(items)),
     );
+    setLoading(false);
+  }, [selectedMonth, debouncedSearch, clientFilter, amountFilter, statusFilter]);
 
-    if (query) {
-      result = result.filter(
-        (inv) =>
-          inv.clientId.toLowerCase().includes(query) ||
-          inv.client.toLowerCase().includes(query) ||
-          inv.period.toLowerCase().includes(query)
-      );
-    }
-
-    if (clientFilter) {
-      result = result.filter((inv) => inv.client === clientFilter);
-    }
-
-    if (amountFilter) {
-      result = result.filter((inv) => matchesAmountRange(inv.totalAmount, amountFilter));
-    }
-
-    if (statusFilter) {
-      result = result.filter((inv) => inv.status === statusFilter);
-    }
-
-    return result;
-  }, [searchQuery, clientFilter, amountFilter, statusFilter, selectedPeriod]);
+  useEffect(() => {
+    void fetchInvoices();
+  }, [fetchInvoices]);
 
   function clearFilters() {
     setClientFilter("");
@@ -158,7 +169,7 @@ export default function InvoicesPageContent() {
               placeholder="Cliente"
               value={clientFilter}
               onChange={setClientFilter}
-              options={CLIENT_FILTER_OPTIONS}
+              options={clientFilterOptions}
             />
             <InvoiceFilterSelect
               label="Filtrar por Monto"
@@ -190,7 +201,15 @@ export default function InvoicesPageContent() {
         )}
       </div>
 
-      <InvoicesTable invoices={filteredInvoices} displayPeriod={selectedPeriod} />
+      {error && (
+        <p className="text-[14px] text-[#B42318]">{error}</p>
+      )}
+
+      {loading ? (
+        <TableSkeleton />
+      ) : (
+        <InvoicesTable invoices={invoices} displayPeriod={selectedPeriod} />
+      )}
     </div>
   );
 }
