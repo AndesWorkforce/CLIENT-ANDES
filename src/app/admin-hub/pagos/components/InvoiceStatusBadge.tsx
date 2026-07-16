@@ -1,4 +1,4 @@
-import type { InvoiceStatus } from "../data/mock-invoices";
+import type { InvoiceStatus } from "../types/invoice.types";
 import type {
   InvoiceLineItemStatus,
   InvoicePayrollStatus,
