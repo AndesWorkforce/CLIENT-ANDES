@@ -1,5 +1,5 @@
 import { findContract, findContractor } from "../data/mock-contractors";
-import type { PayrollDetail } from "../data/mock-payroll-detail";
+import type { PayrollDetail } from "../types/nomina-detail.types";
 import { getPersonaProfile } from "../../personas/data/mock-persona-detail";
 
 const SPANISH_MONTHS: Record<string, number> = {

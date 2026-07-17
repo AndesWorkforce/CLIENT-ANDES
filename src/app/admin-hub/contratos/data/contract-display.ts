@@ -8,10 +8,13 @@ const PAIS_LABELS: Record<string, string> = {
   VE: "Venezuela",
 };
 
-export function getPaisDisplay(paisCodigo: string | null, paisFacturacion: string | null): string {
-  const code = paisCodigo ?? paisFacturacion;
-  if (!code) return "—";
-  return PAIS_LABELS[code] ?? code;
+export function getPaisDisplay(
+  paisCodigo: string | null,
+  paisNombre?: string | null,
+): string {
+  if (paisNombre?.trim()) return paisNombre.trim();
+  if (!paisCodigo) return "—";
+  return PAIS_LABELS[paisCodigo] ?? paisCodigo;
 }
 
 /** Plazo del contrato según `fechaFinalizacion` (ProcesoContratacion). */
@@ -19,15 +22,31 @@ export function getTipoContratoDisplay(fechaFinalizacion: string | null): string
   return fechaFinalizacion ? "Plazo fijo" : "Indeterminado";
 }
 
-export function getTipoJornadaDisplay(tipoJornada: JornadaLaboral): string {
-  return tipoJornada === "FULL_TIME" ? "Tiempo completo" : "Medio tiempo";
+export function getTipoJornadaDisplay(tipoJornada: JornadaLaboral | null): string {
+  if (!tipoJornada) return "—";
+  return tipoJornada === "FULL_TIME" ? "Full Time" : "Part Time";
 }
 
-/** Método de pago derivado de campos de Usuario (`usaDollarApp`, `bancoNombre`). */
-export function getMetodoPagoDisplay(contract: Pick<MockProcesoContratacion, "usaDollarApp" | "bancoNombre">): string {
-  if (contract.usaDollarApp) return "Dolar App";
-  if (contract.bancoNombre) return contract.bancoNombre;
-  return "—";
+export function tipoJornadaFromDisplay(label: string): JornadaLaboral | null {
+  if (label === "Full Time") return "FULL_TIME";
+  if (label === "Part Time") return "PART_TIME";
+  return null;
+}
+
+/** Método de pago según `Usuario.usaDollarApp`. */
+export function getMetodoPagoDisplay(
+  source?: boolean | null | Pick<MockProcesoContratacion, "usaDollarApp">,
+): string {
+  if (source === null || source === undefined) {
+    return "No Especifica";
+  }
+
+  if (typeof source === "boolean") {
+    if (source === true) return "Dollar App";
+    return "Transferencia Bancaria";
+  }
+
+  return getMetodoPagoDisplay(source.usaDollarApp);
 }
 
 export type ContractStatusLabel = "Activo" | "Inactivo";

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Filter } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
   ADMIN_HUB_CLEAR_FILTERS_CLASS,
@@ -10,16 +10,23 @@ import {
 } from "../../components/admin-hub-filter-styles";
 import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import AdminHubSelect from "../../components/AdminHubSelect";
+import TableSkeleton from "../../dashboard/components/TableSkeleton";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
+import { getContratos } from "../../contratos/actions/contratos.actions";
+import { getNominas, type NominasPagination } from "../actions/nominas.actions";
 import {
-  buildPayrollRows,
   buildNominaMonthOptions,
   getCurrentNominaMonthOption,
-  getPayrollVariables,
+  isValidAnioMes,
   monthOptionToPeriod,
+  nominaMonthOptionToAnioMes,
+  type PayrollRow,
 } from "../data/payroll-data";
 import type { PayrollVariableStatus } from "../data/mock-payroll-variables";
 import NominasTable from "./NominasTable";
+
+const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 350;
 
 const STATUS_FILTER_OPTIONS: { value: PayrollVariableStatus; label: string }[] = [
   { value: "Pendiente", label: "Pendiente" },
@@ -29,7 +36,10 @@ const STATUS_FILTER_OPTIONS: { value: PayrollVariableStatus; label: string }[] =
 ];
 
 function buildFilterOptions(values: string[]) {
-  return Array.from(new Set(values)).map((value) => ({ value, label: value }));
+  return Array.from(new Set(values.filter(Boolean))).map((value) => ({
+    value,
+    label: value,
+  }));
 }
 
 export default function NominasPageContent() {
@@ -37,95 +47,156 @@ export default function NominasPageContent() {
   const currentMonthOption = useMemo(() => getCurrentNominaMonthOption(), []);
 
   const [selectedMonth, setSelectedMonth] = useState(currentMonthOption);
+  const [rows, setRows] = useState<PayrollRow[]>([]);
+  const [pagination, setPagination] = useState<NominasPagination>({
+    total: 0,
+    page: 1,
+    limit: PAGE_SIZE,
+    totalPages: 0,
+    hasPreviousPage: false,
+    hasNextPage: false,
+  });
+  const [clientFilterOptions, setClientFilterOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [emittedRowIds, setEmittedRowIds] = useState<Set<string>>(new Set());
 
-  const period = monthOptionToPeriod(selectedMonth);
-  const allVariables = getPayrollVariables();
-
-  const allRows = useMemo(
-    () => buildPayrollRows(period, allVariables),
-    [period, allVariables]
+  const periodoApi = useMemo(
+    () => nominaMonthOptionToAnioMes(selectedMonth),
+    [selectedMonth],
   );
+  const periodDisplay = monthOptionToPeriod(selectedMonth);
 
-  const clientFilterOptions = buildFilterOptions(allRows.map((row) => row.client));
+  useEffect(() => {
+    void (async () => {
+      const response = await getContratos({ page: 1, limit: 500, estado: "Activo" });
+      if (response.success && response.data) {
+        setClientFilterOptions(
+          buildFilterOptions(response.data.map((contract) => contract.empresaNombre)),
+        );
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
+
+  function handleMonthChange(month: string) {
+    setSelectedMonth(month);
+    setPage(1);
+    setSelectedIds(new Set());
+  }
+
+  const loadNominas = useCallback(async () => {
+    if (!isValidAnioMes(periodoApi)) {
+      setRows([]);
+      setError("El período seleccionado no es válido.");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const response = await getNominas({
+      periodo: periodoApi,
+      page,
+      limit: PAGE_SIZE,
+      search: debouncedSearch || undefined,
+      cliente: clientFilter || undefined,
+      estado: (statusFilter as PayrollVariableStatus) || undefined,
+    });
+
+    if (!response.success || !response.data) {
+      setRows([]);
+      setPagination((prev) => ({
+        ...prev,
+        total: 0,
+        page: 1,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      }));
+      setError(response.message || "No se pudieron cargar las nóminas");
+      setLoading(false);
+      return;
+    }
+
+    setRows(response.data);
+    if (response.pagination) {
+      setPagination(response.pagination);
+    }
+    setSelectedIds(new Set());
+    setLoading(false);
+  }, [periodoApi, page, debouncedSearch, clientFilter, statusFilter]);
+
+  useEffect(() => {
+    void loadNominas();
+  }, [loadNominas]);
 
   function clearFilters() {
     setClientFilter("");
     setStatusFilter("");
+    setPage(1);
   }
 
   const hasActiveFilters = Boolean(clientFilter || statusFilter);
-
-  // Actualizar el estado visual de las filas según si fueron emitidas
-  const displayedRowsWithEmittedStatus = useMemo(() => {
-    return allRows.map((row) => ({
-      ...row,
-      status: emittedRowIds.has(row.id) ? ("Emitido" as const) : row.status,
-    }));
-  }, [allRows, emittedRowIds]);
-
-  const filteredRowsWithEmittedStatus = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    let result = [...displayedRowsWithEmittedStatus];
-
-    if (query) {
-      result = result.filter(
-        (row) =>
-          row.contractorName.toLowerCase().includes(query) ||
-          row.position.toLowerCase().includes(query) ||
-          row.client.toLowerCase().includes(query) ||
-          row.period.toLowerCase().includes(query)
-      );
-    }
-
-    if (clientFilter) {
-      result = result.filter((row) => row.client === clientFilter);
-    }
-
-    if (statusFilter) {
-      result = result.filter((row) => row.status === statusFilter);
-    }
-
-    return result;
-  }, [displayedRowsWithEmittedStatus, searchQuery, clientFilter, statusFilter]);
-
-  const selectedRows = displayedRowsWithEmittedStatus.filter((row) => selectedIds.has(row.id));
   const hasSelectedRows = selectedIds.size > 0;
+
+  const visiblePages = useMemo(() => {
+    const total = pagination.totalPages;
+    if (total <= 1) return [];
+
+    const maxButtons = 5;
+    let start = Math.max(1, pagination.page - Math.floor(maxButtons / 2));
+    const end = Math.min(total, start + maxButtons - 1);
+    start = Math.max(1, end - maxButtons + 1);
+
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  }, [pagination.page, pagination.totalPages]);
 
   function validateNominas() {
     const errors: string[] = [];
-    const nominasSeleccionadas = displayedRowsWithEmittedStatus.filter((row) => 
-      selectedIds.has(row.id)
-    );
+    const nominasSeleccionadas = rows.filter((row) => selectedIds.has(row.id));
 
     if (nominasSeleccionadas.length === 0) {
       errors.push("Por favor selecciona al menos una nómina para emitir.");
       return errors;
     }
 
-    // Validación 1: Verificar que pertenecen al mes seleccionado
     const nominasFueraDeMes = nominasSeleccionadas.filter(
-      (row) => row.period !== monthOptionToPeriod(selectedMonth)
+      (row) => row.period !== periodDisplay,
     );
     if (nominasFueraDeMes.length > 0) {
       errors.push(
-        `Las siguientes nóminas no pertenecen al mes seleccionado (${selectedMonth}):`
+        `Las siguientes nóminas no pertenecen al mes seleccionado (${selectedMonth}):`,
       );
       nominasFueraDeMes.forEach((row) => {
         errors.push(`  • ${row.contractorName} (${row.client}) - Período: ${row.period}`);
       });
     }
 
-    // Validación 2: Verificar que no están ya emitidas
-    const nominasYaEmitidas = nominasSeleccionadas.filter((row) => row.status === "Emitido");
+    const nominasYaEmitidas = nominasSeleccionadas.filter(
+      (row) => row.status === "Emitido",
+    );
     if (nominasYaEmitidas.length > 0) {
       errors.push("Las siguientes nóminas ya fueron emitidas:");
       nominasYaEmitidas.forEach((row) => {
@@ -133,12 +204,13 @@ export default function NominasPageContent() {
       });
     }
 
-    // Validación 3: Verificar que TODAS están en estado Aprobado
     const nominasNoAprobadas = nominasSeleccionadas.filter(
-      (row) => row.status !== "Aprobado"
+      (row) => row.status !== "Aprobado",
     );
     if (nominasNoAprobadas.length > 0) {
-      errors.push("Todas las nóminas deben estar aprobadas antes de emitirse. Las siguientes nóminas NO están aprobadas:");
+      errors.push(
+        "Todas las nóminas deben estar aprobadas antes de emitirse. Las siguientes nóminas NO están aprobadas:",
+      );
       nominasNoAprobadas.forEach((row) => {
         errors.push(`  • ${row.contractorName} (${row.client}) - Estado actual: ${row.status}`);
       });
@@ -159,12 +231,6 @@ export default function NominasPageContent() {
   }
 
   function handleConfirmEmision() {
-    // Marcar las nóminas seleccionadas como emitidas
-    const newEmittedIds = new Set(emittedRowIds);
-    selectedIds.forEach((id) => newEmittedIds.add(id));
-    setEmittedRowIds(newEmittedIds);
-
-    // Cerrar modal de confirmación y abrir modal de éxito
     setShowConfirmModal(false);
     setValidationErrors([]);
     setShowResultModal(true);
@@ -179,7 +245,7 @@ export default function NominasPageContent() {
       <div className="flex flex-wrap items-center gap-4">
         <AdminHubSelect
           value={selectedMonth}
-          onChange={setSelectedMonth}
+          onChange={handleMonthChange}
           options={monthOptions.map((month) => ({ value: month, label: month }))}
           variant="filter"
         />
@@ -219,14 +285,20 @@ export default function NominasPageContent() {
               label="Filtrar por Cliente"
               placeholder="Cliente"
               value={clientFilter}
-              onChange={setClientFilter}
+              onChange={(value) => {
+                setClientFilter(value);
+                setPage(1);
+              }}
               options={clientFilterOptions}
             />
             <InvoiceFilterSelect
               label="Filtrar por Estado"
               placeholder="Pendiente"
               value={statusFilter}
-              onChange={setStatusFilter}
+              onChange={(value) => {
+                setStatusFilter(value);
+                setPage(1);
+              }}
               options={STATUS_FILTER_OPTIONS}
             />
             <button
@@ -245,13 +317,78 @@ export default function NominasPageContent() {
         )}
       </div>
 
-      <NominasTable 
-        rows={filteredRowsWithEmittedStatus} 
-        selectedIds={selectedIds}
-        onSelectedIdsChange={setSelectedIds}
-      />
+      {error && !loading ? (
+        <div className="rounded-[8px] border border-[#FECDCA] bg-[#FEF3F2] px-4 py-3 text-[14px] text-[#B42318]">
+          {error}
+        </div>
+      ) : null}
 
-      {/* Modal de Confirmación */}
+      {loading ? (
+        <div className="rounded-[8px] border border-[#EFEFEF] bg-white p-6">
+          <TableSkeleton />
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-[12px] border border-[#EFEFEF] bg-white px-6 py-12 text-center text-[14px] text-[#858585]">
+          {hasActiveFilters || debouncedSearch
+            ? "No hay nóminas que coincidan con los filtros aplicados."
+            : "No hay nóminas para el período seleccionado."}
+        </div>
+      ) : (
+        <NominasTable
+          rows={rows}
+          selectedIds={selectedIds}
+          onSelectedIdsChange={setSelectedIds}
+        />
+      )}
+
+      {!loading && pagination.totalPages > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p className="text-[14px] text-[#858585]">
+            Mostrando página {pagination.page} de {pagination.totalPages} (
+            {pagination.total} nóminas)
+          </p>
+
+          <div className="inline-flex overflow-hidden rounded-[8px] border border-[#EFEFEF]">
+            <button
+              type="button"
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={!pagination.hasPreviousPage}
+              className="flex items-center justify-center px-3 py-2 text-[#0097B2] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Página anterior"
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            {visiblePages.map((pageNumber) => (
+              <button
+                key={pageNumber}
+                type="button"
+                onClick={() => setPage(pageNumber)}
+                className={`min-w-[40px] px-3 py-2 text-[14px] transition-colors ${
+                  pagination.page === pageNumber
+                    ? "bg-[#0097B2] text-white"
+                    : "text-[#0097B2] hover:bg-[#F8F8F8]"
+                }`}
+              >
+                {pageNumber}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={() =>
+                setPage((prev) => Math.min(pagination.totalPages, prev + 1))
+              }
+              disabled={!pagination.hasNextPage}
+              className="flex items-center justify-center px-3 py-2 text-[#0097B2] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Página siguiente"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {showConfirmModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-[12px] shadow-lg max-w-[500px] w-full mx-4 overflow-hidden">
@@ -302,7 +439,6 @@ export default function NominasPageContent() {
         </div>
       )}
 
-      {/* Modal de Resultado (Éxito o Error) */}
       {showResultModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-[12px] shadow-lg max-w-[500px] w-full mx-4 overflow-hidden">
@@ -333,9 +469,9 @@ export default function NominasPageContent() {
                   </p>
                   <div className="bg-[#FFF5F5] rounded-[8px] px-4 py-3">
                     <ul className="text-[13px] text-[#343434] space-y-1">
-                      {validationErrors.map((error, index) => (
+                      {validationErrors.map((errorMessage, index) => (
                         <li key={index} className="leading-relaxed">
-                          {error}
+                          {errorMessage}
                         </li>
                       ))}
                     </ul>

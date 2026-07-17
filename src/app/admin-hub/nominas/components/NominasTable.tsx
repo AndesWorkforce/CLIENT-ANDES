@@ -10,12 +10,10 @@ import AdminHubTableShell, {
   ADMIN_HUB_TABLE_HEAD_LAST_CELL,
   ADMIN_HUB_TABLE_ROW,
 } from "../../components/AdminHubTableShell";
-import {
-  formatMoney,
-  formatVariableColumn,
-  type PayrollRow,
-} from "../data/payroll-data";
-import { payrollRowToDetailPath } from "../data/mock-payroll-detail";
+import { formatMoney, type PayrollRow } from "../data/payroll-data";
+import { payrollRowToDetailPath } from "../utils/payroll-navigation";
+import PayrollInvoiceBadge from "./PayrollInvoiceBadge";
+import PayrollProofBadge from "./PayrollProofBadge";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
 
 interface NominasTableProps {
@@ -24,10 +22,22 @@ interface NominasTableProps {
   onSelectedIdsChange: (selectedIds: Set<string>) => void;
 }
 
-type SortKey = "clientPrice" | "variableAmount" | "totalAmount" | "status" | null;
+type SortKey = "invoice" | "proof" | "totalAmount" | "status" | null;
 type MenuPosition = { top: number; left: number };
 
 const MENU_MIN_WIDTH = 148;
+
+const INVOICE_SORT_ORDER: Record<string, number> = {
+  Generado: 3,
+  Pendiente: 2,
+  "Faltan datos": 1,
+};
+
+const PROOF_SORT_ORDER: Record<string, number> = {
+  Cargado: 3,
+  Pendiente: 2,
+  "Not req.": 1,
+};
 
 export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }: NominasTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>(null);
@@ -87,6 +97,21 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
         const cmp = a.status.localeCompare(b.status);
         return sortDir === "asc" ? cmp : -cmp;
       }
+
+      if (sortKey === "invoice") {
+        const aValue = a.invoice ? INVOICE_SORT_ORDER[a.invoice] ?? 0 : 0;
+        const bValue = b.invoice ? INVOICE_SORT_ORDER[b.invoice] ?? 0 : 0;
+        const diff = aValue - bValue;
+        return sortDir === "asc" ? diff : -diff;
+      }
+
+      if (sortKey === "proof") {
+        const aValue = a.proof ? PROOF_SORT_ORDER[a.proof] ?? 0 : 0;
+        const bValue = b.proof ? PROOF_SORT_ORDER[b.proof] ?? 0 : 0;
+        const diff = aValue - bValue;
+        return sortDir === "asc" ? diff : -diff;
+      }
+
       const diff = a[sortKey] - b[sortKey];
       return sortDir === "asc" ? diff : -diff;
     });
@@ -139,6 +164,8 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
     : undefined;
 
   const cellClass = "px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585] whitespace-nowrap";
+  const positionCellClass = "px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]";
+  const positionTextClass = "block max-w-[28ch] whitespace-normal break-words";
 
   function SortableHeader({
     label,
@@ -180,7 +207,7 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
               Contratista
             </th>
-            <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+            <th className="max-w-[28ch] px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
               Puesto
             </th>
             <th
@@ -192,10 +219,10 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
               Período
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              <SortableHeader label="Precio del cliente" sortField="clientPrice" />
+              <SortableHeader label="Invoice" sortField="invoice" />
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              <SortableHeader label="Variable" sortField="variableAmount" />
+              <SortableHeader label="Proofs" sortField="proof" />
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
               <SortableHeader label="Monto total" sortField="totalAmount" />
@@ -208,10 +235,7 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
         </thead>
         <tbody>
           {displayedRows.map((row) => (
-            <tr
-              key={row.id}
-              className={ADMIN_HUB_TABLE_ROW}
-            >
+            <tr key={row.id} className={ADMIN_HUB_TABLE_ROW}>
               <td className="px-6 py-6">
                 <input
                   type="checkbox"
@@ -222,13 +246,19 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
                 />
               </td>
               <td className={cellClass}>{row.contractorName}</td>
-              <td className={cellClass}>{row.position}</td>
+              <td className={positionCellClass}>
+                <span className={positionTextClass}>{row.position}</span>
+              </td>
               <td className={`${cellClass} ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}>
                 {row.client}
               </td>
               <td className={cellClass}>{row.period}</td>
-              <td className={cellClass}>{formatMoney(row.clientPrice)}</td>
-              <td className={cellClass}>{formatVariableColumn(row.variableAmount)}</td>
+              <td className={cellClass}>
+                <PayrollInvoiceBadge status={row.invoice} />
+              </td>
+              <td className={cellClass}>
+                <PayrollProofBadge status={row.proof} />
+              </td>
               <td className={cellClass}>{formatMoney(row.totalAmount)}</td>
               <td className="px-3 py-6">
                 <PayrollVariableStatusBadge status={row.status} />

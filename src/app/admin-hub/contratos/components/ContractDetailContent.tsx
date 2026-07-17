@@ -14,20 +14,24 @@ import AdminHubTableShell, {
 } from "../../components/AdminHubTableShell";
 import { PAYROLL_VARIABLE_TABS } from "../../nominas/data/mock-payroll-variables";
 import { formatMoney } from "../../nominas/data/payroll-data";
-import { getMetodoPagoDisplay, getPaisDisplay } from "../data/contract-display";
+import {
+  updateContrato,
+  type UpdateContratoInput,
+} from "../actions/contratos.actions";
 import {
   formatContractSalary,
   formatVariableImpact,
   getDiscretionaryBonusLabel,
+  normalizeOptionalContractField,
+  parseContractSalaryInput,
 } from "../data/contract-detail-display";
-import type { ContractDetail } from "../data/mock-contract-detail";
-import { personaToDetailPath } from "../../personas/data/mock-persona-detail";
-import { MOCK_CONTRACTORS } from "../../nominas/data/mock-contractors";
+import type { ContratoDetail } from "../types/contrato-detail.types";
+import { personaToDetailPath } from "../../personas/utils/persona-detail.utils";
 import ContractApprovalBadge from "./ContractApprovalBadge";
 import ContractInfoCard from "./ContractInfoCard";
 
 interface ContractDetailContentProps {
-  detail: ContractDetail;
+  detail: ContratoDetail;
 }
 
 type ContractVariableTab = (typeof PAYROLL_VARIABLE_TABS)[number]["key"];
@@ -43,7 +47,7 @@ interface ContractFormState {
   estadoResidencia: string;
   ciudadResidencia: string;
   direccionResidencia: string;
-  codigoContrato: string;
+  idContrato: string;
   fechaInicioContrato: string;
   fechaUltimaModificacionContrato: string;
   puestoTrabajo: string;
@@ -61,27 +65,25 @@ interface ContractFormState {
   numeroCuentaFacturacion: string;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
 function displayOptional(value: string | null): string {
   return value ?? "No especificado";
 }
 
-function buildContractFormState(detail: ContractDetail): ContractFormState {
-  const pais = getPaisDisplay(detail.paisCodigo, detail.paisFacturacion);
-  const metodoPago = detail.usaDollarApp
-    ? "Transferencia Bancaria"
-    : getMetodoPagoDisplay(detail);
-
+function buildContractFormState(detail: ContratoDetail): ContractFormState {
   return {
     nombreCompleto: detail.nombreCompleto,
     correo: detail.correo,
     telefono: detail.telefono,
     documentoIdentidad: detail.documentoIdentidad,
     fechaNacimiento: detail.fechaNacimiento,
-    pais,
+    pais: detail.paisNombre,
     estadoResidencia: detail.estadoResidencia,
     ciudadResidencia: detail.ciudadResidencia,
     direccionResidencia: detail.direccionResidencia,
-    codigoContrato: detail.codigoContrato,
+    idContrato: detail.id,
     fechaInicioContrato: detail.fechaInicioContrato,
     fechaUltimaModificacionContrato: detail.fechaUltimaModificacionContrato,
     puestoTrabajo: detail.puestoTrabajo,
@@ -90,8 +92,8 @@ function buildContractFormState(detail: ContractDetail): ContractFormState {
     tarifaHrNacional: detail.tarifaHrNacional.toFixed(1),
     bonusLabel: detail.bonusLabel,
     ipbBalance: getDiscretionaryBonusLabel(detail.discretionaryBonusType),
-    paisFacturacion: pais,
-    metodoPago,
+    paisFacturacion: detail.paisFacturacionNombre,
+    metodoPago: detail.metodoPago,
     dollarTag: displayOptional(detail.dollarTag),
     bancoNombre: displayOptional(detail.bancoNombre),
     numeroCuentaBancaria: displayOptional(detail.numeroCuentaBancaria),
@@ -100,9 +102,78 @@ function buildContractFormState(detail: ContractDetail): ContractFormState {
   };
 }
 
+function buildSectionPayload(
+  section: EditableSection,
+  form: ContractFormState,
+  detail: ContratoDetail,
+): { payload?: UpdateContratoInput; error?: string } {
+  if (section === "general") {
+    if (!form.nombreCompleto.trim()) {
+      return { error: "El nombre completo es obligatorio." };
+    }
+    if (!form.correo.trim()) {
+      return { error: "El email es obligatorio." };
+    }
+    if (!EMAIL_REGEX.test(form.correo.trim())) {
+      return { error: "El email no tiene un formato válido." };
+    }
+    if (form.fechaNacimiento && !ISO_DATE_REGEX.test(form.fechaNacimiento)) {
+      return { error: "La fecha de nacimiento debe tener formato YYYY-MM-DD." };
+    }
+
+    return {
+      payload: {
+        nombreCompleto: form.nombreCompleto.trim(),
+        correo: form.correo.trim(),
+        telefono: form.telefono.trim(),
+        documentoIdentidad: form.documentoIdentidad.trim(),
+        fechaNacimiento: form.fechaNacimiento || undefined,
+        paisNombre: form.pais.trim(),
+      },
+    };
+  }
+
+  if (section === "residence") {
+    return {
+      payload: {
+        paisNombre: form.pais.trim(),
+        estadoResidencia: form.estadoResidencia.trim(),
+        ciudadResidencia: form.ciudadResidencia.trim(),
+        direccionResidencia: form.direccionResidencia.trim(),
+      },
+    };
+  }
+
+  if (section === "labor") {
+    const ofertaSalarial = parseContractSalaryInput(form.salario);
+    if (ofertaSalarial === null || ofertaSalarial < 0) {
+      return { error: "El salario debe ser un número válido mayor o igual a 0." };
+    }
+
+    return {
+      payload: {
+        ofertaSalarial,
+        monedaSalario: detail.monedaSalario,
+      },
+    };
+  }
+
+  return {
+    payload: {
+      paisFacturacion: form.paisFacturacion.trim(),
+      metodoPago: form.metodoPago.trim(),
+      dollarTag: normalizeOptionalContractField(form.dollarTag),
+      bancoNombre: normalizeOptionalContractField(form.bancoNombre),
+      numeroCuentaBancaria: normalizeOptionalContractField(form.numeroCuentaBancaria),
+      numeroCuentaFacturacion: normalizeOptionalContractField(form.numeroCuentaFacturacion),
+    },
+  };
+}
+
 export default function ContractDetailContent({ detail }: ContractDetailContentProps) {
   const router = useRouter();
   const { addNotification } = useNotificationStore();
+  const [detailState, setDetailState] = useState(detail);
   const [form, setForm] = useState<ContractFormState>(() => buildContractFormState(detail));
   const [editingSections, setEditingSections] = useState<Record<EditableSection, boolean>>({
     general: false,
@@ -110,6 +181,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
     labor: false,
     financial: false,
   });
+  const [savingSection, setSavingSection] = useState<EditableSection | null>(null);
   const [activeVariableTab, setActiveVariableTab] = useState<ContractVariableTab>("todos");
   const [selectedPayrollHistoryIds, setSelectedPayrollHistoryIds] = useState<Set<string>>(
     new Set()
@@ -122,26 +194,26 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
     () => [
       { label: "Administrador", href: "/admin-hub/dashboard" },
       { label: "Contratos", href: "/admin-hub/contratos" },
-      { label: `Contrato - ${detail.codigoContrato}` },
+      { label: `Contrato - ${detailState.codigoContrato}` },
     ],
-    [detail.codigoContrato]
+    [detailState.codigoContrato]
   );
 
   const filteredVariables = useMemo(() => {
-    if (activeVariableTab === "todos") return detail.variablesNomina;
-    return detail.variablesNomina.filter(
+    if (activeVariableTab === "todos") return detailState.variablesNomina;
+    return detailState.variablesNomina.filter(
       (variable) => variable.categoria === activeVariableTab
     );
-  }, [activeVariableTab, detail.variablesNomina]);
+  }, [activeVariableTab, detailState.variablesNomina]);
 
   const payrollTotal = useMemo(
-    () => detail.historialNomina.reduce((sum, row) => sum + row.totalPagado, 0),
-    [detail.historialNomina]
+    () => detailState.historialNomina.reduce((sum, row) => sum + row.totalPagado, 0),
+    [detailState.historialNomina]
   );
 
   const allPayrollHistorySelected =
-    detail.historialNomina.length > 0 &&
-    detail.historialNomina.every((row) => selectedPayrollHistoryIds.has(row.id));
+    detailState.historialNomina.length > 0 &&
+    detailState.historialNomina.every((row) => selectedPayrollHistoryIds.has(row.id));
 
   const allVariablesSelected =
     filteredVariables.length > 0 &&
@@ -151,7 +223,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
     if (allPayrollHistorySelected) {
       setSelectedPayrollHistoryIds(new Set());
     } else {
-      setSelectedPayrollHistoryIds(new Set(detail.historialNomina.map((row) => row.id)));
+      setSelectedPayrollHistoryIds(new Set(detailState.historialNomina.map((row) => row.id)));
     }
   }
 
@@ -193,14 +265,44 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function toggleSectionEdit(section: EditableSection) {
-    if (editingSections[section]) {
-      setEditingSections((prev) => ({ ...prev, [section]: false }));
-      addNotification("Cambios guardados correctamente.", "success");
+  async function toggleSectionEdit(section: EditableSection) {
+    if (savingSection) {
       return;
     }
 
-    setEditingSections((prev) => ({ ...prev, [section]: true }));
+    if (!editingSections[section]) {
+      if (section === "labor") {
+        setForm((prev) => ({
+          ...prev,
+          salario: String(detailState.ofertaSalarial),
+        }));
+      }
+      setEditingSections((prev) => ({ ...prev, [section]: true }));
+      return;
+    }
+
+    const { payload, error } = buildSectionPayload(section, form, detailState);
+    if (error || !payload) {
+      addNotification(error ?? "No se pudo armar el payload de actualización.", "error");
+      return;
+    }
+
+    setSavingSection(section);
+    try {
+      const result = await updateContrato(detailState.id, payload);
+      if (!result.success || !result.data) {
+        addNotification(result.message || "Error al guardar los cambios.", "error");
+        return;
+      }
+
+      setDetailState(result.data);
+      setForm(buildContractFormState(result.data));
+      setEditingSections((prev) => ({ ...prev, [section]: false }));
+      addNotification("Cambios guardados correctamente.", "success");
+      router.refresh();
+    } finally {
+      setSavingSection(null);
+    }
   }
 
   function handleExport() {
@@ -208,21 +310,12 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
   }
 
   function handleGoToPayrollVariables() {
-    const params = new URLSearchParams({ contractor: detail.nombreCompleto });
+    const params = new URLSearchParams({ contractor: detailState.nombreCompleto });
     router.push(`/admin-hub/nominas/variables?${params.toString()}`);
   }
 
   function handleGoToProfile() {
-    const contractor = MOCK_CONTRACTORS.find(
-      (item) => item.name === detail.nombreCompleto
-    );
-
-    if (contractor) {
-      router.push(personaToDetailPath(contractor));
-      return;
-    }
-
-    addNotification("No se encontró el perfil del contratista.", "info");
+    router.push(personaToDetailPath({ id: detailState.usuarioId }));
   }
 
   return (
@@ -231,10 +324,10 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
 
       <div className="flex flex-col gap-1">
         <h1 className="text-[32px] font-bold leading-[1.3] text-black">
-          Contrato - {detail.codigoContrato}
+          Contrato - {detailState.codigoContrato}
         </h1>
         <p className="text-[16px] leading-[1.3] text-[#343434]">
-          {detail.nombreCompleto} - {detail.puestoTrabajo}
+          {detailState.nombreCompleto} - {detailState.puestoTrabajo}
         </p>
       </div>
 
@@ -261,7 +354,8 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
           <ContractInfoCard
             title="Información General"
             isEditing={editingSections.general}
-            onEditClick={() => toggleSectionEdit("general")}
+            isSaving={savingSection === "general"}
+            onEditClick={() => void toggleSectionEdit("general")}
           >
             <AdminHubFormField
               type="input"
@@ -309,7 +403,8 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
           <ContractInfoCard
             title="Dirección de Residencia"
             isEditing={editingSections.residence}
-            onEditClick={() => toggleSectionEdit("residence")}
+            isSaving={savingSection === "residence"}
+            onEditClick={() => void toggleSectionEdit("residence")}
           >
             <AdminHubFormField
               type="input"
@@ -346,40 +441,41 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
           <ContractInfoCard
             title="Información Laboral"
             isEditing={editingSections.labor}
-            onEditClick={() => toggleSectionEdit("labor")}
+            isSaving={savingSection === "labor"}
+            onEditClick={() => void toggleSectionEdit("labor")}
           >
             <AdminHubFormField
               type="input"
               label="ID Contrato"
-              value={form.codigoContrato}
-              onChange={(value) => updateField("codigoContrato", value)}
-              viewOnly={!editingSections.labor}
+              value={form.idContrato}
+              onChange={(value) => updateField("idContrato", value)}
+              viewOnly
             />
             <AdminHubDatePicker
               label="Fecha inicio de Contrato"
               value={form.fechaInicioContrato}
               onChange={(value) => updateField("fechaInicioContrato", value)}
-              viewOnly={!editingSections.labor}
+              viewOnly
             />
             <AdminHubDatePicker
               label="Fecha última modificación de Contrato"
               value={form.fechaUltimaModificacionContrato}
               onChange={(value) => updateField("fechaUltimaModificacionContrato", value)}
-              viewOnly={!editingSections.labor}
+              viewOnly
             />
             <AdminHubFormField
               type="input"
               label="Posición"
               value={form.puestoTrabajo}
               onChange={(value) => updateField("puestoTrabajo", value)}
-              viewOnly={!editingSections.labor}
+              viewOnly
             />
             <AdminHubFormField
               type="input"
               label="Cliente"
               value={form.empresaNombre}
               onChange={(value) => updateField("empresaNombre", value)}
-              viewOnly={!editingSections.labor}
+              viewOnly
             />
             <AdminHubFormField
               type="input"
@@ -393,28 +489,29 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
               label="HR Rate Holidays"
               value={form.tarifaHrNacional}
               onChange={(value) => updateField("tarifaHrNacional", value)}
-              viewOnly={!editingSections.labor}
+              viewOnly
             />
             <AdminHubFormField
               type="input"
               label="Bonos"
               value={form.bonusLabel}
               onChange={(value) => updateField("bonusLabel", value)}
-              viewOnly={!editingSections.labor}
+              viewOnly
             />
             <AdminHubFormField
               type="input"
               label="IPB Balance"
               value={form.ipbBalance}
               onChange={(value) => updateField("ipbBalance", value)}
-              viewOnly={!editingSections.labor}
+              viewOnly
             />
           </ContractInfoCard>
 
           <ContractInfoCard
             title="Información Financiera"
             isEditing={editingSections.financial}
-            onEditClick={() => toggleSectionEdit("financial")}
+            isSaving={savingSection === "financial"}
+            onEditClick={() => void toggleSectionEdit("financial")}
           >
             <AdminHubFormField
               type="input"
@@ -460,7 +557,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
               required={false}
               value={form.bancoFacturacionNombre}
               onChange={(value) => updateField("bancoFacturacionNombre", value)}
-              viewOnly={!editingSections.financial}
+              viewOnly
             />
             <AdminHubFormField
               type="input"
@@ -504,7 +601,17 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                 </tr>
               </thead>
               <tbody>
-                {detail.historialNomina.map((row) => (
+                {detailState.historialNomina.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-6 py-8 text-center text-[14px] text-[#858585]"
+                    >
+                      No hay nóminas registradas para este contrato.
+                    </td>
+                  </tr>
+                ) : (
+                  detailState.historialNomina.map((row) => (
                   <tr key={row.id} className={ADMIN_HUB_TABLE_ROW}>
                     <td className="px-6 py-6">
                       <input
@@ -526,7 +633,8 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                     </td>
                     <td className="px-6 py-6" />
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
               <tfoot>
                 <tr className="border-t border-[#EFEFEF]">
@@ -623,7 +731,17 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                 </tr>
               </thead>
               <tbody>
-                {filteredVariables.map((variable) => (
+                {filteredVariables.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-6 py-8 text-center text-[14px] text-[#858585]"
+                    >
+                      No hay variables de nómina para este contrato.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredVariables.map((variable) => (
                   <tr key={variable.id} className={ADMIN_HUB_TABLE_ROW}>
                     <td className="px-6 py-6">
                       <input
@@ -651,7 +769,8 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                     </td>
                     <td className="px-6 py-6" />
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </AdminHubTableShell>
@@ -662,11 +781,17 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
             Historial de cambios del contrato
           </h2>
           <ul className="list-disc space-y-[18px] pl-5 text-[16px] leading-[1.3] text-[#343434]">
-            {detail.historialCambios.map((entry) => (
+            {detailState.historialCambios.length === 0 ? (
+              <li className="list-none text-[#858585]">
+                No hay cambios registrados para este contrato.
+              </li>
+            ) : (
+              detailState.historialCambios.map((entry) => (
               <li key={entry.id} className="border-b border-[#C8C8C8] pb-[18px] last:border-b-0 last:pb-0">
                 {entry.descripcion} · {entry.fecha}
               </li>
-            ))}
+              ))
+            )}
           </ul>
         </section>
       </div>

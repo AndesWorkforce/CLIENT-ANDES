@@ -108,21 +108,32 @@ export default function PayrollVariableDetailContent({
     [detail.id]
   );
 
-  // Calcular monto basado en base de pago
+  // Monto mostrado: preferir el del API (fórmula backend). Al editar, recalcular en UI.
   const montoCalculado = useMemo(() => {
-    const base = isEditingBasePago ? basePagoEdit.sueldoBase : detail.sueldoBase;
-    const duracion = isEditingBasePago ? basePagoEdit.duracion : detail.duracion;
-    const cantidad = isEditingBasePago ? basePagoEdit.cantidad : detail.cantidad;
-    
-    // Cálculo según tipo de variable
-    const montoBase = (base / duracion) * cantidad;
-    
-    // Deducciones y Ausencias tienen impacto negativo
+    if (!isEditingBasePago) {
+      return detail.monto;
+    }
+
+    const base = basePagoEdit.sueldoBase;
+    const cantidad = basePagoEdit.cantidad;
+    const WORKING_DAYS = 20;
+
+    let montoBase: number;
+    if (detail.type === "Ausencia" || detail.type === "Holiday") {
+      // Ausencia / Holiday (día): (sueldoBase / 20) × cantidad
+      montoBase = (base / WORKING_DAYS) * cantidad;
+    } else if (detail.type === "Overtime") {
+      // Overtime (sin multiplicador de país en preview local): (sueldoBase / 20 / 8) × horas
+      montoBase = (base / WORKING_DAYS / 8) * cantidad;
+    } else {
+      const duracion = basePagoEdit.duracion || 1;
+      montoBase = (base / duracion) * cantidad;
+    }
+
     if (detail.type === "Deducción" || detail.type === "Ausencia") {
       return -Math.abs(montoBase);
     }
-    
-    // Overtime, Income Variable y Holiday tienen impacto positivo
+
     return Math.abs(montoBase);
   }, [detail, basePagoEdit, isEditingBasePago]);
 
@@ -689,7 +700,10 @@ export default function PayrollVariableDetailContent({
                   <label className="mb-1 block text-[12px] text-[#858585]">Lógica de Aplicación</label>
                   <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
                     <p className="text-[14px] text-[#525252]">
-                      Pago adicional por trabajo en día feriado. Se calcula como: (Sueldo Base / {detail.duracion}) × {detail.cantidad}
+                      Pago adicional por trabajo en día feriado. Se calcula como: (Sueldo Base / 20) × tarifa festivo del país
+                      {detail.monto
+                        ? ` = $${Math.abs(detail.monto).toFixed(2)}`
+                        : ""}
                     </p>
                   </div>
                 </div>
@@ -762,7 +776,9 @@ export default function PayrollVariableDetailContent({
                   <label className="mb-1 block text-[12px] text-[#858585]">Cálculo de Deducción</label>
                   <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
                     <p className="text-[14px] text-[#525252]">
-                      Se descuenta: (Sueldo Base / {detail.duracion}) × {detail.cantidad} = ${Math.abs(montoCalculado).toFixed(2)}
+                      {detail.type === "Ausencia"
+                        ? `Se descuenta: (Sueldo Base / 20) × ${detail.cantidad} = $${Math.abs(montoCalculado).toFixed(2)}`
+                        : `Se descuenta: (Sueldo Base / ${detail.duracion}) × ${detail.cantidad} = $${Math.abs(montoCalculado).toFixed(2)}`}
                     </p>
                   </div>
                 </div>

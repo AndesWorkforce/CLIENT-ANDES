@@ -3,7 +3,10 @@
 import Image from "next/image";
 import { useMemo, type ReactNode } from "react";
 import { formatMoney } from "../data/payroll-data";
-import type { PayrollDetail, PayrollDetailPaymentLine } from "../data/mock-payroll-detail";
+import type {
+  PayrollDetail,
+  PayrollDetailPaymentLine,
+} from "../types/nomina-detail.types";
 import { buildPayslipPreviewData } from "../lib/payslip-format";
 
 interface PayrollPayslipPreviewProps {

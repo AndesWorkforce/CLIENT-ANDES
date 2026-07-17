@@ -15,7 +15,7 @@ import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubSelect from "../../components/AdminHubSelect";
 import { formatMoney } from "../data/payroll-data";
-import type { PayrollDetail } from "../data/mock-payroll-detail";
+import type { PayrollDetail } from "../types/nomina-detail.types";
 import type { PayrollVariableStatus } from "../data/mock-payroll-variables";
 import PayrollAmountColumn from "./PayrollAmountColumn";
 import PayrollDetailInfoRow from "./PayrollDetailInfoRow";
