@@ -12,6 +12,9 @@ export {
   PAYROLL_WORKING_DAYS_PER_MONTH,
 } from "./payroll-calculations";
 
+export type PayrollInvoiceStatus = "Generado" | "Pendiente" | "Faltan datos" | null;
+export type PayrollProofStatus = "Cargado" | "Pendiente" | "Not req." | null;
+
 export interface PayrollRow {
   id: string;
   contractorId: string;
@@ -20,10 +23,13 @@ export interface PayrollRow {
   position: string;
   client: string;
   period: string;
+  periodoAnioMes: string;
   baseSalary: number;
   clientPrice: number;
   variableAmount: number;
   totalAmount: number;
+  invoice: PayrollInvoiceStatus;
+  proof: PayrollProofStatus;
   status: PayrollVariableStatus;
 }
 
@@ -79,6 +85,68 @@ export const NOMINA_MONTH_OPTIONS = buildNominaMonthOptions();
 
 export function monthOptionToPeriod(monthOption: string): string {
   return monthOption.replace(" del ", " ");
+}
+
+/** Convierte selector "Marzo del 2026" → "2026-03" para la API */
+export function nominaMonthOptionToAnioMes(monthOption: string): string {
+  const trimmed = monthOption.trim();
+  const normalized = /^(\d{4})-(\d{1,2})$/.exec(trimmed);
+  if (normalized) {
+    const year = normalized[1];
+    const month = Number(normalized[2]);
+    if (month >= 1 && month <= 12) {
+      return `${year}-${String(month).padStart(2, "0")}`;
+    }
+  }
+
+  const match = /^(.+?)\s+del\s+(\d{4})$/.exec(trimmed);
+  if (!match) {
+    return trimmed;
+  }
+
+  const [, monthName, year] = match;
+  const monthIndex = NOMINA_MONTH_NAMES.findIndex(
+    (name) => name.toLowerCase() === monthName.trim().toLowerCase(),
+  );
+
+  if (monthIndex < 0) {
+    return trimmed;
+  }
+
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+}
+
+export function isValidAnioMes(value: string): boolean {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value.trim());
+}
+
+/** Convierte "Marzo 2026" o selector "Marzo del 2026" → YYYY-MM */
+export function displayPeriodToAnioMes(period: string): string {
+  const trimmed = period.trim();
+  if (isValidAnioMes(trimmed)) {
+    return trimmed;
+  }
+
+  const fromSelector = nominaMonthOptionToAnioMes(trimmed);
+  if (isValidAnioMes(fromSelector)) {
+    return fromSelector;
+  }
+
+  const match = /^(.+?)\s+(\d{4})$/.exec(trimmed);
+  if (!match) {
+    return trimmed;
+  }
+
+  const [, monthName, year] = match;
+  const monthIndex = NOMINA_MONTH_NAMES.findIndex(
+    (name) => name.toLowerCase() === monthName.trim().toLowerCase(),
+  );
+
+  if (monthIndex < 0) {
+    return trimmed;
+  }
+
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 }
 
 /** Convierte ISO (YYYY-MM-DD) al formato del selector de nóminas */
@@ -172,10 +240,13 @@ export function buildPayrollRows(
         position: contract.position,
         client: contract.client,
         period,
+        periodoAnioMes: displayPeriodToAnioMes(period),
         baseSalary,
         clientPrice,
         variableAmount,
         totalAmount: clientPrice + variableAmount,
+        invoice: null,
+        proof: null,
         status: resolveStatus(contractor.name, contract.client, variables),
       });
     }

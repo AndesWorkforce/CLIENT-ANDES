@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Filter, Plus } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
@@ -9,11 +9,11 @@ import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import { ADMIN_HUB_CLEAR_FILTERS_CLASS, ADMIN_HUB_FILTER_BUTTON_CLASS, ADMIN_HUB_FILTERS_ROW_CLASS } from "../../components/admin-hub-filter-styles";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
 import {
-  addPayrollVariable,
-  getPayrollVariables,
-  removePayrollVariable,
-  updatePayrollVariableStatus,
-} from "../data/payroll-data";
+  approveNominaVariable,
+  deleteNominaVariable,
+  getNominaVariables,
+  rejectNominaVariable,
+} from "../actions/payroll-variables.actions";
 import {
   matchesPayrollVariableCategory,
   PAYROLL_VARIABLE_TABS,
@@ -78,7 +78,9 @@ export default function PayrollVariablesPageContent({
   initialSearchQuery = "",
 }: PayrollVariablesPageContentProps) {
   const { addNotification } = useNotificationStore();
-  const [variables, setVariables] = useState<PayrollVariable[]>(() => getPayrollVariables());
+  const [variables, setVariables] = useState<PayrollVariable[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<PayrollVariableCategory>("todos");
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
@@ -88,6 +90,27 @@ export default function PayrollVariablesPageContent({
   const [statusFilter, setStatusFilter] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+
+  const loadVariables = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    const result = await getNominaVariables({
+      search: searchQuery,
+      cliente: clientFilter,
+      categoria: activeTab,
+    });
+    if (!result.success) {
+      setLoadError(result.message || "Error al cargar variables");
+      setVariables([]);
+    } else {
+      setVariables(result.data ?? []);
+    }
+    setLoading(false);
+  }, [activeTab, clientFilter, searchQuery]);
+
+  useEffect(() => {
+    void loadVariables();
+  }, [loadVariables]);
 
   const filteredVariables = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -125,33 +148,40 @@ export default function PayrollVariablesPageContent({
     }
 
     return result;
-  }, [variables, activeTab, searchQuery, clientFilter, typeFilter, statusFilter, fromDate, toDate]);
+  }, [variables, typeFilter, statusFilter, fromDate, toDate]);
 
-  function refreshVariables() {
-    setVariables([...getPayrollVariables()]);
+  async function handleApprove(itemId: string) {
+    const result = await approveNominaVariable(itemId);
+    if (!result.success) {
+      addNotification(result.message || "No se pudo aprobar la variable", "error");
+      return;
+    }
+    await loadVariables();
+    addNotification("La variable fue aprobada.", "success", "compact");
   }
 
-  function handleApprove(itemId: string) {
-    updatePayrollVariableStatus(itemId, "Aprobado");
-    refreshVariables();
-    addNotification("La variable fue aprobada correctamente.", "success", "compact");
-  }
-
-  function handleReject(itemId: string) {
-    updatePayrollVariableStatus(itemId, "Rechazado");
-    refreshVariables();
+  async function handleReject(itemId: string) {
+    const result = await rejectNominaVariable(itemId);
+    if (!result.success) {
+      addNotification(result.message || "No se pudo rechazar la variable", "error");
+      return;
+    }
+    await loadVariables();
     addNotification("La variable fue rechazada.", "success", "compact");
   }
 
-  function handleDelete(itemId: string) {
-    removePayrollVariable(itemId);
-    refreshVariables();
+  async function handleDelete(itemId: string) {
+    const result = await deleteNominaVariable(itemId);
+    if (!result.success) {
+      addNotification(result.message || "No se pudo eliminar la variable", "error");
+      return;
+    }
+    await loadVariables();
     addNotification("La variable fue eliminada.", "success", "compact");
   }
 
   function handleVariableCreated(variable: PayrollVariable) {
-    addPayrollVariable(variable);
-    setVariables([...getPayrollVariables()]);
+    void loadVariables();
 
     if (activeTab !== "todos" && activeTab !== variable.category) {
       setActiveTab(variable.category);
@@ -285,12 +315,20 @@ export default function PayrollVariablesPageContent({
         )}
       </div>
 
-      <PayrollVariablesTable
-        variables={filteredVariables}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        onDelete={handleDelete}
-      />
+      {loadError ? (
+        <p className="text-sm text-red-600">{loadError}</p>
+      ) : null}
+
+      {loading ? (
+        <p className="text-sm text-[#525252]">Cargando variables...</p>
+      ) : (
+        <PayrollVariablesTable
+          variables={filteredVariables}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          onDelete={handleDelete}
+        />
+      )}
 
       <CreatePayrollVariableDrawer
         open={isCreateOpen}

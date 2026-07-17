@@ -5,6 +5,7 @@ interface ContractInfoCardProps {
   title: string;
   children: ReactNode;
   isEditing?: boolean;
+  isSaving?: boolean;
   onEditClick?: () => void;
 }
 
@@ -12,6 +13,7 @@ export default function ContractInfoCard({
   title,
   children,
   isEditing = false,
+  isSaving = false,
   onEditClick,
 }: ContractInfoCardProps) {
   return (
@@ -23,16 +25,18 @@ export default function ContractInfoCard({
             <button
               type="button"
               onClick={onEditClick}
-              className="inline-flex h-9 shrink-0 items-center justify-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
+              disabled={isSaving}
+              className="inline-flex h-9 shrink-0 items-center justify-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Guardar
+              {isSaving ? "Guardando..." : "Guardar"}
             </button>
           ) : (
             <button
               type="button"
               aria-label={`Editar ${title}`}
               onClick={onEditClick}
-              className="inline-flex size-9 shrink-0 items-center justify-center rounded-[8px] text-[#858585] transition-colors hover:bg-[#F5FAFB] hover:text-[#0097B2]"
+              disabled={isSaving}
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-[8px] text-[#858585] transition-colors hover:bg-[#F5FAFB] hover:text-[#0097B2] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Pencil size={18} />
             </button>

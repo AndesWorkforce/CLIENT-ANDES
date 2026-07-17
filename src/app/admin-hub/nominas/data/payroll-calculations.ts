@@ -11,8 +11,12 @@ export function getPayrollDailyRate(baseSalary: number): number {
 }
 
 /** Monto del sueldo base asignado a días regulares del período. */
-export function getRegularDaysPayAmount(baseSalary: number): number {
-  return baseSalary;
+export function getRegularDaysPayAmount(
+  baseSalary: number,
+  regularDays: number = PAYROLL_WORKING_DAYS_PER_MONTH,
+): number {
+  const dailyRate = baseSalary / PAYROLL_WORKING_DAYS_PER_MONTH;
+  return Math.round(dailyRate * regularDays * 100) / 100;
 }
 
 /** Formato desprendible: cantidad + monto (ej. "18 — $3200"). */

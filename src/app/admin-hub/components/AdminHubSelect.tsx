@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ChevronDown, CircleX } from "lucide-react";
 import useOutsideClick from "@/hooks/useOutsideClick";
 
@@ -28,6 +28,8 @@ interface AdminHubSelectProps {
   id?: string;
   /** Filtros con label: circle-x para limpiar cuando hay valor (Figma) */
   clearable?: boolean;
+  /** Permite escribir en el campo para filtrar opciones */
+  searchable?: boolean;
 }
 
 const MENU_PANEL_CLASS =
@@ -50,16 +52,34 @@ export default function AdminHubSelect({
   menuClassName = "",
   id: idProp,
   clearable = false,
+  searchable = false,
 }: AdminHubSelectProps) {
   const generatedId = useId();
   const id = idProp ?? generatedId;
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const close = useCallback(() => setIsOpen(false), []);
   useOutsideClick(containerRef, close, isOpen);
 
   const selectedOption = options.find((opt) => opt.value === value);
+
+  useEffect(() => {
+    if (!searchable || isOpen) return;
+    setSearchQuery(selectedOption?.label ?? "");
+  }, [searchable, isOpen, selectedOption?.label]);
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const visibleOptions =
+    searchable && normalizedQuery
+      ? options.filter(
+          (option) =>
+            option.label.toLowerCase().includes(normalizedQuery) ||
+            option.value.toLowerCase().includes(normalizedQuery),
+        )
+      : options;
+
   const displayLabel = selectedOption?.label ?? placeholder;
   const hasValue = Boolean(selectedOption);
 
@@ -79,7 +99,11 @@ export default function AdminHubSelect({
       }`;
 
   function handleSelect(optionValue: string) {
+    const option = options.find((item) => item.value === optionValue);
     onChange(optionValue);
+    if (searchable) {
+      setSearchQuery(option?.label ?? "");
+    }
     setIsOpen(false);
   }
 
@@ -88,9 +112,35 @@ export default function AdminHubSelect({
     setIsOpen((prev) => !prev);
   }
 
+  function handleSearchChange(nextQuery: string) {
+    setSearchQuery(nextQuery);
+    setIsOpen(true);
+  }
+
+  function handleSearchFocus() {
+    if (disabled || viewOnly) return;
+    setIsOpen(true);
+  }
+
+  function handleSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (disabled || viewOnly) return;
+    if (event.key === "Escape") {
+      setIsOpen(false);
+      setSearchQuery(selectedOption?.label ?? "");
+      return;
+    }
+    if (event.key === "Enter" && visibleOptions.length > 0) {
+      event.preventDefault();
+      handleSelect(visibleOptions[0].value);
+    }
+  }
+
   function handleClear(event: React.MouseEvent) {
     event.stopPropagation();
     onChange("");
+    if (searchable) {
+      setSearchQuery("");
+    }
     setIsOpen(false);
   }
 
@@ -111,24 +161,50 @@ export default function AdminHubSelect({
 
   const selectControl = (
     <div ref={containerRef} className={containerClass}>
-      <button
-        type="button"
-        id={id}
-        disabled={disabled}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        onClick={handleTriggerClick}
-        onKeyDown={handleKeyDown}
-        className={`${triggerClass} ${
-          viewOnly
-            ? "cursor-default text-[#525252]"
-            : disabled
-              ? "cursor-not-allowed bg-[#F8F8F8] text-[#525252]"
-              : "cursor-pointer"
-        } ${isOpen && !disabled && !viewOnly ? "ring-1 ring-[#0097B2]" : ""}`}
-      >
-        <span className="min-w-0 truncate">{displayLabel}</span>
-      </button>
+      {searchable ? (
+        <input
+          type="text"
+          id={id}
+          disabled={disabled}
+          readOnly={viewOnly}
+          value={searchQuery}
+          onChange={(event) => handleSearchChange(event.target.value)}
+          onFocus={handleSearchFocus}
+          onKeyDown={handleSearchKeyDown}
+          placeholder={placeholder}
+          autoComplete="off"
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          className={`${triggerClass} ${
+            viewOnly
+              ? "cursor-default text-[#525252]"
+              : disabled
+                ? "cursor-not-allowed bg-[#F8F8F8] text-[#525252]"
+                : "cursor-text bg-white"
+          } ${hasValue || searchQuery ? "text-[#343434]" : "text-[#C8C8C8]"} ${
+            isOpen && !disabled && !viewOnly ? "ring-1 ring-[#0097B2]" : ""
+          }`}
+        />
+      ) : (
+        <button
+          type="button"
+          id={id}
+          disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          onClick={handleTriggerClick}
+          onKeyDown={handleKeyDown}
+          className={`${triggerClass} ${
+            viewOnly
+              ? "cursor-default text-[#525252]"
+              : disabled
+                ? "cursor-not-allowed bg-[#F8F8F8] text-[#525252]"
+                : "cursor-pointer"
+          } ${isOpen && !disabled && !viewOnly ? "ring-1 ring-[#0097B2]" : ""}`}
+        >
+          <span className="min-w-0 truncate">{displayLabel}</span>
+        </button>
+      )}
       {showFilterClear ? (
         <button
           type="button"
@@ -139,43 +215,57 @@ export default function AdminHubSelect({
           <CircleX size={18} strokeWidth={1.75} />
         </button>
       ) : (
-        <ChevronDown
-          size={18}
-          className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-[#707070] transition-transform ${
+        <button
+          type="button"
+          tabIndex={-1}
+          disabled={disabled || viewOnly}
+          onClick={handleTriggerClick}
+          className={`absolute top-1/2 -translate-y-1/2 text-[#707070] transition-transform ${
             isForm ? "right-4" : "right-3"
-          } ${isOpen ? "rotate-180" : ""}`}
-        />
+          } ${searchable ? "pointer-events-auto" : "pointer-events-none"} ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          aria-hidden={!searchable}
+        >
+          <ChevronDown size={18} />
+        </button>
       )}
 
       {isOpen && !disabled && !viewOnly && (
         <div className={`${MENU_PANEL_CLASS} ${menuClassName}`} role="listbox">
           <ul className={MENU_LIST_CLASS}>
-            {options.map((option) => {
-              const isSelected = option.value === value;
-              return (
-                <li key={option.value} role="none">
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => handleSelect(option.value)}
-                    className={`flex w-full px-1.5 py-0.5 text-left transition-colors ${
-                      isSelected ? "bg-[#F5FAFB]" : "hover:bg-[#F5FAFB]"
-                    }`}
-                  >
-                    <span
-                      className={`block w-full rounded-[6px] px-2 py-2.5 text-[14px] whitespace-nowrap ${
-                        isSelected
-                          ? "font-medium leading-[1.2] text-[#0097B2]"
-                          : "font-normal leading-[1.3] tracking-[0.28px] text-[#525252]"
+            {visibleOptions.length === 0 ? (
+              <li className="px-4 py-3 text-[14px] leading-[1.3] text-[#858585]">
+                Sin resultados
+              </li>
+            ) : (
+              visibleOptions.map((option) => {
+                const isSelected = option.value === value;
+                return (
+                  <li key={option.value} role="none">
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => handleSelect(option.value)}
+                      className={`flex w-full px-1.5 py-0.5 text-left transition-colors ${
+                        isSelected ? "bg-[#F5FAFB]" : "hover:bg-[#F5FAFB]"
                       }`}
                     >
-                      {option.label}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
+                      <span
+                        className={`block w-full rounded-[6px] px-2 py-2.5 text-[14px] whitespace-nowrap ${
+                          isSelected
+                            ? "font-medium leading-[1.2] text-[#0097B2]"
+                            : "font-normal leading-[1.3] tracking-[0.28px] text-[#525252]"
+                        }`}
+                      >
+                        {option.label}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })
+            )}
           </ul>
         </div>
       )}

@@ -2,15 +2,15 @@
 
 import AdminHubDatePicker from "../../components/AdminHubDatePicker";
 import AdminHubFormField from "../../components/AdminHubFormField";
-import {
-  findContract,
-  findContractor,
-  MOCK_CONTRACTORS,
-} from "../data/mock-contractors";
 import { DEDUCTION_TYPE_OPTIONS } from "../data/deduction-types";
-import { formatHolidayLabel, getHolidaysByCountry } from "../data/mock-holidays";
 import { sanitizeDeductionMontoInput } from "../lib/deduction-monto";
+import {
+  formatHolidayLabel,
+  holidayFechaIso,
+} from "../lib/payroll-holidays";
 import { getTodayIso } from "../lib/today-iso";
+import { usePayrollContractOptions } from "../hooks/usePayrollContractOptions";
+import { usePayrollHolidaysByCountry } from "../hooks/usePayrollHolidaysByCountry";
 import IncomeVariableAmountField from "./IncomeVariableAmountField";
 import PayrollPeriodField from "./PayrollPeriodField";
 import type { CreatePayrollVariableFormData } from "./payroll-variable-form-types";
@@ -32,8 +32,14 @@ export default function PayrollVariableContextFields({
   formData,
   onChange,
 }: PayrollVariableContextFieldsProps) {
-  const contractor = findContractor(formData.contractorId);
-  const contract = findContract(formData.contractorId, formData.contractId);
+  const {
+    contractorOptions,
+    getContractsForContractor,
+    getContract,
+    loading,
+  } = usePayrollContractOptions();
+
+  const contract = getContract(formData.contractorId, formData.contractId);
   const showDeductionFields = variant === "deducciones";
   const isDeductionAusencia = showDeductionFields && formData.deductionTipo === "Ausencia";
   const isDeductionOther = showDeductionFields && formData.deductionTipo === "Other";
@@ -42,40 +48,46 @@ export default function PayrollVariableContextFields({
   const showHoliday = variant === "holidays";
   const todayIso = getTodayIso();
 
-  const contractorOptions = MOCK_CONTRACTORS.map((c) => ({
-    value: c.id,
-    label: c.name,
+  const { holidays, loading: holidaysLoading } = usePayrollHolidaysByCountry(
+    showHoliday
+      ? contract?.paisFacturacionCodigo || contract?.paisCodigo
+      : null,
+  );
+
+  const holidayOptions = holidays.map((h) => ({
+    value: h.id,
+    label: formatHolidayLabel(h),
   }));
-
-  const contractOptions =
-    contractor?.contracts.map((c) => ({
-      value: c.id,
-      label: c.id,
-    })) ?? [];
-
-  const holidayOptions = contractor
-    ? getHolidaysByCountry(contractor.countryCode).map((h) => ({
-        value: h.id,
-        label: formatHolidayLabel(h),
-      }))
-    : [];
 
   function patch(partial: Partial<CreatePayrollVariableFormData>) {
     onChange({ ...formData, ...partial });
   }
 
   function handleContractorChange(contractorId: string) {
-    const selected = findContractor(contractorId);
-    const defaultContract = selected?.contracts.length === 1 ? selected.contracts[0].id : "";
+    const contractsForUser = getContractsForContractor(contractorId);
+    const defaultContract =
+      contractsForUser.length === 1 ? contractsForUser[0].procesoContratacionId : "";
     patch({
       contractorId,
       contractId: defaultContract,
       holidayId: "",
+      desde: "",
     });
   }
 
   function handleContractChange(contractId: string) {
-    patch({ contractId, holidayId: "" });
+    patch({ contractId, holidayId: "", desde: "" });
+  }
+
+  function handleHolidayChange(holidayId: string) {
+    const holiday = holidays.find((item) => item.id === holidayId);
+    patch({
+      holidayId,
+      desde: holiday ? holidayFechaIso(holiday) : "",
+      ...(holiday && !formData.descripcion.trim()
+        ? { descripcion: holiday.nombre }
+        : {}),
+    });
   }
 
   function handleDeductionTipoChange(deductionTipo: string) {
@@ -87,6 +99,22 @@ export default function PayrollVariableContextFields({
     });
   }
 
+  const contractOptions = getContractsForContractor(formData.contractorId).map((item) => ({
+    value: item.procesoContratacionId,
+    label: item.procesoContratacionId,
+  }));
+
+  const holidayCountryCode =
+    contract?.paisFacturacionCodigo?.trim() || contract?.paisCodigo?.trim() || null;
+
+  const holidayPlaceholder = !holidayCountryCode
+    ? "Seleccione un contratista"
+    : holidaysLoading
+      ? "Cargando feriados..."
+      : holidayOptions.length > 0
+        ? "Buscar feriado"
+        : `Sin feriados para ${holidayCountryCode}`;
+
   return (
     <>
       <AdminHubFormField
@@ -95,7 +123,9 @@ export default function PayrollVariableContextFields({
         value={formData.contractorId}
         onChange={handleContractorChange}
         options={contractorOptions}
-        placeholder="Nombre"
+        placeholder={loading ? "Cargando..." : "Buscar por nombre"}
+        readOnly={loading}
+        searchable
       />
 
       <div className="flex flex-col gap-[10px] sm:flex-row">
@@ -106,15 +136,16 @@ export default function PayrollVariableContextFields({
             value={formData.contractId}
             onChange={handleContractChange}
             options={contractOptions}
-            placeholder="Codigo"
-            readOnly={!formData.contractorId}
+            placeholder="Buscar contrato"
+            readOnly={!formData.contractorId || loading}
+            searchable
           />
         </div>
         <div className="min-w-0 flex-1">
           <AdminHubFormField
             type="input"
             label="Puesto"
-            value={contract?.position ?? ""}
+            value={contract?.puestoTrabajo ?? ""}
             onChange={() => undefined}
             placeholder="Rol"
             readOnly
@@ -125,7 +156,7 @@ export default function PayrollVariableContextFields({
       <AdminHubFormField
         type="input"
         label="Cliente"
-        value={contract?.client ?? ""}
+        value={contract?.empresaNombre ?? ""}
         onChange={() => undefined}
         placeholder="Empresa"
         readOnly
@@ -215,16 +246,11 @@ export default function PayrollVariableContextFields({
           type="select"
           label="Día feriado"
           value={formData.holidayId}
-          onChange={(v) => patch({ holidayId: v })}
+          onChange={handleHolidayChange}
           options={holidayOptions}
-          placeholder={
-            contractor
-              ? holidayOptions.length > 0
-                ? "Seleccionar feriado"
-                : `Sin feriados para ${contractor.countryName}`
-              : "Seleccione un contratista"
-          }
-          readOnly={!contractor || holidayOptions.length === 0}
+          placeholder={holidayPlaceholder}
+          readOnly={!holidayCountryCode || holidaysLoading || holidayOptions.length === 0}
+          searchable={holidayOptions.length > 0}
         />
       )}
 

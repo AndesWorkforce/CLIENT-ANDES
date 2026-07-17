@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import type { PayrollDetail } from "../data/mock-payroll-detail";
+import type { PayrollDetail } from "../types/nomina-detail.types";
 import PayrollPayslipPreview from "./PayrollPayslipPreview";
 
 const PREVIEW_SCALE = 0.38;

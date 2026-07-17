@@ -9,40 +9,15 @@ import {
   getPayrollVariables,
   getRegularDaysPayAmount,
   PAYROLL_WORKING_DAYS_PER_MONTH,
-  type PayrollRow,
+  displayPeriodToAnioMes,
 } from "./payroll-data";
 import type { PayrollVariable, PayrollVariableStatus } from "./mock-payroll-variables";
+import type {
+  PayrollDetail,
+  PayrollDetailPaymentLine,
+} from "../types/nomina-detail.types";
 
-export interface PayrollDetailPaymentLine {
-  id?: string;
-  label: string;
-  /** Monto formateado mostrado junto al label. */
-  value: string;
-}
-
-export interface PayrollDetail {
-  id: string;
-  contractorId: string;
-  contractId: string;
-  contractorName: string;
-  client: string;
-  position: string;
-  country: string;
-  contractStartDate: string;
-  contractEndDate: string;
-  contactEmail: string;
-  period: string;
-  status: PayrollVariableStatus;
-  notes: string;
-  baseSalary: number;
-  earnings: PayrollDetailPaymentLine[];
-  deductions: PayrollDetailPaymentLine[];
-  totalEarnings: number;
-  totalVariableEarnings: number;
-  totalDeductions: number;
-  totalAmount: number;
-  variables: PayrollVariable[];
-}
+export type { PayrollDetail, PayrollDetailPaymentLine };
 
 export function parsePayrollId(
   payrollId: string
@@ -127,10 +102,9 @@ function buildPaymentLines(
     0
   );
 
-  const totalEarnings = baseSalary + totalVariableEarnings;
+  const regularDaysPayAmount = getRegularDaysPayAmount(baseSalary, regularDays);
+  const totalEarnings = regularDaysPayAmount + totalVariableEarnings;
   const totalAmount = totalEarnings - totalDeductions;
-
-  const regularDaysPayAmount = getRegularDaysPayAmount(baseSalary);
 
   const earnings: PayrollDetailPaymentLine[] = [
     {
@@ -211,6 +185,7 @@ export function getPayrollDetail(
     contractEndDate: addOneYearToDisplayDate(contract.contractStartDate),
     contactEmail: mockContactEmail(contractor.name),
     period,
+    periodoAnioMes: displayPeriodToAnioMes(period),
     status: resolveStatus(relatedVariables),
     notes: "",
     baseSalary: contract.baseSalary,
@@ -219,7 +194,3 @@ export function getPayrollDetail(
   };
 }
 
-export function payrollRowToDetailPath(row: PayrollRow): string {
-  const params = new URLSearchParams({ period: row.period });
-  return `/admin-hub/nominas/${row.id}?${params.toString()}`;
-}

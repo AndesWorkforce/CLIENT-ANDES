@@ -188,11 +188,25 @@ export default function PayrollVariablesTable({
   }
 
   function handleApprove(itemId: string) {
+    const variable = displayedVariables.find((v) => v.id === itemId);
+    if (!variable || variable.status !== "Pendiente") {
+      closeMenu();
+      return;
+    }
     closeMenu();
     onApprove(itemId);
   }
 
   function handleReject(itemId: string) {
+    const variable = displayedVariables.find((v) => v.id === itemId);
+    if (
+      !variable ||
+      variable.status === "Rechazado" ||
+      variable.status === "Emitido"
+    ) {
+      closeMenu();
+      return;
+    }
     closeMenu();
     onReject(itemId);
   }
@@ -230,7 +244,7 @@ export default function PayrollVariablesTable({
 
   function handleEdit(itemId: string) {
     closeMenu();
-    router.push(`/admin-hub/nominas/variables/${itemId}`);
+    router.push(`/admin-hub/nominas/variables/${encodeURIComponent(itemId)}`);
   }
 
   function handleRowClick(itemId: string, event: React.MouseEvent) {
@@ -242,7 +256,7 @@ export default function PayrollVariablesTable({
     ) {
       return;
     }
-    router.push(`/admin-hub/nominas/variables/${itemId}`);
+    router.push(`/admin-hub/nominas/variables/${encodeURIComponent(itemId)}`);
   }
 
   const menuButtonClass = (itemId: string) =>
@@ -415,7 +429,17 @@ export default function PayrollVariablesTable({
               type="button"
               role="menuitem"
               onClick={() => handleApprove(openMenuItem.id)}
-              className={menuItemClass}
+              disabled={openMenuItem.status !== "Pendiente"}
+              className={`${menuItemClass} ${
+                openMenuItem.status !== "Pendiente"
+                  ? "cursor-not-allowed text-[#C8C8C8] hover:bg-transparent"
+                  : ""
+              }`}
+              title={
+                openMenuItem.status !== "Pendiente"
+                  ? `Solo se pueden aprobar variables en estado Pendiente (actual: ${openMenuItem.status})`
+                  : undefined
+              }
             >
               Aprobar
             </button>
@@ -423,7 +447,23 @@ export default function PayrollVariablesTable({
               type="button"
               role="menuitem"
               onClick={() => handleReject(openMenuItem.id)}
-              className={menuItemClass}
+              disabled={
+                openMenuItem.status === "Rechazado" ||
+                openMenuItem.status === "Emitido"
+              }
+              className={`${menuItemClass} ${
+                openMenuItem.status === "Rechazado" ||
+                openMenuItem.status === "Emitido"
+                  ? "cursor-not-allowed text-[#C8C8C8] hover:bg-transparent"
+                  : ""
+              }`}
+              title={
+                openMenuItem.status === "Emitido"
+                  ? "No se puede rechazar una variable con estado Emitido"
+                  : openMenuItem.status === "Rechazado"
+                    ? "La variable ya está rechazada"
+                    : undefined
+              }
             >
               Rechazar
             </button>

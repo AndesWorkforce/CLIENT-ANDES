@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getContractDetail } from "../data/mock-contract-detail";
+import { getContratoById } from "../actions/contratos.actions";
 import ContractDetailContent from "../components/ContractDetailContent";
 
 interface ContractDetailPageProps {
@@ -8,11 +8,11 @@ interface ContractDetailPageProps {
 
 export default async function ContractDetailPage({ params }: ContractDetailPageProps) {
   const { contractId } = await params;
-  const detail = getContractDetail(contractId);
+  const response = await getContratoById(contractId);
 
-  if (!detail) {
+  if (!response.success || !response.data) {
     notFound();
   }
 
-  return <ContractDetailContent detail={detail} />;
+  return <ContractDetailContent detail={response.data} />;
 }

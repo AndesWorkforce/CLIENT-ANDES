@@ -1,8 +1,41 @@
-import type { DiscretionaryBonusType } from "./mock-contract-detail";
+import type { DiscretionaryBonusType } from "../types/contrato-detail.types";
 
 export function formatContractSalary(ofertaSalarial: number, monedaSalario: string): string {
   const prefix = monedaSalario === "USD" ? "US $" : `${monedaSalario} `;
   return `${prefix}${ofertaSalarial.toLocaleString("es-ES")}`;
+}
+
+/** Parsea salarios con formato es-ES (`US $2.500` / `2.500,50`) o US (`2,500.50`). */
+export function parseContractSalaryInput(value: string): number | null {
+  const raw = value.replace(/[^\d.,-]/g, "");
+  if (!raw) {
+    return null;
+  }
+
+  let normalized = raw;
+  const lastComma = raw.lastIndexOf(",");
+  const lastDot = raw.lastIndexOf(".");
+
+  if (lastComma > lastDot) {
+    normalized = raw.replace(/\./g, "").replace(",", ".");
+  } else if (lastDot > lastComma) {
+    normalized = raw.replace(/,/g, "");
+  } else if (lastComma >= 0) {
+    normalized = raw.replace(",", ".");
+  } else if (/^\d{1,3}(\.\d{3})+$/.test(raw)) {
+    normalized = raw.replace(/\./g, "");
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function normalizeOptionalContractField(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.toLowerCase() === "no especificado") {
+    return null;
+  }
+  return trimmed;
 }
 
 export function formatIsoDateToDisplay(isoDate: string): string {

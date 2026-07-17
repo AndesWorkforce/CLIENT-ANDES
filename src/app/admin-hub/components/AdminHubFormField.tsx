@@ -12,6 +12,7 @@ interface AdminHubFormSelectProps extends BaseProps {
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
   placeholder?: string;
+  searchable?: boolean;
 }
 
 interface AdminHubFormInputProps extends BaseProps {
@@ -50,6 +51,7 @@ export default function AdminHubFormField(props: AdminHubFormFieldProps) {
         viewOnly={viewOnly}
         variant="form"
         labelBackground="#FFFFFF"
+        searchable={props.searchable}
       />
     );
   }
