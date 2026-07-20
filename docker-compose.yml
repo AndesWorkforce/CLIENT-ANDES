@@ -8,6 +8,10 @@ services:
       args:
         # Misma URL pública que el router Traefik del API — obligatorio para el build de Next.js
         NEXT_PUBLIC_API_URL: https://andes.api.andes-workforce.com/api/
+        # Chatwoot widget — ver CHATWOOT-PROD/client.env.snippet
+        NEXT_PUBLIC_CHATWOOT_ENABLED: "false"
+        NEXT_PUBLIC_CHATWOOT_BASE_URL: https://chat.andes-workforce.com
+        NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN: ""
     image: andes/client:latest
     container_name: andes-client
     restart: unless-stopped
