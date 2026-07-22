@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { User } from "@/store/auth.store";
+import { buildDisplayName } from "./chatwoot-sdk";
 
 export type ChatRole = "user" | "assistant";
 
@@ -10,19 +12,28 @@ export interface ChatMessage {
   content: string;
 }
 
-const WELCOME_MESSAGE: ChatMessage = {
-  id: "welcome",
-  role: "assistant",
-  content:
-    "Hi! I'm the Andes Workforce assistant. Ask me about our services, hiring process, or how to get in touch.",
-};
+function createWelcomeMessage(user?: User): ChatMessage {
+  const displayName = user ? buildDisplayName(user) : undefined;
+  const firstName = displayName?.split(/\s+/)[0];
+
+  return {
+    id: "welcome",
+    role: "assistant",
+    content: firstName
+      ? `¡Hola, ${firstName}! Soy Andi, tu asistente de Andes Workforce. Pregúntame sobre tu contrato, perfil o beneficios.`
+      : "Hi! I'm your Andes Workforce assistant. Ask me about your contract, benefits, or how to reach our team.",
+  };
+}
 
 function createId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export function useChat() {
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+export function useChat(user?: User) {
+  const welcomeMessage = useMemo(() => createWelcomeMessage(user), [user]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
+    createWelcomeMessage(user),
+  ]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +61,7 @@ export function useChat() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ messages: history }),
       });
 
@@ -88,9 +100,9 @@ export function useChat() {
   }, [isLoading, messages]);
 
   const clearChat = useCallback(() => {
-    setMessages([WELCOME_MESSAGE]);
+    setMessages([welcomeMessage]);
     setError(null);
-  }, []);
+  }, [welcomeMessage]);
 
   return {
     messages,

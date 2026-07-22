@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 function getApiUrl(): string {
@@ -16,12 +17,25 @@ function getApiUrl(): string {
 
 export async function POST(request: Request) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { message: "Authentication required to use chat." },
+        { status: 401 },
+      );
+    }
+
     const body = await request.json();
     const apiUrl = getApiUrl();
 
     const response = await fetch(`${apiUrl}chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(body),
     });
 

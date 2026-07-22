@@ -1,36 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
 import { MessageCircle, X, RotateCcw } from "lucide-react";
 import Link from "next/link";
+import type { User } from "@/store/auth.store";
 import { ChatMessageList } from "./ChatMessageList";
 import { ChatInput } from "./ChatInput";
 import { useChat } from "./useChat";
 import { IT_SUPPORT_PORTAL_URL } from "@/app/components/ItSupportRedirectModal";
 
-const HIDDEN_PREFIXES = [
-  "/admin",
-  "/companies",
-  "/profile",
-  "/applications",
-  "/auth",
-];
-
-function isPublicRoute(pathname: string): boolean {
-  return !HIDDEN_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
+interface ChatWidgetProps {
+  user: User;
 }
 
-export function ChatWidget() {
-  const pathname = usePathname();
+export function ChatWidget({ user }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, isLoading, error, sendMessage, clearChat } = useChat();
-
-  if (!isPublicRoute(pathname)) {
-    return null;
-  }
+  const { messages, isLoading, error, sendMessage, clearChat } = useChat(user);
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
