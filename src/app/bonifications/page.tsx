@@ -78,12 +78,6 @@ export default function BonificationsPage() {
                 <td className="px-4 py-5 text-center text-gray-800">$100</td>
               </tr>
               <tr className="border-b border-gray-300">
-                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Individual Performance</td>
-                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Bonus awarded to a contractor for achieving individual or team goals, as contractually agreed. Paid in June and December.</td>
-                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Achievement of goals or results agreed upon with the company.</td>
-                <td className="px-4 py-5 text-center text-gray-800">5% of the monthly payment, accumulated semiannually (e.g., for $1,000 &rarr; $50)</td>
-              </tr>
-              <tr className="border-b border-gray-300">
                 <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Discretionary Bonus</td>
                 <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Bonus awarded at the company&apos;s discretion as an annual incentive.</td>
                 <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">All contractors.</td>
