@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, Info } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
@@ -41,8 +42,14 @@ import ProfilePhotoModal from "./components/ProfilePhotoModal";
 import ProfesionModal from "./components/ProfesionModal";
 import BankInfoModal from "./components/BankInfoModal";
 import { aceptarPoliticaDatos } from "./actions/politica-actions";
+import AssessmentModal from "@/app/admin/dashboard/components/AssessmentModal";
+import {
+  removeBackgroundCheck,
+  saveBackgroundCheck,
+} from "./actions/identification-actions";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { profile } = useProfileContext();
   const { user } = useAuthStore();
   const addNotification = useNotificationStore(
@@ -94,10 +101,72 @@ export default function ProfilePage() {
   const [showIdentificationModal, setShowIdentificationModal] =
     useState<boolean>(false);
   const [showBankInfoModal, setShowBankInfoModal] = useState<boolean>(false);
+  const [showBackgroundCheckModal, setShowBackgroundCheckModal] =
+    useState<boolean>(false);
+  const [showDeleteBackgroundCheckModal, setShowDeleteBackgroundCheckModal] =
+    useState<boolean>(false);
   const [showProfilePhotoModal, setShowProfilePhotoModal] =
     useState<boolean>(false);
   const [showProfesionModal, setShowProfesionModal] =
     useState<boolean>(false);
+
+  const showBackgroundCheck = profile.gating?.showBackgroundCheck === true;
+  const backgroundCheckUrl = profile.backgroundCheckUrl ?? null;
+
+  const uploadBackgroundCheckPdf = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("pdf", file);
+    formData.append("folder", "pdf");
+
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+    const response = await fetch(`${apiBase}files/upload/pdf`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+
+    return response.text();
+  };
+
+  const handleBackgroundCheckUpload = async (file: File) => {
+    if (!user?.id) {
+      throw new Error("User not authenticated");
+    }
+
+    const pdfUrl = await uploadBackgroundCheckPdf(file);
+    const response = await saveBackgroundCheck(user.id, pdfUrl);
+
+    if (!response.success) {
+      throw new Error(
+        response.error || "Error saving background check URL"
+      );
+    }
+
+    router.refresh();
+  };
+
+  const handleBackgroundCheckRemove = async () => {
+    if (!user?.id) {
+      addNotification("User not authenticated", "error");
+      return;
+    }
+
+    const response = await removeBackgroundCheck(user.id);
+    if (!response.success) {
+      addNotification(
+        response.error || "Error removing background check",
+        "error"
+      );
+      return;
+    }
+
+    addNotification("Background check removed successfully", "success");
+    setShowDeleteBackgroundCheckModal(false);
+    router.refresh();
+  };
 
   // Helpers robustos para validar el estado del formulario (puede venir como string JSON, objeto o null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -820,6 +889,52 @@ export default function ProfilePage() {
               >
                 {profile.bankInfo ? "Edit" : "Add"}
               </button>
+            </div>
+          </div>
+        )}
+
+        {showBackgroundCheck && (
+          <div
+            className="flex items-start justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+            style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+          >
+            <div>
+              <span className="text-gray-800 font-medium">Background Check</span>
+              <div className="mt-2 text-sm text-gray-700">
+                {backgroundCheckUrl ? (
+                  <a
+                    href={backgroundCheckUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#0097B2] underline hover:text-[#007A8C]"
+                  >
+                    View Background Check PDF
+                  </a>
+                ) : (
+                  <span className="text-gray-500">
+                    No background check uploaded
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              {backgroundCheckUrl ? (
+                <>
+                  <Dump
+                    className="cursor-pointer"
+                    onClick={() => setShowDeleteBackgroundCheckModal(true)}
+                  />
+                  <Edit
+                    className="cursor-pointer"
+                    onClick={() => setShowBackgroundCheckModal(true)}
+                  />
+                </>
+              ) : (
+                <UploadFile
+                  className="cursor-pointer"
+                  onClick={() => setShowBackgroundCheckModal(true)}
+                />
+              )}
             </div>
           </div>
         )}
@@ -1974,6 +2089,54 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
+
+            {showBackgroundCheck && (
+              <div
+                className="flex items-start justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+                style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+              >
+                <div>
+                  <span className="text-gray-800 font-medium">
+                    Background Check
+                  </span>
+                  <div className="mt-2 text-sm text-gray-700">
+                    {backgroundCheckUrl ? (
+                      <a
+                        href={backgroundCheckUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#0097B2] underline hover:text-[#007A8C]"
+                      >
+                        View Background Check PDF
+                      </a>
+                    ) : (
+                      <span className="text-gray-500">
+                        No background check uploaded
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  {backgroundCheckUrl ? (
+                    <>
+                      <Dump
+                        className="cursor-pointer"
+                        onClick={() => setShowDeleteBackgroundCheckModal(true)}
+                      />
+                      <Edit
+                        className="cursor-pointer"
+                        onClick={() => setShowBackgroundCheckModal(true)}
+                      />
+                    </>
+                  ) : (
+                    <UploadFile
+                      className="cursor-pointer"
+                      onClick={() => setShowBackgroundCheckModal(true)}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
             {profile.archivos.videoPresentacion && (
               <div
                 className="flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
@@ -2465,6 +2628,23 @@ export default function ProfilePage() {
       <BankInfoModal
         isOpen={showBankInfoModal}
         onClose={() => setShowBankInfoModal(false)}
+      />
+
+      <AssessmentModal
+        isOpen={showBackgroundCheckModal}
+        onClose={() => setShowBackgroundCheckModal(false)}
+        onUpload={handleBackgroundCheckUpload}
+        title="Upload Background Check"
+        successMessage="Background check uploaded successfully"
+        errorMessage="Error uploading background check"
+      />
+
+      <ConfirmDeleteModal
+        isOpen={showDeleteBackgroundCheckModal}
+        onClose={() => setShowDeleteBackgroundCheckModal(false)}
+        onConfirm={handleBackgroundCheckRemove}
+        title="Delete Background Check"
+        message="Are you sure you want to remove the background check? This action cannot be undone."
       />
 
       <ContactoModal

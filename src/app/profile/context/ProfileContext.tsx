@@ -71,6 +71,7 @@ export interface ProfileData {
   estadoPerfil: EstadoPerfil;
   validacionExterna: boolean;
   aceptaPoliticaDatos: boolean;
+  backgroundCheckUrl?: string | null;
   bankInfo?: {
     usaDollarApp: boolean | null;
     dollarTag: string | null;
@@ -84,6 +85,7 @@ export interface ProfileData {
   gating?: {
     hasActiveProcess: boolean;
     hasFinalizedContract: boolean;
+    showBackgroundCheck?: boolean;
   };
 }
 

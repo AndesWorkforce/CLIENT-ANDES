@@ -6,12 +6,18 @@ interface AssessmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpload: (file: File) => Promise<void>;
+  title?: string;
+  successMessage?: string;
+  errorMessage?: string;
 }
 
 export default function AssessmentModal({
   isOpen,
   onClose,
   onUpload,
+  title = "Upload Assessment",
+  successMessage = "Assessment uploaded successfully",
+  errorMessage = "Error uploading assessment",
 }: AssessmentModalProps) {
   const { addNotification } = useNotificationStore();
   const [file, setFile] = useState<File | null>(null);
@@ -34,10 +40,11 @@ export default function AssessmentModal({
     setIsUploading(true);
     try {
       await onUpload(file);
-      addNotification("Assessment uploaded successfully", "success");
+      addNotification(successMessage, "success");
+      setFile(null);
       onClose();
     } catch {
-      addNotification("Error uploading assessment", "error");
+      addNotification(errorMessage, "error");
     } finally {
       setIsUploading(false);
     }
@@ -49,9 +56,7 @@ export default function AssessmentModal({
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-50 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md rounded-lg shadow-lg overflow-hidden flex flex-col">
         <div className="flex justify-between items-center px-4 py-3 border-b">
-          <h2 className="text-[#0097B2] text-lg font-semibold">
-            Upload Assessment
-          </h2>
+          <h2 className="text-[#0097B2] text-lg font-semibold">{title}</h2>
           <button onClick={onClose} className="text-gray-400 cursor-pointer">
             <X size={20} />
           </button>

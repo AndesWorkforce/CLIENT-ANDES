@@ -331,24 +331,19 @@ export default function CandidateProfileModal({
   const handleBackgroundCheckUpload = async (file: File) => {
     if (!userId || !file) return;
 
-    try {
-      const pdfUrl = await uploadImage(file, "pdf");
-      const response = await saveBackgroundCheck(
-        userId as string,
-        pdfUrl as string
+    const pdfUrl = await uploadImage(file, "pdf");
+    const response = await saveBackgroundCheck(
+      userId as string,
+      pdfUrl as string
+    );
+
+    if (!response.success) {
+      throw new Error(
+        response.error || "Error al guardar la URL del background check"
       );
-
-      if (!response.success) {
-        throw new Error(
-          response.error || "Error al guardar la URL del background check"
-        );
-      }
-
-      addNotification("Background check saved successfully", "success");
-      setManualReload((prev) => prev + 1);
-    } catch {
-      addNotification("Error saving background check", "error");
     }
+
+    setManualReload((prev) => prev + 1);
   };
 
   const handleBackgroundCheckRemove = async () => {
@@ -1458,6 +1453,9 @@ export default function CandidateProfileModal({
                     isOpen={isBackgroundCheckModalOpen}
                     onClose={() => setIsBackgroundCheckModalOpen(false)}
                     onUpload={handleBackgroundCheckUpload}
+                    title="Upload Background Check"
+                    successMessage="Background check uploaded successfully"
+                    errorMessage="Error uploading background check"
                   />
 
                   {showBackgroundCheckDeleteConfirmModal && (
