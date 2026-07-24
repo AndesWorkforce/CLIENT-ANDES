@@ -12,7 +12,7 @@ import { useNotificationStore } from "@/store/notifications.store";
  * 2. Si el token expiró o es inválido, limpia el estado y desloguea al usuario
  * 3. Evita que los usuarios vean una UI "logueada" con un token expirado
  * 4. Escucha errores 401 globalmente para desloguear automáticamente
- * 5. Valida la sesión cada 5 segundos cuando el usuario está autenticado
+ * 5. Valida la sesión periódicamente (cada 2 min) cuando el usuario está autenticado
  */
 export function AuthValidator() {
   const { isAuthenticated, logout, setLoading } = useAuthStore();
@@ -121,15 +121,21 @@ export function AuthValidator() {
     validateSession();
   }, [isAuthenticated, logout, setLoading, pathname, addNotification]);
 
-  // Polling: Validar sesión cada 5 segundos cuando está autenticado
+  // Polling: Validar sesión periódicamente cuando está autenticado
+  // Intervalo alto: el Throttler Nest limita ~10 req/min y verify pasa por el BFF del servidor
   useEffect(() => {
-    // No hacer polling en rutas de autenticación
-    const authPaths = [
+    // No hacer polling en rutas de autenticación ni en firma pública (evita 429 durante esign)
+    const skipPollingPaths = [
       "/auth/login",
       "/auth/register",
       "/auth/forgot-password",
+      "/esign",
     ];
-    if (authPaths.some((path) => pathname.startsWith(path))) {
+    if (skipPollingPaths.some((path) => pathname.startsWith(path))) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       return;
     }
 
@@ -173,8 +179,8 @@ export function AuthValidator() {
       }
     };
 
-    // Iniciar polling cada 5 segundos
-    intervalRef.current = setInterval(validateSessionSilently, 5000);
+    // Cada 2 minutos (antes 5s → tormenta de 429)
+    intervalRef.current = setInterval(validateSessionSilently, 120_000);
 
     // Cleanup al desmontar
     return () => {

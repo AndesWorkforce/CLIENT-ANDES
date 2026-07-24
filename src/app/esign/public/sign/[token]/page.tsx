@@ -313,16 +313,22 @@ function PublicSignClient() {
         `/esign/public/sign/${encodeURIComponent(token)}`,
         payload
       );
-      // Refrescar payload para mostrar estado/archivo actualizado
-      const res = await axiosBase.get(
-        `/esign/public/sign/${encodeURIComponent(token)}`
-      );
-      setDoc(res.data.documento);
-      setRecipient(res.data.recipient);
-      setFields(res.data.fields || []);
-      setAlreadySigned(Boolean(res.data.alreadySigned));
-      setOverlays(res.data.signedOverlays || []);
+      // La firma ya quedó persistida: mostrar éxito aunque falle el refresh
+      setAlreadySigned(true);
       setJustSigned(true);
+
+      try {
+        const res = await axiosBase.get(
+          `/esign/public/sign/${encodeURIComponent(token)}`
+        );
+        setDoc(res.data.documento);
+        setRecipient(res.data.recipient);
+        setFields(res.data.fields || []);
+        setAlreadySigned(Boolean(res.data.alreadySigned));
+        setOverlays(res.data.signedOverlays || []);
+      } catch {
+        // Refresh opcional: no invalidar una firma ya exitosa
+      }
     } catch (e: any) {
       setError(e?.response?.data?.message || "Could not sign");
     }
@@ -365,7 +371,12 @@ function PublicSignClient() {
           <button
             onClick={() => {
               localStorage.removeItem("redirectAfterLogin");
-              router.push("/currentApplication");
+              const role = (recipient?.rol || "").toUpperCase();
+              if (role === "PROVEEDOR" || role === "EMPRESA") {
+                router.push("/admin/dashboard/contracts");
+              } else {
+                router.push("/currentApplication");
+              }
             }}
             className="w-full bg-[#0097B2] hover:bg-[#00869e] text-white font-medium px-4 py-3 rounded-lg transition-colors"
           >

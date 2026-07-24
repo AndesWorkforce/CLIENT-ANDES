@@ -1223,9 +1223,12 @@ export default function CurrentApplication() {
           response.data.forEach((doc) => {
             // Solo cargar documentos que realmente existen en el frontend
             if (frontendDocIds.includes(doc.seccionDocumento)) {
-              initialReadState[doc.seccionDocumento] =
-                doc.completamenteLeido && doc.terminosAceptados;
-              initialReadingTime[doc.seccionDocumento] = doc.tiempoTotalLectura;
+              // /estado marca lectura con completamenteLeido; terminosAceptados es opcional
+              initialReadState[doc.seccionDocumento] = Boolean(
+                doc.completamenteLeido
+              );
+              initialReadingTime[doc.seccionDocumento] =
+                doc.tiempoTotalLectura ?? 0;
             }
           });
 
