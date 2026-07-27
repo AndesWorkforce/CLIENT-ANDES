@@ -290,11 +290,11 @@ export async function obtenerDocumentosLeidos(
 ): Promise<{
   success: boolean;
   data?: {
-    id: string;
+    id?: string;
     seccionDocumento: string;
     completamenteLeido: boolean;
-    terminosAceptados: boolean;
-    tiempoTotalLectura: number;
+    terminosAceptados?: boolean;
+    tiempoTotalLectura?: number;
   }[];
   error?: string;
 }> {
@@ -302,7 +302,7 @@ export async function obtenerDocumentosLeidos(
     const axios = await createServerAxios();
 
     const response = await axios.get(
-      `/admin/contratacion/${procesoContratacionId}`
+      `/admin/contratacion/${procesoContratacionId}/estado`
     );
 
     if (response.data?.documentos?.detalles) {
