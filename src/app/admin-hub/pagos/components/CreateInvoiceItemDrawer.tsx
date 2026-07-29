@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubDrawerFooter from "../../components/AdminHubDrawerFooter";
 import AdminHubSideDrawer from "../../components/AdminHubSideDrawer";
 import AdminHubTypeSelectStep from "../../components/AdminHubTypeSelectStep";
 import { getContractorsByClient } from "../../nominas/data/mock-contractors";
+import { createCustomerCharge, type TipoCargoCliente } from "../actions/pagos.actions";
 import CreateAdditionalItemForm, {
   type CreateAdditionalFormData,
   isAdditionalFormComplete,
@@ -54,23 +56,31 @@ const TYPE_LABELS: Record<string, string> = {
 interface CreateInvoiceItemDrawerProps {
   open: boolean;
   client: string;
+  empresaId: string;
+  periodo: string;
   onClose: () => void;
   onItemCreated: (item: InvoiceLineItem, movementType: MovementType) => void;
   onAdditionalFeeCreated: (fee: InvoiceAdditionalFee) => void;
+  onChargeCreated?: () => void;
 }
 
 export default function CreateInvoiceItemDrawer({
   open,
   client,
+  empresaId,
+  periodo,
   onClose,
   onItemCreated,
   onAdditionalFeeCreated,
+  onChargeCreated,
 }: CreateInvoiceItemDrawerProps) {
   const [step, setStep] = useState<DrawerStep>("select-type");
   const [selectedType, setSelectedType] = useState<MovementType | null>(null);
   const [formData, setFormData] = useState<CreateItemFormData>(EMPTY_FORM);
   const [additionalFormData, setAdditionalFormData] =
     useState<CreateAdditionalFormData>(EMPTY_ADDITIONAL_FORM);
+  const [isCreating, setIsCreating] = useState(false);
+  const addNotification = useNotificationStore((state) => state.addNotification);
 
   const { contractorOptions, contractorPositionMap } = useMemo(() => {
     const contractors = getContractorsByClient(client);
@@ -134,9 +144,12 @@ export default function CreateInvoiceItemDrawer({
     moneda: string,
     isCredit: boolean
   ): InvoiceLineItem {
-    const rawAmount = monto.replace(/[^\d]/g, "");
-    const numericAmount = parseInt(rawAmount, 10) || 0;
-    const baseAmount = `$${numericAmount.toLocaleString("es-ES")}`;
+    const rawAmount = monto.replace(/[^\d.]/g, "");
+    const numericAmount = parseFloat(rawAmount) || 0;
+    const baseAmount = `$${numericAmount.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
     return {
       id: `new-${Date.now()}`,
@@ -158,12 +171,12 @@ export default function CreateInvoiceItemDrawer({
     };
   }
 
-  function handleCreate() {
-    if (!selectedType || !isFormComplete) return;
+  async function handleCreate() {
+    if (!selectedType || !isFormComplete || isCreating) return;
 
     if (selectedType === "adicionales") {
-      const rawAmount = additionalFormData.monto.replace(/[^\d]/g, "");
-      const numericAmount = parseInt(rawAmount, 10) || 0;
+      const rawAmount = additionalFormData.monto.replace(/[^\d.]/g, "");
+      const numericAmount = parseFloat(rawAmount) || 0;
 
       const newFee: InvoiceAdditionalFee = {
         id: `new-${Date.now()}`,
@@ -178,13 +191,59 @@ export default function CreateInvoiceItemDrawer({
         position:
           contractorPositionMap.get(additionalFormData.contratista) ?? "—",
         description: additionalFormData.descripcion,
-        amount: `$${numericAmount.toLocaleString("es-ES")}`,
+        amount: `$${numericAmount.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
         status: "Pendiente",
         createdBy: "Violeta Q",
       };
       onAdditionalFeeCreated(newFee);
-    } else {
-      const isCredit = selectedType === "customer-credits";
+      onClose();
+      return;
+    }
+
+    if (selectedType === "customer-charges") {
+      setIsCreating(true);
+      try {
+        const rawAmount = formData.monto.replace(/[^\d.]/g, "");
+        const numericAmount = parseFloat(rawAmount) || 0;
+
+        const tipoMap: Record<string, TipoCargoCliente> = {
+          "team-building": "TEAM_BUILDING",
+          equipamiento: "EQUIPO",
+          capacitacion: "CAPACITACION",
+        };
+
+        const tipo = tipoMap[formData.tipo] || "OTRO";
+
+        const result = await createCustomerCharge({
+          empresaId,
+          tipo,
+          monto: numericAmount,
+          moneda: formData.moneda || "USD",
+          fecha: new Date().toISOString().split("T")[0],
+          periodo,
+          descripcion: formData.descripcion,
+        });
+
+        if (result.success) {
+          addNotification("Cargo creado exitosamente", "success");
+          onChargeCreated?.();
+          onClose();
+        } else {
+          addNotification(result.message || "Error al crear el cargo", "error");
+        }
+      } catch (error) {
+        addNotification("Error inesperado al crear el cargo", "error");
+      } finally {
+        setIsCreating(false);
+      }
+      return;
+    }
+
+    if (selectedType === "customer-credits") {
+      const isCredit = true;
       const newItem = buildLineItem(
         formData.tipo,
         "",
@@ -194,9 +253,8 @@ export default function CreateInvoiceItemDrawer({
         isCredit
       );
       onItemCreated(newItem, selectedType);
+      onClose();
     }
-
-    onClose();
   }
 
   return (
@@ -208,9 +266,17 @@ export default function CreateInvoiceItemDrawer({
       footer={
         <AdminHubDrawerFooter
           onCancel={onClose}
-          primaryLabel={step === "select-type" ? "Siguiente" : "Crear movimiento"}
+          primaryLabel={
+            step === "select-type"
+              ? "Siguiente"
+              : isCreating
+              ? "Creando..."
+              : "Crear movimiento"
+          }
           onPrimary={step === "select-type" ? handleNext : handleCreate}
-          primaryDisabled={step === "select-type" ? !canGoNext : !isFormComplete}
+          primaryDisabled={
+            step === "select-type" ? !canGoNext : !isFormComplete || isCreating
+          }
         />
       }
     >

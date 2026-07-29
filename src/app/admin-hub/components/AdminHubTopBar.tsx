@@ -2,17 +2,30 @@
 
 import { Bell, ChevronDown, Settings, LayoutDashboard, User, LogOut } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Link from "next/link";
-import { getUnreadAvisosCount } from "../avisos/data/mock-avisos";
+import { getUnreadAvisosCount } from "../avisos/actions/avisos.actions";
 
 export default function AdminHubTopBar() {
   const { user, logout } = useAuthStore();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const unreadAvisosCount = getUnreadAvisosCount();
+  const [unreadAvisosCount, setUnreadAvisosCount] = useState(0);
+
+  useEffect(() => {
+    async function fetchUnreadCount() {
+      try {
+        const count = await getUnreadAvisosCount();
+        setUnreadAvisosCount(count);
+      } catch (error) {
+        console.error("[AVISOS] Error al cargar contador:", error);
+      }
+    }
+
+    fetchUnreadCount();
+  }, []);
 
   useOutsideClick(userMenuRef, () => setShowUserMenu(false), showUserMenu);
 

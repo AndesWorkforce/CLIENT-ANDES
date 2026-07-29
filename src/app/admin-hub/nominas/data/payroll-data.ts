@@ -187,9 +187,13 @@ export function removePayrollVariable(id: string): void {
 }
 
 export function formatVariableColumn(amount: number): string {
-  if (amount === 0) return "+$0";
-  if (amount > 0) return `+$${amount.toLocaleString("es-ES")}`;
-  return `-$${Math.abs(amount).toLocaleString("es-ES")}`;
+  if (amount === 0) return "+$0.00";
+  const formatted = Math.abs(amount).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  if (amount > 0) return `+$${formatted}`;
+  return `-$${formatted}`;
 }
 
 function sumVariables(contractorName: string, client: string, variables: PayrollVariable[]): number {

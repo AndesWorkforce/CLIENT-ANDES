@@ -167,6 +167,7 @@ function mapApiFactura(item: FacturaApiItem): Invoice {
   return {
     id: item.id,
     clientId: item.empresaId.slice(0, 8),
+    empresaId: item.empresaId,
     client: item.client,
     period: apiPeriodoToDisplay(item.periodo),
     totalAmount: formatMoney(item.totalFacturar),
@@ -230,6 +231,7 @@ function mapApiInvoiceDetail(payload: FacturaDetalleApiItem): InvoiceDetail {
   return {
     id: payload.id,
     clientId: payload.empresaId.slice(0, 8),
+    empresaId: payload.empresaId,
     client: payload.client,
     period: apiPeriodoToDisplay(payload.periodo),
     totalAmount: formatMoney(payload.grandTotal),
@@ -361,6 +363,387 @@ export async function getInvoiceDetail(
     return {
       success: false,
       message: "Error al obtener el detalle de la factura",
+    };
+  }
+}
+
+/**
+ * Convierte el periodo de display (ej. "Enero 2026") al formato del backend (ej. "2026-01")
+ */
+function displayPeriodToApiPeriod(displayPeriod: string): string {
+  const [monthName, yearStr] = displayPeriod.split(" ");
+  const monthIndex = NOMINA_MONTH_NAMES.indexOf(monthName as (typeof NOMINA_MONTH_NAMES)[number]);
+  
+  if (monthIndex < 0 || !yearStr) {
+    throw new Error(`Periodo inválido: ${displayPeriod}`);
+  }
+  
+  const mes = (monthIndex + 1).toString().padStart(2, "0");
+  return `${yearStr}-${mes}`;
+}
+
+export type EstadoSnapshot = "BORRADOR" | "EMITIDA" | "PAGADA" | "ANULADA";
+
+/**
+ * Genera o regenera el snapshot de una factura
+ */
+export async function generateInvoiceSnapshot(
+  empresaId: string,
+  period: string
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+
+  try {
+    const apiPeriod = displayPeriodToApiPeriod(period);
+    
+    const response = await axios.post(
+      `billing-summary/facturacion/${empresaId}/${apiPeriod}/snapshot`,
+      {},
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
+    );
+
+    if (response.status !== 201 && response.status !== 200) {
+      return {
+        success: false,
+        message: "Error al generar el snapshot de la factura",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Snapshot generado correctamente",
+    };
+  } catch (error: unknown) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    
+    if (status === 409) {
+      return {
+        success: false,
+        message: "La factura ya está emitida o pagada y no puede regenerarse",
+      };
+    }
+
+    console.error("[PAGOS] Error al generar snapshot:", error);
+    return {
+      success: false,
+      message: "Error al generar el snapshot de la factura",
+    };
+  }
+}
+
+/**
+ * Actualiza el estado de una factura
+ */
+export async function updateInvoiceStatus(
+  empresaId: string,
+  period: string,
+  estado: EstadoSnapshot
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+
+  try {
+    const apiPeriod = displayPeriodToApiPeriod(period);
+    
+    const response = await axios.patch(
+      `billing-summary/facturacion/${empresaId}/${apiPeriod}/snapshot/estado`,
+      { estado },
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
+    );
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: "Error al actualizar el estado de la factura",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Estado de la factura actualizado correctamente",
+    };
+  } catch (error: unknown) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    
+    if (status === 404) {
+      return {
+        success: false,
+        message: "Factura no encontrada",
+      };
+    }
+    
+    if (status === 409) {
+      return {
+        success: false,
+        message: "Transición de estado no permitida",
+      };
+    }
+
+    console.error("[PAGOS] Error al actualizar estado:", error);
+    return {
+      success: false,
+      message: "Error al actualizar el estado de la factura",
+    };
+  }
+}
+
+/**
+ * Emite una factura (genera snapshot + cambia estado a EMITIDA)
+ */
+export async function emitInvoice(
+  empresaId: string,
+  period: string
+): Promise<ApiResponse> {
+  // Primero generar/actualizar el snapshot
+  const snapshotResult = await generateInvoiceSnapshot(empresaId, period);
+  
+  if (!snapshotResult.success) {
+    return snapshotResult;
+  }
+
+  // Luego cambiar el estado a EMITIDA
+  return updateInvoiceStatus(empresaId, period, "EMITIDA");
+}
+
+/**
+ * Marca una factura como pagada
+ */
+export async function markInvoiceAsPaid(
+  empresaId: string,
+  period: string
+): Promise<ApiResponse> {
+  return updateInvoiceStatus(empresaId, period, "PAGADA");
+}
+
+/**
+ * Anula una factura
+ */
+export async function cancelInvoice(
+  empresaId: string,
+  period: string
+): Promise<ApiResponse> {
+  return updateInvoiceStatus(empresaId, period, "ANULADA");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CUSTOMER CHARGES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type TipoCargoCliente = "EQUIPO" | "TEAM_BUILDING" | "CAPACITACION" | "OTRO";
+export type EstadoCargoCliente = "PENDIENTE" | "APROBADO" | "ANULADO";
+
+export interface CustomerCharge {
+  id: string;
+  empresaId: string;
+  procesoContratacionId?: string | null;
+  tipo: TipoCargoCliente;
+  monto: number;
+  moneda: string;
+  fecha: string;
+  periodo?: string | null;
+  descripcion?: string | null;
+  notas?: string | null;
+  metodoPago?: string | null;
+  afectaNomina: boolean;
+  comprobantes?: unknown;
+  detalles?: string | null;
+  estado: EstadoCargoCliente;
+  creadoPorId: string;
+  creadoEn: string;
+  aprobadoPorId?: string | null;
+  aprobadoEn?: string | null;
+  notasAprobacion?: string | null;
+  empresa?: {
+    id: string;
+    nombre: string;
+  };
+  procesoContratacion?: {
+    id: string;
+    nombreCompleto: string;
+    puestoTrabajo: string;
+  } | null;
+}
+
+export interface CreateCustomerChargeDto {
+  empresaId: string;
+  procesoContratacionId?: string;
+  tipo: TipoCargoCliente;
+  monto: number;
+  moneda?: string;
+  fecha: string;
+  periodo?: string;
+  descripcion?: string;
+  notas?: string;
+  metodoPago?: string;
+  afectaNomina?: boolean;
+  comprobantes?: unknown;
+  detalles?: string;
+}
+
+export interface UpdateCustomerChargeDto {
+  monto?: number;
+  tipo?: TipoCargoCliente;
+  fecha?: string;
+  periodo?: string;
+  descripcion?: string;
+  notas?: string;
+  metodoPago?: string;
+  afectaNomina?: boolean;
+  comprobantes?: unknown;
+  detalles?: string;
+}
+
+export interface ApproveCustomerChargeDto {
+  notasAprobacion?: string;
+}
+
+/**
+ * Crea un nuevo cargo al cliente
+ */
+export async function createCustomerCharge(
+  data: CreateCustomerChargeDto
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.post<ApiResponse>(
+      "/admin-hub/customer-charges",
+      data
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CHARGES] Error al crear cargo:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al crear el cargo",
+    };
+  }
+}
+
+/**
+ * Obtiene la lista de cargos con filtros opcionales
+ */
+export async function getCustomerCharges(filters?: {
+  empresaId?: string;
+  procesoContratacionId?: string;
+  periodo?: string;
+  estado?: EstadoCargoCliente;
+  tipo?: TipoCargoCliente;
+}): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const params = new URLSearchParams();
+    
+    if (filters?.empresaId) params.append("empresaId", filters.empresaId);
+    if (filters?.procesoContratacionId) params.append("procesoContratacionId", filters.procesoContratacionId);
+    if (filters?.periodo) params.append("periodo", filters.periodo);
+    if (filters?.estado) params.append("estado", filters.estado);
+    if (filters?.tipo) params.append("tipo", filters.tipo);
+
+    const response = await axios.get<ApiResponse>(
+      `/admin-hub/customer-charges?${params.toString()}`
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CHARGES] Error al obtener cargos:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al obtener los cargos",
+    };
+  }
+}
+
+/**
+ * Obtiene el detalle de un cargo específico
+ */
+export async function getCustomerCharge(
+  id: string
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.get<ApiResponse>(
+      `/admin-hub/customer-charges/${id}`
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CHARGES] Error al obtener cargo:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al obtener el cargo",
+    };
+  }
+}
+
+/**
+ * Actualiza un cargo (solo si está PENDIENTE)
+ */
+export async function updateCustomerCharge(
+  id: string,
+  data: UpdateCustomerChargeDto
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.patch<ApiResponse>(
+      `/admin-hub/customer-charges/${id}`,
+      data
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CHARGES] Error al actualizar cargo:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al actualizar el cargo",
+    };
+  }
+}
+
+/**
+ * Aprueba un cargo (PENDIENTE → APROBADO)
+ */
+export async function approveCustomerCharge(
+  id: string,
+  data?: ApproveCustomerChargeDto
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.post<ApiResponse>(
+      `/admin-hub/customer-charges/${id}/aprobar`,
+      data || {}
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CHARGES] Error al aprobar cargo:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al aprobar el cargo",
+    };
+  }
+}
+
+/**
+ * Anula un cargo (PENDIENTE/APROBADO → ANULADO)
+ */
+export async function cancelCustomerCharge(
+  id: string
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.post<ApiResponse>(
+      `/admin-hub/customer-charges/${id}/anular`,
+      {}
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CHARGES] Error al anular cargo:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al anular el cargo",
     };
   }
 }
