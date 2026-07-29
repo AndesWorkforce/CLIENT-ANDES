@@ -1,23 +1,30 @@
-/** "200" → 200, "-200" → -200. Solo el "-" inicial resta; sin signo suma. */
+/** "200" → 200, "-200" → -200, "200.50" → 200.5. Solo el "-" inicial resta; sin signo suma. */
 export function parseSignedAmountInput(raw: string): number {
   const trimmed = raw.trim();
   if (!trimmed) return 0;
 
   const isNegative = trimmed.startsWith("-");
-  const digits = trimmed.replace(/[^\d]/g, "");
-  const value = parseInt(digits, 10) || 0;
+  const cleaned = trimmed.replace(/[^\d.]/g, "");
+  const value = parseFloat(cleaned) || 0;
 
   return isNegative ? -value : value;
 }
 
-/** Permite dígitos y un "-" solo al inicio (ej. "-200"). */
+/** Permite dígitos, punto decimal y un "-" solo al inicio (ej. "-200.50"). */
 export function sanitizeSignedAmountInput(value: string): string {
   const trimmed = value.trimStart();
   if (!trimmed) return "";
 
   const negative = trimmed.startsWith("-");
-  const digits = trimmed.replace(/[^\d]/g, "");
-  if (!digits) return negative ? "-" : "";
+  const cleaned = trimmed.replace(/[^\d.]/g, "");
+  
+  // Permitir solo un punto decimal
+  const parts = cleaned.split(".");
+  const sanitized = parts.length > 1 
+    ? `${parts[0]}.${parts.slice(1).join("")}` 
+    : cleaned;
+  
+  if (!sanitized) return negative ? "-" : "";
 
-  return negative ? `-${digits}` : digits;
+  return negative ? `-${sanitized}` : sanitized;
 }

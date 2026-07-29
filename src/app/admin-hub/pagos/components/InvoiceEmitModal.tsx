@@ -29,6 +29,7 @@ interface InvoiceEmitModalProps {
   variant: InvoiceEmitModalVariant;
   onClose: () => void;
   onPrimaryAction: () => void;
+  isLoading?: boolean;
 }
 
 export default function InvoiceEmitModal({
@@ -36,6 +37,7 @@ export default function InvoiceEmitModal({
   variant,
   onClose,
   onPrimaryAction,
+  isLoading = false,
 }: InvoiceEmitModalProps) {
   const content = MODAL_CONTENT[variant];
 
@@ -105,16 +107,18 @@ export default function InvoiceEmitModal({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-11 w-[133px] shrink-0 items-center justify-center rounded-[8px] border border-[#C8C8C8] bg-white px-[22px] text-[14px] leading-5 text-[#707070] transition-colors hover:bg-[#F8F8F8]"
+              disabled={isLoading}
+              className="inline-flex h-11 w-[133px] shrink-0 items-center justify-center rounded-[8px] border border-[#C8C8C8] bg-white px-[22px] text-[14px] leading-5 text-[#707070] transition-colors hover:bg-[#F8F8F8] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancelar
             </button>
             <button
               type="button"
               onClick={onPrimaryAction}
-              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] leading-5 text-white transition-colors hover:bg-[#008099]"
+              disabled={isLoading}
+              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] leading-5 text-white transition-colors hover:bg-[#008099] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {content.primaryLabel}
+              {isLoading ? "Procesando..." : content.primaryLabel}
             </button>
           </div>
         </div>

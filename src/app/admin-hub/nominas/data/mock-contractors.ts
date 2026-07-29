@@ -496,11 +496,17 @@ export function findContract(
 }
 
 export function formatBaseSalary(amount: number): string {
-  return `$${amount.toLocaleString("es-ES")}`;
+  return `$${amount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 export function formatClientPrice(amount: number): string {
-  return `$${amount.toLocaleString("es-ES")}`;
+  return `$${amount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 export function getContractorsByClient(client: string) {

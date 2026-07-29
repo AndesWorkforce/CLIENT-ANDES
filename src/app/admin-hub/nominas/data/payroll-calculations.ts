@@ -2,7 +2,10 @@
 export const PAYROLL_WORKING_DAYS_PER_MONTH = 20;
 
 export function formatMoney(amount: number): string {
-  return `$${amount.toLocaleString("es-ES")}`;
+  return `$${amount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 /** Tarifa diaria derivada del sueldo base mensual. */
