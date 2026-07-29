@@ -23,6 +23,8 @@ const MENU_MIN_WIDTH = 148;
 
 interface PayrollVariablesTableProps {
   variables: PayrollVariable[];
+  selectedIds: Set<string>;
+  onSelectedIdsChange: (selectedIds: Set<string>) => void;
   onApprove: (itemId: string) => void;
   onReject: (itemId: string) => void;
   onDelete: (itemId: string) => void;
@@ -32,13 +34,14 @@ type MenuPosition = { top: number; left: number };
 
 export default function PayrollVariablesTable({
   variables,
+  selectedIds,
+  onSelectedIdsChange,
   onApprove,
   onReject,
   onDelete,
 }: PayrollVariablesTableProps) {
   const router = useRouter();
   const { addNotification } = useNotificationStore();
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortByDate, setSortByDate] = useState<"asc" | "desc" | null>(null);
   const [sortByAmount, setSortByAmount] = useState<"asc" | "desc" | null>(null);
   const [sortByApplyDate, setSortByApplyDate] = useState<"asc" | "desc" | null>(null);
@@ -127,19 +130,17 @@ export default function PayrollVariablesTable({
 
   function toggleAll() {
     if (allSelected) {
-      setSelectedIds(new Set());
+      onSelectedIdsChange(new Set());
     } else {
-      setSelectedIds(new Set(displayedVariables.map((item) => item.id)));
+      onSelectedIdsChange(new Set(displayedVariables.map((item) => item.id)));
     }
   }
 
   function toggleOne(id: string) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    onSelectedIdsChange(next);
   }
 
   function toggleDateSort() {

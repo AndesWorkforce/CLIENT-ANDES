@@ -154,6 +154,75 @@ export async function getNominas(
   }
 }
 
+export interface ApproveNominasBulkResultItem {
+  procesoContratacionId: string;
+  success: boolean;
+  message: string;
+}
+
+export interface ApproveNominasBulkResult extends ApiResponse {
+  results?: ApproveNominasBulkResultItem[];
+}
+
+export async function approveNominasBulk(params: {
+  periodo: string;
+  procesoContratacionIds: string[];
+}): Promise<ApproveNominasBulkResult> {
+  const axios = await createServerAxios();
+  const periodo = params.periodo?.trim();
+
+  if (!periodo || !/^\d{4}-(0[1-9]|1[0-2])$/.test(periodo)) {
+    return {
+      success: false,
+      message: "El período debe tener formato YYYY-MM",
+    };
+  }
+
+  if (!params.procesoContratacionIds.length) {
+    return {
+      success: false,
+      message: "Selecciona al menos una nómina",
+    };
+  }
+
+  try {
+    const response = await axios.post("admin-hub/nominas/aprobar-masivo", {
+      periodo,
+      procesoContratacionIds: params.procesoContratacionIds,
+    });
+
+    const payload = response.data?.data ?? response.data;
+    const results = Array.isArray(payload?.results)
+      ? (payload.results as ApproveNominasBulkResultItem[])
+      : [];
+
+    const failed = results.filter((item) => !item.success).length;
+    const approved = results.length - failed;
+
+    return {
+      success: failed === 0,
+      message:
+        failed === 0
+          ? `${approved} nómina(s) aprobada(s)`
+          : `${approved} aprobada(s), ${failed} con error`,
+      results,
+    };
+  } catch (error) {
+    console.error("[NOMINAS] Error al aprobar masivo:", error);
+    const message = (
+      error as { response?: { data?: { message?: string | string[] } } }
+    ).response?.data?.message;
+    return {
+      success: false,
+      message: Array.isArray(message)
+        ? message.join(", ")
+        : typeof message === "string" && message.trim()
+          ? message
+          : "Error al aprobar nóminas",
+    };
+  }
+}
+
 function mapNominaDetailToPayrollDetail(detail: NominaDetailApiResponse): PayrollDetail {
   return {
     id: detail.id,
