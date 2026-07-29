@@ -5,6 +5,8 @@ on:
     branches:
       - admin-hub
       - test-development
+      # Andi (chatbot) sobre admin-hub — deploy controlado a test
+      - feat/andi-on-admin-hub
 
 jobs:
   deploy:

@@ -13,7 +13,7 @@ function normalizeApiBaseUrl(raw?: string): string {
 }
 
 /** SSR / API routes: preferir URL interna (mismo VPS) si existe */
-function getApiUrl(): string {
+export function getApiUrl(): string {
   const rawUrl =
     process.env.INTERNAL_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
