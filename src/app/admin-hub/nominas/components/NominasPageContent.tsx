@@ -13,7 +13,11 @@ import AdminHubSelect from "../../components/AdminHubSelect";
 import TableSkeleton from "../../dashboard/components/TableSkeleton";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
 import { getContratos } from "../../contratos/actions/contratos.actions";
-import { getNominas, type NominasPagination } from "../actions/nominas.actions";
+import {
+  approveNominasBulk,
+  getNominas,
+  type NominasPagination,
+} from "../actions/nominas.actions";
 import {
   buildNominaMonthOptions,
   getCurrentNominaMonthOption,
@@ -24,6 +28,7 @@ import {
 } from "../data/payroll-data";
 import type { PayrollVariableStatus } from "../data/mock-payroll-variables";
 import NominasTable from "./NominasTable";
+import { useNotificationStore } from "@/store/notifications.store";
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 350;
@@ -72,6 +77,8 @@ export default function NominasPageContent() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [isApproving, setIsApproving] = useState(false);
+  const { addNotification } = useNotificationStore();
 
   const periodoApi = useMemo(
     () => nominaMonthOptionToAnioMes(selectedMonth),
@@ -178,7 +185,7 @@ export default function NominasPageContent() {
     const nominasSeleccionadas = rows.filter((row) => selectedIds.has(row.id));
 
     if (nominasSeleccionadas.length === 0) {
-      errors.push("Por favor selecciona al menos una nómina para emitir.");
+      errors.push("Por favor selecciona al menos una nómina para aprobar.");
       return errors;
     }
 
@@ -198,28 +205,16 @@ export default function NominasPageContent() {
       (row) => row.status === "Emitido",
     );
     if (nominasYaEmitidas.length > 0) {
-      errors.push("Las siguientes nóminas ya fueron emitidas:");
+      errors.push("Las siguientes nóminas ya fueron emitidas y no se pueden aprobar:");
       nominasYaEmitidas.forEach((row) => {
         errors.push(`  • ${row.contractorName} (${row.client})`);
-      });
-    }
-
-    const nominasNoAprobadas = nominasSeleccionadas.filter(
-      (row) => row.status !== "Aprobado",
-    );
-    if (nominasNoAprobadas.length > 0) {
-      errors.push(
-        "Todas las nóminas deben estar aprobadas antes de emitirse. Las siguientes nóminas NO están aprobadas:",
-      );
-      nominasNoAprobadas.forEach((row) => {
-        errors.push(`  • ${row.contractorName} (${row.client}) - Estado actual: ${row.status}`);
       });
     }
 
     return errors;
   }
 
-  function handleEmitirNominas() {
+  function handleAprobarNominas() {
     const errors = validateNominas();
     setValidationErrors(errors);
 
@@ -230,11 +225,48 @@ export default function NominasPageContent() {
     }
   }
 
-  function handleConfirmEmision() {
-    setShowConfirmModal(false);
-    setValidationErrors([]);
-    setShowResultModal(true);
-    setSelectedIds(new Set());
+  async function handleConfirmAprobacion() {
+    const idsToApprove = rows
+      .filter((row) => selectedIds.has(row.id) && row.status !== "Emitido")
+      .map((row) => row.id);
+
+    setIsApproving(true);
+    try {
+      const result = await approveNominasBulk({
+        periodo: periodoApi,
+        procesoContratacionIds: idsToApprove,
+      });
+
+      const failedResults = (result.results ?? []).filter((item) => !item.success);
+      const nameById = new Map(
+        rows.map((row) => [row.id, `${row.contractorName} (${row.client})`]),
+      );
+
+      if (failedResults.length > 0) {
+        setValidationErrors(
+          failedResults.map(
+            (item) =>
+              `  • ${nameById.get(item.procesoContratacionId) ?? item.procesoContratacionId}: ${item.message}`,
+          ),
+        );
+        setShowConfirmModal(false);
+        setShowResultModal(true);
+      } else {
+        setShowConfirmModal(false);
+        setValidationErrors([]);
+        setShowResultModal(true);
+        addNotification(
+          result.message || "Nóminas aprobadas correctamente",
+          "success",
+          "compact",
+        );
+      }
+
+      setSelectedIds(new Set());
+      await loadNominas();
+    } finally {
+      setIsApproving(false);
+    }
   }
 
   return (
@@ -252,10 +284,10 @@ export default function NominasPageContent() {
         {hasSelectedRows ? (
           <button
             type="button"
-            onClick={handleEmitirNominas}
+            onClick={handleAprobarNominas}
             className="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
           >
-            Emitir nóminas ({selectedIds.size})
+            Aprobar nóminas ({selectedIds.size})
           </button>
         ) : null}
       </div>
@@ -394,7 +426,7 @@ export default function NominasPageContent() {
           <div className="bg-white rounded-[12px] shadow-lg max-w-[500px] w-full mx-4 overflow-hidden">
             <div className="px-6 py-4 bg-[#0097B2]">
               <h2 className="text-[20px] font-bold text-white">
-                Confirmar Emisión de Nóminas
+                Confirmar aprobación de nóminas
               </h2>
             </div>
             <div className="px-6 py-6 space-y-4">
@@ -410,29 +442,33 @@ export default function NominasPageContent() {
                   <span className="text-[14px] text-[#343434]">{selectedIds.size}</span>
                 </div>
               </div>
-              <div className="bg-[#D4F4E2] rounded-[8px] px-4 py-3">
-                <p className="text-[14px] text-[#2D6A4F] leading-relaxed">
-                  ✓ Todas las validaciones han pasado correctamente. Las nóminas seleccionadas están listas para ser emitidas.
+              <div className="bg-[#DFFAFF] rounded-[8px] px-4 py-3">
+                <p className="text-[14px] text-[#007A8C] leading-relaxed">
+                  Se aprobarán las variables pendientes de cada nómina y luego la nómina,
+                  siempre que no quede ninguna variable en estado Pendiente (Rechazado
+                  permitido).
                 </p>
               </div>
               <p className="text-[14px] text-[#858585] leading-relaxed">
-                ¿Deseas continuar con la emisión de estas nóminas?
+                ¿Deseas continuar con la aprobación?
               </p>
             </div>
             <div className="px-6 py-4 bg-[#F8F8F8] flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setShowConfirmModal(false)}
-                className="px-5 py-2 rounded-[8px] bg-white border border-[#C8C8C8] text-[#525252] text-[14px] font-semibold hover:bg-[#F8F8F8] transition-colors"
+                disabled={isApproving}
+                className="px-5 py-2 rounded-[8px] bg-white border border-[#C8C8C8] text-[#525252] text-[14px] font-semibold hover:bg-[#F8F8F8] transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 type="button"
-                onClick={handleConfirmEmision}
-                className="px-5 py-2 rounded-[8px] bg-[#0097B2] text-white text-[14px] font-semibold hover:bg-[#008099] transition-colors"
+                onClick={() => void handleConfirmAprobacion()}
+                disabled={isApproving}
+                className="px-5 py-2 rounded-[8px] bg-[#0097B2] text-white text-[14px] font-semibold hover:bg-[#008099] transition-colors disabled:opacity-50"
               >
-                Confirmar Emisión
+                {isApproving ? "Aprobando..." : "Confirmar aprobación"}
               </button>
             </div>
           </div>
@@ -453,19 +489,19 @@ export default function NominasPageContent() {
                 }`}
               >
                 {validationErrors.length === 0
-                  ? "✓ Nóminas Emitidas Exitosamente"
-                  : "⚠ Errores de Validación"}
+                  ? "✓ Nóminas aprobadas"
+                  : "⚠ Errores al aprobar"}
               </h2>
             </div>
             <div className="px-6 py-6">
               {validationErrors.length === 0 ? (
                 <p className="text-[14px] text-[#343434] leading-relaxed">
-                  Las nóminas han sido emitidas correctamente y su estado se ha actualizado.
+                  Las nóminas fueron aprobadas correctamente y su estado se actualizó.
                 </p>
               ) : (
                 <div className="space-y-3">
                   <p className="text-[14px] text-[#721C24] font-semibold">
-                    No se puede continuar con la emisión:
+                    No se pudo completar la aprobación de todas las nóminas:
                   </p>
                   <div className="bg-[#FFF5F5] rounded-[8px] px-4 py-3">
                     <ul className="text-[13px] text-[#343434] space-y-1">

@@ -164,6 +164,46 @@ export async function approveNominaVariable(
   }
 }
 
+export interface ApproveNominaVariablesBulkResult extends ApiResponse {
+  approved?: number;
+  skipped?: number;
+  failed?: number;
+}
+
+export async function approveNominaVariablesBulk(
+  refs: string[],
+): Promise<ApproveNominaVariablesBulkResult> {
+  if (refs.length === 0) {
+    return {
+      success: true,
+      message: "No hay variables pendientes para aprobar",
+      approved: 0,
+      skipped: 0,
+      failed: 0,
+    };
+  }
+
+  let approved = 0;
+  let failed = 0;
+
+  for (const ref of refs) {
+    const result = await approveNominaVariable(ref);
+    if (result.success) approved += 1;
+    else failed += 1;
+  }
+
+  return {
+    success: failed === 0,
+    message:
+      failed === 0
+        ? `${approved} variable(s) aprobada(s)`
+        : `${approved} aprobada(s), ${failed} con error`,
+    approved,
+    skipped: 0,
+    failed,
+  };
+}
+
 export async function rejectNominaVariable(
   ref: string,
 ): Promise<ApiResponse> {

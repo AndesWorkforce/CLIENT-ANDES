@@ -10,6 +10,7 @@ import { ADMIN_HUB_CLEAR_FILTERS_CLASS, ADMIN_HUB_FILTER_BUTTON_CLASS, ADMIN_HUB
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
 import {
   approveNominaVariable,
+  approveNominaVariablesBulk,
   deleteNominaVariable,
   getNominaVariables,
   rejectNominaVariable,
@@ -90,6 +91,9 @@ export default function PayrollVariablesPageContent({
   const [statusFilter, setStatusFilter] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showApproveConfirmModal, setShowApproveConfirmModal] = useState(false);
+  const [isBulkApproving, setIsBulkApproving] = useState(false);
 
   const loadVariables = useCallback(async () => {
     setLoading(true);
@@ -176,8 +180,50 @@ export default function PayrollVariablesPageContent({
       addNotification(result.message || "No se pudo eliminar la variable", "error");
       return;
     }
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(itemId);
+      return next;
+    });
     await loadVariables();
     addNotification("La variable fue eliminada.", "success", "compact");
+  }
+
+  async function handleBulkApproveConfirm() {
+    const selected = filteredVariables.filter((item) => selectedIds.has(item.id));
+    const pendingRefs = selected
+      .filter((item) => item.status === "Pendiente")
+      .map((item) => item.id);
+    const skipped = selected.length - pendingRefs.length;
+
+    setIsBulkApproving(true);
+    try {
+      const result = await approveNominaVariablesBulk(pendingRefs);
+      await loadVariables();
+      setSelectedIds(new Set());
+      setShowApproveConfirmModal(false);
+
+      if (result.failed && result.failed > 0) {
+        addNotification(
+          `${result.approved ?? 0} aprobada(s), ${result.failed} con error, ${skipped} omitida(s).`,
+          "warning",
+        );
+      } else if ((result.approved ?? 0) === 0 && skipped > 0) {
+        addNotification(
+          `No había variables pendientes. ${skipped} omitida(s).`,
+          "info",
+          "compact",
+        );
+      } else {
+        addNotification(
+          `${result.approved ?? 0} variable(s) aprobada(s)${skipped > 0 ? `, ${skipped} omitida(s)` : ""}.`,
+          "success",
+          "compact",
+        );
+      }
+    } finally {
+      setIsBulkApproving(false);
+    }
   }
 
   function handleVariableCreated(variable: PayrollVariable) {
@@ -205,6 +251,7 @@ export default function PayrollVariablesPageContent({
   }
 
   const hasActiveFilters = Boolean(clientFilter || typeFilter || statusFilter || fromDate || toDate);
+  const hasSelectedRows = selectedIds.size > 0;
 
   const clientFilterOptions = buildFilterOptions(variables, (item) => item.client);
   const typeFilterOptions = buildFilterOptions(variables, (item) => item.type);
@@ -217,14 +264,25 @@ export default function PayrollVariablesPageContent({
         <h1 className="text-[32px] font-bold text-black leading-[1.3]">
           Variable de nóminas
         </h1>
-        <button
-          type="button"
-          onClick={() => setIsCreateOpen(true)}
-          className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium text-white leading-5 hover:bg-[#008099] transition-colors"
-        >
-          <Plus size={20} />
-          Crear nuevo
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          {hasSelectedRows ? (
+            <button
+              type="button"
+              onClick={() => setShowApproveConfirmModal(true)}
+              className="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
+            >
+              Aprobar variables de Nómina ({selectedIds.size})
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setIsCreateOpen(true)}
+            className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium text-white leading-5 hover:bg-[#008099] transition-colors"
+          >
+            <Plus size={20} />
+            Crear nuevo
+          </button>
+        </div>
       </div>
 
       <div className="border-b border-[#EFEFEF]">
@@ -324,6 +382,8 @@ export default function PayrollVariablesPageContent({
       ) : (
         <PayrollVariablesTable
           variables={filteredVariables}
+          selectedIds={selectedIds}
+          onSelectedIdsChange={setSelectedIds}
           onApprove={handleApprove}
           onReject={handleReject}
           onDelete={handleDelete}
@@ -335,6 +395,49 @@ export default function PayrollVariablesPageContent({
         onClose={() => setIsCreateOpen(false)}
         onVariableCreated={handleVariableCreated}
       />
+
+      {showApproveConfirmModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-[12px] shadow-lg max-w-[500px] w-full mx-4 overflow-hidden">
+            <div className="px-6 py-4 bg-[#0097B2]">
+              <h2 className="text-[20px] font-bold text-white">
+                Confirmar aprobación de variables
+              </h2>
+            </div>
+            <div className="px-6 py-6 space-y-4">
+              <p className="text-[14px] text-[#525252] leading-relaxed">
+                Se aprobarán las variables seleccionadas que estén en estado{" "}
+                <strong>Pendiente</strong>. Las que ya estén Aprobadas, Rechazadas o
+                Emitidas se omitirán.
+              </p>
+              <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">
+                <span className="text-[14px] font-semibold text-[#525252]">
+                  Seleccionadas:
+                </span>
+                <span className="text-[14px] text-[#343434]">{selectedIds.size}</span>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-[#F8F8F8] flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowApproveConfirmModal(false)}
+                disabled={isBulkApproving}
+                className="px-5 py-2 rounded-[8px] bg-white border border-[#C8C8C8] text-[#525252] text-[14px] font-semibold hover:bg-[#F8F8F8] transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleBulkApproveConfirm()}
+                disabled={isBulkApproving}
+                className="px-5 py-2 rounded-[8px] bg-[#0097B2] text-white text-[14px] font-semibold hover:bg-[#008099] transition-colors disabled:opacity-50"
+              >
+                {isBulkApproving ? "Aprobando..." : "Confirmar aprobación"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
