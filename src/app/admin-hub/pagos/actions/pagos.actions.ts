@@ -754,7 +754,7 @@ export async function cancelCustomerCharge(
 
 export type TipoAjusteFactura = "CREDIT" | "CHARGE";
 export type EstadoAjusteFactura = "PENDING" | "PROJECTED" | "APPROVED";
-export type CategoriaAjusteFactura = "RENUNCIA" | "DESPIDO" | "BONO" | "PENALIZACION" | "OTRO";
+export type CategoriaAjusteFactura = "RENUNCIA" | "DEDUCCION_DIAS_LIBRES" | "AUSENCIA" | "AJUSTE_MANUAL";
 
 export interface CustomerCredit {
   id: string;

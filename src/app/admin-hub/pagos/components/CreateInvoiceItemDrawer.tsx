@@ -255,12 +255,12 @@ export default function CreateInvoiceItemDrawer({
 
         const categoriaMap: Record<string, CategoriaAjusteFactura> = {
           renuncia: "RENUNCIA",
-          despido: "DESPIDO",
-          bono: "BONO",
-          penalizacion: "PENALIZACION",
+          "deduccion-dias": "DEDUCCION_DIAS_LIBRES",
+          ausencia: "AUSENCIA",
+          ajuste: "AJUSTE_MANUAL",
         };
 
-        const categoria = categoriaMap[formData.tipo] || "OTRO";
+        const categoria = categoriaMap[formData.tipo] || "AJUSTE_MANUAL";
 
         const result = await createCustomerCredit({
           empresaId,
