@@ -4,6 +4,7 @@ import { createServerAxios } from "@/services/axios.server";
 import { ApiResponse } from "@/interfaces/api.interface";
 import { formatMoney } from "../../nominas/data/payroll-calculations";
 import { monthOptionToPeriod } from "../../nominas/data/payroll-data";
+import { apiPeriodoToDisplay, displayPeriodToApiPeriod, NOMINA_MONTH_NAMES } from "./pagos.utils";
 import type { Invoice, InvoiceStatus } from "../types/invoice.types";
 import type {
   InvoiceAdditionalFee,
@@ -14,21 +15,6 @@ import type {
   InvoicePayrollStatus,
   InvoiceSection,
 } from "../types/invoice-detail.types";
-
-const NOMINA_MONTH_NAMES = [
-  "Enero",
-  "Febrero",
-  "Marzo",
-  "Abril",
-  "Mayo",
-  "Junio",
-  "Julio",
-  "Agosto",
-  "Septiembre",
-  "Octubre",
-  "Noviembre",
-  "Diciembre",
-] as const;
 
 type BackendEstado = "BORRADOR" | "EMITIDA" | "PAGADA" | "ANULADA";
 
@@ -139,16 +125,6 @@ function monthOptionToApiParams(monthOption: string): { anio: number; mes: numbe
   return { anio: parseInt(yearStr, 10), mes };
 }
 
-function apiPeriodoToDisplay(periodo: string): string {
-  const [year, monthStr] = periodo.split("-");
-  const monthIndex = parseInt(monthStr, 10) - 1;
-
-  if (monthIndex < 0 || monthIndex >= NOMINA_MONTH_NAMES.length) {
-    return periodo;
-  }
-
-  return `${NOMINA_MONTH_NAMES[monthIndex]} ${year}`;
-}
 
 function mapEstadoToUi(estado: BackendEstado): InvoiceStatus {
   switch (estado) {
@@ -365,21 +341,6 @@ export async function getInvoiceDetail(
       message: "Error al obtener el detalle de la factura",
     };
   }
-}
-
-/**
- * Convierte el periodo de display (ej. "Enero 2026") al formato del backend (ej. "2026-01")
- */
-function displayPeriodToApiPeriod(displayPeriod: string): string {
-  const [monthName, yearStr] = displayPeriod.split(" ");
-  const monthIndex = NOMINA_MONTH_NAMES.indexOf(monthName as (typeof NOMINA_MONTH_NAMES)[number]);
-  
-  if (monthIndex < 0 || !yearStr) {
-    throw new Error(`Periodo inválido: ${displayPeriod}`);
-  }
-  
-  const mes = (monthIndex + 1).toString().padStart(2, "0");
-  return `${yearStr}-${mes}`;
 }
 
 export type EstadoSnapshot = "BORRADOR" | "EMITIDA" | "PAGADA" | "ANULADA";

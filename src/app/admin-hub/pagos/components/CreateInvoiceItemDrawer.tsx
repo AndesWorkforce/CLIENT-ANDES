@@ -12,6 +12,7 @@ import {
   createCustomerCredit,
   type CategoriaAjusteFactura
 } from "../actions/pagos.actions";
+import { displayPeriodToApiPeriod } from "../actions/pagos.utils";
 import CreateAdditionalItemForm, {
   type CreateAdditionalFormData,
   isAdditionalFormComplete,
@@ -221,6 +222,7 @@ export default function CreateInvoiceItemDrawer({
         };
 
         const tipo = tipoMap[formData.tipo] || "OTRO";
+        const apiPeriodo = displayPeriodToApiPeriod(periodo);
 
         const result = await createCustomerCharge({
           empresaId,
@@ -228,7 +230,7 @@ export default function CreateInvoiceItemDrawer({
           monto: numericAmount,
           moneda: formData.moneda || "USD",
           fecha: new Date().toISOString().split("T")[0],
-          periodo,
+          periodo: apiPeriodo,
           descripcion: formData.descripcion,
         });
 
@@ -261,10 +263,11 @@ export default function CreateInvoiceItemDrawer({
         };
 
         const categoria = categoriaMap[formData.tipo] || "AJUSTE_MANUAL";
+        const apiPeriodo = displayPeriodToApiPeriod(periodo);
 
         const result = await createCustomerCredit({
           empresaId,
-          periodo,
+          periodo: apiPeriodo,
           tipo: "CREDIT",
           monto: numericAmount,
           categoria,
