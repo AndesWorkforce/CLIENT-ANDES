@@ -435,7 +435,8 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
       const result = await approveCustomerCharge(itemId);
       if (result.success) {
         addNotification("Cargo aprobado exitosamente", "success");
-        router.refresh();
+        // Pequeño delay para asegurar que el backend actualizó los datos
+        setTimeout(() => router.refresh(), 100);
       } else {
         addNotification(result.message || "Error al aprobar el cargo", "error");
       }
@@ -443,7 +444,8 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
       const result = await approveCustomerCredit(itemId);
       if (result.success) {
         addNotification("Crédito aprobado exitosamente", "success");
-        router.refresh();
+        // Pequeño delay para asegurar que el backend actualizó los datos
+        setTimeout(() => router.refresh(), 100);
       } else {
         addNotification(result.message || "Error al aprobar el crédito", "error");
       }
@@ -464,7 +466,8 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
       const result = await cancelCustomerCharge(itemId);
       if (result.success) {
         addNotification("Cargo anulado exitosamente", "success");
-        router.refresh();
+        // Pequeño delay para asegurar que el backend actualizó los datos
+        setTimeout(() => router.refresh(), 100);
       } else {
         addNotification(result.message || "Error al anular el cargo", "error");
       }
