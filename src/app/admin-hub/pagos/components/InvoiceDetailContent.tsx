@@ -8,7 +8,8 @@ import { formatClientPrice } from "../../nominas/data/mock-contractors";
 import { 
   emitInvoice, 
   approveCustomerCharge, 
-  cancelCustomerCharge 
+  cancelCustomerCharge,
+  approveCustomerCredit
 } from "../actions/pagos.actions";
 import type {
   InvoiceAdditionalFee,
@@ -437,6 +438,14 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         router.refresh();
       } else {
         addNotification(result.message || "Error al aprobar el cargo", "error");
+      }
+    } else if (section.tabKey === "customer-credits") {
+      const result = await approveCustomerCredit(itemId);
+      if (result.success) {
+        addNotification("Crédito aprobado exitosamente", "success");
+        router.refresh();
+      } else {
+        addNotification(result.message || "Error al aprobar el crédito", "error");
       }
     } else {
       updateItemStatus(sectionId, itemId, "Aprobado", "El ítem fue aprobado correctamente.");

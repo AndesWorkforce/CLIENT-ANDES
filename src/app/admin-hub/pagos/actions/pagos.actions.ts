@@ -747,3 +747,186 @@ export async function cancelCustomerCharge(
     };
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CUSTOMER CREDITS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type TipoAjusteFactura = "CREDIT" | "CHARGE";
+export type EstadoAjusteFactura = "PENDING" | "PROJECTED" | "APPROVED";
+export type CategoriaAjusteFactura = "RENUNCIA" | "DESPIDO" | "BONO" | "PENALIZACION" | "OTRO";
+
+export interface CustomerCredit {
+  id: string;
+  empresaId: string;
+  procesoContratacionId?: string | null;
+  periodo: string;
+  tipo: TipoAjusteFactura;
+  monto: number;
+  categoria?: CategoriaAjusteFactura | null;
+  motivo?: string | null;
+  referencia?: string | null;
+  fecha?: string | null;
+  estado: EstadoAjusteFactura;
+  creadoPorId: string;
+  creadoEn: string;
+  aprobadoPorId?: string | null;
+  aprobadoEn?: string | null;
+  notasAprobacion?: string | null;
+  empresa?: {
+    id: string;
+    nombre: string;
+  };
+  procesoContratacion?: {
+    id: string;
+    nombreCompleto: string;
+    puestoTrabajo: string;
+  } | null;
+}
+
+export interface CreateCustomerCreditDto {
+  empresaId: string;
+  procesoContratacionId?: string;
+  periodo: string;
+  tipo: TipoAjusteFactura;
+  monto: number;
+  categoria?: CategoriaAjusteFactura;
+  motivo?: string;
+  referencia?: string;
+  fecha?: string;
+}
+
+export interface UpdateCustomerCreditDto {
+  monto?: number;
+  motivo?: string;
+  referencia?: string;
+  fecha?: string;
+}
+
+export interface ApproveCustomerCreditDto {
+  notasAprobacion?: string;
+}
+
+/**
+ * Crea un nuevo crédito al cliente
+ */
+export async function createCustomerCredit(
+  data: CreateCustomerCreditDto
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.post<ApiResponse>(
+      "/admin-hub/customer-credits",
+      data
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CREDITS] Error al crear crédito:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al crear el crédito",
+    };
+  }
+}
+
+/**
+ * Obtiene la lista de créditos con filtros opcionales
+ */
+export async function getCustomerCredits(filters?: {
+  empresaId?: string;
+  procesoContratacionId?: string;
+  periodo?: string;
+  estado?: EstadoAjusteFactura;
+  tipo?: TipoAjusteFactura;
+  categoria?: CategoriaAjusteFactura;
+}): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const params = new URLSearchParams();
+    
+    if (filters?.empresaId) params.append("empresaId", filters.empresaId);
+    if (filters?.procesoContratacionId) params.append("procesoContratacionId", filters.procesoContratacionId);
+    if (filters?.periodo) params.append("periodo", filters.periodo);
+    if (filters?.estado) params.append("estado", filters.estado);
+    if (filters?.tipo) params.append("tipo", filters.tipo);
+    if (filters?.categoria) params.append("categoria", filters.categoria);
+
+    const response = await axios.get<ApiResponse>(
+      `/admin-hub/customer-credits?${params.toString()}`
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CREDITS] Error al obtener créditos:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al obtener los créditos",
+    };
+  }
+}
+
+/**
+ * Obtiene el detalle de un crédito específico
+ */
+export async function getCustomerCredit(
+  id: string
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.get<ApiResponse>(
+      `/admin-hub/customer-credits/${id}`
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CREDITS] Error al obtener crédito:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al obtener el crédito",
+    };
+  }
+}
+
+/**
+ * Actualiza un crédito (solo si está PENDING)
+ */
+export async function updateCustomerCredit(
+  id: string,
+  data: UpdateCustomerCreditDto
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.patch<ApiResponse>(
+      `/admin-hub/customer-credits/${id}`,
+      data
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CREDITS] Error al actualizar crédito:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al actualizar el crédito",
+    };
+  }
+}
+
+/**
+ * Aprueba un crédito (PENDING → APPROVED)
+ */
+export async function approveCustomerCredit(
+  id: string,
+  data?: ApproveCustomerCreditDto
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.post<ApiResponse>(
+      `/admin-hub/customer-credits/${id}/aprobar`,
+      data || {}
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CREDITS] Error al aprobar crédito:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al aprobar el crédito",
+    };
+  }
+}
