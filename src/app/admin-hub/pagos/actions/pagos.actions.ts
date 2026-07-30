@@ -776,11 +776,15 @@ export async function createCustomerCredit(
 ): Promise<ApiResponse> {
   try {
     const axios = await createServerAxios();
-    const response = await axios.post<ApiResponse>(
+    const response = await axios.post(
       "/admin-hub/customer-credits",
       data
     );
-    return response.data;
+    return {
+      success: true,
+      message: "Crédito creado exitosamente",
+      data: response.data,
+    };
   } catch (error: any) {
     console.error("[CUSTOMER-CREDITS] Error al crear crédito:", error);
     return {
@@ -878,11 +882,15 @@ export async function approveCustomerCredit(
 ): Promise<ApiResponse> {
   try {
     const axios = await createServerAxios();
-    const response = await axios.post<ApiResponse>(
+    const response = await axios.post(
       `/admin-hub/customer-credits/${id}/aprobar`,
       data || {}
     );
-    return response.data;
+    return {
+      success: true,
+      message: "Crédito aprobado exitosamente",
+      data: response.data,
+    };
   } catch (error: any) {
     console.error("[CUSTOMER-CREDITS] Error al aprobar crédito:", error);
     return {
