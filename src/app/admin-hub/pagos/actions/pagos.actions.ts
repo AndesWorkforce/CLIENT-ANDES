@@ -4,6 +4,7 @@ import { createServerAxios } from "@/services/axios.server";
 import { ApiResponse } from "@/interfaces/api.interface";
 import { formatMoney } from "../../nominas/data/payroll-calculations";
 import { monthOptionToPeriod } from "../../nominas/data/payroll-data";
+import { apiPeriodoToDisplay, displayPeriodToApiPeriod, NOMINA_MONTH_NAMES } from "./pagos.utils";
 import type { Invoice, InvoiceStatus } from "../types/invoice.types";
 import type {
   InvoiceAdditionalFee,
@@ -14,21 +15,6 @@ import type {
   InvoicePayrollStatus,
   InvoiceSection,
 } from "../types/invoice-detail.types";
-
-const NOMINA_MONTH_NAMES = [
-  "Enero",
-  "Febrero",
-  "Marzo",
-  "Abril",
-  "Mayo",
-  "Junio",
-  "Julio",
-  "Agosto",
-  "Septiembre",
-  "Octubre",
-  "Noviembre",
-  "Diciembre",
-] as const;
 
 type BackendEstado = "BORRADOR" | "EMITIDA" | "PAGADA" | "ANULADA";
 
@@ -139,16 +125,6 @@ function monthOptionToApiParams(monthOption: string): { anio: number; mes: numbe
   return { anio: parseInt(yearStr, 10), mes };
 }
 
-function apiPeriodoToDisplay(periodo: string): string {
-  const [year, monthStr] = periodo.split("-");
-  const monthIndex = parseInt(monthStr, 10) - 1;
-
-  if (monthIndex < 0 || monthIndex >= NOMINA_MONTH_NAMES.length) {
-    return periodo;
-  }
-
-  return `${NOMINA_MONTH_NAMES[monthIndex]} ${year}`;
-}
 
 function mapEstadoToUi(estado: BackendEstado): InvoiceStatus {
   switch (estado) {
@@ -365,21 +341,6 @@ export async function getInvoiceDetail(
       message: "Error al obtener el detalle de la factura",
     };
   }
-}
-
-/**
- * Convierte el periodo de display (ej. "Enero 2026") al formato del backend (ej. "2026-01")
- */
-function displayPeriodToApiPeriod(displayPeriod: string): string {
-  const [monthName, yearStr] = displayPeriod.split(" ");
-  const monthIndex = NOMINA_MONTH_NAMES.indexOf(monthName as (typeof NOMINA_MONTH_NAMES)[number]);
-  
-  if (monthIndex < 0 || !yearStr) {
-    throw new Error(`Periodo inválido: ${displayPeriod}`);
-  }
-  
-  const mes = (monthIndex + 1).toString().padStart(2, "0");
-  return `${yearStr}-${mes}`;
 }
 
 export type EstadoSnapshot = "BORRADOR" | "EMITIDA" | "PAGADA" | "ANULADA";
@@ -744,6 +705,197 @@ export async function cancelCustomerCharge(
     return {
       success: false,
       message: error.response?.data?.message || "Error al anular el cargo",
+    };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CUSTOMER CREDITS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type TipoAjusteFactura = "CREDIT" | "CHARGE";
+export type EstadoAjusteFactura = "PENDING" | "PROJECTED" | "APPROVED";
+export type CategoriaAjusteFactura = "RENUNCIA" | "DEDUCCION_DIAS_LIBRES" | "AUSENCIA" | "AJUSTE_MANUAL";
+
+export interface CustomerCredit {
+  id: string;
+  empresaId: string;
+  procesoContratacionId?: string | null;
+  periodo: string;
+  tipo: TipoAjusteFactura;
+  monto: number;
+  categoria?: CategoriaAjusteFactura | null;
+  motivo?: string | null;
+  referencia?: string | null;
+  fecha?: string | null;
+  estado: EstadoAjusteFactura;
+  creadoPorId: string;
+  creadoEn: string;
+  aprobadoPorId?: string | null;
+  aprobadoEn?: string | null;
+  notasAprobacion?: string | null;
+  empresa?: {
+    id: string;
+    nombre: string;
+  };
+  procesoContratacion?: {
+    id: string;
+    nombreCompleto: string;
+    puestoTrabajo: string;
+  } | null;
+}
+
+export interface CreateCustomerCreditDto {
+  empresaId: string;
+  procesoContratacionId?: string;
+  periodo: string;
+  tipo: TipoAjusteFactura;
+  monto: number;
+  categoria?: CategoriaAjusteFactura;
+  motivo?: string;
+  referencia?: string;
+  fecha?: string;
+}
+
+export interface UpdateCustomerCreditDto {
+  monto?: number;
+  motivo?: string;
+  referencia?: string;
+  fecha?: string;
+}
+
+export interface ApproveCustomerCreditDto {
+  notasAprobacion?: string;
+}
+
+/**
+ * Crea un nuevo crédito al cliente
+ */
+export async function createCustomerCredit(
+  data: CreateCustomerCreditDto
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.post(
+      "/admin-hub/customer-credits",
+      data
+    );
+    return {
+      success: true,
+      message: "Crédito creado exitosamente",
+      data: response.data,
+    };
+  } catch (error: any) {
+    console.error("[CUSTOMER-CREDITS] Error al crear crédito:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al crear el crédito",
+    };
+  }
+}
+
+/**
+ * Obtiene la lista de créditos con filtros opcionales
+ */
+export async function getCustomerCredits(filters?: {
+  empresaId?: string;
+  procesoContratacionId?: string;
+  periodo?: string;
+  estado?: EstadoAjusteFactura;
+  tipo?: TipoAjusteFactura;
+  categoria?: CategoriaAjusteFactura;
+}): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const params = new URLSearchParams();
+    
+    if (filters?.empresaId) params.append("empresaId", filters.empresaId);
+    if (filters?.procesoContratacionId) params.append("procesoContratacionId", filters.procesoContratacionId);
+    if (filters?.periodo) params.append("periodo", filters.periodo);
+    if (filters?.estado) params.append("estado", filters.estado);
+    if (filters?.tipo) params.append("tipo", filters.tipo);
+    if (filters?.categoria) params.append("categoria", filters.categoria);
+
+    const response = await axios.get<ApiResponse>(
+      `/admin-hub/customer-credits?${params.toString()}`
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CREDITS] Error al obtener créditos:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al obtener los créditos",
+    };
+  }
+}
+
+/**
+ * Obtiene el detalle de un crédito específico
+ */
+export async function getCustomerCredit(
+  id: string
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.get<ApiResponse>(
+      `/admin-hub/customer-credits/${id}`
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CREDITS] Error al obtener crédito:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al obtener el crédito",
+    };
+  }
+}
+
+/**
+ * Actualiza un crédito (solo si está PENDING)
+ */
+export async function updateCustomerCredit(
+  id: string,
+  data: UpdateCustomerCreditDto
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.patch<ApiResponse>(
+      `/admin-hub/customer-credits/${id}`,
+      data
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("[CUSTOMER-CREDITS] Error al actualizar crédito:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al actualizar el crédito",
+    };
+  }
+}
+
+/**
+ * Aprueba un crédito (PENDING → APPROVED)
+ */
+export async function approveCustomerCredit(
+  id: string,
+  data?: ApproveCustomerCreditDto
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.post(
+      `/admin-hub/customer-credits/${id}/aprobar`,
+      data || {}
+    );
+    return {
+      success: true,
+      message: "Crédito aprobado exitosamente",
+      data: response.data,
+    };
+  } catch (error: any) {
+    console.error("[CUSTOMER-CREDITS] Error al aprobar crédito:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al aprobar el crédito",
     };
   }
 }

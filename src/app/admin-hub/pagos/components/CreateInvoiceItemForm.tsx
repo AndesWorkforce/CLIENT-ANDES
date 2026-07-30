@@ -24,9 +24,10 @@ const CHARGE_TYPES = [
 ];
 
 const CREDIT_TYPES = [
-  { value: "deduccion", label: "Deducción" },
-  { value: "nomina", label: "Nomina" },
-  { value: "correccion", label: "Corrección" },
+  { value: "renuncia", label: "Renuncia" },
+  { value: "deduccion-dias", label: "Deducción días libres" },
+  { value: "ausencia", label: "Ausencia" },
+  { value: "ajuste", label: "Ajuste manual" },
 ];
 
 const CURRENCIES = [

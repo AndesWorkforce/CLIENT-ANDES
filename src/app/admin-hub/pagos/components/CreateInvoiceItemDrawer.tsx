@@ -6,7 +6,13 @@ import AdminHubDrawerFooter from "../../components/AdminHubDrawerFooter";
 import AdminHubSideDrawer from "../../components/AdminHubSideDrawer";
 import AdminHubTypeSelectStep from "../../components/AdminHubTypeSelectStep";
 import { getContractorsByClient } from "../../nominas/data/mock-contractors";
-import { createCustomerCharge, type TipoCargoCliente } from "../actions/pagos.actions";
+import { 
+  createCustomerCharge, 
+  type TipoCargoCliente,
+  createCustomerCredit,
+  type CategoriaAjusteFactura
+} from "../actions/pagos.actions";
+import { displayPeriodToApiPeriod } from "../actions/pagos.utils";
 import CreateAdditionalItemForm, {
   type CreateAdditionalFormData,
   isAdditionalFormComplete,
@@ -216,6 +222,7 @@ export default function CreateInvoiceItemDrawer({
         };
 
         const tipo = tipoMap[formData.tipo] || "OTRO";
+        const apiPeriodo = displayPeriodToApiPeriod(periodo);
 
         const result = await createCustomerCharge({
           empresaId,
@@ -223,7 +230,7 @@ export default function CreateInvoiceItemDrawer({
           monto: numericAmount,
           moneda: formData.moneda || "USD",
           fecha: new Date().toISOString().split("T")[0],
-          periodo,
+          periodo: apiPeriodo,
           descripcion: formData.descripcion,
         });
 
@@ -243,17 +250,44 @@ export default function CreateInvoiceItemDrawer({
     }
 
     if (selectedType === "customer-credits") {
-      const isCredit = true;
-      const newItem = buildLineItem(
-        formData.tipo,
-        "",
-        formData.descripcion,
-        formData.monto,
-        formData.moneda,
-        isCredit
-      );
-      onItemCreated(newItem, selectedType);
-      onClose();
+      setIsCreating(true);
+      try {
+        const rawAmount = formData.monto.replace(/[^\d.]/g, "");
+        const numericAmount = parseFloat(rawAmount) || 0;
+
+        const categoriaMap: Record<string, CategoriaAjusteFactura> = {
+          renuncia: "RENUNCIA",
+          "deduccion-dias": "DEDUCCION_DIAS_LIBRES",
+          ausencia: "AUSENCIA",
+          ajuste: "AJUSTE_MANUAL",
+        };
+
+        const categoria = categoriaMap[formData.tipo] || "AJUSTE_MANUAL";
+        const apiPeriodo = displayPeriodToApiPeriod(periodo);
+
+        const result = await createCustomerCredit({
+          empresaId,
+          periodo: apiPeriodo,
+          tipo: "CREDIT",
+          monto: numericAmount,
+          categoria,
+          motivo: formData.descripcion,
+          fecha: new Date().toISOString().split("T")[0],
+        });
+
+        if (result.success) {
+          addNotification("Crédito creado exitosamente", "success");
+          onChargeCreated?.();
+          onClose();
+        } else {
+          addNotification(result.message || "Error al crear el crédito", "error");
+        }
+      } catch (error) {
+        addNotification("Error inesperado al crear el crédito", "error");
+      } finally {
+        setIsCreating(false);
+      }
+      return;
     }
   }
 
