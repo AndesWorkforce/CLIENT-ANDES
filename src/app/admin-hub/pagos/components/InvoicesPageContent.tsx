@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Filter, Plus } from "lucide-react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
@@ -16,9 +16,11 @@ import {
   getCurrentNominaMonthOption,
   monthOptionToPeriod,
 } from "../../nominas/data/payroll-data";
-import { getFacturas } from "../actions/pagos.actions";
+import {
+  getPagosClientes,
+  type PagosCliente,
+} from "../actions/pagos.actions";
 import type { Invoice, InvoiceStatus } from "../types/invoice.types";
-import { amountRangeToParams } from "../utils/facturas.utils";
 import InvoiceFilterSelect from "./InvoiceFilterSelect";
 import InvoicesTable from "./InvoicesTable";
 
@@ -37,23 +39,38 @@ const STATUS_FILTER_OPTIONS: { value: InvoiceStatus; label: string }[] = [
   { value: "Vencido", label: "Vencido" },
 ];
 
-function buildFilterOptions(invoices: Invoice[]) {
-  return Array.from(new Set(invoices.map((inv) => inv.client))).map((client) => ({
-    value: client,
-    label: client,
-  }));
+function mapClienteToInvoiceRow(
+  client: PagosCliente,
+  period: string,
+): Invoice {
+  return {
+    id: client.id,
+    clientId: client.id.slice(0, 8),
+    empresaId: client.id,
+    client: client.nombre,
+    period,
+    totalAmount: "—",
+    status: "Pendiente",
+  };
 }
 
-function mergeClientFilterOptions(
-  current: { value: string; label: string }[],
-  incoming: { value: string; label: string }[],
-) {
-  return Array.from(
-    new Map([...current, ...incoming].map((option) => [option.value, option])).values(),
-  );
+function buildClientFilterOptions(clients: PagosCliente[]) {
+  return clients
+    .map((client) => client.nombre)
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, "es"))
+    .map((nombre) => ({ value: nombre, label: nombre }));
 }
 
-export default function InvoicesPageContent() {
+interface InvoicesPageContentProps {
+  initialClients: PagosCliente[];
+  initialError?: string | null;
+}
+
+export default function InvoicesPageContent({
+  initialClients,
+  initialError = null,
+}: InvoicesPageContentProps) {
   const monthOptions = useMemo(() => buildNominaMonthOptions(), []);
   const currentMonthOption = useMemo(() => getCurrentNominaMonthOption(), []);
   const [selectedMonth, setSelectedMonth] = useState(currentMonthOption);
@@ -63,12 +80,10 @@ export default function InvoicesPageContent() {
   const [clientFilter, setClientFilter] = useState("");
   const [amountFilter, setAmountFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [clientFilterOptions, setClientFilterOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [clients, setClients] = useState<PagosCliente[]>(initialClients);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(initialError);
+  const skipNextSearchFetch = useRef(true);
 
   const selectedPeriod = monthOptionToPeriod(selectedMonth);
 
@@ -80,38 +95,48 @@ export default function InvoicesPageContent() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const fetchInvoices = useCallback(async () => {
+  const fetchClients = useCallback(async (search?: string) => {
     setLoading(true);
     setError(null);
 
-    const amountParams = amountFilter ? amountRangeToParams(amountFilter) : {};
-
-    const result = await getFacturas({
-      monthOption: selectedMonth,
-      search: debouncedSearch,
-      cliente: clientFilter || undefined,
-      estado: (statusFilter as InvoiceStatus) || undefined,
-      ...amountParams,
+    const result = await getPagosClientes({
+      search: search || undefined,
+      limit: 500,
     });
 
     if (!result.success) {
-      setError(result.message ?? "Error al cargar facturas");
-      setInvoices([]);
+      setError(result.message ?? "Error al cargar clientes");
+      setClients([]);
       setLoading(false);
       return;
     }
 
-    const items = result.data ?? [];
-    setInvoices(items);
-    setClientFilterOptions((prev) =>
-      mergeClientFilterOptions(prev, buildFilterOptions(items)),
-    );
+    setClients(result.data ?? []);
     setLoading(false);
-  }, [selectedMonth, debouncedSearch, clientFilter, amountFilter, statusFilter]);
+  }, []);
 
   useEffect(() => {
-    void fetchInvoices();
-  }, [fetchInvoices]);
+    if (skipNextSearchFetch.current) {
+      skipNextSearchFetch.current = false;
+      return;
+    }
+    void fetchClients(debouncedSearch);
+  }, [debouncedSearch, fetchClients]);
+
+  const clientFilterOptions = useMemo(
+    () => buildClientFilterOptions(clients),
+    [clients],
+  );
+
+  const invoices = useMemo(() => {
+    const filtered = clientFilter
+      ? clients.filter((client) => client.nombre === clientFilter)
+      : clients;
+
+    return filtered.map((client) =>
+      mapClienteToInvoiceRow(client, selectedPeriod),
+    );
+  }, [clients, clientFilter, selectedPeriod]);
 
   function clearFilters() {
     setClientFilter("");
@@ -208,7 +233,11 @@ export default function InvoicesPageContent() {
       {loading ? (
         <TableSkeleton />
       ) : (
-        <InvoicesTable invoices={invoices} displayPeriod={selectedPeriod} />
+        <InvoicesTable
+          invoices={invoices}
+          displayPeriod={selectedPeriod}
+          emptyMessage="No hay clientes registrados."
+        />
       )}
     </div>
   );

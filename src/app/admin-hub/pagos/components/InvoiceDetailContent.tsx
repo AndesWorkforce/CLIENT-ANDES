@@ -749,6 +749,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         client={invoice.client}
         empresaId={invoice.empresaId}
         periodo={invoice.period}
+        payrollEntries={invoice.payrollEntries}
         onClose={() => setIsCreateItemOpen(false)}
         onItemCreated={handleItemCreated}
         onAdditionalFeeCreated={handleAdditionalFeeCreated}

@@ -18,6 +18,84 @@ import type {
 
 type BackendEstado = "BORRADOR" | "EMITIDA" | "PAGADA" | "ANULADA";
 
+export interface PagosCliente {
+  id: string;
+  nombre: string;
+  activo: boolean;
+}
+
+export interface GetPagosClientesResult extends ApiResponse {
+  data?: PagosCliente[];
+  total?: number;
+}
+
+/**
+ * Lista clientes desde la tabla Empresa (GET /companies → prisma.empresa).
+ */
+export async function getPagosClientes(params?: {
+  search?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<GetPagosClientesResult> {
+  const axios = await createServerAxios();
+
+  try {
+    const limit = params?.limit ?? 500;
+    const offset = params?.offset ?? 0;
+    const search = params?.search?.trim() ?? "";
+
+    const response = await axios.get("companies", {
+      params: {
+        limit,
+        offset,
+        ...(search ? { search } : {}),
+      },
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: "Error al obtener clientes",
+        data: [],
+        total: 0,
+      };
+    }
+
+    const companies = Array.isArray(response.data?.companies)
+      ? response.data.companies
+      : [];
+
+    const data: PagosCliente[] = companies
+      .filter(
+        (company: { id?: string; nombre?: string; activo?: boolean }) =>
+          Boolean(company?.id) && Boolean(company?.nombre),
+      )
+      .map((company: { id: string; nombre: string; activo?: boolean }) => ({
+        id: company.id,
+        nombre: company.nombre,
+        activo: company.activo !== false,
+      }));
+
+    return {
+      success: true,
+      message: "Clientes obtenidos correctamente",
+      data,
+      total: typeof response.data?.total === "number" ? response.data.total : data.length,
+    };
+  } catch (error) {
+    console.error("[PAGOS] Error al obtener clientes:", error);
+    return {
+      success: false,
+      message: "Error al obtener clientes",
+      data: [],
+      total: 0,
+    };
+  }
+}
+
 export interface FacturaApiItem {
   id: string;
   empresaId: string;
@@ -339,6 +417,89 @@ export async function getInvoiceDetail(
     return {
       success: false,
       message: "Error al obtener el detalle de la factura",
+    };
+  }
+}
+
+function extractSnapshotId(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  const root = payload as Record<string, unknown>;
+  if (typeof root.id === "string") return root.id;
+  const nested = root.data;
+  if (nested && typeof nested === "object" && typeof (nested as { id?: unknown }).id === "string") {
+    return (nested as { id: string }).id;
+  }
+  return null;
+}
+
+export interface EnsureInvoiceSnapshotResult extends ApiResponse {
+  data?: { id: string };
+}
+
+/**
+ * Obtiene el snapshot de factura de una Empresa+periodo.
+ * Si no existe, lo genera (BORRADOR) y devuelve su id.
+ */
+export async function ensureInvoiceSnapshot(
+  empresaId: string,
+  period: string,
+): Promise<EnsureInvoiceSnapshotResult> {
+  const axios = await createServerAxios();
+
+  try {
+    const apiPeriod = displayPeriodToApiPeriod(period);
+
+    try {
+      const existing = await axios.get(
+        `billing-summary/facturacion/${empresaId}/${apiPeriod}/snapshot`,
+        { headers: { "Cache-Control": "no-store" } },
+      );
+      const existingId = extractSnapshotId(existing.data);
+      if (existingId) {
+        return {
+          success: true,
+          message: "Snapshot encontrado",
+          data: { id: existingId },
+        };
+      }
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status && status !== 404) {
+        throw error;
+      }
+    }
+
+    const created = await axios.post(
+      `billing-summary/facturacion/${empresaId}/${apiPeriod}/snapshot`,
+      {},
+      { headers: { "Cache-Control": "no-store" } },
+    );
+    const createdId = extractSnapshotId(created.data);
+    if (!createdId) {
+      return {
+        success: false,
+        message: "No se pudo obtener el id del snapshot generado",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Snapshot generado correctamente",
+      data: { id: createdId },
+    };
+  } catch (error: unknown) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    if (status === 409) {
+      return {
+        success: false,
+        message: "La factura ya está emitida o pagada y no puede regenerarse",
+      };
+    }
+
+    console.error("[PAGOS] Error al asegurar snapshot:", error);
+    return {
+      success: false,
+      message: "Error al preparar la factura del cliente",
     };
   }
 }

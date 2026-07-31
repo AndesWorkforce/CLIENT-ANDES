@@ -5,14 +5,14 @@ import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubDrawerFooter from "../../components/AdminHubDrawerFooter";
 import AdminHubSideDrawer from "../../components/AdminHubSideDrawer";
 import AdminHubTypeSelectStep from "../../components/AdminHubTypeSelectStep";
-import { getContractorsByClient } from "../../nominas/data/mock-contractors";
-import { 
-  createCustomerCharge, 
+import {
+  createCustomerCharge,
   type TipoCargoCliente,
   createCustomerCredit,
-  type CategoriaAjusteFactura
+  type CategoriaAjusteFactura,
 } from "../actions/pagos.actions";
 import { displayPeriodToApiPeriod } from "../actions/pagos.utils";
+import type { InvoicePayrollEntry } from "../types/invoice-detail.types";
 import CreateAdditionalItemForm, {
   type CreateAdditionalFormData,
   isAdditionalFormComplete,
@@ -21,7 +21,7 @@ import CreateInvoiceItemForm, {
   type CreateItemFormData,
   isCreateItemFormComplete,
 } from "./CreateInvoiceItemForm";
-import type { InvoiceAdditionalFee, InvoiceLineItem } from "../data/mock-invoice-details";
+import type { InvoiceAdditionalFee, InvoiceLineItem } from "../types/invoice-detail.types";
 
 export type MovementType = "customer-charges" | "customer-credits" | "adicionales";
 
@@ -64,6 +64,7 @@ interface CreateInvoiceItemDrawerProps {
   client: string;
   empresaId: string;
   periodo: string;
+  payrollEntries?: InvoicePayrollEntry[];
   onClose: () => void;
   onItemCreated: (item: InvoiceLineItem, movementType: MovementType) => void;
   onAdditionalFeeCreated: (fee: InvoiceAdditionalFee) => void;
@@ -72,9 +73,10 @@ interface CreateInvoiceItemDrawerProps {
 
 export default function CreateInvoiceItemDrawer({
   open,
-  client,
+  client: _client,
   empresaId,
   periodo,
+  payrollEntries = [],
   onClose,
   onItemCreated,
   onAdditionalFeeCreated,
@@ -89,31 +91,14 @@ export default function CreateInvoiceItemDrawer({
   const addNotification = useNotificationStore((state) => state.addNotification);
 
   const { contractorOptions, contractorPositionMap } = useMemo(() => {
-    const contractors = getContractorsByClient(client);
     const positionMap = new Map<string, string>();
+    const options = payrollEntries.map((entry) => {
+      positionMap.set(entry.contractorName, entry.position);
+      return { value: entry.contractorName, label: entry.contractorName };
+    });
 
-    if (contractors.length > 0) {
-      const options = contractors.map(({ contractorName, contract }) => {
-        positionMap.set(contractorName, contract.position);
-        return { value: contractorName, label: contractorName };
-      });
-      return { contractorOptions: options, contractorPositionMap: positionMap };
-    }
-
-    const fallbacks = [
-      { name: "Juan Perez", position: "Intake Specialist" },
-      { name: "Laura Sanchez", position: "Intake Specialist" },
-      { name: "Maria Dominguez", position: "Project Coordinator" },
-      { name: "Martin Diaz", position: "Welcome Call" },
-    ];
-
-    fallbacks.forEach(({ name, position }) => positionMap.set(name, position));
-
-    return {
-      contractorOptions: fallbacks.map(({ name }) => ({ value: name, label: name })),
-      contractorPositionMap: positionMap,
-    };
-  }, [client]);
+    return { contractorOptions: options, contractorPositionMap: positionMap };
+  }, [payrollEntries]);
 
   useEffect(() => {
     if (!open) {
