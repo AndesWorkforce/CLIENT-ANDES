@@ -573,16 +573,21 @@ export async function createCustomerCharge(
 ): Promise<ApiResponse> {
   try {
     const axios = await createServerAxios();
-    const response = await axios.post<ApiResponse>(
+    const response = await axios.post(
       "/admin-hub/customer-charges",
       data
     );
-    return response.data;
+    // Backend devuelve { data: {...}, meta: {...} }
+    return {
+      success: true,
+      message: "Cargo creado exitosamente",
+      data: response.data.data,
+    };
   } catch (error: any) {
     console.error("[CUSTOMER-CHARGES] Error al crear cargo:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Error al crear el cargo",
+      message: error.response?.data?.meta?.message || error.response?.data?.message || "Error al crear el cargo",
     };
   }
 }
@@ -650,16 +655,21 @@ export async function updateCustomerCharge(
 ): Promise<ApiResponse> {
   try {
     const axios = await createServerAxios();
-    const response = await axios.patch<ApiResponse>(
+    const response = await axios.patch(
       `/admin-hub/customer-charges/${id}`,
       data
     );
-    return response.data;
+    // Backend devuelve { data: {...}, meta: {...} }
+    return {
+      success: true,
+      message: "Cargo actualizado exitosamente",
+      data: response.data.data,
+    };
   } catch (error: any) {
     console.error("[CUSTOMER-CHARGES] Error al actualizar cargo:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Error al actualizar el cargo",
+      message: error.response?.data?.meta?.message || error.response?.data?.message || "Error al actualizar el cargo",
     };
   }
 }
@@ -673,16 +683,22 @@ export async function approveCustomerCharge(
 ): Promise<ApiResponse> {
   try {
     const axios = await createServerAxios();
-    const response = await axios.post<ApiResponse>(
+    const response = await axios.post(
       `/admin-hub/customer-charges/${id}/aprobar`,
       data || {}
     );
-    return response.data;
+    // Backend devuelve { data: {...}, meta: {...} }
+    // Lo transformamos a { success: true, message: string, data: {...} }
+    return {
+      success: true,
+      message: "Cargo aprobado exitosamente",
+      data: response.data.data,
+    };
   } catch (error: any) {
     console.error("[CUSTOMER-CHARGES] Error al aprobar cargo:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Error al aprobar el cargo",
+      message: error.response?.data?.meta?.message || error.response?.data?.message || "Error al aprobar el cargo",
     };
   }
 }
@@ -695,16 +711,21 @@ export async function cancelCustomerCharge(
 ): Promise<ApiResponse> {
   try {
     const axios = await createServerAxios();
-    const response = await axios.post<ApiResponse>(
+    const response = await axios.post(
       `/admin-hub/customer-charges/${id}/anular`,
       {}
     );
-    return response.data;
+    // Backend devuelve { data: {...}, meta: {...} }
+    return {
+      success: true,
+      message: "Cargo anulado exitosamente",
+      data: response.data.data,
+    };
   } catch (error: any) {
     console.error("[CUSTOMER-CHARGES] Error al anular cargo:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Error al anular el cargo",
+      message: error.response?.data?.meta?.message || error.response?.data?.message || "Error al anular el cargo",
     };
   }
 }
@@ -780,16 +801,17 @@ export async function createCustomerCredit(
       "/admin-hub/customer-credits",
       data
     );
+    // Backend devuelve { data: {...}, meta: {...} }
     return {
       success: true,
       message: "Crédito creado exitosamente",
-      data: response.data,
+      data: response.data.data,
     };
   } catch (error: any) {
     console.error("[CUSTOMER-CREDITS] Error al crear crédito:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Error al crear el crédito",
+      message: error.response?.data?.meta?.message || error.response?.data?.message || "Error al crear el crédito",
     };
   }
 }
@@ -859,16 +881,21 @@ export async function updateCustomerCredit(
 ): Promise<ApiResponse> {
   try {
     const axios = await createServerAxios();
-    const response = await axios.patch<ApiResponse>(
+    const response = await axios.patch(
       `/admin-hub/customer-credits/${id}`,
       data
     );
-    return response.data;
+    // Backend devuelve { data: {...}, meta: {...} }
+    return {
+      success: true,
+      message: "Crédito actualizado exitosamente",
+      data: response.data.data,
+    };
   } catch (error: any) {
     console.error("[CUSTOMER-CREDITS] Error al actualizar crédito:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Error al actualizar el crédito",
+      message: error.response?.data?.meta?.message || error.response?.data?.message || "Error al actualizar el crédito",
     };
   }
 }

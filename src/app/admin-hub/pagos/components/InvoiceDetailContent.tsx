@@ -432,30 +432,18 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     if (!section) return;
 
     if (section.tabKey === "customer-charges") {
-      console.log("🔍 [DEBUG] Aprobando cargo:", itemId);
       const result = await approveCustomerCharge(itemId);
-      console.log("📡 [DEBUG] Resultado aprobación cargo:", result);
       if (result.success) {
         addNotification("Cargo aprobado exitosamente", "success");
-        // Delay para asegurar que el backend actualizó los datos
-        setTimeout(() => {
-          console.log("🔄 [DEBUG] Refrescando página después de aprobar cargo");
-          router.refresh();
-        }, 500);
+        setTimeout(() => router.refresh(), 500);
       } else {
         addNotification(result.message || "Error al aprobar el cargo", "error");
       }
     } else if (section.tabKey === "customer-credits") {
-      console.log("🔍 [DEBUG] Aprobando crédito:", itemId);
       const result = await approveCustomerCredit(itemId);
-      console.log("📡 [DEBUG] Resultado aprobación crédito:", result);
       if (result.success) {
         addNotification("Crédito aprobado exitosamente", "success");
-        // Delay para asegurar que el backend actualizó los datos
-        setTimeout(() => {
-          console.log("🔄 [DEBUG] Refrescando página después de aprobar crédito");
-          router.refresh();
-        }, 500);
+        setTimeout(() => router.refresh(), 500);
       } else {
         addNotification(result.message || "Error al aprobar el crédito", "error");
       }
