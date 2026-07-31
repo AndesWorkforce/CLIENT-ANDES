@@ -2,8 +2,15 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Filter, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useNotificationStore } from "@/store/notifications.store";
 import { formatClientPrice } from "../../nominas/data/mock-contractors";
+import { 
+  emitInvoice, 
+  approveCustomerCharge, 
+  cancelCustomerCharge,
+  approveCustomerCredit
+} from "../actions/pagos.actions";
 import type {
   InvoiceAdditionalFee,
   InvoiceDetail,
@@ -48,13 +55,16 @@ interface InvoiceDetailContentProps {
 }
 
 function parseAmount(amount: string): number {
-  const normalized = amount.replace(/[^\d-]/g, "");
-  return parseInt(normalized, 10) || 0;
+  const normalized = amount.replace(/[^\d.-]/g, "");
+  return parseFloat(normalized) || 0;
 }
 
 function formatAmount(value: number, isNegative?: boolean): string {
   const abs = Math.abs(value);
-  const formatted = `$${abs.toLocaleString("es-ES")}`;
+  const formatted = `$${abs.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
   return isNegative || value < 0 ? `-${formatted}` : formatted;
 }
 
@@ -122,6 +132,7 @@ function recalculateGrandTotal(
 
 export default function InvoiceDetailContent({ invoice: initialInvoice }: InvoiceDetailContentProps) {
   const { addNotification } = useNotificationStore();
+  const router = useRouter();
   const [invoice, setInvoice] = useState<InvoiceDetail>(initialInvoice);
   const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -131,6 +142,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   const [contractorFilter, setContractorFilter] = useState("");
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
   const [emitModal, setEmitModal] = useState<InvoiceEmitModalVariant | null>(null);
+  const [isEmitting, setIsEmitting] = useState(false);
   const [isFooterDocked, setIsFooterDocked] = useState(false);
   const [footerHeight, setFooterHeight] = useState(0);
   const footerDockSentinelRef = useRef<HTMLDivElement>(null);
@@ -415,36 +427,71 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     addNotification(successMessage, "success");
   }
 
-  function handleApproveItem(sectionId: string, itemId: string) {
-    updateItemStatus(sectionId, itemId, "Aprobado", "El ítem fue aprobado correctamente.");
+  async function handleApproveItem(sectionId: string, itemId: string) {
+    const section = invoice.sections.find((s) => s.id === sectionId);
+    if (!section) return;
+
+    if (section.tabKey === "customer-charges") {
+      const result = await approveCustomerCharge(itemId);
+      if (result.success) {
+        addNotification("Cargo aprobado exitosamente", "success");
+        setTimeout(() => router.refresh(), 500);
+      } else {
+        addNotification(result.message || "Error al aprobar el cargo", "error");
+      }
+    } else if (section.tabKey === "customer-credits") {
+      const result = await approveCustomerCredit(itemId);
+      if (result.success) {
+        addNotification("Crédito aprobado exitosamente", "success");
+        setTimeout(() => router.refresh(), 500);
+      } else {
+        addNotification(result.message || "Error al aprobar el crédito", "error");
+      }
+    } else {
+      updateItemStatus(sectionId, itemId, "Aprobado", "El ítem fue aprobado correctamente.");
+    }
   }
 
   function handleRejectItem(sectionId: string, itemId: string) {
     updateItemStatus(sectionId, itemId, "Rechazado", "El ítem fue rechazado.");
   }
 
-  function handleDeleteItem(sectionId: string, itemId: string) {
-    setInvoice((prev) => {
-      const sections = prev.sections.map((section) => {
-        if (section.id !== sectionId) return section;
+  async function handleDeleteItem(sectionId: string, itemId: string) {
+    const section = invoice.sections.find((s) => s.id === sectionId);
+    if (!section) return;
 
-        const items = section.items.filter((item) => item.id !== itemId);
-        const { subtotal, subtotalIsNegative } = recalculateSectionSubtotal(items);
-        return { ...section, items, subtotal, subtotalIsNegative };
+    if (section.tabKey === "customer-charges") {
+      const result = await cancelCustomerCharge(itemId);
+      if (result.success) {
+        addNotification("Cargo anulado exitosamente", "success");
+        // Pequeño delay para asegurar que el backend actualizó los datos
+        setTimeout(() => router.refresh(), 100);
+      } else {
+        addNotification(result.message || "Error al anular el cargo", "error");
+      }
+    } else {
+      setInvoice((prev) => {
+        const sections = prev.sections.map((section) => {
+          if (section.id !== sectionId) return section;
+
+          const items = section.items.filter((item) => item.id !== itemId);
+          const { subtotal, subtotalIsNegative } = recalculateSectionSubtotal(items);
+          return { ...section, items, subtotal, subtotalIsNegative };
+        });
+
+        return {
+          ...prev,
+          sections,
+          grandTotal: recalculateGrandTotal(
+            prev.payrollEntries,
+            prev.additionalFees,
+            sections
+          ),
+        };
       });
 
-      return {
-        ...prev,
-        sections,
-        grandTotal: recalculateGrandTotal(
-          prev.payrollEntries,
-          prev.additionalFees,
-          sections
-        ),
-      };
-    });
-
-    addNotification("El ítem fue eliminado.", "success");
+      addNotification("El ítem fue eliminado.", "success");
+    }
   }
 
   function handleApproveAdditionalFee(itemId: string) {
@@ -483,9 +530,27 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     }
   }
 
-  function handleConfirmEmit() {
-    setEmitModal(null);
-    addNotification("La factura fue emitida correctamente.", "success");
+  async function handleConfirmEmit() {
+    setIsEmitting(true);
+    
+    try {
+      const result = await emitInvoice(invoice.empresaId, invoice.period);
+      
+      if (result.success) {
+        addNotification("La factura fue emitida correctamente.", "success");
+        setEmitModal(null);
+        
+        // Refrescar la página para obtener el estado actualizado
+        router.refresh();
+      } else {
+        addNotification(result.message || "Error al emitir la factura", "error");
+      }
+    } catch (error) {
+      console.error("[INVOICE] Error al emitir factura:", error);
+      addNotification("Error al emitir la factura", "error");
+    } finally {
+      setIsEmitting(false);
+    }
   }
 
   const payrollSubtotal = recalculatePayrollSubtotal(filteredPayrollEntries);
@@ -670,9 +735,10 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
             <button
               type="button"
               onClick={handleEmitInvoiceClick}
-              className="inline-flex h-9 items-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors"
+              disabled={isEmitting}
+              className="inline-flex h-9 items-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Emitir Invoice
+              {isEmitting ? "Emitiendo..." : "Emitir Invoice"}
             </button>
           </div>
         </div>
@@ -681,16 +747,19 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
       <CreateInvoiceItemDrawer
         open={isCreateItemOpen}
         client={invoice.client}
+        empresaId={invoice.empresaId}
+        periodo={invoice.period}
         onClose={() => setIsCreateItemOpen(false)}
         onItemCreated={handleItemCreated}
         onAdditionalFeeCreated={handleAdditionalFeeCreated}
+        onChargeCreated={() => router.refresh()}
       />
 
       {emitModal && (
         <InvoiceEmitModal
           open
           variant={emitModal}
-          onClose={() => setEmitModal(null)}
+          onClose={() => !isEmitting && setEmitModal(null)}
           onPrimaryAction={() => {
             if (emitModal === "confirm-emit") {
               handleConfirmEmit();
@@ -698,6 +767,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
               setEmitModal(null);
             }
           }}
+          isLoading={isEmitting}
         />
       )}
     </div>

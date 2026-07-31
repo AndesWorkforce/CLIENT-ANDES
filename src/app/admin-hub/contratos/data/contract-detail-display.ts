@@ -2,7 +2,11 @@ import type { DiscretionaryBonusType } from "../types/contrato-detail.types";
 
 export function formatContractSalary(ofertaSalarial: number, monedaSalario: string): string {
   const prefix = monedaSalario === "USD" ? "US $" : `${monedaSalario} `;
-  return `${prefix}${ofertaSalarial.toLocaleString("es-ES")}`;
+  const formatted = ofertaSalarial.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${prefix}${formatted}`;
 }
 
 /** Parsea salarios con formato es-ES (`US $2.500` / `2.500,50`) o US (`2,500.50`). */
@@ -63,5 +67,9 @@ export function getDiscretionaryBonusLabel(
 
 export function formatVariableImpact(amount: number): string {
   const prefix = amount >= 0 ? "+$" : "-$";
-  return `${prefix}${Math.abs(amount).toLocaleString("es-ES")}`;
+  const formatted = Math.abs(amount).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${prefix}${formatted}`;
 }
