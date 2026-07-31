@@ -196,22 +196,23 @@ export default function ContactForm() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Name Fields */}
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label
-                  htmlFor="firstName"
-                  className="block text-white font-medium mb-2 text-sm"
-                >
-                  First Name*
-                </label>
+            {/* Name and Email/Phone Grid - 2 columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* First Name */}
+              <div className="relative">
                 <input
                   type="text"
                   id="firstName"
                   placeholder="Name"
-                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                  className="w-full px-4 py-4 bg-white/25 backdrop-blur-sm border border-[#c8c8c8] rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
                   {...register("firstName")}
                 />
+                <label
+                  htmlFor="firstName"
+                  className="absolute -top-2 left-3 bg-[#044e5c] px-1 text-white text-sm font-medium"
+                >
+                  First Name*
+                </label>
                 {errors.firstName && (
                   <p className="mt-1 text-sm text-red-300">
                     {errors.firstName.message}
@@ -219,44 +220,43 @@ export default function ContactForm() {
                 )}
               </div>
 
-              <div>
-                <label
-                  htmlFor="lastName"
-                  className="block text-white font-medium mb-2 text-sm"
-                >
-                  Last Name*
-                </label>
+              {/* Last Name */}
+              <div className="relative">
                 <input
                   type="text"
                   id="lastName"
                   placeholder="Hario"
-                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                  className="w-full px-4 py-4 bg-white/25 backdrop-blur-sm border border-[#c8c8c8] rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
                   {...register("lastName")}
                 />
+                <label
+                  htmlFor="lastName"
+                  className="absolute -top-2 left-3 bg-[#044e5c] px-1 text-white text-sm font-medium"
+                >
+                  Last Name*
+                </label>
                 {errors.lastName && (
                   <p className="mt-1 text-sm text-red-300">
                     {errors.lastName.message}
                   </p>
                 )}
               </div>
-            </div>
 
-            {/* Email and Phone */}
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-white font-medium mb-2 text-sm"
-                >
-                  Work Mail*
-                </label>
+              {/* Work Mail */}
+              <div className="relative">
                 <input
                   type="email"
                   id="email"
                   placeholder="username@dados.com"
-                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                  className="w-full px-4 py-4 bg-white/25 backdrop-blur-sm border border-[#c8c8c8] rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
                   {...register("email")}
                 />
+                <label
+                  htmlFor="email"
+                  className="absolute -top-2 left-3 bg-[#044e5c] px-1 text-white text-sm font-medium"
+                >
+                  Work Mail*
+                </label>
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-300">
                     {errors.email.message}
@@ -264,20 +264,21 @@ export default function ContactForm() {
                 )}
               </div>
 
-              <div>
-                <label
-                  htmlFor="phone"
-                  className="block text-white font-medium mb-2 text-sm"
-                >
-                  Phone Number*
-                </label>
+              {/* Phone Number */}
+              <div className="relative">
                 <input
                   type="tel"
                   id="phone"
                   placeholder="+34 6 223 541 4853"
-                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                  className="w-full px-4 py-4 bg-white/25 backdrop-blur-sm border border-[#c8c8c8] rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
                   {...register("phone")}
                 />
+                <label
+                  htmlFor="phone"
+                  className="absolute -top-2 left-3 bg-[#044e5c] px-1 text-white text-sm font-medium"
+                >
+                  Phone Number*
+                </label>
                 {errors.phone && (
                   <p className="mt-1 text-sm text-red-300">
                     {errors.phone.message}
@@ -286,21 +287,21 @@ export default function ContactForm() {
               </div>
             </div>
 
-            {/* Company Name */}
-            <div>
-              <label
-                htmlFor="companyName"
-                className="block text-white font-medium mb-2 text-sm"
-              >
-                Company Name*
-              </label>
+            {/* Company Name - Full width */}
+            <div className="relative">
               <input
                 type="text"
                 id="companyName"
                 placeholder="Dados"
-                className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                className="w-full px-4 py-4 bg-white/25 backdrop-blur-sm border border-[#c8c8c8] rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
                 {...register("companyName")}
               />
+              <label
+                htmlFor="companyName"
+                className="absolute -top-2 left-3 bg-[#044e5c] px-1 text-white text-sm font-medium"
+              >
+                Company Name*
+              </label>
               {errors.companyName && (
                 <p className="mt-1 text-sm text-red-300">
                   {errors.companyName.message}
@@ -308,26 +309,26 @@ export default function ContactForm() {
               )}
             </div>
 
-            {/* Support Types and Team Size */}
-            <div className="grid grid-cols-1 gap-8">
+            {/* Support Types and Team Size - 2 columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Support Types */}
               <div>
-                <label className="block text-white font-medium mb-3 text-sm">
+                <label className="block text-white font-medium mb-4 text-xl">
                   What type of support are you looking for? *
                 </label>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {supportOptions.map((option) => (
                     <label
                       key={option.id}
-                      className="flex items-center text-white/90 cursor-pointer hover:text-white transition-colors"
+                      className="flex items-center text-white cursor-pointer hover:text-white/80 transition-colors group"
                     >
                       <input
                         type="checkbox"
                         value={option.id}
-                        className="w-4 h-4 text-[#0097B2] bg-white/10 border-white/30 rounded focus:ring-[#0097B2] focus:ring-2"
+                        className="w-4 h-4 text-[#0097B2] bg-white border-[#efefef] rounded-sm focus:ring-[#0097B2] focus:ring-2 checked:bg-[#0097B2] checked:border-[#0097B2]"
                         {...register("supportTypes")}
                       />
-                      <span className="ml-2 text-sm">{option.label}</span>
+                      <span className="ml-3 text-base font-medium">{option.label}</span>
                     </label>
                   ))}
                 </div>
@@ -340,22 +341,22 @@ export default function ContactForm() {
 
               {/* Team Size */}
               <div>
-                <label className="block text-white font-medium mb-3 text-sm">
+                <label className="block text-white font-medium mb-4 text-xl">
                   How many team members are you looking to hire?
                 </label>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {teamSizeOptions.map((option) => (
                     <label
                       key={option.value}
-                      className="flex items-center text-white/90 cursor-pointer hover:text-white transition-colors"
+                      className="flex items-center text-white cursor-pointer hover:text-white/80 transition-colors group"
                     >
                       <input
                         type="radio"
                         value={option.value}
-                        className="w-4 h-4 text-[#0097B2] bg-white/10 border-white/30 focus:ring-[#0097B2] focus:ring-2"
+                        className="w-4 h-4 text-[#0097B2] bg-white border-[#efefef] focus:ring-[#0097B2] focus:ring-2 checked:bg-[#0097B2]"
                         {...register("teamSize")}
                       />
-                      <span className="ml-2 text-sm">{option.label}</span>
+                      <span className="ml-3 text-base font-medium">{option.label}</span>
                     </label>
                   ))}
                 </div>
@@ -368,20 +369,20 @@ export default function ContactForm() {
             </div>
 
             {/* Message */}
-            <div>
+            <div className="relative">
+              <textarea
+                id="message"
+                rows={4}
+                placeholder="Hello! My name is..."
+                className="w-full px-4 py-4 bg-white/25 backdrop-blur-sm border border-[#c8c8c8] rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent resize-none"
+                {...register("message")}
+              ></textarea>
               <label
                 htmlFor="message"
-                className="block text-white font-medium mb-2 text-sm"
+                className="absolute -top-2 left-3 bg-[#044e5c] px-1 text-white text-sm font-medium"
               >
                 Message*
               </label>
-              <textarea
-                id="message"
-                rows={5}
-                placeholder="Hello! My name is..."
-                className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent resize-none"
-                {...register("message")}
-              ></textarea>
               {errors.message && (
                 <p className="mt-1 text-sm text-red-300">
                   {errors.message.message}
@@ -394,13 +395,13 @@ export default function ContactForm() {
               <button
                 type="submit"
                 disabled={isSubmitting || !isValid}
-                className={`px-8 py-3 bg-white text-[#2A5F6F] font-semibold rounded-lg shadow-lg hover:bg-gray-100 transition-all ${
+                className={`px-8 py-3 bg-white text-[#044e5c] font-semibold rounded-[20px] shadow-[0px_4px_2px_rgba(255,255,255,0.15)] hover:bg-gray-100 transition-all text-xl ${
                   isSubmitting || !isValid
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:shadow-xl"
                 }`}
               >
-                {isSubmitting ? "Sending..." : "Contact Us"}
+                {isSubmitting ? "Sending..." : "Let's Talk"}
               </button>
             </div>
           </form>
@@ -408,34 +409,28 @@ export default function ContactForm() {
       </div>
 
         {/* Opportunities Section - Same container, no separate background */}
-        <div className="container mx-auto md:px-20 pb-full relative z-10">
+        <div className="container mx-auto px-4 md:px-20 pb-16 relative z-10">
           <div className="max-w-5xl mx-auto">
-            <div className="w-full bg-white/10 backdrop-blur-md md:rounded-3xl p-8 md:p-12 border border-white/20">
+            <div className="w-full bg-white/40 backdrop-blur-md rounded-3xl p-8 md:p-14 shadow-[0px_4px_4px_0px_#003d49]">
               <h3 
-                className="text-2xl md:text-3xl font-bold text-white mb-4"
-                style={{
-                  textShadow: "0px 4px 4px rgba(17, 17, 17, 0.25)",
-                }}
+                className="text-3xl md:text-[32px] font-bold text-white mb-3 leading-tight"
               >
-                {/* Mobile: sin "?" | Desktop: con "?" */}
-                <span className="md:hidden">Looking for opportunities</span>
-                <span className="hidden md:inline">Looking for opportunities?</span>
+                Looking for opportunities?
               </h3>
-              <p className="text-white/90 text-base mb-6 font-medium">
+              <p className="text-white text-lg md:text-[22px] font-medium mb-8 md:mb-11 leading-relaxed">
                 To explore available opportunities and view open positions,
                 please create an account or sign in to our talent portal.
               </p>
-              {/* Mobile: vertical | Desktop: horizontal */}
-              <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+              <div className="flex flex-col md:flex-row gap-3 md:gap-3">
                 <a
                   href="/auth/register"
-                  className="w-full md:w-auto px-8 py-3.5 bg-white text-[#2A5F6F] font-semibold rounded-full hover:bg-gray-100 transition-colors text-center shadow-sm"
+                  className="w-full md:w-auto px-6 py-3 bg-white text-[#044e5c] font-semibold text-xl rounded-[20px] hover:bg-gray-100 transition-colors text-center shadow-[0px_4px_2px_rgba(255,255,255,0.15)]"
                 >
                   Create Account
                 </a>
                 <a
                   href="/auth/login"
-                  className="w-full md:w-auto px-8 py-3.5 bg-transparent border-2 border-white text-white font-semibold rounded-full hover:bg-white/10 transition-colors text-center"
+                  className="w-full md:w-auto px-6 py-3 bg-transparent border-2 border-white text-white font-semibold text-xl rounded-[20px] hover:bg-white/10 transition-colors text-center shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)]"
                 >
                   Sign In
                 </a>
