@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleCheck, Download, FileText, Filter } from "lucide-react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
   ADMIN_HUB_CLEAR_FILTERS_CLASS,
@@ -28,10 +28,18 @@ import {
 } from "../data/payroll-data";
 import type { PayrollVariableStatus } from "../data/mock-payroll-variables";
 import NominasTable from "./NominasTable";
+import AdminHubConfirmModal from "./AdminHubConfirmModal";
 import { useNotificationStore } from "@/store/notifications.store";
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 350;
+
+const ACTION_BTN_BASE =
+  "inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] px-[22px] text-[14px] font-medium leading-[1.2] transition-colors";
+const ACTION_BTN_PRIMARY = `${ACTION_BTN_BASE} bg-[#0097B2] text-white hover:bg-[#008099]`;
+const ACTION_BTN_SECONDARY = `${ACTION_BTN_BASE} border border-[#0097B2] text-[#0097B2] hover:bg-[#F5FAFB]`;
+const ACTION_BTN_DISABLED = `${ACTION_BTN_BASE} cursor-not-allowed border border-[#C8C8C8] bg-white text-[#C8C8C8]`;
+
 
 const STATUS_FILTER_OPTIONS: { value: PayrollVariableStatus; label: string }[] = [
   { value: "Pendiente", label: "Pendiente" },
@@ -225,6 +233,13 @@ export default function NominasPageContent() {
     }
   }
 
+  function handleEmitirNominas() {
+    addNotification(
+      "La emisión masiva de nóminas estará disponible próximamente.",
+      "info",
+    );
+  }
+
   async function handleConfirmAprobacion() {
     const idsToApprove = rows
       .filter((row) => selectedIds.has(row.id) && row.status !== "Emitido")
@@ -254,7 +269,6 @@ export default function NominasPageContent() {
       } else {
         setShowConfirmModal(false);
         setValidationErrors([]);
-        setShowResultModal(true);
         addNotification(
           result.message || "Nóminas aprobadas correctamente",
           "success",
@@ -274,7 +288,7 @@ export default function NominasPageContent() {
       <AdminHubBreadcrumbs />
       <h1 className="text-[32px] font-bold text-black leading-[1.3]">Nóminas</h1>
 
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-[7px]">
         <AdminHubSelect
           value={selectedMonth}
           onChange={handleMonthChange}
@@ -282,13 +296,34 @@ export default function NominasPageContent() {
           variant="filter"
         />
         {hasSelectedRows ? (
-          <button
-            type="button"
-            onClick={handleAprobarNominas}
-            className="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
-          >
-            Aprobar nóminas ({selectedIds.size})
-          </button>
+          <div className="flex flex-wrap items-center justify-end gap-[7px]">
+            <button
+              type="button"
+              disabled
+              title="Funcionalidad desactivada"
+              aria-disabled="true"
+              className={ACTION_BTN_DISABLED}
+            >
+              <Download size={24} aria-hidden />
+              Exportar
+            </button>
+            <button
+              type="button"
+              onClick={handleAprobarNominas}
+              className={ACTION_BTN_SECONDARY}
+            >
+              <CircleCheck size={24} aria-hidden />
+              Aprobar ({selectedIds.size})
+            </button>
+            <button
+              type="button"
+              onClick={handleEmitirNominas}
+              className={ACTION_BTN_PRIMARY}
+            >
+              <FileText size={24} aria-hidden />
+              Emitir nóminas ({selectedIds.size})
+            </button>
+          </div>
         ) : null}
       </div>
 
@@ -422,57 +457,40 @@ export default function NominasPageContent() {
       )}
 
       {showConfirmModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-[12px] shadow-lg max-w-[500px] w-full mx-4 overflow-hidden">
-            <div className="px-6 py-4 bg-[#0097B2]">
-              <h2 className="text-[20px] font-bold text-white">
-                Confirmar aprobación de nóminas
-              </h2>
+        <AdminHubConfirmModal
+          open
+          title="Confirmar aprobación de nóminas"
+          cancelLabel="Cancelar"
+          confirmLabel={isApproving ? "Aprobando..." : "Confirmar aprobación"}
+          confirmLoading={isApproving}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={() => void handleConfirmAprobacion()}
+        >
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">
+                <span className="text-[14px] font-semibold text-[#525252]">Mes:</span>
+                <span className="text-[14px] text-[#343434]">{selectedMonth}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">
+                <span className="text-[14px] font-semibold text-[#525252]">
+                  Registros seleccionados:
+                </span>
+                <span className="text-[14px] text-[#343434]">{selectedIds.size}</span>
+              </div>
             </div>
-            <div className="px-6 py-6 space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">
-                  <span className="text-[14px] font-semibold text-[#525252]">Mes:</span>
-                  <span className="text-[14px] text-[#343434]">{selectedMonth}</span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">
-                  <span className="text-[14px] font-semibold text-[#525252]">
-                    Registros seleccionados:
-                  </span>
-                  <span className="text-[14px] text-[#343434]">{selectedIds.size}</span>
-                </div>
-              </div>
-              <div className="bg-[#DFFAFF] rounded-[8px] px-4 py-3">
-                <p className="text-[14px] text-[#007A8C] leading-relaxed">
-                  Se aprobarán las variables pendientes de cada nómina y luego la nómina,
-                  siempre que no quede ninguna variable en estado Pendiente (Rechazado
-                  permitido).
-                </p>
-              </div>
-              <p className="text-[14px] text-[#858585] leading-relaxed">
-                ¿Deseas continuar con la aprobación?
+            <div className="bg-[#DFFAFF] rounded-[8px] px-4 py-3">
+              <p className="text-[14px] text-[#007A8C] leading-relaxed">
+                Se aprobarán las variables pendientes de cada nómina y luego la nómina,
+                siempre que no quede ninguna variable en estado Pendiente (Rechazado
+                permitido).
               </p>
             </div>
-            <div className="px-6 py-4 bg-[#F8F8F8] flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowConfirmModal(false)}
-                disabled={isApproving}
-                className="px-5 py-2 rounded-[8px] bg-white border border-[#C8C8C8] text-[#525252] text-[14px] font-semibold hover:bg-[#F8F8F8] transition-colors disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleConfirmAprobacion()}
-                disabled={isApproving}
-                className="px-5 py-2 rounded-[8px] bg-[#0097B2] text-white text-[14px] font-semibold hover:bg-[#008099] transition-colors disabled:opacity-50"
-              >
-                {isApproving ? "Aprobando..." : "Confirmar aprobación"}
-              </button>
-            </div>
+            <p className="text-[14px] text-[#858585] leading-relaxed">
+              ¿Deseas continuar con la aprobación?
+            </p>
           </div>
-        </div>
+        </AdminHubConfirmModal>
       )}
 
       {showResultModal && (

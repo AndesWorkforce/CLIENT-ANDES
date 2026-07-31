@@ -240,6 +240,16 @@ function mapNominaDetailToPayrollDetail(detail: NominaDetailApiResponse): Payrol
     status: detail.estado,
     notes: detail.notes,
     baseSalary: detail.ofertaSalarial,
+    tipoJornada: detail.tipoJornada ?? null,
+    esHourly: detail.esHourly ?? detail.tipoJornada === "HOURLY_TIME",
+    horasTrabajadas:
+      detail.horasTrabajadas != null ? Number(detail.horasTrabajadas) : null,
+    tarifaHoraria:
+      detail.tarifaHoraria != null
+        ? Number(detail.tarifaHoraria)
+        : detail.tipoJornada === "HOURLY_TIME"
+          ? Number(detail.ofertaSalarial)
+          : null,
     earnings: detail.earnings,
     deductions: detail.deductions,
     totalEarnings: detail.totalEarnings,
@@ -337,6 +347,72 @@ export async function getNominaById(
     return {
       success: false,
       message: "Error al obtener el detalle de nómina",
+    };
+  }
+}
+
+export interface SaveHorasTrabajadasResult extends ApiResponse {
+  data?: PayrollDetail;
+}
+
+export async function saveHorasTrabajadas(
+  procesoContratacionId: string,
+  periodo: string,
+  horasTrabajadas: number,
+): Promise<SaveHorasTrabajadasResult> {
+  const axios = await createServerAxios();
+
+  if (!periodo?.trim() || !/^\d{4}-(0[1-9]|1[0-2])$/.test(periodo.trim())) {
+    return {
+      success: false,
+      message: "El período debe tener formato YYYY-MM",
+    };
+  }
+
+  if (!Number.isFinite(horasTrabajadas) || horasTrabajadas < 0) {
+    return {
+      success: false,
+      message: "Las horas trabajadas deben ser un número mayor o igual a 0",
+    };
+  }
+
+  try {
+    const response = await axios.patch(
+      `admin-hub/nominas/${procesoContratacionId}/horas`,
+      {
+        periodo: periodo.trim(),
+        horasTrabajadas,
+      },
+    );
+
+    if (response.status !== 200 && response.status !== 201) {
+      return {
+        success: false,
+        message: "Error al guardar horas trabajadas",
+      };
+    }
+
+    const payload = response.data?.data ?? response.data;
+    if (!payload) {
+      return {
+        success: false,
+        message: "Respuesta vacía al guardar horas",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Horas trabajadas guardadas",
+      data: mapNominaDetailToPayrollDetail(payload as NominaDetailApiResponse),
+    };
+  } catch (error: unknown) {
+    const message =
+      (error as { response?: { data?: { message?: string } } })?.response?.data
+        ?.message ?? "Error al guardar horas trabajadas";
+    console.error("[NOMINAS] Error al guardar horas:", error);
+    return {
+      success: false,
+      message: typeof message === "string" ? message : "Error al guardar horas trabajadas",
     };
   }
 }

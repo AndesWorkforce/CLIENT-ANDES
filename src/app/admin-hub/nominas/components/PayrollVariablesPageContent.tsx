@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Filter, Plus } from "lucide-react";
+import { FileText, Filter, Plus } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubDateRangePicker from "../../components/AdminHubDateRangePicker";
@@ -24,6 +24,7 @@ import {
 } from "../data/mock-payroll-variables";
 import CreatePayrollVariableDrawer from "./CreatePayrollVariableDrawer";
 import PayrollVariablesTable from "./PayrollVariablesTable";
+import AdminHubConfirmModal from "./AdminHubConfirmModal";
 
 function buildFilterOptions<T>(items: T[], getValue: (item: T) => string) {
   return Array.from(new Set(items.map(getValue))).map((value) => ({
@@ -269,8 +270,9 @@ export default function PayrollVariablesPageContent({
             <button
               type="button"
               onClick={() => setShowApproveConfirmModal(true)}
-              className="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
+              className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
             >
+              <FileText size={24} aria-hidden />
               Aprobar variables de Nómina ({selectedIds.size})
             </button>
           ) : null}
@@ -397,46 +399,31 @@ export default function PayrollVariablesPageContent({
       />
 
       {showApproveConfirmModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-[12px] shadow-lg max-w-[500px] w-full mx-4 overflow-hidden">
-            <div className="px-6 py-4 bg-[#0097B2]">
-              <h2 className="text-[20px] font-bold text-white">
-                Confirmar aprobación de variables
-              </h2>
-            </div>
-            <div className="px-6 py-6 space-y-4">
-              <p className="text-[14px] text-[#525252] leading-relaxed">
-                Se aprobarán las variables seleccionadas que estén en estado{" "}
-                <strong>Pendiente</strong>. Las que ya estén Aprobadas, Rechazadas o
-                Emitidas se omitirán.
-              </p>
-              <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">
-                <span className="text-[14px] font-semibold text-[#525252]">
-                  Seleccionadas:
-                </span>
-                <span className="text-[14px] text-[#343434]">{selectedIds.size}</span>
-              </div>
-            </div>
-            <div className="px-6 py-4 bg-[#F8F8F8] flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowApproveConfirmModal(false)}
-                disabled={isBulkApproving}
-                className="px-5 py-2 rounded-[8px] bg-white border border-[#C8C8C8] text-[#525252] text-[14px] font-semibold hover:bg-[#F8F8F8] transition-colors disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleBulkApproveConfirm()}
-                disabled={isBulkApproving}
-                className="px-5 py-2 rounded-[8px] bg-[#0097B2] text-white text-[14px] font-semibold hover:bg-[#008099] transition-colors disabled:opacity-50"
-              >
-                {isBulkApproving ? "Aprobando..." : "Confirmar aprobación"}
-              </button>
+        <AdminHubConfirmModal
+          open
+          title="Confirmar aprobación de variables"
+          cancelLabel="Cancelar"
+          confirmLabel={
+            isBulkApproving ? "Aprobando..." : "Confirmar aprobación"
+          }
+          confirmLoading={isBulkApproving}
+          onClose={() => setShowApproveConfirmModal(false)}
+          onConfirm={() => void handleBulkApproveConfirm()}
+        >
+          <div className="space-y-4">
+            <p className="text-[14px] text-[#525252] leading-relaxed">
+              Se aprobarán las variables seleccionadas que estén en estado{" "}
+              <strong>Pendiente</strong>. Las que ya estén Aprobadas, Rechazadas o
+              Emitidas se omitirán.
+            </p>
+            <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">
+              <span className="text-[14px] font-semibold text-[#525252]">
+                Seleccionadas:
+              </span>
+              <span className="text-[14px] text-[#343434]">{selectedIds.size}</span>
             </div>
           </div>
-        </div>
+        </AdminHubConfirmModal>
       )}
     </div>
   );

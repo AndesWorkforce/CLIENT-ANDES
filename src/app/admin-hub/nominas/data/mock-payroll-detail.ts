@@ -189,6 +189,10 @@ export function getPayrollDetail(
     status: resolveStatus(relatedVariables),
     notes: "",
     baseSalary: contract.baseSalary,
+    tipoJornada: "FULL_TIME",
+    esHourly: false,
+    horasTrabajadas: null,
+    tarifaHoraria: null,
     variables: relatedVariables,
     ...payment,
   };

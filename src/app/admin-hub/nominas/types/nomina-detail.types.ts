@@ -22,6 +22,10 @@ export interface PayrollDetail {
   status: PayrollVariableStatus;
   notes: string;
   baseSalary: number;
+  tipoJornada: "FULL_TIME" | "PART_TIME" | "HOURLY_TIME" | null;
+  esHourly: boolean;
+  horasTrabajadas: number | null;
+  tarifaHoraria: number | null;
   earnings: PayrollDetailPaymentLine[];
   deductions: PayrollDetailPaymentLine[];
   totalEarnings: number;
@@ -46,6 +50,10 @@ export interface NominaDetailApiResponse {
   periodoAnioMes: string;
   estado: PayrollVariableStatus;
   ofertaSalarial: number;
+  tipoJornada?: "FULL_TIME" | "PART_TIME" | "HOURLY_TIME" | null;
+  esHourly?: boolean;
+  horasTrabajadas?: number | null;
+  tarifaHoraria?: number | null;
   earnings: PayrollDetailPaymentLine[];
   deductions: PayrollDetailPaymentLine[];
   totalEarnings: number;

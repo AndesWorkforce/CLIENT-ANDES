@@ -1,7 +1,7 @@
 import { MOCK_CONTRACTORS } from "../../nominas/data/mock-contractors";
 
 /** Alineado con `JornadaLaboral` en Prisma. */
-export type JornadaLaboral = "FULL_TIME" | "PART_TIME";
+export type JornadaLaboral = "FULL_TIME" | "PART_TIME" | "HOURLY_TIME";
 
 /**
  * Fila de contrato para Admin Hub.

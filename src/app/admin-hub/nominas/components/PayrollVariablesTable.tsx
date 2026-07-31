@@ -248,15 +248,8 @@ export default function PayrollVariablesTable({
     router.push(`/admin-hub/nominas/variables/${encodeURIComponent(itemId)}`);
   }
 
-  function handleRowClick(itemId: string, event: React.MouseEvent) {
-    // No navegar si se hizo clic en el checkbox o en el botón de menú
-    const target = event.target as HTMLElement;
-    if (
-      target.closest('input[type="checkbox"]') ||
-      target.closest('[data-payroll-row-menu]')
-    ) {
-      return;
-    }
+  function handleViewDetail(itemId: string) {
+    closeMenu();
     router.push(`/admin-hub/nominas/variables/${encodeURIComponent(itemId)}`);
   }
 
@@ -364,11 +357,7 @@ export default function PayrollVariablesTable({
           </thead>
           <tbody>
             {displayedVariables.map((item, index) => (
-              <tr
-                key={item.id}
-                className={`${ADMIN_HUB_TABLE_ROW} cursor-pointer`}
-                onClick={(e) => handleRowClick(item.id, e)}
-              >
+              <tr key={item.id} className={ADMIN_HUB_TABLE_ROW}>
                 <td className="px-6 py-6">
                   <input
                     type="checkbox"
@@ -426,6 +415,14 @@ export default function PayrollVariablesTable({
             className="fixed z-[200] min-w-[148px] rounded-[8px] border border-[#EFEFEF] bg-white py-1 shadow-[0px_2px_8px_rgba(112,112,112,0.15)]"
             style={{ top: menuPosition.top, left: menuPosition.left }}
           >
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => handleViewDetail(openMenuItem.id)}
+              className={menuItemClass}
+            >
+              Ver detalle
+            </button>
             <button
               type="button"
               role="menuitem"
