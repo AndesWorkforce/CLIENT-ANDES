@@ -71,7 +71,7 @@ const services: Service[] = [
     description:
       "Focus on building strong, lasting relationships with your customers. They provide proactive support, ensure client satisfaction, and help drive retention and loyalty through consistent, high-quality communication.",
     features: ["Relationship Mgmt", "Satisfaction Tracking", "Retention", "Follow-up"],
-    image: "https://appwiseinnovations.dev/Andes/services-view-2.png",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Services/services+2.png",
   },
   {
     id: 7,

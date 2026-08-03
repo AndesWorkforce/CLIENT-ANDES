@@ -4,7 +4,7 @@ export default function HeroSection() {
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: "url('https://www.figma.com/api/mcp/asset/cc7d67bc-e7db-42ce-9182-2633d03ecb61')",
+          backgroundImage: "url('https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Services/hero_our_services.png')",
         }}
       />
       <div
