@@ -95,7 +95,7 @@ export default function CompaniesPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-[1440px] mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-semibold text-[#17323A]">Clients</h1>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">

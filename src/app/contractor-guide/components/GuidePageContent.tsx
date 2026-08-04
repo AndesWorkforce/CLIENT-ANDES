@@ -23,7 +23,7 @@ export default function GuidePageContent({
 
   return (
     <div className="bg-white pb-16">
-      <div className="mx-auto w-full max-w-[1280px] px-[18px] sm:px-[80px] pt-10 sm:pt-14">
+      <div className="mx-auto w-full max-w-[1440px] px-[18px] sm:px-[80px] pt-10 sm:pt-14">
         <GuideWelcomeBanner />
 
         <div className="mt-10 sm:mt-14 flex flex-col gap-6 sm:gap-[22px]">

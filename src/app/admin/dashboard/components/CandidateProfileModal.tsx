@@ -1656,7 +1656,7 @@ export default function CandidateProfileModal({
           className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(0,0,0,0.8)]"
           onClick={() => setSelectedImage(null)}
         >
-          <div className="relative max-w-6xl max-h-[95vh] p-4 w-full h-full flex items-center justify-center">
+          <div className="relative max-w-[1440px] max-h-[95vh] p-4 w-full h-full flex items-center justify-center">
             {selectedImage === profile.archivos.videoPresentacion ? (
               <video
                 src={selectedImage}

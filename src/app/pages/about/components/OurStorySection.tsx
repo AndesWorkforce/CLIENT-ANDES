@@ -9,7 +9,7 @@ const storyBlocks = [
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Where+it+all+started+-+Our+Story.jpg",
     imageAlt: "Where it all started",
     imageLeft: false,
-    imageClassName: "",
+    imageMaxWidth: 480,
   },
   {
     id: "began",
@@ -19,7 +19,7 @@ const storyBlocks = [
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Where+it+all+began+-+Our+Story.png",
     imageAlt: "Where it all began",
     imageLeft: true,
-    imageClassName: "object-top lg:object-center",
+    imageMaxWidth: 480,
   },
   {
     id: "service",
@@ -32,7 +32,8 @@ const storyBlocks = [
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/A+path+defined+by+service+-+Our+Story.png",
     imageAlt: "A path defined by service",
     imageLeft: false,
-    imageClassName: "object-top lg:object-center",
+    // Native aspect is taller — keep it smaller so it matches the others visually
+    imageMaxWidth: 440,
   },
   {
     id: "expanding",
@@ -45,18 +46,16 @@ const storyBlocks = [
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Expanding+with+purpose+-+Our+Story.JPG",
     imageAlt: "Expanding with purpose",
     imageLeft: true,
-    imageClassName: "[object-position:50%_15%] lg:object-center",
+    imageMaxWidth: 380,
   },
 ];
 
 export default function OurStorySection() {
   return (
     <section className="w-full bg-white py-8 sm:py-24">
-        <div className="max-w-[1480px] mx-auto px-[18px] sm:px-10 md:px-20">
+      <div className="max-w-[1440px] mx-auto px-[18px] sm:px-10 md:px-20">
         {/* Section header */}
         <div className="text-center mb-8 sm:mb-16">
-
-
           <h2 className="text-[#0097b2] text-[32px] sm:text-4xl md:text-[52px] font-bold leading-[1.3]">
             Our Story
           </h2>
@@ -74,8 +73,8 @@ export default function OurStorySection() {
                 block.imageLeft ? "lg:flex-row-reverse" : "lg:flex-row"
               }`}
             >
-              {/* Text — always on top for mobile */}
-              <div className="flex-1 w-full">
+              {/* Text — keeps the same column space */}
+              <div className="flex-1 w-full min-w-0">
                 <h3 className="text-[24px] sm:text-3xl md:text-[48px] font-bold text-[#343434] leading-[1.3] text-center lg:text-left">
                   {block.title}
                 </h3>
@@ -90,26 +89,20 @@ export default function OurStorySection() {
                 </div>
               </div>
 
-              {/* Image mobile — full image, smaller */}
-              <div className="w-full shrink-0 lg:hidden">
-                <Image
-                  src={block.image}
-                  alt={block.imageAlt}
-                  width={611}
-                  height={456}
-                  className="w-full h-auto"
-                />
-              </div>
-
-              {/* Image desktop — full image, no crop */}
-              <div className="hidden lg:block lg:w-[611px] shrink-0">
-                <Image
-                  src={block.image}
-                  alt={block.imageAlt}
-                  width={611}
-                  height={456}
-                  className="w-full h-auto rounded-lg"
-                />
+              {/* Image column keeps original desktop width so text width stays the same */}
+              <div className="w-full shrink-0 flex justify-center lg:w-[611px]">
+                <div
+                  className="w-full flex justify-center"
+                  style={{ maxWidth: block.imageMaxWidth }}
+                >
+                  <Image
+                    src={block.image}
+                    alt={block.imageAlt}
+                    width={block.imageMaxWidth}
+                    height={Math.round(block.imageMaxWidth * 0.75)}
+                    className="w-full h-auto object-contain rounded-[15px]"
+                  />
+                </div>
               </div>
             </div>
           ))}

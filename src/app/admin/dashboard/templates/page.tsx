@@ -75,7 +75,7 @@ export default function EmailTemplatesPage() {
   };
 
   return (
-    <div className="w-full max-w-screen-2xl mx-auto py-8 px-4 sm:px-6">
+    <div className="w-full max-w-[1440px] mx-auto py-8 px-4 sm:px-6">
       {/* DESKTOP TABLE */}
       <div
         className="hidden md:flex bg-white rounded-lg shadow-lg w-full flex-col"

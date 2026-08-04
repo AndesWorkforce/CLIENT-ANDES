@@ -228,7 +228,7 @@ const SendEmailModal: React.FC<SendEmailModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.5)]">
-      <div className="bg-white rounded-lg shadow-lg w-[95%] max-w-7xl h-[90vh] p-4 md:p-6 relative">
+      <div className="bg-white rounded-lg shadow-lg w-[95%] max-w-[1440px] h-[90vh] p-4 md:p-6 relative">
         <button
           className="absolute top-4 right-4 text-[#0097B2]/50 hover:text-[#0097B2] text-3xl cursor-pointer"
           onClick={onClose}

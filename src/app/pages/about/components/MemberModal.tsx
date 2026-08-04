@@ -82,10 +82,10 @@ export default function MemberModal({ member, onClose }: MemberModalProps) {
           </div>
 
           {/* Info Section */}
-          <div className="flex-1 flex flex-col w-full md:overflow-hidden">
-            <div className="flex flex-col gap-[22px] p-[33px] md:p-0 md:flex-1 md:overflow-y-auto">
+          <div className="flex-1 flex flex-col w-full md:overflow-hidden md:max-h-[90vh]">
+            <div className="flex flex-col gap-[22px] p-[33px] md:p-0 md:flex-1 md:overflow-y-auto custom-scrollbar">
               {/* Header */}
-              <div className="flex flex-col gap-[11px] items-center text-center md:px-8 md:py-8 md:border-b md:border-gray-100">
+              <div className="flex flex-col gap-[11px] items-center text-center md:px-8 md:py-8 md:border-b md:border-gray-100 md:flex-shrink-0">
                 <p className="font-bold text-[24px] md:text-3xl text-black leading-[1.3]">
                   {member.name}
                 </p>
@@ -107,7 +107,7 @@ export default function MemberModal({ member, onClose }: MemberModalProps) {
               </div>
 
               {/* Content */}
-              <div className="flex flex-col gap-[33px] md:px-6">
+              <div className="flex flex-col gap-[33px] md:px-6 md:pb-6">
                 {/* About Us */}
                 {member.bullets && member.bullets.length > 0 && (
                   <div className="flex flex-col gap-[14px]">

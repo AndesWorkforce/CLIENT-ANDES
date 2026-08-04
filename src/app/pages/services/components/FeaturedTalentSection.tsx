@@ -178,7 +178,7 @@ export default function FeaturedTalentSection() {
 
   return (
     <section className="relative w-full bg-[#F6FBFC] py-[44px] md:py-[55px] px-0 md:px-[75px]">
-      <div className="max-w-[1284px] mx-auto">
+      <div className="max-w-[1440px] mx-auto">
         {/* Header */}
         <div className="text-center mb-[22px] md:mb-[33px] px-[18px] md:px-0">
           <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">

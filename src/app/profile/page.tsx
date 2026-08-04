@@ -646,7 +646,7 @@ export default function ProfilePage() {
       </header>
 
       {isVisibleNotification && (
-        <div className="md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8 bg-green-50 p-4 my-4 rounded-lg">
+        <div className="md:block md:mx-auto md:max-w-[1440px] md:px-6 lg:px-8 bg-green-50 p-4 my-4 rounded-lg">
           <div className="flex items-center mb-1">
             <Info className="text-green-800 mr-2" size={18} />
             <h3 className="font-medium text-green-800 ">
@@ -667,7 +667,7 @@ export default function ProfilePage() {
 
       {/* Notificación para política de datos */}
       {!profile.aceptaPoliticaDatos && (
-        <div className="md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8 bg-yellow-50 p-4 my-4 rounded-lg border-l-4 border-yellow-400">
+        <div className="md:block md:mx-auto md:max-w-[1440px] md:px-6 lg:px-8 bg-yellow-50 p-4 my-4 rounded-lg border-l-4 border-yellow-400">
           <div className="flex items-center mb-2">
             <Info className="text-yellow-600 mr-2" size={18} />
             <h3 className="font-medium text-yellow-800">
@@ -1528,7 +1528,7 @@ export default function ProfilePage() {
 
       {/* Desktop Information view */}
       {hasPendingCards && (
-        <div className="hidden md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
+        <div className="hidden md:block md:mx-auto md:max-w-[1440px] md:px-6 lg:px-8">
           {!isVisibleNotification && (
             <div className="hidden md:flex md:items-center bg-blue-50 p-4 my-6 rounded-lg items-start space-x-3">
               <Info className="text-blue-500 shrink-0 mt-1" size={20} />
@@ -1871,7 +1871,7 @@ export default function ProfilePage() {
       )}
 
       {/* Desktop view */}
-      <div className="hidden md:block md:mt-8 md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
+      <div className="hidden md:block md:mt-8 md:mx-auto md:max-w-[1440px] md:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-6 items-start mb-20">
           <div className="flex flex-col justify-between gap-4 h-full">
             <div

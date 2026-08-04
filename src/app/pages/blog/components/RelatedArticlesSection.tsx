@@ -53,7 +53,7 @@ export default function RelatedArticlesSection() {
 
   return (
     <section className="relative w-full bg-[#F6FBFC] py-[44px] md:py-[88px]">
-      <div className="max-w-[1284px] mx-auto px-[18px] md:px-[44px]">
+      <div className="max-w-[1440px] mx-auto px-[18px] md:px-[44px]">
         {/* Section Header */}
         <div className="text-center mb-[44px] md:mb-[66px]">
           <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">

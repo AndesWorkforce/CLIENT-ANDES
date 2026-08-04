@@ -43,7 +43,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
               />
             </div>
             <div className="flex flex-col gap-[20px]">
-              <p className="text-[#343434] text-[12px] leading-normal font-['Inter',sans-serif]">
+              <p className="text-[#343434] text-[13px] leading-normal font-['Inter',sans-serif]">
                 Andes Workforce connects growing companies with top-tier talent.
                 We specialize in providing high-performance professionals who
                 deliver exceptional value and drive business success.
@@ -91,7 +91,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
 
           {/* Column 2: Platform */}
           <div className="flex flex-col gap-[15px] shrink-0">
-            <h3 className="text-[#343434] text-[12px] font-bold font-['Inter',sans-serif]">
+            <h3 className="text-[#343434] text-[13px] font-bold font-['Inter',sans-serif]">
               PLATFORM
             </h3>
             <nav className="flex flex-col gap-[10px]">
@@ -99,7 +99,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-[#343434] text-[12px] font-['Inter',sans-serif] hover:text-[#0097b2] whitespace-nowrap transition-colors"
+                  className="text-[#343434] text-[13px] font-['Inter',sans-serif] hover:text-[#0097b2] whitespace-nowrap transition-colors"
                 >
                   {item.name}
                 </Link>
@@ -109,13 +109,13 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
 
           {/* Column 3: Contact Us */}
           <div className="flex flex-col gap-[15px] md:max-w-[300px] shrink-0">
-            <h3 className="text-[#343434] text-[12px] font-bold font-['Inter',sans-serif]">
+            <h3 className="text-[#343434] text-[13px] font-bold font-['Inter',sans-serif]">
               CONTACT US
             </h3>
             <div className="flex flex-col gap-[10px]">
               <div className="flex items-start gap-[5px]">
                 <Phone size={16} className="text-[#0097b2] shrink-0 mt-0.5" />
-                <span className="text-[#343434] text-[12px] font-['Inter',sans-serif]">
+                <span className="text-[#343434] text-[13px] font-['Inter',sans-serif]">
                   +1 7572373612 - +1 3057030023
                 </span>
               </div>
@@ -123,7 +123,7 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
                 <Mail size={16} className="text-[#0097b2] shrink-0 mt-0.5" />
                 <Link
                   href="mailto:info@andes-workforce.com"
-                  className="text-[#343434] text-[12px] font-['Inter',sans-serif] hover:text-[#0097b2] transition-colors"
+                  className="text-[#343434] text-[13px] font-['Inter',sans-serif] hover:text-[#0097b2] transition-colors"
                 >
                   info@andes-workforce.com
                 </Link>
@@ -134,19 +134,19 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
 
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4 lg:gap-0 mt-4 md:mt-0">
-          <p className="text-[#343434] text-[12px] font-['Inter',sans-serif] text-center md:text-left md:shrink-0">
-            &copy;2023 Andes Workforce All Rights Reserved
+          <p className="text-[#343434] text-[13px] font-['Inter',sans-serif] text-center md:text-left md:shrink-0">
+            &copy;2026 Andes Workforce All Rights Reserved
           </p>
           <div className="flex flex-wrap gap-[25px] justify-center md:justify-center flex-1">
             <Link
               href="/pages/privacy-policy"
-              className="text-[#343434] text-[12px] font-['Inter',sans-serif] hover:text-[#0097b2] whitespace-nowrap transition-colors"
+              className="text-[#343434] text-[13px] font-['Inter',sans-serif] hover:text-[#0097b2] whitespace-nowrap transition-colors"
             >
               Privacy Policy
             </Link>
             <Link
               href="/politica-datos"
-              className="text-[#343434] text-[12px] font-['Inter',sans-serif] hover:text-[#0097b2] whitespace-nowrap transition-colors"
+              className="text-[#343434] text-[13px] font-['Inter',sans-serif] hover:text-[#0097b2] whitespace-nowrap transition-colors"
             >
               Data Privacy Policy
             </Link>
@@ -166,8 +166,8 @@ const Footer: FC<FooterProps> = ({ forceRender = false }) => {
                 className="rounded-full object-cover flex-shrink-0"
               />
               <div className="flex flex-col justify-center leading-none">
-                <span className="text-[12px] font-normal text-black">by</span>
-                <span className="text-[10px] font-extrabold text-black whitespace-nowrap font-['Inter',sans-serif]">
+                <span className="text-[13px] font-normal text-black">by</span>
+                <span className="text-[12px] font-extrabold text-black whitespace-nowrap font-['Inter',sans-serif]">
                   APPWISE INNOVATIONS
                 </span>
               </div>

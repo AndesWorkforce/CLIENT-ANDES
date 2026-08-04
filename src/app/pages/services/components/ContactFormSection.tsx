@@ -162,26 +162,27 @@ export default function ContactFormSection() {
   return (
     <section
       id="contact-form"
-      className="flex w-full flex-col lg:flex-row lg:h-[749px]"
+      className="relative w-full overflow-hidden lg:h-[749px]"
     >
-      {/* Left panel — hero */}
-      <div className="relative min-h-[420px] w-full lg:h-[749px] lg:w-[52%] lg:shrink-0">
-        <img
-          src={servicesAssets.contactHeroBg}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div
-          className="absolute inset-0"
-          aria-hidden
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(4,78,92,0.82) 18%, rgba(5,100,117,0.72) 52%, rgba(8,166,194,0.35) 78%)",
-          }}
-        />
+      {/* Full-bleed background image */}
+      <img
+        src={servicesAssets.contactHeroBg}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div
+        className="absolute inset-0"
+        aria-hidden
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(4,78,92,0.82) 18%, rgba(5,100,117,0.72) 52%, rgba(8,166,194,0.35) 78%)",
+        }}
+      />
 
-        <div className="relative z-10 flex h-full items-center px-6 py-12 md:px-[79px] md:py-[169px]">
+      <div className="relative z-10 flex w-full flex-col lg:h-[749px] lg:flex-row">
+        {/* Left — copy */}
+        <div className="flex w-full items-center px-6 py-12 md:px-[79px] md:py-[169px] lg:w-[52%] lg:shrink-0">
           <div className="flex max-w-[574px] flex-col gap-5">
             <div className="inline-flex w-fit items-center gap-[7px] rounded-[20px] border border-white bg-[rgba(255,255,255,0.22)] px-[14px] py-[7px]">
               <CircleCheck
@@ -241,121 +242,121 @@ export default function ContactFormSection() {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Right panel — form */}
-      <div className="flex w-full items-start justify-center bg-[#F6FBFC] px-6 py-12 lg:h-[749px] lg:w-[48%] lg:shrink-0 lg:px-[77px] lg:py-[48px]">
-        <div className="w-full max-w-[552px] rounded-[24px] bg-white px-6 py-10 shadow-[7px_10px_10px_rgba(195,195,195,0.5)] md:px-[36px] md:py-[66px]">
-          <div className="flex flex-col gap-[66px]">
-            <div className="flex flex-col gap-[11px]">
-              <h3 className="text-[32px] font-bold leading-[1.3] text-black">
-                Contact Us
-              </h3>
-              <p className="text-[16px] font-medium leading-[1.2] text-black">
-                Fill out for a consultation. Our Andes Workforce team typically
-                reaches out within 24 hours.
-              </p>
-            </div>
-
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="flex flex-col gap-[66px]"
-            >
+        {/* Right — form card */}
+        <div className="flex w-full items-start justify-center px-6 py-12 lg:h-[749px] lg:w-[48%] lg:shrink-0 lg:px-[77px] lg:py-[48px]">
+          <div className="w-full max-w-[552px] rounded-[24px] bg-white px-6 py-10 shadow-[7px_10px_10px_rgba(195,195,195,0.5)] md:px-[36px] md:py-[66px]">
+            <div className="flex flex-col gap-[66px]">
               <div className="flex flex-col gap-[11px]">
-              {formResponse && (
-                <div
-                  className={`mb-2 rounded-lg p-3 text-sm font-medium ${
-                    formResponse.success
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {formResponse.message}
-                </div>
-              )}
-
-              <div className="relative h-[59px]">
-                <input
-                  type="text"
-                  placeholder="First Last"
-                  {...register("name")}
-                  className={`absolute top-[9px] ${inputClassName}`}
-                />
-                <label className={labelClassName}>Full Name*</label>
-                {errors.name && (
-                  <p className="absolute -bottom-5 left-0 text-xs text-red-500">
-                    {errors.name.message}
-                  </p>
-                )}
+                <h3 className="text-[32px] font-bold leading-[1.3] text-black">
+                  Contact Us
+                </h3>
+                <p className="text-[16px] font-medium leading-[1.2] text-black">
+                  Fill out for a consultation. Our Andes Workforce team typically
+                  reaches out within 24 hours.
+                </p>
               </div>
 
-              <div className="relative h-[59px]">
-                <input
-                  type="email"
-                  placeholder="name@adds.com"
-                  {...register("email")}
-                  className={`absolute top-[9px] ${inputClassName}`}
-                />
-                <label className={labelClassName}>Email Address*</label>
-                {errors.email && (
-                  <p className="absolute -bottom-5 left-0 text-xs text-red-500">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="relative h-[59px]">
-                <div className="absolute top-[9px] h-[50px] w-full">
-                  <select
-                    {...register("country")}
-                    className={`${inputClassName} cursor-pointer appearance-none pr-[40px]`}
-                    disabled={loadingCountries}
-                  >
-                    <option value="">Select your country...</option>
-                    {countries.map((country) => (
-                      <option key={country.iso3} value={country.country}>
-                        {country.country}
-                      </option>
-                    ))}
-                  </select>
-                  {loadingCountries ? (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0097B2] border-t-transparent" />
-                    </div>
-                  ) : (
-                    <ChevronDown
-                      size={18}
-                      className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                    />
-                  )}
-                </div>
-                <label className={labelClassName}>Country</label>
-                {errors.country && (
-                  <p className="absolute -bottom-5 left-0 text-xs text-red-500">
-                    {errors.country.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="relative h-[59px]">
-                <input
-                  type="tel"
-                  placeholder="+1 234 567 890"
-                  {...register("phone")}
-                  className={`absolute top-[9px] ${inputClassName}`}
-                />
-                <label className={labelClassName}>Phone</label>
-              </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="h-[48px] w-full rounded-[8px] bg-[#0097B2] text-[14px] font-semibold leading-[1.3] text-white transition-colors hover:bg-[#007A8F] disabled:cursor-not-allowed disabled:opacity-60"
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="flex flex-col gap-[66px]"
               >
-                {isSubmitting ? "Sending..." : "Submit Request"}
-              </button>
-            </form>
+                <div className="flex flex-col gap-[11px]">
+                  {formResponse && (
+                    <div
+                      className={`mb-2 rounded-lg p-3 text-sm font-medium ${
+                        formResponse.success
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {formResponse.message}
+                    </div>
+                  )}
+
+                  <div className="relative h-[59px]">
+                    <input
+                      type="text"
+                      placeholder="First Last"
+                      {...register("name")}
+                      className={`absolute top-[9px] ${inputClassName}`}
+                    />
+                    <label className={labelClassName}>Full Name*</label>
+                    {errors.name && (
+                      <p className="absolute -bottom-5 left-0 text-xs text-red-500">
+                        {errors.name.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="relative h-[59px]">
+                    <input
+                      type="email"
+                      placeholder="name@adds.com"
+                      {...register("email")}
+                      className={`absolute top-[9px] ${inputClassName}`}
+                    />
+                    <label className={labelClassName}>Email Address*</label>
+                    {errors.email && (
+                      <p className="absolute -bottom-5 left-0 text-xs text-red-500">
+                        {errors.email.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="relative h-[59px]">
+                    <div className="absolute top-[9px] h-[50px] w-full">
+                      <select
+                        {...register("country")}
+                        className={`${inputClassName} cursor-pointer appearance-none pr-[40px]`}
+                        disabled={loadingCountries}
+                      >
+                        <option value="">Select your country...</option>
+                        {countries.map((country) => (
+                          <option key={country.iso3} value={country.country}>
+                            {country.country}
+                          </option>
+                        ))}
+                      </select>
+                      {loadingCountries ? (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0097B2] border-t-transparent" />
+                        </div>
+                      ) : (
+                        <ChevronDown
+                          size={18}
+                          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                        />
+                      )}
+                    </div>
+                    <label className={labelClassName}>Country</label>
+                    {errors.country && (
+                      <p className="absolute -bottom-5 left-0 text-xs text-red-500">
+                        {errors.country.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="relative h-[59px]">
+                    <input
+                      type="tel"
+                      placeholder="+1 234 567 890"
+                      {...register("phone")}
+                      className={`absolute top-[9px] ${inputClassName}`}
+                    />
+                    <label className={labelClassName}>Phone</label>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="h-[48px] w-full rounded-[8px] bg-[#0097B2] text-[14px] font-semibold leading-[1.3] text-white transition-colors hover:bg-[#007A8F] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmitting ? "Sending..." : "Submit Request"}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>

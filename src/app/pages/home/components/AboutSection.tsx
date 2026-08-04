@@ -26,7 +26,7 @@ export default function AboutSection() {
           "linear-gradient(180deg, rgba(31,89,101,0.85) 0%, rgba(0,80,100,0.85) 100%), url('https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/88a77507bfcfb701f5c0eb2d264b3d1a8ed3a54c.jpg')",
       }}
     >
-      <div className="relative max-w-[1400px] mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center gap-12 md:gap-[80px]">
+      <div className="relative max-w-[1440px] mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center gap-12 md:gap-[80px]">
         {/* Left: text */}
         <div className="flex flex-col gap-[35px] md:w-[520px] shrink-0">
           <h2 className="text-white font-bold text-[34px] leading-tight">
