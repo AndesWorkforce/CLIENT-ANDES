@@ -123,3 +123,87 @@ body {
   transform: scale(1.08);
   transform-origin: top center;
 }
+
+@keyframes andi-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(2deg);
+  }
+}
+
+@keyframes andi-pose-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes andi-online-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(34 197 94 / 45%);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgb(34 197 94 / 0%);
+  }
+}
+
+.andi-avatar {
+  position: relative;
+  z-index: 10;
+  display: block;
+  flex: none;
+  width: 120px;
+  height: 120px;
+  visibility: visible;
+  opacity: 1;
+  animation: andi-float 3.8s ease-in-out infinite;
+}
+
+.andi-avatar__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  animation: andi-pose-enter 280ms ease-out;
+}
+
+.andi-avatar__status {
+  display: none;
+}
+
+.andi-avatar--compact {
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  border-width: 1px;
+  border: 1px solid white;
+  border-radius: 9999px;
+  background: linear-gradient(145deg, #dff9ff, #0097b2);
+  box-shadow: none;
+}
+
+.andi-avatar--compact .andi-avatar__image {
+  object-fit: cover;
+  object-position: 50% 12%;
+}
+
+.andi-avatar--active {
+  animation-duration: 2.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .andi-avatar,
+  .andi-avatar__image,
+  .andi-avatar__status {
+    animation: none;
+  }
+}

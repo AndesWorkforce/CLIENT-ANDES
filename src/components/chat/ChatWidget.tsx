@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle, X, RotateCcw } from "lucide-react";
+import { X, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import type { User } from "@/store/auth.store";
 import { ChatMessageList } from "./ChatMessageList";
 import { ChatInput } from "./ChatInput";
 import { useChat } from "./useChat";
+import { AndiAvatar } from "./AndiAvatar";
 
 const IT_SUPPORT_PORTAL_URL =
   "https://teamandes.atlassian.net/servicedesk/customer/portal/2";
@@ -28,9 +29,14 @@ export function ChatWidget({ user }: ChatWidgetProps) {
           aria-label="Andes Workforce chat assistant"
         >
           <div className="flex items-center justify-between bg-[var(--andes-blue)] px-4 py-3 text-white">
-            <div>
-              <p className="text-sm font-semibold">Andes Assistant</p>
-              <p className="text-xs text-white/80">FAQ · English & Español</p>
+            <div className="flex items-center gap-3">
+              <AndiAvatar active compact />
+              <div>
+                <p className="text-sm font-semibold">Andy</p>
+                <p className="text-xs text-white/80">
+                  Your Andes Workforce assistant
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-1">
               <button
@@ -85,11 +91,22 @@ export function ChatWidget({ user }: ChatWidgetProps) {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--andes-blue)] text-white shadow-lg transition-transform hover:scale-105"
+        className="relative flex h-[120px] w-[120px] items-center justify-center transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-[#0097B2]/30"
         aria-label={isOpen ? "Close chat" : "Open chat assistant"}
         aria-expanded={isOpen}
       >
-        {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+        {isOpen ? (
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--andes-blue)] text-white shadow-lg">
+            <X className="h-6 w-6" />
+          </span>
+        ) : (
+          <>
+            <span className="absolute -left-36 top-1/2 hidden -translate-y-1/2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg sm:block">
+              Need help? Chat with Andy
+            </span>
+            <AndiAvatar greeting />
+          </>
+        )}
       </button>
     </div>
   );

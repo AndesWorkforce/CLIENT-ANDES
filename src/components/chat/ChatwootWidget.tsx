@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  MessageCircle,
   MessageSquarePlus,
   MessagesSquare,
   X,
@@ -19,6 +18,7 @@ import {
   useChatwootSessions,
   type ChatwootConversationSummary,
 } from "./useChatwootSessions";
+import { AndiAvatar } from "./AndiAvatar";
 
 interface ChatwootWidgetProps {
   user: User;
@@ -61,7 +61,7 @@ export function ChatwootWidget({ user, onUnavailable }: ChatwootWidgetProps) {
       position: "right",
       locale: "en",
       type: "standard",
-      launcherTitle: "Chat with us",
+      launcherTitle: "Chat with Andy",
       enableFileUpload: true,
       enableEmojiPicker: true,
       enableEndConversation: true,
@@ -200,11 +200,14 @@ function ChatLauncher({ sdkReady, user }: ChatLauncherProps) {
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
       {menuOpen && (
         <div className="w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
-          <div className="bg-[var(--andes-blue)] px-4 py-3 text-white">
-            <p className="text-sm font-semibold">Andes Assistant</p>
-            <p className="text-xs text-white/80">
-              Nuevo tema o continuar con tu agente
-            </p>
+          <div className="flex items-center gap-3 bg-[var(--andes-blue)] px-4 py-3 text-white">
+            <AndiAvatar active compact />
+            <div>
+              <p className="text-sm font-semibold">Andy</p>
+              <p className="text-xs text-white/80">
+                Nuevo tema o continuar con tu agente
+              </p>
+            </div>
           </div>
 
           <div className="flex flex-col gap-2 p-3">
@@ -302,15 +305,22 @@ function ChatLauncher({ sdkReady, user }: ChatLauncherProps) {
       <button
         type="button"
         onClick={() => setMenuOpen((prev) => !prev)}
-        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[var(--andes-blue)] text-white shadow-lg transition-transform hover:scale-105"
+        className="relative flex h-[120px] w-[120px] items-center justify-center transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-[#0097B2]/30"
         aria-label={menuOpen ? "Cerrar menu de chat" : "Abrir menu de chat"}
         aria-expanded={menuOpen}
         aria-busy={!sdkReady}
       >
         {menuOpen ? (
-          <X className="h-6 w-6" />
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--andes-blue)] text-white shadow-lg">
+            <X className="h-6 w-6" />
+          </span>
         ) : (
-          <MessageCircle className="h-6 w-6" />
+          <>
+            <span className="absolute -left-36 top-1/2 hidden -translate-y-1/2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg sm:block">
+              Need help? Chat with Andy
+            </span>
+            <AndiAvatar greeting />
+          </>
         )}
         {humanConversations.length > 0 && !menuOpen && (
           <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
