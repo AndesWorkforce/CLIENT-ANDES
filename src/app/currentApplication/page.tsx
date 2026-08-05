@@ -928,7 +928,7 @@ export default function CurrentApplication() {
   const SkeletonCurrentContract = () => (
     <div className="min-h-screen bg-gray-50 p-6">
       <SimpleHeader title="Current Contract" />
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-[1440px] mx-auto space-y-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-[#0097B2] p-4">
             <div className="h-5 w-48 bg-white/30 rounded animate-pulse" />
@@ -1723,7 +1723,7 @@ export default function CurrentApplication() {
           }
         `}</style>
         <SimpleHeader title="Current Contract" />
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-[1440px] mx-auto">
           {/* Contract Pending Notification */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="bg-[#0097B2] text-white p-4">
@@ -2149,7 +2149,7 @@ export default function CurrentApplication() {
         }
       `}</style>
       <SimpleHeader title="Current Contract" />
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-[1440px] mx-auto space-y-6">
         {/* Pending Annexes Notification */}
         {currentJob.pendingAnnexes && currentJob.pendingAnnexes.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">

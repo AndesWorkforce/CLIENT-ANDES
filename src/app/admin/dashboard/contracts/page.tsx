@@ -1022,7 +1022,7 @@ export default function ContractsPage() {
   };
   console.log("[SORTED CONTRACTS]", sortedContracts);
   return (
-    <div className="w-full max-w-screen-2xl mx-auto mt-8 flex flex-col h-screen">
+    <div className="w-full max-w-[1440px] mx-auto mt-8 flex flex-col h-screen">
       {/* Search Input */}
       <div className="mb-6 px-4 flex flex-col md:flex-row gap-3 md:px-0 md:justify-between md:items-center">
         <div className="flex flex-col md:flex-row gap-3 flex-1">

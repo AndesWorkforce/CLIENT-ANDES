@@ -1,7 +1,7 @@
 export default function ProcessSection() {
   return (
     <section className="w-full bg-white py-[44px] md:py-[117px] px-[18px] md:px-[80px]">
-      <div className="max-w-[1280px] mx-auto">
+      <div className="max-w-[1440px] mx-auto">
         <div className="text-center mb-[22px] md:mb-[30px]">
           <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">
             MEET OUR TALENT

@@ -119,7 +119,7 @@ export default function PartnersSection() {
 
       {/* Why Choose Us */}
       <section className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="max-w-[1440px] mx-auto px-5">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-[#00224d]">Why Choose Us?</h2>
             <p className="text-base text-[#676565] mt-2">

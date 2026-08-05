@@ -48,7 +48,7 @@ export default function FaqPageContent() {
 
   return (
     <div className="bg-white pb-16">
-      <div className="mx-auto w-full max-w-[1280px] px-[18px] sm:px-[80px] pt-10 sm:pt-[102px]">
+      <div className="mx-auto w-full max-w-[1440px] px-[18px] sm:px-[80px] pt-10 sm:pt-[102px]">
         <label htmlFor="faq-search" className="sr-only">
           Search help topics
         </label>

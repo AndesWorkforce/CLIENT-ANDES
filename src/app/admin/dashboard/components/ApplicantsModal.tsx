@@ -3416,7 +3416,7 @@ export default function ApplicantsModal({
         {/* View Desktop */}
         <div className="hidden lg:block">
           <div
-            className="bg-white rounded-lg shadow-lg w-full max-w-7xl mx-auto max-h-[90vh] flex flex-col"
+            className="bg-white rounded-lg shadow-lg w-full max-w-[1440px] mx-auto max-h-[90vh] flex flex-col"
             style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
           >
             {/* Cabecera con título y botón de cerrar */}

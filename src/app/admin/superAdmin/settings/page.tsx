@@ -112,7 +112,7 @@ export default function SettingsPage() {
 
       {/* Main Content */}
       <div className="flex-1 w-full min-w-0 p-4 lg:p-6 pt-16 lg:pt-6 overflow-x-hidden">
-        <div className="max-w-7xl mx-auto w-full">
+        <div className="max-w-[1440px] mx-auto w-full">
           {activeSection === "holidays" && <HolidaysManager />}
           {activeSection === "featured" && <FeaturedProfilesManager />}
           {/* {activeSection === "other" && <OtherSettings />} */}

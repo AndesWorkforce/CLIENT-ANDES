@@ -466,7 +466,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="bg-white">
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-[1440px] mx-auto px-4 py-6">
         {/* Search bar visible in all views */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">

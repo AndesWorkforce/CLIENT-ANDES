@@ -27,7 +27,7 @@ export default function TabsNavigationSuperAdmin() {
 
   return (
     <div className="bg-white border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 relative">
+      <div className="max-w-[1440px] mx-auto px-4 relative">
         {showLeftShadow && (
           <div className="absolute top-0 left-0 w-8 h-full z-10 bg-gradient-to-r from-white to-transparent pointer-events-none" />
         )}
