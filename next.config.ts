@@ -41,7 +41,6 @@ const nextConfig: NextConfig = {
         pathname: "/images/**",
       },
     ],
-    domains: ["appwiseinnovations.dev"],
   },
 };
 
