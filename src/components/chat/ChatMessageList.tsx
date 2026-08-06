@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { ChatMessage } from "./useChat";
 import { cn } from "@/lib/utils";
+import { AndiAvatar } from "./AndiAvatar";
 
 interface ChatMessageListProps {
   messages: ChatMessage[];
@@ -22,10 +23,11 @@ export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
         <div
           key={message.id}
           className={cn(
-            "flex",
+            "flex items-end gap-2",
             message.role === "user" ? "justify-end" : "justify-start",
           )}
         >
+          {message.role !== "user" && <AndiAvatar compact />}
           <div
             className={cn(
               "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap",
