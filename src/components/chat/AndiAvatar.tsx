@@ -5,59 +5,58 @@ import { useEffect, useState } from "react";
 type AndiAvatarProps = {
   active?: boolean;
   compact?: boolean;
+  /** Reproduce el saludo animado y luego deja solo la cabeza. */
   greeting?: boolean;
 };
 
 const POSES = {
-  idle: "/andi/andi-winks.png",
+  head: "/andi/cabeza_recorte_rectangular.png",
   greeting: "/andi/hiker_sin_fondo.gif",
-  thinking: "/andi/andi-thinking.png",
 };
 
+const GREETING_DURATION_MS = 3800;
+
 /**
- * Avatar decorativo del asistente. Alterna brevemente la pose para dar
- * presencia al lanzador sin distraer ni bloquear la interacción.
+ * Avatar del asistente Andy.
+ * En el lanzador saluda con el GIF completo y luego queda solo la cabeza.
  */
 export function AndiAvatar({
   active = false,
   compact = false,
   greeting = false,
 }: AndiAvatarProps) {
-  const [isWaving, setIsWaving] = useState(false);
+  const [greetingDone, setGreetingDone] = useState(!greeting);
 
   useEffect(() => {
-    if (active) {
-      setIsWaving(true);
+    if (!greeting) {
+      setGreetingDone(true);
       return;
     }
 
-    const intervalId = window.setInterval(() => {
-      setIsWaving(true);
-      window.setTimeout(() => setIsWaving(false), 1800);
-    }, 12000);
+    setGreetingDone(false);
+    const timeoutId = window.setTimeout(() => {
+      setGreetingDone(true);
+    }, GREETING_DURATION_MS);
 
-    return () => window.clearInterval(intervalId);
-  }, [active]);
+    return () => window.clearTimeout(timeoutId);
+  }, [greeting]);
 
-  const pose = active || greeting
-    ? POSES.greeting
-    : isWaving
-      ? POSES.active
-      : POSES.idle;
+  const showFullGreeting = greeting && !greetingDone;
+  const pose = showFullGreeting ? POSES.greeting : POSES.head;
+
+  const className = [
+    "andi-avatar",
+    compact ? "andi-avatar--compact" : "",
+    !compact && !showFullGreeting ? "andi-avatar--head" : "",
+    showFullGreeting ? "andi-avatar--greeting" : "",
+    active ? "andi-avatar--active" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <span
-      className={`andi-avatar ${compact ? "andi-avatar--compact" : ""} ${
-        active ? "andi-avatar--active" : ""
-      }`}
-      aria-hidden="true"
-    >
-      <img
-        key={pose}
-        src={pose}
-        alt=""
-        className="andi-avatar__image"
-      />
+    <span className={className} aria-hidden="true">
+      <img key={pose} src={pose} alt="" className="andi-avatar__image" />
       <span className="andi-avatar__status" />
     </span>
   );

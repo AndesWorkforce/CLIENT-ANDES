@@ -101,7 +101,7 @@ export function ChatWidget({ user }: ChatWidgetProps) {
           </span>
         ) : (
           <>
-            <span className="absolute -left-36 top-1/2 hidden -translate-y-1/2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg sm:block">
+            <span className="absolute -left-36 top-1/2 z-20 hidden -translate-y-1/2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg sm:block">
               Need help? Chat with Andy
             </span>
             <AndiAvatar greeting />

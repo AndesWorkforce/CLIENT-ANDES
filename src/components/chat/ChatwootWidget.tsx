@@ -200,14 +200,8 @@ function ChatLauncher({ sdkReady, user }: ChatLauncherProps) {
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
       {menuOpen && (
         <div className="w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
-          <div className="flex items-center gap-3 bg-[var(--andes-blue)] px-4 py-3 text-white">
-            <AndiAvatar active compact />
-            <div>
-              <p className="text-sm font-semibold">Andy</p>
-              <p className="text-xs text-white/80">
-                Nuevo tema o continuar con tu agente
-              </p>
-            </div>
+          <div className="flex justify-center bg-[var(--andes-blue)] px-4 py-3">
+            <AndiAvatar active />
           </div>
 
           <div className="flex flex-col gap-2 p-3">
@@ -316,7 +310,7 @@ function ChatLauncher({ sdkReady, user }: ChatLauncherProps) {
           </span>
         ) : (
           <>
-            <span className="absolute -left-36 top-1/2 hidden -translate-y-1/2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg sm:block">
+            <span className="absolute -left-36 top-1/2 z-20 hidden -translate-y-1/2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg sm:block">
               Need help? Chat with Andy
             </span>
             <AndiAvatar greeting />

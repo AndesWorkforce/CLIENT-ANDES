@@ -165,6 +165,9 @@ body {
   visibility: visible;
   opacity: 1;
   animation: andi-float 3.8s ease-in-out infinite;
+  transition:
+    width 280ms ease,
+    height 280ms ease;
 }
 
 .andi-avatar__image {
@@ -180,11 +183,30 @@ body {
   display: none;
 }
 
+.andi-avatar--greeting {
+  width: 120px;
+  height: 120px;
+}
+
+.andi-avatar--head {
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border: 2px solid white;
+  border-radius: 9999px;
+  background: linear-gradient(145deg, #dff9ff, #0097b2);
+  box-shadow: 0 8px 20px rgb(0 79 94 / 35%);
+}
+
+.andi-avatar--head .andi-avatar__image {
+  object-fit: cover;
+  object-position: center 18%;
+}
+
 .andi-avatar--compact {
   width: 36px;
   height: 36px;
   overflow: hidden;
-  border-width: 1px;
   border: 1px solid white;
   border-radius: 9999px;
   background: linear-gradient(145deg, #dff9ff, #0097b2);
@@ -193,7 +215,7 @@ body {
 
 .andi-avatar--compact .andi-avatar__image {
   object-fit: cover;
-  object-position: 50% 12%;
+  object-position: center 18%;
 }
 
 .andi-avatar--active {
