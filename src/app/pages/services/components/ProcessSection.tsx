@@ -44,7 +44,7 @@ export default function ProcessSection() {
               <p className="text-[#0097B2] font-bold text-[22px] leading-[1.3]">03</p>
             </div>
             <h3 className="text-black font-bold text-[22px] leading-[1.3]">
-              Tell us your needs
+              Select your candidates
             </h3>
             <p className="text-[#525252] font-medium text-[18px] leading-[1.5]">
               You interview, we handle contracts, payroll, and compliance.
@@ -59,7 +59,7 @@ export default function ProcessSection() {
               Scale with confidence
             </h3>
             <p className="text-[#525252] font-medium text-[18px] leading-[1.5]">
-              Ongoing supportand a dedicated success manager.
+              Ongoing support and a dedicated success manager.
             </p>
           </div>
         </div>
