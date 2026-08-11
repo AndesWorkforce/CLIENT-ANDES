@@ -83,35 +83,45 @@ function mapTipoToCategoria(tipo: BackendTipoAlerta): AvisoCategory {
  * Genera la URL de acción basada en el tipo de alerta y los IDs relacionados.
  */
 function generateActionUrl(alerta: BackendAlerta): string {
-  const { tipo, nominaId, incomeVariableId, deduccionId, metadata, procesoContratacionId } = alerta;
+  const { tipo, nominaId, incomeVariableId, deduccionId, metadata } = alerta;
 
   switch (tipo) {
     case "NOMINA_PENDIENTE":
       return nominaId ? `/admin-hub/nominas/${nominaId}` : "/admin-hub/nominas";
     
     case "VARIABLE_INGRESO_PENDIENTE":
-      return incomeVariableId
-        ? `/admin-hub/nominas/variables/${incomeVariableId}`
-        : "/admin-hub/nominas/variables";
+      // Ir directo al detalle de la variable de ingreso
+      if (incomeVariableId) {
+        return `/admin-hub/nominas/variables/${incomeVariableId}`;
+      }
+      // Fallback: intentar desde metadata
+      if (metadata?.['incomeVariableId']) {
+        return `/admin-hub/nominas/variables/${metadata['incomeVariableId']}`;
+      }
+      return "/admin-hub/nominas/variables";
     
     case "DEDUCCION_PENDIENTE":
-      // Si hay deduccionId, ir directo a la variable de nómina
-      if (deduccionId && metadata?.['procesoContratacionId']) {
-        return `/admin-hub/nominas/variables?proceso=${metadata['procesoContratacionId']}`;
+      // Ir directo al detalle de la deducción
+      if (deduccionId) {
+        return `/admin-hub/nominas/variables/${deduccionId}`;
       }
-      return deduccionId ? `/admin-hub/nominas/variables` : "/admin-hub/nominas";
+      // Fallback: intentar desde metadata
+      if (metadata?.['deduccionId']) {
+        return `/admin-hub/nominas/variables/${metadata['deduccionId']}`;
+      }
+      return "/admin-hub/nominas/variables";
     
     case "HORAS_EXTRA_PENDIENTE":
-      // Si hay metadata con el ID del registro de horas extra
-      if (metadata?.['overtimeId'] && procesoContratacionId) {
-        return `/admin-hub/nominas/variables?proceso=${procesoContratacionId}`;
+      // Ir directo al detalle del registro de horas extra
+      if (metadata?.['overtimeId']) {
+        return `/admin-hub/nominas/variables/${metadata['overtimeId']}`;
       }
       return "/admin-hub/nominas/variables";
     
     case "DIAS_LIBRES_PENDIENTE":
-      // Si hay metadata con el ID del día libre
-      if (metadata?.['diaLibreId'] && procesoContratacionId) {
-        return `/admin-hub/nominas/variables?proceso=${procesoContratacionId}`;
+      // Ir directo al detalle del día libre
+      if (metadata?.['diaLibreId']) {
+        return `/admin-hub/nominas/variables/${metadata['diaLibreId']}`;
       }
       return "/admin-hub/nominas/variables";
     
