@@ -83,24 +83,57 @@ function mapTipoToCategoria(tipo: BackendTipoAlerta): AvisoCategory {
  * Genera la URL de acción basada en el tipo de alerta y los IDs relacionados.
  */
 function generateActionUrl(alerta: BackendAlerta): string {
-  const { tipo, nominaId, incomeVariableId, deduccionId } = alerta;
+  const { tipo, nominaId, incomeVariableId, deduccionId, metadata } = alerta;
 
   switch (tipo) {
     case "NOMINA_PENDIENTE":
       return nominaId ? `/admin-hub/nominas/${nominaId}` : "/admin-hub/nominas";
+    
     case "VARIABLE_INGRESO_PENDIENTE":
-      return incomeVariableId
-        ? `/admin-hub/nominas/variables/${incomeVariableId}`
-        : "/admin-hub/nominas/variables";
+      // Formato: income-variable:{uuid}
+      if (incomeVariableId) {
+        return `/admin-hub/nominas/variables/income-variable:${incomeVariableId}`;
+      }
+      if (metadata?.['incomeVariableId']) {
+        return `/admin-hub/nominas/variables/income-variable:${metadata['incomeVariableId']}`;
+      }
+      return "/admin-hub/nominas/variables";
+    
     case "DEDUCCION_PENDIENTE":
-      return "/admin-hub/nominas";
+      // Formato: deduccion:{uuid}
+      if (deduccionId) {
+        return `/admin-hub/nominas/variables/deduccion:${deduccionId}`;
+      }
+      if (metadata?.['deduccionId']) {
+        return `/admin-hub/nominas/variables/deduccion:${metadata['deduccionId']}`;
+      }
+      return "/admin-hub/nominas/variables";
+    
+    case "HORAS_EXTRA_PENDIENTE":
+      // Formato: overtime:{uuid}
+      if (metadata?.['overtimeId']) {
+        return `/admin-hub/nominas/variables/overtime:${metadata['overtimeId']}`;
+      }
+      return "/admin-hub/nominas/variables";
+    
+    case "DIAS_LIBRES_PENDIENTE":
+      // Formato: holiday:{uuid} (o ausencia:{uuid} según el tipo)
+      if (metadata?.['diaLibreId']) {
+        return `/admin-hub/nominas/variables/holiday:${metadata['diaLibreId']}`;
+      }
+      return "/admin-hub/nominas/variables";
+    
     case "FACTURA_PENDIENTE":
       return "/admin-hub/pagos";
-    case "HORAS_EXTRA_PENDIENTE":
-      return "/admin-hub/nominas";
-    case "DIAS_LIBRES_PENDIENTE":
-      return "/admin-hub/nominas";
+    
     default:
+      // Para tipos desconocidos (OTRO), intentar usar metadata
+      if (metadata?.['customerChargeId']) {
+        return "/admin-hub/pagos";
+      }
+      if (metadata?.['customerCreditId']) {
+        return "/admin-hub/pagos";
+      }
       return "/admin-hub/dashboard";
   }
 }
@@ -239,32 +272,54 @@ export async function getUnreadAvisosCount(): Promise<number> {
 }
 
 /**
- * Marca una alerta como resuelta (leída).
+ * Actualiza una alerta (estado y/o prioridad).
  */
-export async function markAvisoAsRead(avisoId: string): Promise<ApiResponse> {
+export interface UpdateAlertParams {
+  estado?: BackendEstadoAlerta;
+  prioridad?: BackendPrioridadAlerta;
+}
+
+export async function updateAlert(
+  avisoId: string,
+  params: UpdateAlertParams
+): Promise<ApiResponse> {
   const axios = await createServerAxios();
 
   try {
-    const response = await axios.patch(`admin-hub/alerts/${avisoId}`, {
-      estado: "RESUELTO",
-    });
+    const response = await axios.patch(`admin-hub/alerts/${avisoId}`, params);
 
     if (response.status !== 200) {
       return {
         success: false,
-        message: "Error al marcar el aviso como leído",
+        message: "Error al actualizar el aviso",
       };
     }
 
     return {
       success: true,
-      message: "Aviso marcado como leído",
+      message: "Aviso actualizado correctamente",
     };
-  } catch (error) {
-    console.error("[AVISOS] Error al marcar aviso como leído:", error);
+  } catch (error: any) {
+    console.error("[AVISOS] Error al actualizar aviso:", error);
+    
+    // Manejo específico de 404
+    if (error.response?.status === 404) {
+      return {
+        success: false,
+        message: "Aviso no encontrado",
+      };
+    }
+
     return {
       success: false,
-      message: "Error al marcar el aviso como leído",
+      message: "Error al actualizar el aviso",
     };
   }
+}
+
+/**
+ * Marca una alerta como resuelta (leída).
+ */
+export async function markAvisoAsRead(avisoId: string): Promise<ApiResponse> {
+  return updateAlert(avisoId, { estado: "RESUELTO" });
 }
