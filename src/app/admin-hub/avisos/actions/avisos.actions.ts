@@ -83,24 +83,49 @@ function mapTipoToCategoria(tipo: BackendTipoAlerta): AvisoCategory {
  * Genera la URL de acción basada en el tipo de alerta y los IDs relacionados.
  */
 function generateActionUrl(alerta: BackendAlerta): string {
-  const { tipo, nominaId, incomeVariableId, deduccionId } = alerta;
+  const { tipo, nominaId, incomeVariableId, deduccionId, metadata, procesoContratacionId } = alerta;
 
   switch (tipo) {
     case "NOMINA_PENDIENTE":
       return nominaId ? `/admin-hub/nominas/${nominaId}` : "/admin-hub/nominas";
+    
     case "VARIABLE_INGRESO_PENDIENTE":
       return incomeVariableId
         ? `/admin-hub/nominas/variables/${incomeVariableId}`
         : "/admin-hub/nominas/variables";
+    
     case "DEDUCCION_PENDIENTE":
-      return "/admin-hub/nominas";
+      // Si hay deduccionId, ir directo a la variable de nómina
+      if (deduccionId && metadata?.['procesoContratacionId']) {
+        return `/admin-hub/nominas/variables?proceso=${metadata['procesoContratacionId']}`;
+      }
+      return deduccionId ? `/admin-hub/nominas/variables` : "/admin-hub/nominas";
+    
+    case "HORAS_EXTRA_PENDIENTE":
+      // Si hay metadata con el ID del registro de horas extra
+      if (metadata?.['overtimeId'] && procesoContratacionId) {
+        return `/admin-hub/nominas/variables?proceso=${procesoContratacionId}`;
+      }
+      return "/admin-hub/nominas/variables";
+    
+    case "DIAS_LIBRES_PENDIENTE":
+      // Si hay metadata con el ID del día libre
+      if (metadata?.['diaLibreId'] && procesoContratacionId) {
+        return `/admin-hub/nominas/variables?proceso=${procesoContratacionId}`;
+      }
+      return "/admin-hub/nominas/variables";
+    
     case "FACTURA_PENDIENTE":
       return "/admin-hub/pagos";
-    case "HORAS_EXTRA_PENDIENTE":
-      return "/admin-hub/nominas";
-    case "DIAS_LIBRES_PENDIENTE":
-      return "/admin-hub/nominas";
+    
     default:
+      // Para tipos desconocidos (OTRO), intentar usar metadata
+      if (metadata?.['customerChargeId']) {
+        return "/admin-hub/pagos";
+      }
+      if (metadata?.['customerCreditId']) {
+        return "/admin-hub/pagos";
+      }
       return "/admin-hub/dashboard";
   }
 }
