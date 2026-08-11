@@ -90,38 +90,36 @@ function generateActionUrl(alerta: BackendAlerta): string {
       return nominaId ? `/admin-hub/nominas/${nominaId}` : "/admin-hub/nominas";
     
     case "VARIABLE_INGRESO_PENDIENTE":
-      // Ir directo al detalle de la variable de ingreso
+      // Formato: income-variable:{uuid}
       if (incomeVariableId) {
-        return `/admin-hub/nominas/variables/${incomeVariableId}`;
+        return `/admin-hub/nominas/variables/income-variable:${incomeVariableId}`;
       }
-      // Fallback: intentar desde metadata
       if (metadata?.['incomeVariableId']) {
-        return `/admin-hub/nominas/variables/${metadata['incomeVariableId']}`;
+        return `/admin-hub/nominas/variables/income-variable:${metadata['incomeVariableId']}`;
       }
       return "/admin-hub/nominas/variables";
     
     case "DEDUCCION_PENDIENTE":
-      // Ir directo al detalle de la deducción
+      // Formato: deduccion:{uuid}
       if (deduccionId) {
-        return `/admin-hub/nominas/variables/${deduccionId}`;
+        return `/admin-hub/nominas/variables/deduccion:${deduccionId}`;
       }
-      // Fallback: intentar desde metadata
       if (metadata?.['deduccionId']) {
-        return `/admin-hub/nominas/variables/${metadata['deduccionId']}`;
+        return `/admin-hub/nominas/variables/deduccion:${metadata['deduccionId']}`;
       }
       return "/admin-hub/nominas/variables";
     
     case "HORAS_EXTRA_PENDIENTE":
-      // Ir directo al detalle del registro de horas extra
+      // Formato: overtime:{uuid}
       if (metadata?.['overtimeId']) {
-        return `/admin-hub/nominas/variables/${metadata['overtimeId']}`;
+        return `/admin-hub/nominas/variables/overtime:${metadata['overtimeId']}`;
       }
       return "/admin-hub/nominas/variables";
     
     case "DIAS_LIBRES_PENDIENTE":
-      // Ir directo al detalle del día libre
+      // Formato: holiday:{uuid} (o ausencia:{uuid} según el tipo)
       if (metadata?.['diaLibreId']) {
-        return `/admin-hub/nominas/variables/${metadata['diaLibreId']}`;
+        return `/admin-hub/nominas/variables/holiday:${metadata['diaLibreId']}`;
       }
       return "/admin-hub/nominas/variables";
     

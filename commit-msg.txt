@@ -1,0 +1,14 @@
+feat: Marcar avisos como leídos al navegar + acción updateAlert
+
+Implementa mejoras en la experiencia de usuario para el sistema de avisos.
+
+## Cambios
+- Marca automáticamente avisos como leídos al hacer clic en enlaces de acción
+- Refactoriza markAvisoAsRead para usar función genérica updateAlert
+- Agrega funcionalidad para cambiar prioridad de avisos desde el menú
+- No bloquea la navegación al marcar como leído
+
+## UX
+- El usuario hace clic en "Ir a Nóminas" → Aviso marcado automáticamente
+- Navegación instantánea sin espera
+- Menú dropdown con opciones de actualización de estado y prioridad
