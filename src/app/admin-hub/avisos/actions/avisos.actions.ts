@@ -239,32 +239,54 @@ export async function getUnreadAvisosCount(): Promise<number> {
 }
 
 /**
- * Marca una alerta como resuelta (leída).
+ * Actualiza una alerta (estado y/o prioridad).
  */
-export async function markAvisoAsRead(avisoId: string): Promise<ApiResponse> {
+export interface UpdateAlertParams {
+  estado?: BackendEstadoAlerta;
+  prioridad?: BackendPrioridadAlerta;
+}
+
+export async function updateAlert(
+  avisoId: string,
+  params: UpdateAlertParams
+): Promise<ApiResponse> {
   const axios = await createServerAxios();
 
   try {
-    const response = await axios.patch(`admin-hub/alerts/${avisoId}`, {
-      estado: "RESUELTO",
-    });
+    const response = await axios.patch(`admin-hub/alerts/${avisoId}`, params);
 
     if (response.status !== 200) {
       return {
         success: false,
-        message: "Error al marcar el aviso como leído",
+        message: "Error al actualizar el aviso",
       };
     }
 
     return {
       success: true,
-      message: "Aviso marcado como leído",
+      message: "Aviso actualizado correctamente",
     };
-  } catch (error) {
-    console.error("[AVISOS] Error al marcar aviso como leído:", error);
+  } catch (error: any) {
+    console.error("[AVISOS] Error al actualizar aviso:", error);
+    
+    // Manejo específico de 404
+    if (error.response?.status === 404) {
+      return {
+        success: false,
+        message: "Aviso no encontrado",
+      };
+    }
+
     return {
       success: false,
-      message: "Error al marcar el aviso como leído",
+      message: "Error al actualizar el aviso",
     };
   }
+}
+
+/**
+ * Marca una alerta como resuelta (leída).
+ */
+export async function markAvisoAsRead(avisoId: string): Promise<ApiResponse> {
+  return updateAlert(avisoId, { estado: "RESUELTO" });
 }
