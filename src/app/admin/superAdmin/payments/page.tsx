@@ -34,6 +34,7 @@ import {
   updateBonusAndHolidays,
 } from "./actions/observations.actions";
 import { useNotificationStore } from "@/store/notifications.store";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 type UserContract = {
   id: string;
@@ -2182,7 +2183,7 @@ export default function PaymentsPage() {
                       </div>
                       <div className="space-y-2">
                         <a
-                          href={selectedDocument.imageUrl}
+                          href={toAccessibleMediaUrl(selectedDocument.imageUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -2232,7 +2233,7 @@ export default function PaymentsPage() {
                   /* Para imágenes */
                   <div className="flex justify-center">
                     <img
-                      src={selectedDocument.imageUrl}
+                      src={toAccessibleMediaUrl(selectedDocument.imageUrl)}
                       alt={`Document for ${selectedDocument.userName}`}
                       className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm border"
                       onError={(e) => {
