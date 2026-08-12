@@ -5,6 +5,7 @@ import { X, Info, Upload, Eye, AlertCircle } from "lucide-react";
 import { useProfileContext } from "../context/ProfileContext";
 import { saveVideoUrl } from "../actions/video-actions";
 import { useAuthStore } from "@/store/auth.store";
+import { toAccessibleVideoUrl } from "@/lib/s3-media";
 
 interface VideoModalProps {
   isOpen: boolean;
@@ -336,9 +337,11 @@ export default function VideoModal({
               </p>
               <div className="relative aspect-video w-full">
                 <video
-                  src={uploadUrl}
+                  src={toAccessibleVideoUrl(uploadUrl)}
                   controls
-                  className="w-full h-full rounded-lg border border-gray-200"
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full rounded-lg border border-gray-200 bg-black"
                 >
                   Your browser does not support the video tag.
                 </video>

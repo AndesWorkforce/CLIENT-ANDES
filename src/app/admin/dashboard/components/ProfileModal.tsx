@@ -9,6 +9,7 @@ import ViewFormularioModal from "./ViewFormularioModal";
 import ImageViewer from "./ImageViewer";
 import PDFDownloadButton from "./PDFDownloadButton";
 import AdminExperienceManager from "./AdminExperienceManager";
+import { toAccessibleVideoUrl } from "@/lib/s3-media";
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -208,10 +209,14 @@ export default function ProfileModal({
                     <div className="aspect-video bg-gray-100 rounded relative group">
                       <video
                         ref={setVideoRef}
-                        src={profile.archivos.videoPresentacion as string}
+                        src={toAccessibleVideoUrl(
+                          profile.archivos.videoPresentacion as string,
+                        )}
                         className="w-full h-full object-cover rounded"
                         onEnded={() => setIsPlaying(false)}
                         controls={false}
+                        playsInline
+                        preload="metadata"
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
