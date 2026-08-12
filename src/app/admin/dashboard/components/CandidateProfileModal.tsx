@@ -28,6 +28,7 @@ import { Education } from "@/app/types/education";
 import { Skill } from "@/app/types/skill";
 import { updateUserSkills } from "@/app/profile/actions/skills-actions";
 import { useNotificationStore } from "@/store/notifications.store";
+import { toAccessibleMediaUrl, toAccessibleVideoUrl } from "@/lib/s3-media";
 import { ProfileContextProvider } from "@/app/profile/context/ProfileContext";
 import { addEducation } from "@/app/profile/actions/education.actions";
 import ContactoModal from "@/app/profile/components/ContactoModal";
@@ -1119,7 +1120,9 @@ export default function CandidateProfileModal({
                       <button
                         onClick={() =>
                           setSelectedImage(
-                            profile.archivos.videoPresentacion as string
+                            toAccessibleVideoUrl(
+                              profile.archivos.videoPresentacion as string,
+                            ),
                           )
                         }
                         className="text-[#0097B2] text-sm hover:underline flex items-center gap-1"
@@ -1140,10 +1143,14 @@ export default function CandidateProfileModal({
                     <div className="aspect-video bg-gray-100 rounded relative group">
                       <video
                         ref={setVideoRef}
-                        src={profile.archivos.videoPresentacion as string}
+                        src={toAccessibleVideoUrl(
+                          profile.archivos.videoPresentacion as string,
+                        )}
                         className="w-full h-full object-contain rounded"
                         onEnded={() => setIsVideoPlaying(false)}
                         controls={false}
+                        playsInline
+                        preload="metadata"
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
@@ -1657,17 +1664,25 @@ export default function CandidateProfileModal({
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative max-w-[1440px] max-h-[95vh] p-4 w-full h-full flex items-center justify-center">
-            {selectedImage === profile.archivos.videoPresentacion ? (
+            {selectedImage.includes("/videos/") ||
+            selectedImage.includes("videoPresentacion") ||
+            (profile.archivos.videoPresentacion &&
+              (selectedImage === profile.archivos.videoPresentacion ||
+                selectedImage ===
+                  toAccessibleVideoUrl(
+                    profile.archivos.videoPresentacion as string,
+                  ))) ? (
               <video
-                src={selectedImage}
+                src={toAccessibleVideoUrl(selectedImage)}
                 className="max-w-full max-h-full object-contain"
                 controls
                 autoPlay
+                playsInline
                 onClick={(e) => e.stopPropagation()}
               />
             ) : (
               <img
-                src={selectedImage}
+                src={toAccessibleMediaUrl(selectedImage)}
                 alt="PC Specification"
                 className="max-w-full max-h-full object-contain"
                 onClick={(e) => e.stopPropagation()}
