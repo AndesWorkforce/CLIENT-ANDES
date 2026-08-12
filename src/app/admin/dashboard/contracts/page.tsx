@@ -28,6 +28,7 @@ import {
 import TableSkeleton from "../components/TableSkeleton";
 import CancelContractModal from "./components/CancelContractModal";
 import SendAnnexModal from "./components/SendAnnexModal";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 import AnnexesListModal from "./components/AnnexesListModal";
 import * as XLSX from "xlsx";
 
@@ -664,7 +665,7 @@ export default function ContractsPage() {
   };
 
   const handleViewDocument = (documentUrl: string) => {
-    window.open(documentUrl, "_blank");
+    window.open(toAccessibleMediaUrl(documentUrl), "_blank");
   };
 
   const handleFinalizarContrato = async (procesoId: string) => {

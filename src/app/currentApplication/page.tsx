@@ -54,6 +54,7 @@ import {
   generateUserInboxAction,
 } from "./actions/invoices.actions";
 import { uploadMonthlyProofFromClient } from "@/lib/monthly-proof-upload.client";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 export default function CurrentApplication() {
   const router = useRouter();
@@ -2827,7 +2828,10 @@ export default function CurrentApplication() {
                             <div className="col-span-6 md:col-span-2 flex justify-start md:justify-end gap-2">
                               <button
                                 onClick={() =>
-                                  window.open(proof.file, "_blank")
+                                  window.open(
+                                    toAccessibleMediaUrl(proof.file),
+                                    "_blank",
+                                  )
                                 }
                                 className="inline-flex items-center justify-center w-8 h-8 rounded border border-[#0097B2] text-[#0097B2] hover:bg-blue-50 cursor-pointer"
                                 title="View"
