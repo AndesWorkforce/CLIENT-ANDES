@@ -1212,10 +1212,12 @@ export default function CandidateProfileModal({
                           <div
                             key={index}
                             className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
-                            onClick={() => setSelectedImage(image as string)}
+                            onClick={() =>
+                              setSelectedImage(image as string)
+                            }
                           >
                             <img
-                              src={image as string}
+                              src={toAccessibleMediaUrl(image as string)}
                               alt={`PC Specification ${index + 1}`}
                               className="w-full h-full object-contain rounded-lg p-1"
                             />
@@ -1255,9 +1257,9 @@ export default function CandidateProfileModal({
                               }
                             >
                               <img
-                                src={
-                                  profile.archivos.fotoCedulaFrente as string
-                                }
+                                src={toAccessibleMediaUrl(
+                                  profile.archivos.fotoCedulaFrente as string,
+                                )}
                                 alt="ID Front"
                                 className="w-full h-full object-contain rounded-lg p-1"
                               />
@@ -1283,7 +1285,9 @@ export default function CandidateProfileModal({
                               }
                             >
                               <img
-                                src={profile.archivos.fotoCedulaDorso as string}
+                                src={toAccessibleMediaUrl(
+                                  profile.archivos.fotoCedulaDorso as string,
+                                )}
                                 alt="ID Back"
                                 className="w-full h-full object-contain rounded-lg p-1"
                               />
@@ -1346,7 +1350,7 @@ export default function CandidateProfileModal({
                       <a
                         href={
                           typeof assessmentUrl === "string" && assessmentUrl
-                            ? assessmentUrl
+                            ? toAccessibleMediaUrl(assessmentUrl)
                             : ""
                         }
                         target="_blank"
@@ -1441,7 +1445,7 @@ export default function CandidateProfileModal({
                         href={
                           typeof backgroundCheckUrl === "string" &&
                           backgroundCheckUrl
-                            ? backgroundCheckUrl
+                            ? toAccessibleMediaUrl(backgroundCheckUrl)
                             : ""
                         }
                         target="_blank"
