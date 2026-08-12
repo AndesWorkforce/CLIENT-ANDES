@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { toAccessibleVideoUrl } from "@/lib/s3-media";
 
 interface VideoModalProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ export default function VideoModal({
   videoUrl,
 }: VideoModalProps) {
   if (!isOpen) return null;
+
+  const playableUrl = toAccessibleVideoUrl(videoUrl);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.5)]">
@@ -35,9 +38,10 @@ export default function VideoModal({
         <div className="p-4">
           <div className="w-full max-h-[75vh] bg-black rounded-lg overflow-hidden flex items-center justify-center">
             <video
-              src={videoUrl}
+              src={playableUrl}
               controls
               playsInline
+              preload="metadata"
               className="max-h-[75vh] max-w-full w-auto h-auto object-contain rounded-lg"
             >
               Your browser does not support the video playback.

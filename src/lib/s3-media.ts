@@ -43,6 +43,8 @@ export function toAccessibleMediaUrl(
 ): string {
   if (!url) return "";
   if (url.startsWith("blob:") || url.startsWith("data:")) return url;
+  // Ya es proxy de la API
+  if (url.includes("/files/content?")) return url;
   if (!isS3CanonicalUrl(url)) return url;
 
   const api = getPublicApiBase();
@@ -52,4 +54,11 @@ export function toAccessibleMediaUrl(
   if (options?.expiresIn) params.set("expiresIn", String(options.expiresIn));
 
   return `${api}files/content?${params.toString()}`;
+}
+
+/** Videos: URL firmada con más tiempo (2h). Guardar en BD siempre la URL canónica de S3. */
+export function toAccessibleVideoUrl(
+  url: string | null | undefined,
+): string {
+  return toAccessibleMediaUrl(url, { expiresIn: 7200 });
 }
