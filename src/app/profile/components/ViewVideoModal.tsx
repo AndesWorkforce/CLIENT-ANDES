@@ -7,6 +7,7 @@ import { removeVideoPresentation } from "../actions/video-actions";
 import { useNotificationStore } from "@/store/notifications.store";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { useAuthStore } from "@/store/auth.store";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 interface ViewVideoModalProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ export default function ViewVideoModal({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const { profile } = useProfileContext();
-  const videoUrl = profile.archivos.videoPresentacion;
+  const videoUrl = toAccessibleMediaUrl(profile.archivos.videoPresentacion);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { addNotification } = useNotificationStore();
 

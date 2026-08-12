@@ -126,42 +126,61 @@ export default function VideoModal({
       const { uploadUrl, publicUrl, contentType } = await urlResponse.json();
       setUploadProgress(20);
 
-      // 2. Subimos el video directamente a S3 usando XMLHttpRequest para seguimiento del progreso
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
+      // 2. Intentar subida directa a S3 (requiere CORS en el bucket).
+      // Si falla por red/CORS, caer al upload vía API.
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
 
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            // Calculamos el progreso real (20-90%)
-            const progressPercent = (event.loaded / event.total) * 70;
-            setUploadProgress(20 + progressPercent);
-          }
-        };
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const progressPercent = (event.loaded / event.total) * 70;
+              setUploadProgress(20 + progressPercent);
+            }
+          };
 
-        xhr.onload = () => {
-          if (xhr.status === 200) {
-            setUploadProgress(100);
-            setUploadUrl(publicUrl);
-            setUploadState("success");
-            resolve(publicUrl);
-          } else {
-            reject(new Error("Error al subir el video a S3"));
-          }
-        };
+          xhr.onload = () => {
+            if (xhr.status === 200 || xhr.status === 204) {
+              resolve();
+            } else {
+              reject(
+                new Error(
+                  `Error al subir el video a S3 (HTTP ${xhr.status})`,
+                ),
+              );
+            }
+          };
 
-        xhr.onerror = () => {
-          console.error("[VideoUpload] Error XHR:", xhr.status, xhr.statusText);
-          reject(new Error("Error de red al subir el video"));
-        };
+          xhr.onerror = () => {
+            console.error(
+              "[VideoUpload] Error XHR (suele ser CORS del bucket):",
+              xhr.status,
+              xhr.statusText,
+            );
+            reject(
+              new Error(
+                "CORS_OR_NETWORK: Error de red al subir el video (revisar CORS del bucket)",
+              ),
+            );
+          };
 
-        xhr.open("PUT", uploadUrl);
-        xhr.setRequestHeader("Content-Type", contentType);
+          xhr.open("PUT", uploadUrl);
+          xhr.setRequestHeader("Content-Type", contentType);
+          console.log("[VideoUpload] PUT directo a S3:", uploadUrl);
+          xhr.send(file);
+        });
 
-        console.log("[VideoUpload] Iniciando subida a S3 con URL:", uploadUrl);
-        console.log("[VideoUpload] Content-Type:", contentType);
-
-        xhr.send(file);
-      });
+        setUploadProgress(100);
+        setUploadUrl(publicUrl);
+        setUploadState("success");
+        return publicUrl;
+      } catch (directErr) {
+        console.warn(
+          "[VideoUpload] Falló PUT directo; reintentando vía API…",
+          directErr,
+        );
+        return await uploadVideoViaApi(file, apiBase);
+      }
     } catch (err) {
       console.error("[VideoUpload] Error durante la carga:", err);
       setUploadState("error");
@@ -169,6 +188,43 @@ export default function VideoModal({
         ? err
         : new Error("Error desconocido durante la carga");
     }
+  };
+
+  /** Fallback: sube por NestJS → S3 (no requiere CORS en el bucket) */
+  const uploadVideoViaApi = async (
+    file: File,
+    apiBase: string,
+  ): Promise<string> => {
+    setUploadProgress(30);
+    const form = new FormData();
+    form.append("video", file);
+
+    const response = await fetch(`${apiBase}files/upload/video`, {
+      method: "POST",
+      body: form,
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("[VideoUpload] API fallback error:", text);
+      throw new Error(
+        "No se pudo subir el video. Verifica credenciales AWS en el servidor y CORS del bucket.",
+      );
+    }
+
+    // El endpoint puede devolver string JSON o { fileUrl }
+    const raw = await response.json();
+    const publicUrl =
+      typeof raw === "string" ? raw : raw?.fileUrl || raw?.url || null;
+
+    if (!publicUrl) {
+      throw new Error("La API no devolvió la URL del video");
+    }
+
+    setUploadProgress(100);
+    setUploadUrl(publicUrl);
+    setUploadState("success");
+    return publicUrl;
   };
 
   const handleUpload = async () => {

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useProfileContext } from "../context/ProfileContext";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 interface ProfilePhotoModalProps {
   isOpen: boolean;
@@ -31,7 +32,9 @@ export default function ProfilePhotoModal({
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currentPhoto = profile.datosPersonales.fotoPerfil;
+  const currentPhoto = toAccessibleMediaUrl(
+    profile.datosPersonales.fotoPerfil,
+  );
 
   // Clean up preview URL on unmount or modal close
   useEffect(() => {
