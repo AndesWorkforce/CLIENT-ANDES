@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { X, Monitor, Wifi, ChevronLeft } from "lucide-react";
 import { useProfileContext } from "../context/ProfileContext";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 interface ViewPCRequirementsModalProps {
   isOpen: boolean;
@@ -20,8 +21,12 @@ export default function ViewPCRequirementsModal({
     null
   );
 
-  const pcSpecsImageUrl = profile.archivos.imagenRequerimientosPC || "";
-  const internetSpeedImageUrl = profile.archivos.imagenTestVelocidad || "";
+  const pcSpecsImageUrl = toAccessibleMediaUrl(
+    profile.archivos.imagenRequerimientosPC || "",
+  );
+  const internetSpeedImageUrl = toAccessibleMediaUrl(
+    profile.archivos.imagenTestVelocidad || "",
+  );
 
   const handleClickOutside = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {

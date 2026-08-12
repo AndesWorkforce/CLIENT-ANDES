@@ -28,17 +28,22 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "andes-workforce-s3.s3.us-east-2.amazonaws.com",
-        pathname: "/clientes/**",
+        pathname: "/**",
       },
       {
         protocol: "https",
-        hostname: "andes-workforce-s3.s3.us-east-2.amazonaws.com",
-        pathname: "/team/**",
+        hostname: "andes.api.andes-workforce.com",
+        pathname: "/api/files/**",
       },
       {
         protocol: "https",
-        hostname: "andes-workforce-s3.s3.us-east-2.amazonaws.com",
-        pathname: "/images/**",
+        hostname: "*.s3.us-east-2.amazonaws.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.s3.amazonaws.com",
+        pathname: "/**",
       },
     ],
   },

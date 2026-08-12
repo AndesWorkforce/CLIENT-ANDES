@@ -28,6 +28,7 @@ import { deleteAllSkills, updateUserSkills } from "./actions/skills-actions";
 import { useAuthStore } from "@/store/auth.store";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { removeVideoPresentation } from "./actions/video-actions";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 import { useNotificationStore } from "@/store/notifications.store";
 import { deletePCRequirementsImages } from "./actions/pc-requirements-actions";
 import { eliminarDatosFormulario } from "./actions/formulario.actions";
@@ -1981,7 +1982,7 @@ export default function ProfilePage() {
                 {profile.datosPersonales.fotoPerfil && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={profile.datosPersonales.fotoPerfil}
+                    src={toAccessibleMediaUrl(profile.datosPersonales.fotoPerfil)}
                     alt="Profile"
                     className="w-10 h-10 rounded-full object-cover border border-gray-200"
                   />
@@ -2348,7 +2349,9 @@ export default function ProfilePage() {
                     </h3>
                     <div className="text-white rounded-md">
                       <img
-                        src={`${profile.archivos.imagenRequerimientosPC}`}
+                        src={toAccessibleMediaUrl(
+                          profile.archivos.imagenRequerimientosPC,
+                        )}
                         alt="PC Specifications"
                         className="w-[50%] h-auto"
                       />
@@ -2363,7 +2366,9 @@ export default function ProfilePage() {
                     </h3>
                     <div className="text-white rounded-md">
                       <img
-                        src={`${profile.archivos.imagenTestVelocidad}`}
+                        src={toAccessibleMediaUrl(
+                          profile.archivos.imagenTestVelocidad,
+                        )}
                         alt="Internet Speed Test"
                         className="w-[50%] h-auto"
                       />
