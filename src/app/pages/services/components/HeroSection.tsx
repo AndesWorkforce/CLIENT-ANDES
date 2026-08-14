@@ -4,7 +4,7 @@ export default function HeroSection() {
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: "url('https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Services/hero_our_services.png')",
+          backgroundImage: "url('https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Banner.webp')",
         }}
       />
       <div

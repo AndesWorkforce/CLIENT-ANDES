@@ -21,7 +21,7 @@ const services: Service[] = [
     description:
       "Provide reliable remote support to streamline your daily operations. From managing emails and calendars to handling administrative tasks and coordination, they help you stay organized, productive, and focused on high-value priorities.",
     features: ["Email & Calendar", "Task Coordination", "Admin Support", "Scheduling"],
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Services/operations-run.png",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Puestos+de+trabajo/Virtual+Assistants.webp",
   },
   {
     id: 2,

@@ -1285,7 +1285,9 @@ export default function ContractsPage() {
                                   className="text-green-500"
                                 />
                                 <a
-                                  href={contract.contratoFinalUrl}
+                                  href={toAccessibleMediaUrl(
+                                    contract.contratoFinalUrl
+                                  )}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-[#0097B2] hover:underline text-sm font-medium"
@@ -1635,7 +1637,9 @@ export default function ContractsPage() {
                         contract.signWellDownloadUrl ? (
                           <div className="flex items-center space-x-2">
                             <a
-                              href={contract.signWellDownloadUrl}
+                              href={toAccessibleMediaUrl(
+                                contract.signWellDownloadUrl
+                              )}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[#0097B2] hover:underline flex items-center text-sm font-medium"
@@ -1670,7 +1674,9 @@ export default function ContractsPage() {
                           >
                             <CheckCircle size={16} className="text-green-500" />
                             <a
-                              href={contract.contratoFinalUrl}
+                              href={toAccessibleMediaUrl(
+                                contract.contratoFinalUrl
+                              )}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[#0097B2] hover:underline text-xs font-medium"
