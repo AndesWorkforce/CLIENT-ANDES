@@ -2387,7 +2387,7 @@ export default function CurrentApplication() {
                           </div>
                         </div>
                         <a
-                          href={currentJob.contratoFinalUrl}
+                          href={toAccessibleMediaUrl(currentJob.contratoFinalUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors"
@@ -2422,7 +2422,7 @@ export default function CurrentApplication() {
                               </div>
                             </div>
                             <a
-                              href={annex.viewUrl}
+                              href={toAccessibleMediaUrl(annex.viewUrl)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors"

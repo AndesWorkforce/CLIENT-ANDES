@@ -6,6 +6,7 @@ import SignaturePad from "signature_pad";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import PdfSignViewer, { type PdfField } from "../components/PdfSignViewer";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 type Field = {
   id: string;
@@ -420,7 +421,7 @@ function PublicSignClient() {
                     Final signed document:
                   </div>
                   <iframe
-                    src={doc.archivoFirmadoUrl}
+                    src={toAccessibleMediaUrl(doc.archivoFirmadoUrl)}
                     className="w-full h-[800px] border border-gray-200 rounded"
                   />
                 </div>
