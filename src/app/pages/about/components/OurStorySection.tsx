@@ -6,7 +6,7 @@ const storyBlocks = [
     title: "Where it all started",
     body: "Andes was built on service and a simple belief: talent exists everywhere, opportunity should not be limited by geography, and meaningful work can create lasting impact.",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Where+it+all+started+-+Our+Story.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Our+Story+-+foto+01.webp",
     imageAlt: "Where it all started",
     imageLeft: false,
     imageMaxWidth: 480,
@@ -16,7 +16,7 @@ const storyBlocks = [
     title: "Where it all began",
     body: "Our founder, Miguel, was born in Chicago, Illinois, and moved at a very young age to his parents' homeland, Colombia, where he grew up immersed in the culture and developed a deep appreciation for the education, professionalism, and work ethic of Latin American talent.",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Where+it+all+began+-+Our+Story.png",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Our+Story+-+foto+02.webp",
     imageAlt: "Where it all began",
     imageLeft: true,
     imageMaxWidth: 480,
@@ -29,7 +29,7 @@ const storyBlocks = [
       "After his military service, Miguel sought to continue supporting his fellow sailors. He began working with veteran-focused law firms, alongside former Navy service members who are now attorneys dedicated to helping veterans secure the benefits they deserve. Andes was created to provide these teams with high-quality, reliable remote administrative support, allowing them to focus on their mission.",
     ],
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/A+path+defined+by+service+-+Our+Story.png",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Our+Story+-+foto+03.webp",
     imageAlt: "A path defined by service",
     imageLeft: false,
     // Native aspect is taller — keep it smaller so it matches the others visually
@@ -43,7 +43,7 @@ const storyBlocks = [
       "Rooted in service and driven by people, Andes continues to grow with integrity, proving that when purpose meets opportunity, everyone thrives.",
     ],
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Expanding+with+purpose+-+Our+Story.JPG",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Our+Story+-+foto+04.webp",
     imageAlt: "Expanding with purpose",
     imageLeft: true,
     imageMaxWidth: 380,

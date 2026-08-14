@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const S3 = "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes";
+const S3 = "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/home/Logos+Clientes";
 
 interface Testimonial {
   id: number;
@@ -20,7 +20,7 @@ const testimonials: Testimonial[] = [
     position: "Director of Project Management & VA Operations, Tabak Law",
     content:
       "Our partnership with Andes Workforce has been pivotal to our firm's recent explosive growth. Their team consistently delivers accurate, timely work and approaches every task with professionalism and care. Carlos and Marco go above and beyond expectations on a daily basis and have led the Andes team to success. Their ability to take a project and run with it with minimal oversight has lifted a significant burden from my plate, allowing me to focus my time on strategic business initiatives. It's clear that they are deeply dedicated and take genuine pride in the quality of their work. We consider Andes an essential extension of the Tabak Law team and highly recommend their services.",
-    logo: `${S3}/Tabak.jpg`,
+    logo: `${S3}/tabak-law-logo-2017.jpg`,
   },
   {
     id: 2,
@@ -28,7 +28,7 @@ const testimonials: Testimonial[] = [
     position: "Founder and Managing Member, Veteran Esquire Legal Solutions",
     content:
       "I've had an outstanding experience working with your team. You've been excellent at helping me quickly find the right talent and meet my staffing needs efficiently. Communication with your office is top-notch. It's always prompt, clear, and responsive. What I appreciate most is how flexible and mission-focused your team is. You take the time to understand our specific goals so you can provide the right assistant and talent to support our work. You're also great at matching personalities, which makes collaboration seamless.",
-    logo: `${S3}/Veteran_Esquire.jpg`,
+    logo: `${S3}/Jelks.jpg`,
   },
   {
     id: 3,
@@ -44,7 +44,7 @@ const testimonials: Testimonial[] = [
     position: "",
     content:
       "For more than a year, Andes Workforce has provided us with outstanding virtual administrative support, helping us manage the demands of our bankruptcy practice with greater efficiency. Today, we benefit from having three dedicated assistants for the cost of one U.S.-based hire without compromising on quality or professionalism. It's a smart, scalable solution that's made a real difference in our day-to-day operations!",
-    logo: `${S3}/Port-Law.jpg`,
+    logo: `${S3}/Port-Law-Firm-Logo.webp`,
   },
   {
     id: 5,
@@ -52,7 +52,7 @@ const testimonials: Testimonial[] = [
     position: "Tabak Law",
     content:
       "Our team has found the assistance that Andes Workforce provides to be invaluable. Since day one, it has been easy to communicate our needs and have our concerns addressed. The agents that they employ are hardworking and dedicated to our clients. We are excited to continue working with them!",
-    logo: `${S3}/Tabak.jpg`,
+    logo: `${S3}/tabak-law-logo-2017.jpg`,
   },
   {
     id: 6,
@@ -127,16 +127,16 @@ export default function TestimonialsSection() {
                           onMouseEnter={() => setPaused(true)}
                           onMouseLeave={() => setPaused(false)}
                         >
-                          {/* Logo */}
-                          <div className="h-[50px] flex items-center">
+                          {/* Logo — caja fija para igualar peso visual entre aspect ratios */}
+                          <div className="h-9 w-[112px] shrink-0 flex items-center justify-start">
                             {t.logo ? (
                               <img
                                 src={t.logo}
                                 alt={t.name}
-                                className="max-h-[50px] w-auto max-w-[180px] object-contain object-left"
+                                className="h-9 w-[112px] object-contain object-left"
                               />
                             ) : (
-                              <div className="h-[50px]" />
+                              <span className="h-9 w-[112px]" aria-hidden />
                             )}
                           </div>
 

@@ -58,10 +58,11 @@ export default function HeroSection() {
         {/* Background image */}
         <div className="absolute inset-0">
           <Image
-            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/andes_hero_home.jpg"
+            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/home/Banner.png"
             alt="Andes Workforce Team"
             fill
             priority
+            unoptimized
             className="object-cover object-center"
             sizes="100vw"
           />

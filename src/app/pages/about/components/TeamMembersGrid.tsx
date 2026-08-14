@@ -208,12 +208,10 @@ function MemberCard({
       {/* Photo */}
       <div className="relative w-full h-[204px] sm:h-[380px] bg-gray-200 rounded-tl-[15px] rounded-tr-[15px]">
         {member.image ? (
-          <Image
+          <img
             src={member.image}
             alt={member.name}
-            fill
-            sizes="(max-width: 768px) 50vw, 305px"
-            className={member.imageClass || "object-cover object-top"}
+            className={`absolute inset-0 size-full ${member.imageClass || "object-cover object-top"}`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">

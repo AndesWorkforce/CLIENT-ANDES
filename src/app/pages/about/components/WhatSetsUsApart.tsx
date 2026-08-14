@@ -2,19 +2,19 @@ import Image from "next/image";
 
 const items = [
   {
-    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Support.gif",
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/What+sets+us+apart/Support.webp",
     heading: ["Who we ", "support"],
     description:
       "Andes supports small and growing U.S.-based businesses that need reliable operational support without the cost and rigidity of traditional hiring.",
   },
   {
-    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Value.gif",
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/What+sets+us+apart/Value.webp",
     heading: ["What our clients ", "value"],
     description:
       "Our clients value efficiency, transparency, and long-term partnerships, and they come to us to build flexible remote teams that help them scale sustainably.",
   },
   {
-    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Different.gif",
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/What+sets+us+apart/Different.webp",
     heading: ["What makes us ", "different"],
     description:
       "What sets Andes apart is our people-first approach: we combine carefully selected, highly professional Latin American talent with strong structure, accountability, and hands-on support, delivering cost savings without compromising quality, trust, or performance.",

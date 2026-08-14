@@ -65,12 +65,10 @@ export default function MemberModal({ member, onClose }: MemberModalProps) {
             <div className="flex items-center justify-center p-[33px] md:p-0 h-full">
               <div className="relative w-full max-w-[317px] h-[346px] md:max-w-none md:h-full rounded-[12px] md:rounded-none overflow-hidden">
                 {member.image ? (
-                  <Image
+                  <img
                     src={member.image}
                     alt={member.name}
-                    fill
-                    sizes="(max-width: 768px) 317px, 40vw"
-                    className="object-cover"
+                    className="absolute inset-0 size-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl bg-gray-200">
