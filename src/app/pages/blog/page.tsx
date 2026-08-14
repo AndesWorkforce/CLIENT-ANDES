@@ -13,6 +13,7 @@ export default function BlogArticlePage() {
     <main className="min-h-screen bg-white">
       <ArticleHeroSection />
       <ArticleContentSection />
+      <RelatedArticlesSection />
     </main>
   );
 }

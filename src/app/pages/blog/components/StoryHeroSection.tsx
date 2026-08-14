@@ -2,42 +2,35 @@
 
 import Image from "next/image";
 import { Clock, CalendarDays } from "lucide-react";
+import { storyAssets } from "../story-assets";
 
-export default function ArticleHeroSection() {
+export default function StoryHeroSection() {
   return (
     <section className="relative w-full bg-white">
-      {/* Hero Image */}
       <div className="relative w-full h-[200px] md:h-[312px]">
         <Image
-          src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/Banner.webp"
-          alt="Meet Miguel Rendon"
+          src={storyAssets.hero}
+          alt="The Story Behind Andes Workforce"
           fill
-          className="object-cover object-[center_65%]"
+          className="object-cover object-center"
           priority
         />
       </div>
 
-      {/* Article Header Content */}
       <div className="max-w-[850px] mx-auto px-[18px] md:px-[44px] pt-[44px] pb-[11px] md:pb-[22px]">
         <div className="flex flex-col gap-[33px]">
-          {/* Metadata: Category, Reading Time, Date */}
           <div className="flex flex-wrap items-center gap-[22px]">
-            {/* Category Badge */}
             <div className="inline-flex items-center justify-center px-[16px] py-[5px] bg-[#F8F8F8] rounded-[24px]">
               <span className="font-semibold text-[14px] text-[#0097B2] leading-[1.3]">
-                INTERVIEW
+                COMPANY STORY
               </span>
             </div>
-
-            {/* Reading Time */}
             <div className="flex items-center gap-[4px]">
               <Clock className="w-[18px] h-[18px] text-[#707070]" />
               <span className="font-medium text-[14px] text-[#707070] leading-[1.2]">
-                10 min read
+                6 min read
               </span>
             </div>
-
-            {/* Date */}
             <div className="flex items-center gap-[4px]">
               <CalendarDays className="w-[24px] h-[24px] text-[#707070]" />
               <span className="font-medium text-[14px] text-[#707070] leading-[1.2]">
@@ -46,19 +39,15 @@ export default function ArticleHeroSection() {
             </div>
           </div>
 
-          {/* Title */}
           <h1 className="font-bold text-[24px] md:text-[32px] leading-[1.3] text-black w-full">
-            Meet Miguel Rendon: From the seas to building careers across Latin
-            America
+            The Story Behind Andes Workforce: Built on Trust Across Borders
           </h1>
 
-          {/* Subtitle */}
           <p className="font-medium text-[16px] md:text-[18px] leading-[1.2] text-[#858585] w-full">
-            From BUD/S Training to founding Andes Workforce — a conversation about
-            purpose, discipline, and the value of planning every step of your life.
+            From shipmates in the Navy to business partners — how trust built a
+            company that connects talent and opportunity across borders.
           </p>
 
-          {/* Author Info */}
           <div className="flex items-center gap-[6px]">
             <div className="flex items-center justify-center w-[66px] h-[66px] bg-[#DFFAFF] rounded-[33px] p-[20px] flex-shrink-0">
               <span className="font-semibold text-[18px] text-[#0097B2] leading-[1.3]">
@@ -75,7 +64,6 @@ export default function ArticleHeroSection() {
             </div>
           </div>
 
-          {/* Divider */}
           <div className="w-full h-[1px] bg-[#EFEFEF]" />
         </div>
       </div>

@@ -31,7 +31,7 @@ const services: Service[] = [
     description:
       "Ensure accurate, efficient, and secure handling of your information. They manage data input, organization, and maintenance across systems, helping you maintain clean databases and make informed business decisions.",
     features: ["Data Input", "Database Mgmt", "Quality Control", "Reporting"],
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Services/operations-run2.jpg",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Puestos+de+trabajo/Data+Entry+Specialists.webp",
   },
   {
     id: 3,
@@ -41,7 +41,7 @@ const services: Service[] = [
     description:
       "Keep initiatives on track by managing timelines, resources, and communication across teams, ensuring every project moves forward smoothly and is delivered on time.",
     features: ["Timeline Mgmt", "Resource Planning", "Team Communication", "Reporting"],
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Services/operations-run3.jpg",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Puestos+de+trabajo/Project+Coordinators.webp",
   },
   {
     id: 4,
@@ -51,7 +51,7 @@ const services: Service[] = [
     description:
       "Ensure timely invoicing and follow-up on outstanding payments with professionalism, improving cash flow and reducing aging receivables.",
     features: ["Invoicing", "Payment Follow-Up", "Accounts Receivable", "Reconciliation"],
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Services/operations-run4.jpg",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Puestos+de+trabajo/Billing+%26+Collections+Specialists.webp",
   },
   {
     id: 5,
@@ -61,7 +61,7 @@ const services: Service[] = [
     description:
       "Help grow your pipeline by connecting you with qualified prospects. They handle outbound and inbound scheduling, confirm meetings, and maintain organized calendars to ensure your team maximizes every opportunity.",
     features: ["Outbound Scheduling", "Meeting Confirmation", "CRM", "Pipeline Mgmt"],
-    image: "https://appwiseinnovations.dev/Andes/services-view-2.png",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Puestos+de+trabajo/Appointment+Setters.webp",
   },
   {
     id: 6,
@@ -71,7 +71,7 @@ const services: Service[] = [
     description:
       "Focus on building strong, lasting relationships with your customers. They provide proactive support, ensure client satisfaction, and help drive retention and loyalty through consistent, high-quality communication.",
     features: ["Relationship Mgmt", "Satisfaction Tracking", "Retention", "Follow-up"],
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Services/services+2.png",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Puestos+de+trabajo/Client+Succes+Representatives.webp",
   },
   {
     id: 7,
@@ -81,7 +81,7 @@ const services: Service[] = [
     description:
       "Support your firm with essential administrative and case-related tasks — from document preparation and file management to client communication, keeping your legal team efficient and confidential.",
     features: ["Document Prep", "File Mgmt", "Scheduling", "Client Communication"],
-    image: "https://appwiseinnovations.dev/Andes/services-view-3.png",
+    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Puestos+de+trabajo/Legal+Assistants.webp",
   },
 ];
 

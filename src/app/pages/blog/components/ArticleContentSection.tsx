@@ -1,35 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Quote } from "lucide-react";
-
-interface QuoteBlockProps {
-  text: string;
-  author: string;
-}
-
-function QuoteBlock({ text, author }: QuoteBlockProps) {
-  return (
-    <div className="relative flex flex-col items-start bg-[#F0F5FA] md:bg-[#F8F8F8] border-l-4 md:border-l-[3.2px] border-[#1A3A5C] rounded-tr-[16px] rounded-br-[16px] md:rounded-[14px] pl-[24px] md:pl-[35px] pr-[20px] md:pr-[32px] py-[24px] md:py-[32px] my-[44px]">
-      <Quote
-        className="w-[28px] h-[28px] md:absolute md:left-[24px] md:top-[24px] md:w-[32px] md:h-[32px] text-[#1A3A5C]/20 md:text-[#707070]/25 pointer-events-none shrink-0"
-        strokeWidth={1.5}
-      />
-      <div className="w-full pt-[12px] md:pt-0 md:pl-[16px]">
-        <p className="font-semibold text-[18px] md:text-[24px] leading-[24.75px] md:leading-[33px] text-[#1A3A5C] md:text-[#00224D] break-words">
-          {`"${text}"`}
-        </p>
-        <p className="font-medium text-[12px] md:text-[14px] text-[#6A7282] md:text-[#707070] leading-[16px] md:leading-[20px] pt-[12px] md:pt-[16px]">
-          <span className="md:hidden">— {author}</span>
-          <span className="hidden md:inline">
-            <span>—</span>
-            <span className="font-bold">{author}</span>
-          </span>
-        </p>
-      </div>
-    </div>
-  );
-}
+import QuoteBlock from "./QuoteBlock";
 
 export default function ArticleContentSection() {
   return (
@@ -39,7 +11,7 @@ export default function ArticleContentSection() {
           {/* First Image */}
           <div className="relative w-full h-[250px] md:h-[336px] rounded-[20px] overflow-hidden">
             <Image
-              src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/blog/97bd6d3c-9d87-4641-9922-2a39a6c392b5.png"
+              src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/01+-+Miguel+fondo+gris.webp"
               alt="Article Image"
               fill
               className="object-cover"
@@ -97,7 +69,7 @@ export default function ArticleContentSection() {
               </div>
               <div className="relative w-full md:w-[494px] h-[250px] md:h-[294px] rounded-[20px] overflow-hidden flex-shrink-0">
                 <Image
-                  src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/blog/IMG_4443.JPG"
+                  src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/02+-+Miguel+apreton+de+manos.webp"
                   alt="BUD/S Training"
                   fill
                   className="object-cover"
@@ -155,7 +127,7 @@ export default function ArticleContentSection() {
             <div className="flex flex-col md:flex-row gap-[22px] mt-[22px]">
               <div className="relative w-full md:w-[494px] h-[250px] md:h-[294px] rounded-[20px] overflow-hidden flex-shrink-0">
                 <Image
-                  src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/blog/f8248230a0cd4fadf10057e1e8091c630aee7a07+(1).jpg"
+                  src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/20250301_133829117_iOS+(2).webp"
                   alt="Hiking Mountains"
                   fill
                   className="object-cover"
@@ -254,7 +226,7 @@ export default function ArticleContentSection() {
           {/* Final Team Image */}
           <div className="relative w-full h-[250px] md:h-[294px] rounded-[20px] overflow-hidden">
             <Image
-              src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/blog/IMG_0546.JPG"
+              src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/03+-+Equipo.webp"
               alt="Andes Workforce Team"
               fill
               className="object-cover"

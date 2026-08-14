@@ -48,13 +48,15 @@ function ProfileAvatar({
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={name}
-      onError={() => setErrored(true)}
-      className={`rounded-[12px] object-cover ${sizeClass}`}
-    />
+    <div className={`overflow-hidden rounded-[12px] ${sizeClass}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={name}
+        onError={() => setErrored(true)}
+        className="size-full object-cover object-top scale-[1.28]"
+      />
+    </div>
   );
 }
 
@@ -82,7 +84,7 @@ const STATIC_TALENT: TalentCard[] = [
     position: "Team Lead, VA Department",
     company: "US Law Firm",
     experience: "10y exp",
-    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/profile/6f38c54b-7094-4963-88db-22d87b721ee4.png",
+    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Soto.webp",
     paisImagen: null,
   },
   {
@@ -94,7 +96,7 @@ const STATIC_TALENT: TalentCard[] = [
     position: "Case Manager, Social Security-Hearing Level",
     company: "US Law Firm",
     experience: "5y exp",
-    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/profile/2d076613-4a69-4d63-b086-0a94270b8e3e.png",
+    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Lacomba.webp",
     paisImagen: null,
   },
   {
@@ -106,7 +108,7 @@ const STATIC_TALENT: TalentCard[] = [
     position: "Legal Assistant - Workers Comp",
     company: "US Law Firm",
     experience: "3y exp",
-    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/profile/671a4892-a0b8-453a-ab36-bdb592297e18.png",
+    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Fernando.webp",
     paisImagen: null,
   },
   {
@@ -118,7 +120,7 @@ const STATIC_TALENT: TalentCard[] = [
     position: "IT Assistant",
     company: "US Law Firm",
     experience: "2y exp",
-    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/profile/4573c7a0-b5ad-4b55-8f27-97f1e5614066.png",
+    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Barahona.webp",
     paisImagen: null,
   },
   {
@@ -130,7 +132,7 @@ const STATIC_TALENT: TalentCard[] = [
     position: "Team Lead - VA and SSA",
     company: "US Law Firm",
     experience: "8y exp",
-    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/profile/cf1a2786-31e0-4d52-8080-85864835ef12.png",
+    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Pabon.webp",
     paisImagen: null,
   }
 ];
