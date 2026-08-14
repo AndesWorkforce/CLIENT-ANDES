@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:no-turbo": "cross-env NEXT_DISABLE_TURBOPACK=1 next dev -p 3002",
+    "prebuild": "node -e \"require('fs').rmSync('.next/dev',{recursive:true,force:true})\"",
     "build": "next build",
     "build:no-turbo": "cross-env NEXT_DISABLE_TURBOPACK=1 next build",
     "start": "next start",

@@ -32,6 +32,20 @@ export interface TeamMember {
   pets?: PetInfo[]; // Pet Family members associated with this team member
 }
 
+const S3_EQUIPO =
+  "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Equipo";
+
+const S3_ANIMALES =
+  "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Animales";
+
+function equipoPhoto(filename: string) {
+  return `${S3_EQUIPO}/${encodeURIComponent(filename)}`;
+}
+
+function animalPhoto(filename: string) {
+  return `${S3_ANIMALES}/${encodeURIComponent(filename)}`;
+}
+
 // Tip: Add or edit people here. If no image is available, simply omit the image field
 // and the UI will render an avatar with initials automatically.
 export const teamMembers: TeamMember[] = [
@@ -40,8 +54,7 @@ export const teamMembers: TeamMember[] = [
     name: "Miguel A. Rendon",
     role: "Founder",
     group: "Leadership",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Miguel_Staff.png",
+    image: equipoPhoto("Miguel -01.webp"),
     summary: "Business Administrator",
     bullets: [
       "Proudly served in the U.S. Navy for 22 years, building a distinguished career marked by discipline, leadership, and a deep commitment to service.",
@@ -55,7 +68,7 @@ export const teamMembers: TeamMember[] = [
         id: "simona",
         name: "Simona",
         role: "Barketing Assistant",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/simona.jpg",
+        image: animalPhoto("Simona.webp"),
         bullets: [
           "Specializes in tail\u2011wagging team morale.",
           "Oversees snack inventory and nap scheduling.",
@@ -70,8 +83,7 @@ export const teamMembers: TeamMember[] = [
     name: "Nicole Chica",
     role: " Director, Marketing and Client Relations",
     group: "Marketing & Client Relations",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Nicole_Staff.png",
+    image: equipoPhoto("Nicole -02.webp"),
     summary: "Business Administrator",
     bullets: [
       "Has worked in sales, research interviewing, banking, U.S. Diplomacy, and marketing, a dynamic career shaped by adaptability and global perspective as a military spouse.",
@@ -98,8 +110,7 @@ export const teamMembers: TeamMember[] = [
     name: "Violeta A. Quintero",
     role: "Administrative Coordinator",
     group: "Administration",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alejandra.png",
+    image: equipoPhoto("Violeta - 03.webp"),
     summary: "Business Administrator",
     bullets: [
       "The heart behind our operations at Andes.",
@@ -113,20 +124,19 @@ export const teamMembers: TeamMember[] = [
         id: "alaska",
         name: "Alaska",
         role: "Feline Fun Facilitator",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alaska.jpg",
+        image: animalPhoto("Alaska.webp"),
         bullets: [
           "Junior joy specialist\u2014only 3 months old and already mastering playful chaos and zoomies.",
         ],
       },
     ],
   },
-  {
+/*{
     id: "ruben-dario-romero",
     name: "Ruben D. Romero",
     role: "Chief Technology Officer",
     group: "Technology",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Ruben_Staff.png",
+    image: equipoPhoto("Ruben - 04.webp"),
     summary: "Computer Engineer",
     bullets: [
       "Leads technology strategy, digital transformation, innovation, and agile practices.",
@@ -137,15 +147,14 @@ export const teamMembers: TeamMember[] = [
       "Hobbies: traveling, virtual aviation, beach, and movies.",
     ],
     imageClass: "object-cover",
-  },
+  },*/
   // IT & Support
   {
     id: "mateo-castro",
     name: "Mateo Castro",
     role: "IT Support Analyst",
     group: "IT & Support",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Mateo_Staff.png",
+    image: equipoPhoto("Mateo - 08.webp"),
     summary: "Software Development Technology in progress",
     bullets: [
       "Experience in hardware and software maintenance, system assembly, and remote support.",
@@ -158,7 +167,7 @@ export const teamMembers: TeamMember[] = [
         id: "toby",
         name: "Toby",
         role: "Junior Meowketing Specialist",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/toby.jpg",
+        image: animalPhoto("toby.webp"),
         bullets: [
           "Youngest team member with the biggest paws and the biggest heart.",
           "Large, lovable, and always ready to play.",
@@ -169,7 +178,7 @@ export const teamMembers: TeamMember[] = [
         id: "emilia",
         name: "Emilia",
         role: "Executive Cuddle Consultant",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/emilia.jpg",
+        image: animalPhoto("emilia.webp"),
         bullets: [
           "Provides daily inspiration through unexpected Zoom appearances.",
           "The tiniest diva with the loudest demands.",
@@ -180,7 +189,7 @@ export const teamMembers: TeamMember[] = [
         id: "kira",
         name: "Kira",
         role: "Senior Nap Strategist",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/kira.jpg",
+        image: animalPhoto("kira.webp"),
         bullets: [
           "The wise veteran with a majestic fluff and a love for lounging.",
           "Supervises from comfy spots with minimal movement.",
@@ -194,8 +203,7 @@ export const teamMembers: TeamMember[] = [
     name: "Julian Grisales",
     role: "Marketing Assistant",
     group: "Marketing & Client Relations",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/2ccd9f5a09ceb502323805bc53685d445771d59a.jpg",
+    image: equipoPhoto("Julian - 07.webp"),
     summary: "Publicist and Marketing Assistant",
     bullets: [
       "Publicist and Marketing Assistant with experience in social media management, content creation, and marketing campaign planning for companies focused on remote talent and digital growth.",
@@ -222,7 +230,7 @@ export const teamMembers: TeamMember[] = [
     name: "Daniela Ramirez",
     role: "Assistant Recruitment Manager",
     group: "Recruitment",
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Daniela_Staff.png",
+    image: equipoPhoto("Daniela - 10.webp"),
     summary: "Industrial Engineer with a Master's in Quality and Integrated Management Systems",
     bullets: [
       "Industrial Engineer with a Master's in Quality and Integrated Management Systems, bringing experience in HR recruiting, customer service, and legal support.",
@@ -237,7 +245,7 @@ export const teamMembers: TeamMember[] = [
         id: "panela",
         name: "Panela",
         role: "Home Security & Wellness Coordinator",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Panela+-+Daniela+Ramirez.JPG",
+        image: animalPhoto("Panela - Daniela Ramirez.webp"),
         bullets: [
           "Responsible for monitoring all incoming visitors and immediately escalating doorbell-related incidents.",
           "Passionate about outdoor adventures, toy management, and keeping feline employees constantly on edge.",
@@ -248,7 +256,7 @@ export const teamMembers: TeamMember[] = [
         id: "gustavo",
         name: "Gustavo",
         role: "Senior Emotional Support Specialist",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Gustavo+-+Daniela+Ramirez.jpeg",
+        image: animalPhoto("Gustavo - Daniela Ramirez.webp"),
         bullets: [
           "Known for providing hands-on support by gently tapping team members for attention and affection.",
           "Specializes in naps, cuddles, and maintaining a calm workplace environment.",
@@ -258,7 +266,7 @@ export const teamMembers: TeamMember[] = [
         id: "esteban-sarkozy",
         name: "Esteban Sarkozy",
         role: "Lunch Operations Manager",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Esteban+Sarkozy+-+Daniela+Ramirez.jpeg",
+        image: animalPhoto("Esteban Sarkozy - Daniela Ramirez.webp"),
         bullets: [
           "Takes meal scheduling very seriously.",
           "Oversees all lunch-related activities with unmatched enthusiasm and midday zoomies.",
@@ -269,7 +277,7 @@ export const teamMembers: TeamMember[] = [
         id: "lucia",
         name: "Luc\u00eda",
         role: "Director of Executive Oversight",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Luc%C3%ADa+-+Daniela+Ramirez.JPG",
+        image: animalPhoto("Lucía - Daniela Ramirez.webp"),
         bullets: [
           "Ensures full visibility across all household operations and insists on being involved in every department.",
           "Expert climber and the only team member certified in advanced wall-gym navigation.",
@@ -280,7 +288,7 @@ export const teamMembers: TeamMember[] = [
         id: "clara-ines",
         name: "Clara In\u00e9s",
         role: "Independent Nap Consultant",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Clara+In%C3%A9s+-+Daniela+Ramirez.JPG",
+        image: animalPhoto("Clara Inés - Daniela Ramirez.webp"),
         bullets: [
           "Prefers a low-interaction work style while quietly monitoring team dynamics from undisclosed sleeping locations.",
           "Publicly maintains a serious reputation despite privately enjoying affection and premium snack benefits.",
@@ -295,8 +303,7 @@ export const teamMembers: TeamMember[] = [
     name: "Milena D'aleman",
     role: "Agile Coach",
     group: "Technology",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/MilenaD'aleman.jpg",
+    image: equipoPhoto("Milena - 09.webp"),
     summary: "Information Systems Administrator, specialized in Project Management",
     bullets: [
       "Information Systems Administrator with a specialization in Project Management, bringing structured thinking and process expertise to every initiative.",
@@ -312,8 +319,7 @@ export const teamMembers: TeamMember[] = [
     name: "David A. Morcillo",
     role: "Fullstack Developer",
     group: "Technology",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/David_staff+(2).png",
+    image: equipoPhoto("David - 11.webp"),
     summary: "Software Developer",
     bullets: [
       "Fullstack developer with hands-on experience building scalable web applications using modern frontend and backend frameworks.",
@@ -327,7 +333,7 @@ export const teamMembers: TeamMember[] = [
         id: "isis-executive-slayer-prime",
         name: "Isis Executive Slayer Prime",
         role: "Strategic Entity",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Isis.jpg",
+        image: animalPhoto("Isis.webp"),
         bullets: [
           "Optimizes processes, eliminates risks, and dominates markets without mercy.",
         ],
@@ -339,8 +345,7 @@ export const teamMembers: TeamMember[] = [
     name: "Fernando Campellone",
     role: "Fullstack Developer",
     group: "Technology",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Fernando_Staff.png",
+    image: equipoPhoto("Fernando -13.webp"),
     summary: "Software Developer",
     bullets: [
       "Developer with experience in building scalable web applications, database design and management, server maintenance, and technical support.",
@@ -354,7 +359,7 @@ export const teamMembers: TeamMember[] = [
         id: "capitana-kathryn-janeway",
         name: "Capitana Kathryn Janeway",
         role: "Starfleet Officer",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Capitana+Kathryn+Janeway.jpeg",
+        image: animalPhoto("Capitana Kathryn Janeway.webp"),
         bullets: [
           "Commanding officer of the USS Voyager, Starfleet.",
         ],
@@ -366,8 +371,7 @@ export const teamMembers: TeamMember[] = [
     name: "Francisca Rodriguez",
     role: "UX/UI Designer",
     group: "Technology",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Francisca+Rodriguez.png",
+    image: equipoPhoto("Francisca - 12.webp"),
     summary: "Product Designer",
     bullets: [
       "Passionate about digital design, user experience, and visual details.",
@@ -411,8 +415,7 @@ export const teamMembers: TeamMember[] = [
     name: "Simona",
     role: "Barketing Assistant",
     group: "Pet Family",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/simona.jpg",
+    image: animalPhoto("Simona.webp"),
     bullets: [
       "Specializes in tail‑wagging team morale.",
       "Oversees snack inventory and nap scheduling.",
@@ -450,8 +453,7 @@ export const teamMembers: TeamMember[] = [
     name: "Alaska",
     role: "Feline Fun Facilitator",
     group: "Pet Family",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alaska.jpg",
+    image: animalPhoto("Alaska.webp"),
     bullets: [
       "Junior joy specialist—only 3 months old and already mastering playful chaos and zoomies.",
     ],
@@ -472,8 +474,7 @@ export const teamMembers: TeamMember[] = [
     name: "Toby",
     role: "Junior Meowketing Specialist",
     group: "Pet Family",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/toby.jpg",
+    image: animalPhoto("toby.webp"),
     bullets: [
       "Youngest team member with the biggest paws and the biggest heart.",
       "Large, lovable, and always ready to play.",
@@ -485,8 +486,7 @@ export const teamMembers: TeamMember[] = [
     name: "Emilia",
     role: "Executive Cuddle Consultant",
     group: "Pet Family",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/emilia.jpg",
+    image: animalPhoto("emilia.webp"),
     bullets: [
       "Provides daily inspiration through unexpected Zoom appearances.",
       "The tiniest diva with the loudest demands.",
@@ -498,8 +498,7 @@ export const teamMembers: TeamMember[] = [
     name: "Kira",
     role: "Senior Nap Strategist",
     group: "Pet Family",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/kira.jpg",
+    image: animalPhoto("kira.webp"),
     bullets: [
       "The wise veteran with a majestic fluff and a love for lounging.",
       "Supervises from comfy spots with minimal movement.",
@@ -511,8 +510,7 @@ export const teamMembers: TeamMember[] = [
     name: "Alana",
     role: "Fur‑st Impressions Coordinator",
     group: "Pet Family",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/alana.jpg",
+    image: animalPhoto("Alana.webp"),
     bullets: [
       "Greets everyone with tail wags and instant charm.",
       "Ensures all visitors feel welcome (and slightly covered in fur).",
@@ -537,7 +535,7 @@ export const teamMembers: TeamMember[] = [
     name: "Panela",
     role: "Home Security & Wellness Coordinator",
     group: "Pet Family",
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Panela+-+Daniela+Ramirez.JPG",
+    image: animalPhoto("Panela - Daniela Ramirez.webp"),
     bullets: [
       "Responsible for monitoring all incoming visitors and immediately escalating doorbell-related incidents.",
       "Passionate about outdoor adventures, toy management, and keeping feline employees constantly on edge.",
@@ -549,7 +547,7 @@ export const teamMembers: TeamMember[] = [
     name: "Gustavo",
     role: "Senior Emotional Support Specialist",
     group: "Pet Family",
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Gustavo+-+Daniela+Ramirez.jpeg",
+    image: animalPhoto("Gustavo - Daniela Ramirez.webp"),
     bullets: [
       "Known for providing hands-on support by gently tapping team members for attention and affection.",
       "Specializes in naps, cuddles, and maintaining a calm workplace environment.",
@@ -560,7 +558,7 @@ export const teamMembers: TeamMember[] = [
     name: "Esteban Sarkozy",
     role: "Lunch Operations Manager",
     group: "Pet Family",
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Esteban+Sarkozy+-+Daniela+Ramirez.HEIC",
+    image: animalPhoto("Esteban Sarkozy - Daniela Ramirez.webp"),
     bullets: [
       "Takes meal scheduling very seriously.",
       "Oversees all lunch-related activities with unmatched enthusiasm and midday zoomies.",
@@ -572,7 +570,7 @@ export const teamMembers: TeamMember[] = [
     name: "Luc\u00eda",
     role: "Director of Executive Oversight",
     group: "Pet Family",
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Luc%C3%ADa+-+Daniela+Ramirez.HEIC",
+    image: animalPhoto("Lucía - Daniela Ramirez.webp"),
     bullets: [
       "Ensures full visibility across all household operations and insists on being involved in every department.",
       "Expert climber and the only team member certified in advanced wall-gym navigation.",
@@ -584,7 +582,7 @@ export const teamMembers: TeamMember[] = [
     name: "Clara In\u00e9s",
     role: "Independent Nap Consultant",
     group: "Pet Family",
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Clara+In%C3%A9s+-+Daniela+Ramirez.HEIC",
+    image: animalPhoto("Clara Inés - Daniela Ramirez.webp"),
     bullets: [
       "Prefers a low-interaction work style while quietly monitoring team dynamics from undisclosed sleeping locations.",
       "Publicly maintains a serious reputation despite privately enjoying affection and premium snack benefits.",
@@ -595,7 +593,7 @@ export const teamMembers: TeamMember[] = [
     name: "Capitana Kathryn Janeway",
     role: "Starfleet Officer",
     group: "Pet Family",
-    image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/pets/Isis.jpg",
+    image: animalPhoto("Capitana Kathryn Janeway.webp"),
     bullets: [
       "Commanding officer of the USS Voyager, Starfleet.",
     ],
@@ -605,7 +603,7 @@ export const teamMembers: TeamMember[] = [
     name: "Isis Executive Slayer Prime",
     role: "Strategic Entity",
     group: "Pet Family",
-    // image: "",
+    image: animalPhoto("Isis.webp"),
     bullets: [
       "Optimizes processes, eliminates risks, and dominates markets without mercy.",
     ],

@@ -49,12 +49,10 @@ export default function TeamPage() {
               {/* Avatar */}
               <div className="relative w-28 h-28 md:w-32 md:h-32 -mt-14 md:-mt-16 mb-4 rounded-full overflow-hidden ring-4 ring-white shadow-md">
                 {m.image ? (
-                  <Image
+                  <img
                     src={m.image}
                     alt={m.name}
-                    fill
-                    sizes="128px"
-                    className="object-cover"
+                    className="absolute inset-0 size-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full rounded-full ring-4 ring-white shadow-md bg-gradient-to-tr from-[#2d5a87] to-[#4a90a4] flex items-center justify-center text-white text-2xl font-bold">

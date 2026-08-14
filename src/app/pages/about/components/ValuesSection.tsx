@@ -2,30 +2,30 @@ import Image from "next/image";
 
 const values = [
   {
-    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Honesty+-+Values.gif",
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/Values+-+What+guides+us/Honesty+-+Values.webp",
     title: "Honesty",
     description: "We act with integrity and transparency in every interaction.",
   },
   {
-    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Diversity+-+Values.gif",
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/Values+-+What+guides+us/Diversity+-+Values.webp",
     title: "Diversity",
     description:
       "We value different perspectives and believe they make our teams stronger.",
   },
   {
-    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Accountability.gif",
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/Values+-+What+guides+us/Accountability.webp",
     title: "Accountability",
     description:
       "We take ownership of our work and follow through on every commitment.",
   },
   {
-    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Comunnication+-+Values.gif",
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/Values+-+What+guides+us/Comunnication+-+Values.webp",
     title: "Communication",
     description:
       "We communicate clearly, openly, and with purpose in everything we do.",
   },
   {
-    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Respect+-+Values.gif",
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/Values+-+What+guides+us/Respect+-+Values.webp",
     title: "Respect",
     description:
       "We treat everyone with consideration, empathy, and professionalism.",

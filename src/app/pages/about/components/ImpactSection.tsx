@@ -25,7 +25,7 @@ export default function ImpactSection() {
         {/* Image */}
         <div className="relative w-full aspect-[16/9] lg:w-[611px] lg:h-[480px] lg:aspect-auto shrink-0 overflow-hidden rounded-[15px]">
           <Image
-            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/How+we+create+impact+-+Vision.jpg"
+            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/How+we+create+impact+-+Vision.webp"
             alt="How we create impact"
             fill
             className="object-cover rounded-[15px]"

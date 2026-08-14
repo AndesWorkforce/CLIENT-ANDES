@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const images = [
-  "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Property+1%3DDefault.png",
-  "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/Property+1%3DVariant2.png",
+  "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/home/Secc%C3%B3n+About+Us+-+01.png",
+  "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/home/Secc%C3%B3n+About+Us+-+02.JPG",
 ];
 
 export default function AboutSection() {
@@ -19,55 +19,69 @@ export default function AboutSection() {
   }, []);
 
   return (
-    <section
-      className="relative py-[60px] bg-[#1F5965] bg-cover bg-center bg-no-repeat"
-      style={{
-        backgroundImage:
-          "linear-gradient(180deg, rgba(31,89,101,0.85) 0%, rgba(0,80,100,0.85) 100%), url('https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/88a77507bfcfb701f5c0eb2d264b3d1a8ed3a54c.jpg')",
-      }}
-    >
-      <div className="relative max-w-[1440px] mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center gap-12 md:gap-[80px]">
-        {/* Left: text */}
-        <div className="flex flex-col gap-[35px] md:w-[520px] shrink-0">
-          <h2 className="text-white font-bold text-[34px] leading-tight">
+    <section className="bg-white py-16 md:py-24">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-col items-center gap-12 px-6 md:flex-row md:items-center md:gap-16 md:px-8">
+        <div className="flex w-full max-w-[576px] flex-col items-start">
+          <p className="text-[12px] font-semibold uppercase leading-4 tracking-[1.8px] text-[#00b4a8]">
             About Us
-          </h2>
-          <p className="text-white text-[17px] leading-[28px] text-justify">
-            We bridge the gap between global opportunity and local excellence.
-            Our mission is to empower Latin American professionals while
-            providing world-class infrastructure for global enterprises.
           </p>
-          {/* FIX: href and gtagSendEvent URL now consistently point to /pages/about */}
+          <h2 className="mt-3 text-[32px] font-extrabold leading-[1.1] tracking-[-0.96px] text-[#0a2540] sm:text-[40px] sm:leading-[44px] md:text-[48px] md:leading-[52.8px]">
+            Building bridges between talent and opportunity
+          </h2>
+          <p className="mt-6 text-[16px] font-normal leading-[26px] text-[#6a7282]">
+            Andes Workforce is a talent platform specializing in connecting US
+            and global companies with exceptional professionals from Latin
+            America. We believe in creating long-term partnerships that benefit
+            both employers and talent.
+          </p>
+          <p className="mt-5 pb-10 text-[16px] font-normal leading-[26px] text-[#6a7282]">
+            Our experienced team of recruiters and talent specialists work
+            tirelessly to ensure every match is not just a hire, but the
+            beginning of a success story.
+          </p>
           <Link
             href="/pages/about"
             onClick={(e) => {
               e.preventDefault();
-              if (typeof window !== "undefined" && (window as any).gtagSendEvent) {
-                (window as any).gtagSendEvent("/pages/about", "ads_click_About_ReadMore");
+              if (typeof window !== "undefined" && window.gtagSendEvent) {
+                window.gtagSendEvent(
+                  "/pages/about",
+                  "ads_click_About_LearnMore",
+                );
               } else {
                 window.location.href = "/pages/about";
               }
             }}
-            className="inline-flex items-center justify-center bg-white text-[#0097b2] text-[18px] font-semibold px-[25px] py-[12px] rounded-[20px] shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] w-fit hover:bg-gray-100 transition-colors"
+            className="inline-flex h-14 items-center gap-2 rounded-[14px] px-8 py-4 text-[16px] font-semibold leading-6 text-white transition-opacity hover:opacity-90"
+            style={{
+              backgroundImage:
+                "linear-gradient(168deg, #00b4a8 0%, #008f85 100%)",
+            }}
           >
-            Read More
+            Learn More About Us
+            <span className="relative size-[18px] shrink-0 overflow-hidden">
+              <img
+                src="/images/about-arrow.svg"
+                alt=""
+                width={18}
+                height={18}
+                className="size-full"
+              />
+            </span>
           </Link>
         </div>
 
-        {/* Right: image with crossfade */}
-        <div className="flex-1 w-full">
-          <div className="-rotate-2 relative h-[350px] md:h-[470px] rounded-[25px] overflow-hidden">
-            {images.map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt="About Andes Workforce"
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
-                  i === activeImg ? "opacity-100" : "opacity-0"
-                }`}
-              />
-            ))}
-          </div>
+        <div className="relative h-[280px] w-full max-w-[576px] overflow-hidden rounded-2xl shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.1)] sm:h-[380px] md:h-[428px] md:flex-1">
+          {images.map((src, i) => (
+            <img
+              key={src}
+              src={src}
+              alt="Andes Workforce team"
+              className={`absolute inset-0 size-full object-cover transition-opacity duration-1000 ease-in-out ${
+                i === activeImg ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          ))}
         </div>
       </div>
     </section>
