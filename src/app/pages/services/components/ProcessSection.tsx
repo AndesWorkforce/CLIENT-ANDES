@@ -7,7 +7,8 @@ export default function ProcessSection() {
             MEET OUR TALENT
           </p>
           <h2 className="text-black font-bold text-[24px] md:text-[52px] leading-[1.3] md:leading-[1.2] mb-[22px]">
-            From <span className="text-[#0097B2]">request</span> to ready in days, not weeks
+            From <span className="text-[#0097B2]">request</span> to ready in days,
+            <br /> not weeks
           </h2>
           <p className="text-[#343434] md:text-[#525252] font-medium text-[14px] md:text-[22px] leading-[1.2]">
             A simple, transparent process designer to remove friction from your hiring

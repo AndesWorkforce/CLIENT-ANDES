@@ -11,7 +11,7 @@ interface RelatedArticle {
   author: string;
   date: string;
   imageUrl: string;
-  slug: string;
+  href: string;
 }
 
 export default function RelatedArticlesSection() {
@@ -19,36 +19,25 @@ export default function RelatedArticlesSection() {
     {
       id: "1",
       title:
-        "How Andes Workforce is Transforming Remote Work Across Latin America",
-      category: "SUCCESS STORY",
+        "Meet Miguel Rendon: From the seas to building careers across Latin America",
+      category: "INTERVIEW",
       author: "Andes Workforce Team",
-      date: "May 28, 2025",
+      date: "Jun 25, 2026",
       imageUrl:
-        "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/blog/related-1.jpg",
-      slug: "transforming-remote-work",
+        "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/Banner.webp",
+      href: "/pages/blog",
     },
     {
       id: "2",
       title:
-        "The Future of Hiring: Why Companies Are Turning to Latin American Talent",
-      category: "HIRING TRENDS",
+        "The Story Behind Andes Workforce: Built on Trust Across Borders",
+      category: "COMPANY STORY",
       author: "Andes Workforce Team",
-      date: "May 28, 2025",
+      date: "Jun 25, 2026",
       imageUrl:
-        "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/blog/related-2.jpg",
-      slug: "future-of-hiring",
-    },
-    {
-      id: "3",
-      title:
-        "A conversation with Miguel Rendon, founder of Andes Workforce",
-      category: "INTERVIEW",
-      author: "Andes Workforce Team",
-      date: "May 28, 2025",
-      imageUrl:
-        "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/blog/related-3.jpg",
-      slug: "interview-miguel-rendon",
-    },
+        "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/2.+The+Story+Behind+Andes+Workforce/Tabak+Law+VA.webp",
+      href: "/pages/blog/the-story-behind-andes-workforce",
+    }
   ];
 
   return (
@@ -69,7 +58,7 @@ export default function RelatedArticlesSection() {
           {relatedArticles.map((article) => (
             <Link
               key={article.id}
-              href={`/pages/blog/${article.slug}`}
+              href={article.href}
               className="group"
             >
               <article className="bg-white border border-[#EFEFEF] rounded-[24px] overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col">

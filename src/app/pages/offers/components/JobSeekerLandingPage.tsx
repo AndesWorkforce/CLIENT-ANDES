@@ -82,7 +82,7 @@ export default function JobSeekerLandingPage() {
       <section className="relative w-full h-[500px] md:h-[600px] flex items-end px-6 sm:px-10 md:px-16 py-16 md:pb-20">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/teamwork.jpg"
+            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/04.+Join+Our+Team/Banner.webp"
             alt="Team celebrating"
             fill
             className="object-cover object-center"
