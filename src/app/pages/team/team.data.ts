@@ -277,7 +277,7 @@ export const teamMembers: TeamMember[] = [
         id: "lucia",
         name: "Luc\u00eda",
         role: "Director of Executive Oversight",
-        image: animalPhoto("Lucía - Daniela Ramirez.webp"),
+        image: animalPhoto("Lucía - Daniela Ramirez.JPG"),
         bullets: [
           "Ensures full visibility across all household operations and insists on being involved in every department.",
           "Expert climber and the only team member certified in advanced wall-gym navigation.",
@@ -288,7 +288,7 @@ export const teamMembers: TeamMember[] = [
         id: "clara-ines",
         name: "Clara In\u00e9s",
         role: "Independent Nap Consultant",
-        image: animalPhoto("Clara Inés - Daniela Ramirez.webp"),
+        image: animalPhoto("Clara Inés - Daniela Ramirez.HEIC"),
         bullets: [
           "Prefers a low-interaction work style while quietly monitoring team dynamics from undisclosed sleeping locations.",
           "Publicly maintains a serious reputation despite privately enjoying affection and premium snack benefits.",
