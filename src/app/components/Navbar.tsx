@@ -589,7 +589,7 @@ export default function Navbar() {
                   }`}
                   onClick={() => router.push("/auth/login")}
                 >
-                  {isHomePage ? "Get Started" : "Login"}
+                  Log In
                 </button>
                 {/* Mobile Menu Button for Non-Authenticated Users */}
                 <button
