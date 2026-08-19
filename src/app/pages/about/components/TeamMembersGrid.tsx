@@ -116,7 +116,7 @@ export default function TeamMembersGrid({
 
       {/* Background image */}
       <Image
-        src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/The+people+behind+it+all+-+Fondo.jpg"
+        src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/The+people+behind+it+all+-+Fondo.webp"
         alt=""
         fill
         className="object-cover"

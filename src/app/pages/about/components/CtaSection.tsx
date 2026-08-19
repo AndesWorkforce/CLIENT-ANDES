@@ -8,7 +8,7 @@ export default function CtaSection() {
     <section className="relative w-full min-h-[308px] sm:h-[356px] overflow-hidden">
       {/* Background image */}
       <Image
-        src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Call+to+Action+-Fondo.jpg"
+        src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Call+to+Action+-Fondo.webp"
         alt=""
         fill
         className="object-cover"

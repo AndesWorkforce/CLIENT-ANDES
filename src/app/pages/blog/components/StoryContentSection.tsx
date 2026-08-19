@@ -23,7 +23,7 @@ export default function StoryContentSection() {
               src={storyAssets.officeTeam}
               alt="Andes Workforce team"
               fill
-              className="object-cover"
+              className="object-cover object-[center_20%]"
             />
           </div>
 
@@ -168,7 +168,7 @@ export default function StoryContentSection() {
                 src={storyAssets.tabakChicago}
                 alt="Andes Workforce and Tabak Law in Chicago"
                 fill
-                className="object-cover"
+                className="object-cover object-[center_40%]"
               />
             </div>
             <figcaption className="text-center font-normal text-[14px] text-[#858585] leading-[1.5] tracking-[0.28px]">

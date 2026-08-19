@@ -96,7 +96,7 @@ export const teamMembers: TeamMember[] = [
         id: "brownie",
         name: "Brownie",
         role: "Former Chief Treat Officer (Oct 23, 2015 \u2013 Sept 03, 2025)",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/brownie.jpg",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Animales/Brownie.webp",
         bullets: [
           "Brought endless joy and love to our team\u2014especially when snacks were involved!",
           "His cheerful spirit made every day brighter; his legacy lives on in our hearts and workspace.",
@@ -266,7 +266,7 @@ export const teamMembers: TeamMember[] = [
         id: "esteban-sarkozy",
         name: "Esteban Sarkozy",
         role: "Lunch Operations Manager",
-        image: animalPhoto("Esteban Sarkozy - Daniela Ramirez.webp"),
+        image: animalPhoto("Esteban Sarkozy - Daniela Ramirez.jpeg"),
         bullets: [
           "Takes meal scheduling very seriously.",
           "Oversees all lunch-related activities with unmatched enthusiasm and midday zoomies.",
@@ -404,7 +404,7 @@ export const teamMembers: TeamMember[] = [
     role: "Former Chief Treat Officer (Oct 23, 2015 – Sept 03, 2025)",
     group: "Pet Family",
     image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/brownie.jpg",
+      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Animales/Brownie.webp",
     bullets: [
       "Brought endless joy and love to our team—especially when snacks were involved!",
       "His cheerful spirit made every day brighter; his legacy lives on in our hearts and workspace.",

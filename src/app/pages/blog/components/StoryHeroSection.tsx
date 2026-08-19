@@ -12,7 +12,7 @@ export default function StoryHeroSection() {
           src={storyAssets.hero}
           alt="The Story Behind Andes Workforce"
           fill
-          className="object-cover object-center"
+          className="object-cover object-[center_45%]"
           priority
         />
       </div>

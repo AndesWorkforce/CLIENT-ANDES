@@ -24,7 +24,7 @@ export default function RelatedArticlesSection() {
       author: "Andes Workforce Team",
       date: "Jun 25, 2026",
       imageUrl:
-        "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/Banner.webp",
+        "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/01+-+Miguel+fondo+gris.webp",
       href: "/pages/blog",
     },
     {
@@ -35,7 +35,7 @@ export default function RelatedArticlesSection() {
       author: "Andes Workforce Team",
       date: "Jun 25, 2026",
       imageUrl:
-        "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/2.+The+Story+Behind+Andes+Workforce/Tabak+Law+VA.webp",
+        "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/2.+The+Story+Behind+Andes+Workforce/Tabak+Law+SSA.webp",
       href: "/pages/blog/the-story-behind-andes-workforce",
     }
   ];
@@ -68,7 +68,7 @@ export default function RelatedArticlesSection() {
                     src={article.imageUrl}
                     alt={article.title}
                     fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105 object-[center_60%]"
                   />
                 </div>
 
