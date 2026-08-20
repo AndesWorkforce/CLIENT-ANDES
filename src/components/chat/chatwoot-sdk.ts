@@ -1,5 +1,14 @@
 import type { User } from "@/store/auth.store";
 
+export type ChatwootIdentityKind = "contractor" | "client" | "candidate";
+
+export interface ChatwootIdentity {
+  identifier: string;
+  email: string;
+  name: string;
+  kind: ChatwootIdentityKind;
+}
+
 export interface ChatwootUserPayload {
   email: string;
   name: string;
@@ -27,6 +36,92 @@ declare global {
 
 const IDENTIFY_SETTLE_MS = 500;
 const CHATWOOT_API_POLL_MS = 200;
+const CHATWOOT_IFRAME_ID = "chatwoot_live_chat_widget";
+const CHATWOOT_MESSAGES_HASH = "#/messages";
+
+function getChatwootIframe(): HTMLIFrameElement | null {
+  return document.getElementById(CHATWOOT_IFRAME_ID) as HTMLIFrameElement | null;
+}
+
+function clickStartConversationButton(iframe: HTMLIFrameElement): boolean {
+  try {
+    const doc = iframe.contentDocument;
+    if (!doc) return false;
+
+    const tagged = doc.querySelector<HTMLElement>(
+      "button.start-conversation, .start-conversation button, a.start-conversation, .start-conversation",
+    );
+    if (tagged) {
+      tagged.click();
+      return true;
+    }
+
+    const clickable = Array.from(
+      doc.querySelectorAll<HTMLElement>("button, a, [role='button']"),
+    ).find((el) =>
+      /start conversation|continue conversation|start chatting/i.test(
+        el.textContent ?? "",
+      ),
+    );
+    if (clickable) {
+      clickable.click();
+      return true;
+    }
+  } catch {
+    // Cross-origin widget: parent cannot inspect iframe contents.
+  }
+
+  return false;
+}
+
+/** Skip Chatwoot's home / Start Conversation screen and open the composer. */
+export function enterChatwootConversationView(): void {
+  const iframe = getChatwootIframe();
+  if (!iframe) return;
+
+  if (clickStartConversationButton(iframe)) {
+    iframe.dataset.andesChatView = "messages";
+    return;
+  }
+
+  if (iframe.dataset.andesChatView === "messages") {
+    return;
+  }
+
+  const currentSrc = iframe.getAttribute("src") || iframe.src;
+  if (!currentSrc) return;
+
+  iframe.dataset.andesChatView = "messages";
+  const [base] = currentSrc.split("#");
+  iframe.setAttribute("src", `${base}${CHATWOOT_MESSAGES_HASH}`);
+}
+
+async function waitForChatwootIframe(
+  timeoutMs = 8000,
+): Promise<HTMLIFrameElement | undefined> {
+  const existing = getChatwootIframe();
+  if (existing) {
+    return existing;
+  }
+
+  return new Promise((resolve) => {
+    const started = Date.now();
+    const timer = window.setInterval(() => {
+      const iframe = getChatwootIframe();
+      if (iframe || Date.now() - started >= timeoutMs) {
+        window.clearInterval(timer);
+        resolve(iframe ?? undefined);
+      }
+    }, CHATWOOT_API_POLL_MS);
+  });
+}
+
+async function openConversationComposer(): Promise<void> {
+  await waitForChatwootIframe();
+  enterChatwootConversationView();
+  window.setTimeout(enterChatwootConversationView, 250);
+  window.setTimeout(enterChatwootConversationView, 800);
+}
 
 export function getChatwootApi(): ChatwootWidgetApi | undefined {
   return window.$chatwoot;
@@ -68,11 +163,32 @@ export function buildFirstName(user: User): string {
   return user.correo.split("@")[0] || user.correo;
 }
 
-export async function fetchChatwootIdentityHash(): Promise<string | undefined> {
+export function identityFromUser(user: User): ChatwootIdentity {
+  return {
+    identifier: String(user.id),
+    email: user.correo,
+    name: buildFirstName(user),
+    kind: "contractor",
+  };
+}
+
+export async function fetchChatwootIdentityHash(
+  identity?: ChatwootIdentity,
+): Promise<string | undefined> {
   try {
-    const response = await fetch("/api/chatwoot/identity", {
-      credentials: "include",
-    });
+    const isGuest = identity && identity.kind !== "contractor";
+    const response = isGuest
+      ? await fetch("/api/chatwoot/guest-identity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: identity.email,
+            kind: identity.kind,
+          }),
+        })
+      : await fetch("/api/chatwoot/identity", {
+          credentials: "include",
+        });
 
     if (!response.ok) {
       return undefined;
@@ -86,9 +202,12 @@ export async function fetchChatwootIdentityHash(): Promise<string | undefined> {
 }
 
 export function identifyChatwootUser(
-  user: User,
+  identity: ChatwootIdentity | User,
   identifierHash?: string,
 ): Promise<void> {
+  const resolved: ChatwootIdentity =
+    "kind" in identity ? identity : identityFromUser(identity);
+
   return new Promise((resolve) => {
     const api = getChatwootApi();
     if (!api) {
@@ -96,10 +215,13 @@ export function identifyChatwootUser(
       return;
     }
 
-    api.setUser(String(user.id), {
-      email: user.correo,
-      name: buildFirstName(user),
-      custom_attributes: { andes_user_id: String(user.id) },
+    api.setUser(resolved.identifier, {
+      email: resolved.email,
+      name: resolved.name,
+      custom_attributes: {
+        andes_user_id: resolved.identifier,
+        andes_visitor_kind: resolved.kind,
+      },
       ...(identifierHash ? { identifier_hash: identifierHash } : {}),
     });
 
@@ -109,27 +231,31 @@ export function identifyChatwootUser(
 
 /** Sincroniza contacto en API + setUser en widget (critico tras reset()) */
 export async function ensureChatwootIdentity(
-  user: User,
+  identity: ChatwootIdentity | User,
   identifierHash?: string,
 ): Promise<void> {
-  const hash = identifierHash ?? (await fetchChatwootIdentityHash());
+  const resolved: ChatwootIdentity =
+    "kind" in identity ? identity : identityFromUser(identity);
+  const hash = identifierHash ?? (await fetchChatwootIdentityHash(resolved));
   await waitForChatwootApi();
-  await identifyChatwootUser(user, hash);
-  await identifyChatwootUser(user, hash);
+  await identifyChatwootUser(resolved, hash);
+  await identifyChatwootUser(resolved, hash);
 }
 
 export async function openChatwootWidget(
-  user?: User,
+  identity?: ChatwootIdentity | User,
   identifierHash?: string,
 ): Promise<void> {
   const api = await waitForChatwootApi();
   if (!api) return;
 
-  if (user) {
-    await ensureChatwootIdentity(user, identifierHash);
+  if (identity) {
+    await ensureChatwootIdentity(identity, identifierHash);
   }
 
+  await openConversationComposer();
   api.toggle("open");
+  window.setTimeout(enterChatwootConversationView, 300);
 }
 
 export function closeChatwootWidget(): void {
@@ -137,16 +263,21 @@ export function closeChatwootWidget(): void {
 }
 
 export async function startNewChatwootSession(
-  user: User,
+  identity: ChatwootIdentity | User,
   identifierHash?: string,
 ): Promise<void> {
   const api = await waitForChatwootApi();
   if (!api) return;
 
-  const hash = identifierHash ?? (await fetchChatwootIdentityHash());
+  const resolved: ChatwootIdentity =
+    "kind" in identity ? identity : identityFromUser(identity);
+  const hash = identifierHash ?? (await fetchChatwootIdentityHash(resolved));
 
   api.reset();
+  getChatwootIframe()?.removeAttribute("data-andes-chat-view");
   await new Promise((resolve) => window.setTimeout(resolve, 200));
-  await ensureChatwootIdentity(user, hash);
+  await ensureChatwootIdentity(resolved, hash);
+  await openConversationComposer();
   api.toggle("open");
+  window.setTimeout(enterChatwootConversationView, 300);
 }

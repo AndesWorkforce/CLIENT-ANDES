@@ -1,31 +1,32 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { RotateCcw, X } from "lucide-react";
 import {
-  MessageSquarePlus,
-  MessagesSquare,
-  X,
-} from "lucide-react";
-import type { User } from "@/store/auth.store";
-import {
+  closeChatwootWidget,
+  enterChatwootConversationView,
   ensureChatwootIdentity,
   fetchChatwootIdentityHash,
   identifyChatwootUser,
   openChatwootWidget,
   startNewChatwootSession,
+  type ChatwootIdentity,
 } from "./chatwoot-sdk";
-import {
-  useChatwootSessions,
-  type ChatwootConversationSummary,
-} from "./useChatwootSessions";
+import { useChatwootSessions } from "./useChatwootSessions";
 import { AndiAvatar } from "./AndiAvatar";
 
 interface ChatwootWidgetProps {
-  user: User;
+  identity: ChatwootIdentity;
   onUnavailable?: () => void;
+  onChangeVisitor?: () => void;
 }
 
-export function ChatwootWidget({ user, onUnavailable }: ChatwootWidgetProps) {
+export function ChatwootWidget({
+  identity,
+  onUnavailable,
+  onChangeVisitor,
+}: ChatwootWidgetProps) {
   const baseUrl = process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL;
   const websiteToken = process.env.NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN;
   const enabled = process.env.NEXT_PUBLIC_CHATWOOT_ENABLED === "true";
@@ -51,9 +52,9 @@ export function ChatwootWidget({ user, onUnavailable }: ChatwootWidgetProps) {
     };
 
     const identifyUser = async () => {
-      const identifierHash = await fetchChatwootIdentityHash();
+      const identifierHash = await fetchChatwootIdentityHash(identity);
       identifierHashRef.current = identifierHash;
-      await identifyChatwootUser(user, identifierHash);
+      await identifyChatwootUser(identity, identifierHash);
     };
 
     window.chatwootSettings = {
@@ -75,6 +76,7 @@ export function ChatwootWidget({ user, onUnavailable }: ChatwootWidgetProps) {
 
       identifyUser().finally(() => {
         if (!cancelled) {
+          enterChatwootConversationView();
           setSdkReady(true);
         }
       });
@@ -133,195 +135,221 @@ export function ChatwootWidget({ user, onUnavailable }: ChatwootWidgetProps) {
       window.removeEventListener("chatwoot:ready", onReady);
       script.remove();
     };
-  }, [enabled, baseUrl, websiteToken, user.id, user.correo]);
+  }, [enabled, baseUrl, websiteToken, identity.identifier, identity.email, identity.kind]);
 
   if (!enabled) {
     return null;
   }
 
   return (
-    <ChatLauncher sdkReady={sdkReady} user={user} />
+    <ChatLauncher
+      sdkReady={sdkReady}
+      identity={identity}
+      onChangeVisitor={onChangeVisitor}
+    />
   );
 }
 
 interface ChatLauncherProps {
   sdkReady: boolean;
-  user: User;
+  identity: ChatwootIdentity;
+  onChangeVisitor?: () => void;
 }
 
-function formatStatus(status: string): string {
-  switch (status) {
-    case "open":
-      return "Con agente";
-    case "pending":
-      return "Con asistente";
-    case "resolved":
-      return "Cerrada";
-    default:
-      return status;
+function getChatwootHolder(): HTMLElement | null {
+  return (
+    document.getElementById("cw-widget-holder") ||
+    document.querySelector(".woot-widget-holder") ||
+    document.getElementById("chatwoot_live_chat_widget")?.parentElement ||
+    null
+  );
+}
+
+function useChatwootHolderRect(enabled: boolean) {
+  const [rect, setRect] = useState<DOMRect | null>(null);
+
+  useEffect(() => {
+    if (!enabled) {
+      setRect(null);
+      return;
+    }
+
+    const read = () => {
+      const holder = getChatwootHolder();
+      if (
+        !holder ||
+        holder.classList.contains("woot--hide") ||
+        holder.getClientRects().length === 0
+      ) {
+        setRect(null);
+        return;
+      }
+
+      const nextRect = holder.getBoundingClientRect();
+      if (nextRect.width < 200 || nextRect.height < 200) {
+        setRect(null);
+        return;
+      }
+
+      setRect(nextRect);
+    };
+
+    read();
+    const intervalId = window.setInterval(read, 250);
+    window.addEventListener("resize", read);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("resize", read);
+    };
+  }, [enabled]);
+
+  return rect;
+}
+
+function RestartConversationButton({
+  rect,
+  agentTookOver,
+  isStartingSession,
+  onRestart,
+}: {
+  rect: DOMRect;
+  agentTookOver: boolean;
+  isStartingSession: boolean;
+  onRestart: () => void;
+}) {
+  if (typeof document === "undefined") {
+    return null;
   }
+
+  return createPortal(
+    <button
+      type="button"
+      onClick={onRestart}
+      disabled={isStartingSession}
+      aria-label="Restart conversation with Andy"
+      className={`flex items-center justify-center gap-2 border-b px-3 py-2 text-sm font-semibold shadow-sm disabled:opacity-70 ${
+        agentTookOver
+          ? "bg-[#0097B2] text-white hover:bg-[#007f96]"
+          : "bg-white text-[#0097B2] hover:bg-[#F6FBFC]"
+      }`}
+      style={{
+        position: "fixed",
+        left: rect.left,
+        width: rect.width,
+        top: rect.top + 64,
+        zIndex: 2147483646,
+      }}
+    >
+      <RotateCcw
+        className={`h-4 w-4 ${isStartingSession ? "animate-spin" : ""}`}
+      />
+      {isStartingSession
+        ? "Starting new chat..."
+        : agentTookOver
+          ? "Restart with Andy"
+          : "Restart conversation"}
+    </button>,
+    document.body,
+  );
 }
 
-function ChatLauncher({ sdkReady, user }: ChatLauncherProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { humanConversations, botConversations, isLoading, refresh } =
-    useChatwootSessions(menuOpen);
+function ChatLauncher({ sdkReady, identity, onChangeVisitor }: ChatLauncherProps) {
+  const [chatOpen, setChatOpen] = useState(false);
+  const [isStartingSession, setIsStartingSession] = useState(false);
+  const { humanConversations, refresh } = useChatwootSessions(
+    sdkReady && identity.kind === "contractor",
+  );
+  const agentTookOver = humanConversations.length > 0;
+  const widgetRect = useChatwootHolderRect(sdkReady);
+
+  useEffect(() => {
+    const onOpened = () => setChatOpen(true);
+    const onClosed = () => setChatOpen(false);
+    window.addEventListener("chatwoot:opened", onOpened);
+    window.addEventListener("chatwoot:closed", onClosed);
+    return () => {
+      window.removeEventListener("chatwoot:opened", onOpened);
+      window.removeEventListener("chatwoot:closed", onClosed);
+    };
+  }, []);
 
   const syncIdentity = async (): Promise<string | undefined> => {
-    const identifierHash = await fetchChatwootIdentityHash();
-    await ensureChatwootIdentity(user, identifierHash);
+    const identifierHash = await fetchChatwootIdentityHash(identity);
+    await ensureChatwootIdentity(identity, identifierHash);
     return identifierHash;
   };
 
-  const handleOpenCurrent = async () => {
+  const handleToggleChat = async () => {
+    if (chatOpen) {
+      closeChatwootWidget();
+      setChatOpen(false);
+      return;
+    }
+
     const identifierHash = await syncIdentity();
-    await openChatwootWidget(user, identifierHash);
-    setMenuOpen(false);
+    await openChatwootWidget(identity, identifierHash);
+    setChatOpen(true);
     refresh();
   };
 
-  const handleNewTopic = async () => {
-    const identifierHash = await syncIdentity();
-    await startNewChatwootSession(user, identifierHash);
-    setMenuOpen(false);
-    window.setTimeout(refresh, 1500);
-  };
+  const handleNewSession = async () => {
+    if (!sdkReady || isStartingSession) return;
 
-  const handleOpenHumanChat = async (
-    _conversation: ChatwootConversationSummary,
-  ) => {
-    const identifierHash = await syncIdentity();
-    await openChatwootWidget(user, identifierHash);
-    setMenuOpen(false);
-    refresh();
+    setIsStartingSession(true);
+    try {
+      const identifierHash = await syncIdentity();
+      await startNewChatwootSession(identity, identifierHash);
+      setChatOpen(true);
+      window.setTimeout(refresh, 1500);
+    } finally {
+      setIsStartingSession(false);
+    }
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-      {menuOpen && (
-        <div className="w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
-          <div className="flex justify-center bg-[var(--andes-blue)] px-4 py-3">
-            <AndiAvatar active />
-          </div>
-
-          <div className="flex flex-col gap-2 p-3">
-            <button
-              type="button"
-              onClick={handleNewTopic}
-              className="flex items-center gap-3 rounded-xl border border-[#0097B2]/20 bg-[#F6FBFC] px-3 py-3 text-left transition-colors hover:bg-[#E8F8FB]"
-            >
-              <MessageSquarePlus className="h-5 w-5 shrink-0 text-[#0097B2]" />
-              <span>
-                <span className="block text-sm font-semibold text-gray-900">
-                  Nuevo tema con el bot
-                </span>
-                <span className="block text-xs text-gray-600">
-                  Inicia una conversacion nueva con el asistente
-                </span>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleOpenCurrent}
-              className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-3 text-left transition-colors hover:bg-gray-50"
-            >
-              <MessagesSquare className="h-5 w-5 shrink-0 text-[#0097B2]" />
-              <span>
-                <span className="block text-sm font-semibold text-gray-900">
-                  Abrir chat actual
-                </span>
-                <span className="block text-xs text-gray-600">
-                  Continua la conversacion activa en el widget
-                </span>
-              </span>
-            </button>
-          </div>
-
-          {!sdkReady && (
-            <p className="border-t border-gray-100 px-3 py-2 text-xs text-gray-500">
-              Conectando con el asistente...
-            </p>
-          )}
-
-          {(humanConversations.length > 0 ||
-            botConversations.length > 0 ||
-            isLoading) && (
-            <div className="border-t border-gray-100 px-3 py-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Tus conversaciones
-              </p>
-              <div className="flex max-h-48 flex-col gap-2 overflow-y-auto">
-                {isLoading && (
-                  <p className="text-xs text-gray-500">Cargando...</p>
-                )}
-                {humanConversations.map((conversation) => (
-                  <button
-                    key={conversation.id}
-                    type="button"
-                    onClick={() => handleOpenHumanChat(conversation)}
-                    className="rounded-lg border border-gray-200 px-3 py-2 text-left transition-colors hover:bg-gray-50"
-                  >
-                    <span className="block text-sm font-medium text-gray-900">
-                      {conversation.teamName || conversation.assigneeName || "Soporte"}
-                    </span>
-                    <span className="block text-xs text-[#0097B2]">
-                      {formatStatus(conversation.status)}
-                    </span>
-                    {conversation.lastMessage && (
-                      <span className="mt-1 block truncate text-xs text-gray-500">
-                        {conversation.lastMessage}
-                      </span>
-                    )}
-                  </button>
-                ))}
-                {botConversations.map((conversation) => (
-                  <button
-                    key={conversation.id}
-                    type="button"
-                    onClick={handleOpenCurrent}
-                    className="rounded-lg border border-gray-200 px-3 py-2 text-left transition-colors hover:bg-gray-50"
-                  >
-                    <span className="block text-sm font-medium text-gray-900">
-                      Asistente virtual
-                    </span>
-                    <span className="block text-xs text-[#0097B2]">
-                      {formatStatus(conversation.status)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+    <>
+      {widgetRect && (
+        <RestartConversationButton
+          rect={widgetRect}
+          agentTookOver={agentTookOver}
+          isStartingSession={isStartingSession}
+          onRestart={handleNewSession}
+        />
       )}
 
-      <button
-        type="button"
-        onClick={() => setMenuOpen((prev) => !prev)}
-        className="relative flex h-[120px] w-[120px] items-center justify-center transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-[#0097B2]/30"
-        aria-label={menuOpen ? "Cerrar menu de chat" : "Abrir menu de chat"}
-        aria-expanded={menuOpen}
-        aria-busy={!sdkReady}
-      >
-        {menuOpen ? (
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--andes-blue)] text-white shadow-lg">
-            <X className="h-6 w-6" />
-          </span>
-        ) : (
-          <>
-            <span className="absolute -left-36 top-1/2 z-20 hidden -translate-y-1/2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg sm:block">
-              Need help? Chat with Andy
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+        {identity.kind !== "contractor" && onChangeVisitor && !chatOpen && (
+          <button
+            type="button"
+            onClick={onChangeVisitor}
+            className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+          >
+            Change email
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleToggleChat}
+          className="relative flex h-[120px] w-[120px] items-center justify-center transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-[#0097B2]/30"
+          aria-label={chatOpen ? "Close chat" : "Open chat with Andy"}
+          aria-expanded={chatOpen}
+          aria-busy={!sdkReady}
+          disabled={!sdkReady && !chatOpen}
+        >
+          {chatOpen ? (
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--andes-blue)] text-white shadow-lg">
+              <X className="h-6 w-6" />
             </span>
+          ) : (
             <AndiAvatar greeting />
-          </>
-        )}
-        {humanConversations.length > 0 && !menuOpen && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-            {humanConversations.length}
-          </span>
-        )}
-      </button>
-    </div>
+          )}
+          {humanConversations.length > 0 && !chatOpen && (
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+              {humanConversations.length}
+            </span>
+          )}
+        </button>
+      </div>
+    </>
   );
 }
