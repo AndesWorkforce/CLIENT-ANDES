@@ -410,14 +410,16 @@ export default function Navbar() {
         </Link>
       )}
 
-      <button
-        type="button"
-        onClick={openItSupportModal}
-        className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-      >
-        <LifeBuoy size={16} className="mr-2 text-[#0097B2]" />
-        Request IT Support
-      </button>
+      {currentContractStatus && (
+        <button
+          type="button"
+          onClick={openItSupportModal}
+          className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+        >
+          <LifeBuoy size={16} className="mr-2 text-[#0097B2]" />
+          Request IT Support
+        </button>
+      )}
 
       <Link
         href="/contractor-guide"
@@ -930,14 +932,16 @@ export default function Navbar() {
                         </Link>
                       )}
 
-                      <button
-                        type="button"
-                        onClick={openItSupportModal}
-                        className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-[16px] text-gray-600 transition-colors hover:bg-gray-50 hover:text-[#0097B2]"
-                      >
-                        <LifeBuoy size={20} strokeWidth={2} />
-                        Request IT Support
-                      </button>
+                      {currentContractStatus && (
+                        <button
+                          type="button"
+                          onClick={openItSupportModal}
+                          className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-[16px] text-gray-600 transition-colors hover:bg-gray-50 hover:text-[#0097B2]"
+                        >
+                          <LifeBuoy size={20} strokeWidth={2} />
+                          Request IT Support
+                        </button>
+                      )}
 
                       <Link
                         href="/contractor-guide"
