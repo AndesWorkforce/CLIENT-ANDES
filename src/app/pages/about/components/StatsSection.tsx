@@ -11,7 +11,7 @@ export default function StatsSection() {
     <section className="relative w-full overflow-hidden py-[60px] sm:py-24">
       {/* Background image */}
       <Image
-        src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us/Growing+with+results+-+Fondo.jpg"
+        src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Growing+with+results+-+Fondo.webp"
         alt=""
         fill
         className="object-cover"
