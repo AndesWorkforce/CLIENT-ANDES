@@ -18,12 +18,14 @@ import { AndiAvatar } from "./AndiAvatar";
 
 interface ChatwootWidgetProps {
   identity: ChatwootIdentity;
+  autoOpen?: boolean;
   onUnavailable?: () => void;
   onChangeVisitor?: () => void;
 }
 
 export function ChatwootWidget({
   identity,
+  autoOpen = false,
   onUnavailable,
   onChangeVisitor,
 }: ChatwootWidgetProps) {
@@ -145,6 +147,7 @@ export function ChatwootWidget({
     <ChatLauncher
       sdkReady={sdkReady}
       identity={identity}
+      autoOpen={autoOpen}
       onChangeVisitor={onChangeVisitor}
     />
   );
@@ -153,6 +156,7 @@ export function ChatwootWidget({
 interface ChatLauncherProps {
   sdkReady: boolean;
   identity: ChatwootIdentity;
+  autoOpen?: boolean;
   onChangeVisitor?: () => void;
 }
 
@@ -253,18 +257,34 @@ function RestartConversationButton({
   );
 }
 
-function ChatLauncher({ sdkReady, identity, onChangeVisitor }: ChatLauncherProps) {
-  const [chatOpen, setChatOpen] = useState(false);
+function ChatLauncher({
+  sdkReady,
+  identity,
+  autoOpen = false,
+  onChangeVisitor,
+}: ChatLauncherProps) {
+  const [chatOpen, setChatOpen] = useState(autoOpen);
   const [isStartingSession, setIsStartingSession] = useState(false);
+  const pendingOpenRef = useRef(autoOpen);
+  const ignoreClosedUntilRef = useRef(0);
+  const identityRef = useRef(identity);
+  identityRef.current = identity;
   const { humanConversations, refresh } = useChatwootSessions(
     sdkReady && identity.kind === "contractor",
   );
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
   const agentTookOver = humanConversations.length > 0;
   const widgetRect = useChatwootHolderRect(sdkReady);
 
   useEffect(() => {
     const onOpened = () => setChatOpen(true);
-    const onClosed = () => setChatOpen(false);
+    const onClosed = () => {
+      if (Date.now() < ignoreClosedUntilRef.current) {
+        return;
+      }
+      setChatOpen(false);
+    };
     window.addEventListener("chatwoot:opened", onOpened);
     window.addEventListener("chatwoot:closed", onClosed);
     return () => {
@@ -272,6 +292,35 @@ function ChatLauncher({ sdkReady, identity, onChangeVisitor }: ChatLauncherProps
       window.removeEventListener("chatwoot:closed", onClosed);
     };
   }, []);
+
+  useEffect(() => {
+    if (!sdkReady || !pendingOpenRef.current) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      const currentIdentity = identityRef.current;
+      const identifierHash = await fetchChatwootIdentityHash(currentIdentity);
+      if (cancelled) return;
+      await openChatwootWidget(currentIdentity, identifierHash);
+      if (cancelled) return;
+      pendingOpenRef.current = false;
+      ignoreClosedUntilRef.current = Date.now() + 1500;
+      setChatOpen(true);
+      window.setTimeout(() => {
+        if (!cancelled) {
+          void openChatwootWidget(identityRef.current, identifierHash);
+        }
+      }, 400);
+      void refreshRef.current();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sdkReady]);
 
   const syncIdentity = async (): Promise<string | undefined> => {
     const identifierHash = await fetchChatwootIdentityHash(identity);
@@ -281,6 +330,7 @@ function ChatLauncher({ sdkReady, identity, onChangeVisitor }: ChatLauncherProps
 
   const handleToggleChat = async () => {
     if (chatOpen) {
+      pendingOpenRef.current = false;
       closeChatwootWidget();
       setChatOpen(false);
       return;
