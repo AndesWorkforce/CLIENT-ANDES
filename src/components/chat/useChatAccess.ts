@@ -25,32 +25,25 @@ export function useChatAccess() {
         return;
       }
 
-      // TEMPORAL: Permitir acceso al chat sin verificar contrato activo (solo para testing)
-      // TODO: Restaurar verificación de contrato antes de producción
-      if (!cancelled) {
-        setHasAccess(true);
-        setIsChecking(false);
-      }
+      setIsChecking(true);
 
-      // Código original comentado para referencia:
-      // setIsChecking(true);
-      // try {
-      //   const result = await checkUserContractStatus();
-      //   if (!cancelled) {
-      //     setHasAccess(
-      //       result.success === true &&
-      //         result.data?.hasActiveContract === true,
-      //     );
-      //   }
-      // } catch {
-      //   if (!cancelled) {
-      //     setHasAccess(false);
-      //   }
-      // } finally {
-      //   if (!cancelled) {
-      //     setIsChecking(false);
-      //   }
-      // }
+      try {
+        const result = await checkUserContractStatus();
+        if (!cancelled) {
+          setHasAccess(
+            result.success === true &&
+              result.data?.hasActiveContract === true,
+          );
+        }
+      } catch {
+        if (!cancelled) {
+          setHasAccess(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsChecking(false);
+        }
+      }
     }
 
     verifyAccess();
