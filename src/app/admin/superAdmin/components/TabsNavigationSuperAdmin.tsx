@@ -1,6 +1,6 @@
 "use client";
 
-import { UserCog } from "lucide-react";
+import { UserCog, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -314,6 +314,24 @@ export default function TabsNavigationSuperAdmin() {
             >
               <UserCog size={15} />
               Multiple functions
+            </Link>
+            <Link
+              href="/admin/superAdmin/mfa-security"
+              className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
+                pathname === "/admin/superAdmin/mfa-security"
+                  ? "bg-[#B6B4B4] text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <ShieldCheck
+                size={15}
+                color={
+                  pathname === "/admin/superAdmin/mfa-security"
+                    ? "#FFFFFF"
+                    : "#6D6D6D"
+                }
+              />
+              MFA Security
             </Link>
             <Link
               href="/admin/superAdmin/settings"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { loginAction } from "../actions/login.action";
 import { getUsuarioCompanyAssociation } from "@/app/admin/superAdmin/users-roles/actions/users-roles.actions";
@@ -9,8 +9,14 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import Logo from "@/app/components/Logo";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
+import MfaVerifyStep from "../components/mfa/MfaVerifyStep";
+import MfaRecoveryStep from "../components/mfa/MfaRecoveryStep";
+import MfaSetupStep from "../components/mfa/MfaSetupStep";
+import MfaBackupCodesStep from "../components/mfa/MfaBackupCodesStep";
 
-// Encryption removed: we'll read plaintext payload from sessionStorage
+type MfaStep = "none" | "verify" | "recovery" | "setup" | "backup-codes";
+
+const MFA_REQUIRED_ROLES = ["ADMIN", "EMPLEADO_ADMIN", "ADMIN_RECLUTAMIENTO"];
 
 export default function SelectRolePage() {
   const router = useRouter();
@@ -26,11 +32,15 @@ export default function SelectRolePage() {
   const [companyStep, setCompanyStep] = useState<null | {
     role: "EMPRESA" | "EMPLEADO_EMPRESA";
     companies: { id: string; nombre: string; empleadoId?: string }[];
-    // Optional extra metadata so we can show context (e.g. employee id mapping)
-    // disable-next-line @typescript-eslint/no-explicit-any
     raw?: any;
   }>(null);
   const [pickedRole, setPickedRole] = useState<string | null>(null);
+
+  // MFA state
+  const [mfaStep, setMfaStep] = useState<MfaStep>("none");
+  const [challengeToken, setChallengeToken] = useState("");
+  const [setupToken, setSetupToken] = useState("");
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
 
   useEffect(() => {
     try {
@@ -165,8 +175,8 @@ export default function SelectRolePage() {
     setSubmitting(true);
     setPickedRole(role);
 
-    // Si ya hay token en store y el rol NO es de empresa, evitamos re-login
-    if (role !== "EMPRESA" && role !== "EMPLEADO_EMPRESA") {
+    // Admin roles MUST always go through backend to trigger MFA challenge
+    if (!MFA_REQUIRED_ROLES.includes(role) && role !== "EMPRESA" && role !== "EMPLEADO_EMPRESA") {
       const tokenInStore = useAuthStore.getState().token;
       if (tokenInStore) {
         try {
@@ -186,7 +196,6 @@ export default function SelectRolePage() {
       }
     }
 
-    // Llamada al backend necesaria (rol empresa o no había token/cookie usable)
     // disable-next-line @typescript-eslint/no-explicit-any
     let result: any = null;
     try {
@@ -203,6 +212,20 @@ export default function SelectRolePage() {
 
     if (!result || !result.success) {
       addNotification(result?.error || "Error selecting role", "error");
+      setSubmitting(false);
+      return;
+    }
+
+    // MFA interception
+    if ((result as any).mfaRequired) {
+      setChallengeToken((result as any).challengeToken);
+      setMfaStep("verify");
+      setSubmitting(false);
+      return;
+    }
+    if ((result as any).mfaSetupRequired) {
+      setSetupToken((result as any).setupToken);
+      setMfaStep("setup");
       setSubmitting(false);
       return;
     }
@@ -572,8 +595,107 @@ export default function SelectRolePage() {
     setSubmitting(false);
   };
 
+  const handleMfaVerifySuccess = useCallback(
+    (data: any) => {
+      const usr = data?.usuario || data;
+      addNotification("Successfully logged in", "success");
+      setUser(usr);
+      setAuthenticated(true);
+      setToken(data?.accessToken);
+      sessionStorage.removeItem("andes_pending_login");
+
+      const activeRole = usr?.rol;
+      if (activeRole === "ADMIN" || activeRole === "EMPLEADO_ADMIN" || activeRole === "ADMIN_RECLUTAMIENTO") {
+        router.replace("/admin/dashboard");
+      } else {
+        router.replace("/profile");
+      }
+    },
+    [addNotification, setUser, setAuthenticated, setToken, router]
+  );
+
+  const handleMfaSetupComplete = useCallback((codes: string[]) => {
+    setBackupCodes(codes);
+    setMfaStep("backup-codes");
+  }, []);
+
+  const handleBackupCodesDone = useCallback(() => {
+    addNotification("MFA activated. Please log in again.", "success");
+    setMfaStep("none");
+    setChallengeToken("");
+    setSetupToken("");
+    setBackupCodes([]);
+  }, [addNotification]);
+
+  const handleMfaError = useCallback(
+    (msg: string) => addNotification(msg, "error"),
+    [addNotification]
+  );
+
   console.log("[USER]", user);
   console.log("[COMPANIES]", companyStep);
+
+  // MFA screens
+  if (mfaStep === "verify") {
+    return (
+      <section className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+          <MfaVerifyStep
+            challengeToken={challengeToken}
+            correo={pending?.correo || ""}
+            onSuccess={handleMfaVerifySuccess}
+            onError={handleMfaError}
+            onRecoveryStart={() => setMfaStep("recovery")}
+          />
+        </div>
+      </section>
+    );
+  }
+
+  if (mfaStep === "recovery") {
+    return (
+      <section className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+          <MfaRecoveryStep
+            correo={pending?.correo || ""}
+            onSetupToken={(token) => {
+              setSetupToken(token);
+              setMfaStep("setup");
+            }}
+            onError={handleMfaError}
+            onBack={() => setMfaStep("verify")}
+          />
+        </div>
+      </section>
+    );
+  }
+
+  if (mfaStep === "setup") {
+    return (
+      <section className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+          <MfaSetupStep
+            setupToken={setupToken}
+            onComplete={handleMfaSetupComplete}
+            onError={handleMfaError}
+          />
+        </div>
+      </section>
+    );
+  }
+
+  if (mfaStep === "backup-codes") {
+    return (
+      <section className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+          <MfaBackupCodesStep
+            backupCodes={backupCodes}
+            onConfirm={handleBackupCodesDone}
+          />
+        </div>
+      </section>
+    );
+  }
 
   if (loading) {
     return (

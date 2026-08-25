@@ -69,6 +69,26 @@ export async function loginAction(values: LoginFormValues) {
 
       const data = response.data;
 
+      console.log("[loginAction] response.data:", JSON.stringify(data?.data ? { mfaRequired: data.data.mfaRequired, mfaSetupRequired: data.data.mfaSetupRequired, hasToken: !!data.data.accessToken } : "no data"));
+
+      // MFA bifurcation: admin roles may need MFA setup or verification
+      if (data?.data?.mfaRequired) {
+        return {
+          success: true,
+          mfaRequired: true,
+          challengeToken: data.data.challengeToken,
+          expiresIn: data.data.expiresIn,
+        };
+      }
+      if (data?.data?.mfaSetupRequired) {
+        return {
+          success: true,
+          mfaSetupRequired: true,
+          setupToken: data.data.setupToken,
+          expiresIn: data.data.expiresIn,
+        };
+      }
+
       // Si el inicio de sesión fue exitoso, establecer cookies
       if (data && data.data) {
         const userData = data.data.usuario || data.data;
