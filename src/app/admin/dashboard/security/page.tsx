@@ -14,6 +14,7 @@ import {
   Check,
   Download,
   Smartphone,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/app/components/Logo";
@@ -26,6 +27,7 @@ import {
   regenerateBackupCodesAction,
   setupMfaAction,
   enableMfaAction,
+  verifyPasswordAction,
 } from "./actions/mfa-settings.actions";
 
 type View =
@@ -47,7 +49,14 @@ export default function SecurityPage() {
   const { user } = useAuthStore();
   const { addNotification } = useNotificationStore();
 
-  const [loading, setLoading] = useState(true);
+  // Password gate state
+  const [authenticated, setAuthenticated] = useState(false);
+  const [gatePassword, setGatePassword] = useState("");
+  const [gateShowPassword, setGateShowPassword] = useState(false);
+  const [gateSubmitting, setGateSubmitting] = useState(false);
+  const [gateError, setGateError] = useState("");
+
+  const [loading, setLoading] = useState(false);
   const [mfaStatus, setMfaStatus] = useState<MfaStatus | null>(null);
   const [view, setView] = useState<View>("status");
 
@@ -68,6 +77,23 @@ export default function SecurityPage() {
   const [setupBackupCodes, setSetupBackupCodes] = useState<string[]>([]);
   const [setupConfirmed, setSetupConfirmed] = useState(false);
 
+  const handleGateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gatePassword) return;
+    setGateSubmitting(true);
+    setGateError("");
+
+    const result = await verifyPasswordAction(gatePassword);
+    setGateSubmitting(false);
+
+    if (result.success && result.verified) {
+      setAuthenticated(true);
+      setGatePassword("");
+    } else {
+      setGateError(result.error || "Invalid password");
+    }
+  };
+
   const fetchStatus = useCallback(async () => {
     setLoading(true);
     const result = await getMfaStatusAction();
@@ -78,8 +104,10 @@ export default function SecurityPage() {
   }, []);
 
   useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
+    if (authenticated) {
+      fetchStatus();
+    }
+  }, [authenticated, fetchStatus]);
 
   const handleDisableMfa = async () => {
     if (!disableCode || !disablePassword) return;
@@ -168,6 +196,79 @@ export default function SecurityPage() {
     URL.revokeObjectURL(url);
   };
 
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F7]">
+        <header className="bg-white">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <Link href="/admin/dashboard" className="text-gray-700">
+                <ChevronLeft size={20} color="#0097B2" />
+              </Link>
+              <h1 className="text-xl font-medium">Privacy Settings</h1>
+            </div>
+            <Logo />
+          </div>
+        </header>
+
+        <div className="container mx-auto px-4 py-6 max-w-md">
+          <div className="bg-white rounded-lg p-8 shadow-sm">
+            <div className="text-center mb-6">
+              <Lock size={40} className="mx-auto text-[#0097B2] mb-3" />
+              <h2 className="text-lg font-semibold text-gray-900">
+                Verify Your Identity
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Enter your password to access privacy settings
+              </p>
+            </div>
+
+            <form onSubmit={handleGateSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={gateShowPassword ? "text" : "password"}
+                    value={gatePassword}
+                    onChange={(e) => {
+                      setGatePassword(e.target.value);
+                      setGateError("");
+                    }}
+                    placeholder="Enter your current password"
+                    autoFocus
+                    className="w-full p-2.5 border border-gray-300 rounded-lg pr-10
+                               focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 cursor-pointer"
+                    onClick={() => setGateShowPassword(!gateShowPassword)}
+                  >
+                    {gateShowPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {gateError && (
+                  <p className="text-red-500 text-sm mt-1.5">{gateError}</p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={gateSubmitting || !gatePassword}
+                className="w-full py-2.5 bg-[#0097B2] text-white rounded-lg hover:bg-[#007a94]
+                           disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm font-medium"
+              >
+                {gateSubmitting ? "Verifying..." : "Continue"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center">
@@ -185,7 +286,7 @@ export default function SecurityPage() {
             <Link href="/admin/dashboard" className="text-gray-700">
               <ChevronLeft size={20} color="#0097B2" />
             </Link>
-            <h1 className="text-xl font-medium">Security Settings</h1>
+            <h1 className="text-xl font-medium">Privacy Settings</h1>
           </div>
           <Logo />
         </div>

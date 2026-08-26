@@ -2,6 +2,20 @@
 
 import { createServerAxios } from "@/services/axios.server";
 
+export async function verifyPasswordAction(password: string) {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.post("auth/verify-password", { password });
+    const data = response.data?.data || response.data;
+    return { success: true, verified: data?.verified === true };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error?.response?.data?.message || "Invalid password",
+    };
+  }
+}
+
 export async function getMfaStatusAction() {
   try {
     const axios = await createServerAxios();

@@ -18,15 +18,72 @@ export async function getAdminUsersAction(): Promise<{
   data?: any[];
   error?: string;
 }> {
+  const adminRoles = ["ADMIN", "EMPLEADO_ADMIN", "ADMIN_RECLUTAMIENTO"];
+
   try {
     const axios = await createServerAxios();
-    const response = await axios.get("usuarios");
-    const allUsers = response.data?.data || response.data || [];
+    const seenUserIds = new Set<string>();
+    const admins: any[] = [];
 
-    const adminRoles = ["ADMIN", "EMPLEADO_ADMIN", "ADMIN_RECLUTAMIENTO"];
-    const admins = allUsers.filter((u: any) =>
-      adminRoles.includes(u.usuario?.rol || u.rol)
-    );
+    // Fetch all users across pages to find any with admin roles (including multi-role)
+    let allUsuarios: any[] = [];
+    let page = 1;
+    const pageSize = 200;
+    let hasMore = true;
+
+    while (hasMore) {
+      const usrResponse = await axios.get(
+        `usuarios?limit=${pageSize}&page=${page}`
+      );
+      const rawData = usrResponse.data?.data;
+      const pageItems = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.items)
+          ? rawData.items
+          : [];
+
+      allUsuarios = allUsuarios.concat(pageItems);
+
+      const pagination =
+        usrResponse.data?.meta?.pagination || rawData?.pagination;
+      hasMore = pagination?.hasNextPage === true;
+      page++;
+
+      if (pageItems.length === 0) break;
+    }
+
+    for (const u of allUsuarios) {
+      const userId = u.id;
+      if (!userId || seenUserIds.has(userId)) continue;
+
+      const rol = u.rol || "";
+      const rolesArr: string[] = Array.isArray(u.roles) ? u.roles : [];
+      const hasAdminRole =
+        adminRoles.includes(rol) ||
+        rolesArr.some((r: string) => adminRoles.includes(r));
+
+      if (!hasAdminRole) continue;
+      seenUserIds.add(userId);
+
+      const effectiveRole = adminRoles.includes(rol)
+        ? rol
+        : rolesArr.find((r: string) => adminRoles.includes(r)) || rol;
+
+      admins.push({
+        id: userId,
+        usuarioId: userId,
+        rol: effectiveRole,
+        roles: rolesArr,
+        usuario: {
+          id: userId,
+          nombre: u.nombre || "",
+          apellido: u.apellido || "",
+          correo: u.correo || "",
+          rol: effectiveRole,
+          roles: rolesArr,
+        },
+      });
+    }
 
     return { success: true, data: admins };
   } catch (error: any) {

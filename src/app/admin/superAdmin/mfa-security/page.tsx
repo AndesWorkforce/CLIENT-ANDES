@@ -57,6 +57,18 @@ export default function MfaSecurityPage() {
     const result = await getAdminUsersAction();
     if (result.success && result.data) {
       setAdmins(result.data);
+      // Fetch MFA status for all admins in parallel
+      const statusPromises = result.data.map(async (admin: AdminUser) => {
+        const userId = admin.usuarioId || admin.usuario?.id;
+        if (!userId) return;
+        setLoadingStatus((prev) => ({ ...prev, [userId]: true }));
+        const statusResult = await getAdminMfaStatusAction(userId);
+        setLoadingStatus((prev) => ({ ...prev, [userId]: false }));
+        if (statusResult.success) {
+          setMfaStatuses((prev) => ({ ...prev, [userId]: statusResult.data }));
+        }
+      });
+      await Promise.all(statusPromises);
     } else {
       addNotification(result.error || "Error loading admins", "error");
     }
@@ -105,11 +117,12 @@ export default function MfaSecurityPage() {
   const filteredAdmins = admins.filter((a) => {
     const u = a.usuario;
     const q = searchQuery.toLowerCase();
+    const allRoles = Array.isArray(a.roles) ? a.roles : [a.rol || u?.rol];
     return (
       u?.nombre?.toLowerCase().includes(q) ||
       u?.apellido?.toLowerCase().includes(q) ||
       u?.correo?.toLowerCase().includes(q) ||
-      (a.rol || u?.rol)?.toLowerCase().includes(q)
+      allRoles.some((r: string) => r?.toLowerCase().includes(q))
     );
   });
 
@@ -207,9 +220,23 @@ export default function MfaSecurityPage() {
                     <p className="text-xs text-gray-500">{u?.correo}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-700">
-                      {admin.rol || u?.rol}
-                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {(Array.isArray(admin.roles) && admin.roles.length > 1
+                        ? admin.roles
+                        : [admin.rol || u?.rol]
+                      ).map((r: string) => (
+                        <span
+                          key={r}
+                          className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            ["ADMIN", "EMPLEADO_ADMIN", "ADMIN_RECLUTAMIENTO"].includes(r)
+                              ? "bg-[#0097B2]/10 text-[#0097B2]"
+                              : "bg-gray-100 text-gray-500"
+                          }`}
+                        >
+                          {r}
+                        </span>
+                      ))}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     {isLoadingStatus ? (
