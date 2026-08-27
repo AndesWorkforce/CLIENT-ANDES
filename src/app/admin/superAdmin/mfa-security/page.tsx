@@ -25,8 +25,10 @@ interface AdminUser {
     apellido: string;
     correo: string;
     rol: string;
+    roles?: string[];
   };
   rol: string;
+  roles?: string[];
 }
 
 interface MfaStatusInfo {
