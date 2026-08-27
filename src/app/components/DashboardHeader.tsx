@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuthStore } from "@/store/auth.store";
-import { LogOut, Settings, LayoutDashboard, User } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, User, ShieldCheck } from "lucide-react";
 import { useRef, useState } from "react";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
@@ -48,6 +48,10 @@ export default function DashboardHeader({ variant }: DashboardHeaderProps) {
   const isAdmin = user?.rol === "ADMIN";
   const isAdminOrRecruiter =
     user?.rol === "ADMIN" || user?.rol === "ADMIN_RECLUTAMIENTO";
+  const isAdminRole =
+    user?.rol === "ADMIN" ||
+    user?.rol === "EMPLEADO_ADMIN" ||
+    user?.rol === "ADMIN_RECLUTAMIENTO";
 
   return (
     <header className="container mx-auto bg-white shadow-sm">
@@ -123,6 +127,21 @@ export default function DashboardHeader({ variant }: DashboardHeaderProps) {
                         className="mr-2 text-[#0097B2]"
                       />
                       Admin Hub
+                    </Link>
+                    <hr className="my-1 border-gray-200" />
+                  </>
+                )}
+
+                {/* Privacy Settings — admin roles only */}
+                {isAdminRole && (
+                  <>
+                    <Link
+                      href="/admin/dashboard/security"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <ShieldCheck size={16} className="mr-2 text-[#0097B2]" />
+                      Privacy Settings
                     </Link>
                     <hr className="my-1 border-gray-200" />
                   </>

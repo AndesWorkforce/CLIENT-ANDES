@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -10,9 +10,19 @@ import { loginAction } from "../actions/login.action";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useAuthStore } from "@/store/auth.store";
 import { useRouter } from "next/navigation";
+import MfaVerifyStep from "./mfa/MfaVerifyStep";
+import MfaRecoveryStep from "./mfa/MfaRecoveryStep";
+import MfaSetupStep from "./mfa/MfaSetupStep";
+import MfaBackupCodesStep from "./mfa/MfaBackupCodesStep";
+
+type MfaStep =
+  | "none"
+  | "verify"
+  | "recovery"
+  | "setup"
+  | "backup-codes";
 
 const REMEMBER_KEY = "andes_remembered_email";
-// Encryption removed to simplify flow and avoid runtime issues
 
 export default function LoginForm() {
   const router = useRouter();
@@ -23,6 +33,13 @@ export default function LoginForm() {
   const addNotification = useNotificationStore(
     (state) => state.addNotification
   );
+
+  // MFA state
+  const [mfaStep, setMfaStep] = useState<MfaStep>("none");
+  const [challengeToken, setChallengeToken] = useState("");
+  const [setupToken, setSetupToken] = useState("");
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [loginCorreo, setLoginCorreo] = useState("");
 
   const {
     register,
@@ -110,6 +127,51 @@ export default function LoginForm() {
     return null;
   };
 
+  const handleMfaVerifySuccess = useCallback(
+    (data: any) => {
+      const user = data?.usuario || data;
+      addNotification("Successfully logged in", "success");
+      setUser(user);
+      setAuthenticated(true);
+      setToken(data?.accessToken);
+
+      const activeRole = user?.rol;
+      if (activeRole === "ADMIN" || activeRole === "EMPLEADO_ADMIN" || activeRole === "ADMIN_RECLUTAMIENTO") {
+        safeRedirect("/admin/dashboard");
+      } else {
+        safeRedirect("/profile");
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [addNotification, setUser, setAuthenticated, setToken]
+  );
+
+  const handleMfaSetupComplete = useCallback(
+    (codes: string[]) => {
+      setBackupCodes(codes);
+      setMfaStep("backup-codes");
+    },
+    []
+  );
+
+  const handleBackupCodesDone = useCallback(
+    () => {
+      addNotification("MFA activated. Please log in again.", "success");
+      setMfaStep("none");
+      setChallengeToken("");
+      setSetupToken("");
+      setBackupCodes([]);
+    },
+    [addNotification]
+  );
+
+  const handleMfaError = useCallback(
+    (msg: string) => {
+      addNotification(msg, "error");
+    },
+    [addNotification]
+  );
+
   const onSubmit = async (data: LoginFormValues) => {
     try {
       setIsSubmitting(true);
@@ -137,6 +199,20 @@ export default function LoginForm() {
         }
 
         if (result.success) {
+          // MFA interception
+          if ((result as any).mfaRequired) {
+            setChallengeToken((result as any).challengeToken);
+            setLoginCorreo(data.correo);
+            setMfaStep("verify");
+            return;
+          }
+          if ((result as any).mfaSetupRequired) {
+            setSetupToken((result as any).setupToken);
+            setLoginCorreo(data.correo);
+            setMfaStep("setup");
+            return;
+          }
+
           // usuario puede venir en distintas formas
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const user: any = result.data?.usuario || result.data;
@@ -278,6 +354,60 @@ export default function LoginForm() {
   };
 
   // onSelectRole fue movido a la vista dedicada /auth/login/select-role
+
+  // Render MFA steps
+  if (mfaStep === "verify") {
+    return (
+      <div className="flex-1 text-black h-full flex flex-col justify-center py-8">
+        <MfaVerifyStep
+          challengeToken={challengeToken}
+          correo={loginCorreo}
+          onSuccess={handleMfaVerifySuccess}
+          onError={handleMfaError}
+          onRecoveryStart={() => setMfaStep("recovery")}
+        />
+      </div>
+    );
+  }
+
+  if (mfaStep === "recovery") {
+    return (
+      <div className="flex-1 text-black h-full flex flex-col justify-center py-8">
+        <MfaRecoveryStep
+          correo={loginCorreo}
+          onSetupToken={(token) => {
+            setSetupToken(token);
+            setMfaStep("setup");
+          }}
+          onError={handleMfaError}
+          onBack={() => setMfaStep("verify")}
+        />
+      </div>
+    );
+  }
+
+  if (mfaStep === "setup") {
+    return (
+      <div className="flex-1 text-black h-full flex flex-col justify-center py-8">
+        <MfaSetupStep
+          setupToken={setupToken}
+          onComplete={handleMfaSetupComplete}
+          onError={handleMfaError}
+        />
+      </div>
+    );
+  }
+
+  if (mfaStep === "backup-codes") {
+    return (
+      <div className="flex-1 text-black h-full flex flex-col justify-center py-8">
+        <MfaBackupCodesStep
+          backupCodes={backupCodes}
+          onConfirm={handleBackupCodesDone}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 text-black h-full flex flex-col">
