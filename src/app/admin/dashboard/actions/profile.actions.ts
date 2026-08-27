@@ -50,10 +50,16 @@ export async function getProfile(id: string) {
       success: false,
       message: "Invalid data structure in response",
     };
-  } catch (error) {
+  } catch (error: any) {
+    const apiMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.meta?.message ||
+      error?.message;
     return {
       success: false,
-      message: "Error in getProfile: " + error,
+      message: Array.isArray(apiMessage)
+        ? apiMessage.join(", ")
+        : apiMessage || "Error in getProfile",
     };
   }
 }

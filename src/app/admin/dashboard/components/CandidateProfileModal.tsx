@@ -367,7 +367,17 @@ export default function CandidateProfileModal({
   if (!isOpen) return null;
 
   if (isLoading || !profile) {
-    return <ProfileModalSkeleton isOpen={isOpen} onClose={onClose} />;
+    return (
+      <ProfileModalSkeleton
+        isOpen={isOpen}
+        onClose={onClose}
+        errorCount={!isLoading && !profile ? Math.max(errorCount, 2) : errorCount}
+        onReload={() => {
+          hasLoadedRef.current = false;
+          setManualReload((prev) => prev + 1);
+        }}
+      />
+    );
   }
 
   // Función para obtener los campos faltantes (requeridos y opcionales)

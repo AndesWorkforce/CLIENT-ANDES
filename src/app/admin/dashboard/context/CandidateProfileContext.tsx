@@ -56,7 +56,8 @@ export const CandidateProfileProvider = ({
           setProfile(null);
         }
       } else {
-        addNotification("Error loading profile", "error");
+        addNotification(response.message || "Error loading profile", "error");
+        setProfile(null);
       }
     } catch (error) {
       console.error("Error loading profile:", error);
