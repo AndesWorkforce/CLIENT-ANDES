@@ -1,8 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { X } from "lucide-react";
 import { AndiAvatar } from "./AndiAvatar";
+import { ChatLauncherButton } from "./ChatLauncherButton";
 import {
   buildGuestIdentifier,
   type ChatVisitor,
@@ -118,21 +118,11 @@ export function GuestChatForm({ onSubmit }: GuestChatFormProps) {
         </form>
       )}
 
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="relative flex h-[120px] w-[120px] items-center justify-center transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-[#0097B2]/30"
-        aria-label={open ? "Close chat form" : "Open chat with Andy"}
-        aria-expanded={open}
-      >
-        {open ? (
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--andes-blue)] text-white shadow-lg">
-            <X className="h-6 w-6" />
-          </span>
-        ) : (
-          <AndiAvatar greeting />
-        )}
-      </button>
+      <ChatLauncherButton
+        isOpen={open}
+        onToggle={() => setOpen((prev) => !prev)}
+        ariaLabel={open ? "Close chat form" : "Open chat with Andy"}
+      />
     </div>
   );
 }

@@ -10,8 +10,8 @@ type AndiAvatarProps = {
 };
 
 const POSES = {
-  head: "/andi/cabeza_recorte_rectangular.png",
-  greeting: "/andi/hiker_sin_fondo.gif",
+  head: "/chatbot/andy-still.png",
+  greeting: "/chatbot/andy-wave.gif",
 };
 
 const GREETING_DURATION_MS = 3800;

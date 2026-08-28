@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { RotateCcw, X } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import {
   closeChatwootWidget,
   enterChatwootConversationView,
@@ -14,16 +14,18 @@ import {
   type ChatwootIdentity,
 } from "./chatwoot-sdk";
 import { useChatwootSessions } from "./useChatwootSessions";
-import { AndiAvatar } from "./AndiAvatar";
+import { ChatLauncherButton } from "./ChatLauncherButton";
 
 interface ChatwootWidgetProps {
   identity: ChatwootIdentity;
+  autoOpen?: boolean;
   onUnavailable?: () => void;
   onChangeVisitor?: () => void;
 }
 
 export function ChatwootWidget({
   identity,
+  autoOpen = false,
   onUnavailable,
   onChangeVisitor,
 }: ChatwootWidgetProps) {
@@ -145,6 +147,7 @@ export function ChatwootWidget({
     <ChatLauncher
       sdkReady={sdkReady}
       identity={identity}
+      autoOpen={autoOpen}
       onChangeVisitor={onChangeVisitor}
     />
   );
@@ -153,6 +156,7 @@ export function ChatwootWidget({
 interface ChatLauncherProps {
   sdkReady: boolean;
   identity: ChatwootIdentity;
+  autoOpen?: boolean;
   onChangeVisitor?: () => void;
 }
 
@@ -253,18 +257,35 @@ function RestartConversationButton({
   );
 }
 
-function ChatLauncher({ sdkReady, identity, onChangeVisitor }: ChatLauncherProps) {
-  const [chatOpen, setChatOpen] = useState(false);
+function ChatLauncher({
+  sdkReady,
+  identity,
+  autoOpen = false,
+  onChangeVisitor,
+}: ChatLauncherProps) {
+  const [chatOpen, setChatOpen] = useState(autoOpen);
   const [isStartingSession, setIsStartingSession] = useState(false);
+  const pendingOpenRef = useRef(autoOpen);
+  const bootstrappedSessionRef = useRef(false);
+  const ignoreClosedUntilRef = useRef(0);
+  const identityRef = useRef(identity);
+  identityRef.current = identity;
   const { humanConversations, refresh } = useChatwootSessions(
     sdkReady && identity.kind === "contractor",
   );
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
   const agentTookOver = humanConversations.length > 0;
   const widgetRect = useChatwootHolderRect(sdkReady);
 
   useEffect(() => {
     const onOpened = () => setChatOpen(true);
-    const onClosed = () => setChatOpen(false);
+    const onClosed = () => {
+      if (Date.now() < ignoreClosedUntilRef.current) {
+        return;
+      }
+      setChatOpen(false);
+    };
     window.addEventListener("chatwoot:opened", onOpened);
     window.addEventListener("chatwoot:closed", onClosed);
     return () => {
@@ -272,6 +293,44 @@ function ChatLauncher({ sdkReady, identity, onChangeVisitor }: ChatLauncherProps
       window.removeEventListener("chatwoot:closed", onClosed);
     };
   }, []);
+
+  const openAndySession = async (forceNew: boolean) => {
+    const currentIdentity = identityRef.current;
+    const identifierHash = await fetchChatwootIdentityHash(currentIdentity);
+    const startFresh =
+      forceNew ||
+      (!bootstrappedSessionRef.current &&
+        (autoOpen || currentIdentity.kind !== "contractor" || !agentTookOver));
+
+    if (startFresh) {
+      await startNewChatwootSession(currentIdentity, identifierHash);
+    } else {
+      await openChatwootWidget(currentIdentity, identifierHash);
+    }
+
+    bootstrappedSessionRef.current = true;
+    ignoreClosedUntilRef.current = Date.now() + 1500;
+    setChatOpen(true);
+    void refreshRef.current();
+  };
+
+  useEffect(() => {
+    if (!sdkReady || !pendingOpenRef.current) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      await openAndySession(true);
+      if (cancelled) return;
+      pendingOpenRef.current = false;
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sdkReady]);
 
   const syncIdentity = async (): Promise<string | undefined> => {
     const identifierHash = await fetchChatwootIdentityHash(identity);
@@ -281,15 +340,13 @@ function ChatLauncher({ sdkReady, identity, onChangeVisitor }: ChatLauncherProps
 
   const handleToggleChat = async () => {
     if (chatOpen) {
+      pendingOpenRef.current = false;
       closeChatwootWidget();
       setChatOpen(false);
       return;
     }
 
-    const identifierHash = await syncIdentity();
-    await openChatwootWidget(identity, identifierHash);
-    setChatOpen(true);
-    refresh();
+    await openAndySession(false);
   };
 
   const handleNewSession = async () => {
@@ -299,6 +356,7 @@ function ChatLauncher({ sdkReady, identity, onChangeVisitor }: ChatLauncherProps
     try {
       const identifierHash = await syncIdentity();
       await startNewChatwootSession(identity, identifierHash);
+      bootstrappedSessionRef.current = true;
       setChatOpen(true);
       window.setTimeout(refresh, 1500);
     } finally {
@@ -327,28 +385,16 @@ function ChatLauncher({ sdkReady, identity, onChangeVisitor }: ChatLauncherProps
             Change email
           </button>
         )}
-        <button
-          type="button"
-          onClick={handleToggleChat}
-          className="relative flex h-[120px] w-[120px] items-center justify-center transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-[#0097B2]/30"
-          aria-label={chatOpen ? "Close chat" : "Open chat with Andy"}
-          aria-expanded={chatOpen}
-          aria-busy={!sdkReady}
+        <ChatLauncherButton
+          isOpen={chatOpen}
+          isLoading={!sdkReady && !chatOpen}
+          onToggle={() => {
+            void handleToggleChat();
+          }}
           disabled={!sdkReady && !chatOpen}
-        >
-          {chatOpen ? (
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--andes-blue)] text-white shadow-lg">
-              <X className="h-6 w-6" />
-            </span>
-          ) : (
-            <AndiAvatar greeting />
-          )}
-          {humanConversations.length > 0 && !chatOpen && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-              {humanConversations.length}
-            </span>
-          )}
-        </button>
+          ariaLabel={chatOpen ? "Close chat" : "Open chat with Andy"}
+          badge={humanConversations.length}
+        />
       </div>
     </>
   );

@@ -35,6 +35,7 @@ export function ChatProvider() {
   const { hasAccess, isLoading, user } = useChatAccess();
   const [chatwootFailed, setChatwootFailed] = useState(false);
   const [visitor, setVisitor] = useState<ChatVisitor | null>(null);
+  const [openChatAfterGuest, setOpenChatAfterGuest] = useState(false);
   const handleChatwootUnavailable = useCallback(() => {
     setChatwootFailed(true);
   }, []);
@@ -45,12 +46,14 @@ export function ChatProvider() {
 
   const handleGuestSubmit = (nextVisitor: ChatVisitor) => {
     saveChatVisitor(nextVisitor);
+    setOpenChatAfterGuest(true);
     setVisitor(nextVisitor);
   };
 
   const handleChangeVisitor = () => {
     clearChatVisitor();
     setVisitor(null);
+    setOpenChatAfterGuest(false);
     setChatwootFailed(false);
   };
 
@@ -82,6 +85,7 @@ export function ChatProvider() {
     return (
       <ChatwootWidget
         identity={visitorToIdentity(visitor)}
+        autoOpen={openChatAfterGuest}
         onUnavailable={handleChatwootUnavailable}
         onChangeVisitor={handleChangeVisitor}
       />

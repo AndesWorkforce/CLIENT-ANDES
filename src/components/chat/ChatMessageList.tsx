@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { ChatMessage } from "./useChat";
 import { cn } from "@/lib/utils";
 import { AndiAvatar } from "./AndiAvatar";
+import { TypingDots } from "./TypingDots";
 
 interface ChatMessageListProps {
   messages: ChatMessage[];
@@ -42,12 +43,13 @@ export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
       ))}
 
       {isLoading && (
-        <div className="flex justify-start">
-          <div className="bg-gray-100 text-gray-500 rounded-2xl rounded-bl-md px-4 py-2.5 text-sm">
-            <span className="inline-flex items-center gap-1">
-              Typing
-              <span className="animate-pulse">...</span>
-            </span>
+        <div className="flex items-end justify-start gap-2">
+          <AndiAvatar compact />
+          <div
+            className="flex items-center rounded-2xl rounded-bl-md bg-gray-100 px-4 py-3"
+            aria-label="Andy is typing"
+          >
+            <TypingDots />
           </div>
         </div>
       )}

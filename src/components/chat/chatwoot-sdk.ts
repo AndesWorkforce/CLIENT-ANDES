@@ -275,9 +275,10 @@ export async function startNewChatwootSession(
 
   api.reset();
   getChatwootIframe()?.removeAttribute("data-andes-chat-view");
-  await new Promise((resolve) => window.setTimeout(resolve, 200));
+  await new Promise((resolve) => window.setTimeout(resolve, 600));
   await ensureChatwootIdentity(resolved, hash);
   await openConversationComposer();
   api.toggle("open");
   window.setTimeout(enterChatwootConversationView, 300);
+  window.setTimeout(enterChatwootConversationView, 900);
 }

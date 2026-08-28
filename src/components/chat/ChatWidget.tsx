@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, RotateCcw } from "lucide-react";
+import { ChatLauncherButton } from "./ChatLauncherButton";
 import Link from "next/link";
 import type { User } from "@/store/auth.store";
 import { ChatMessageList } from "./ChatMessageList";
@@ -88,26 +89,11 @@ export function ChatWidget({ user }: ChatWidgetProps) {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="relative flex h-[120px] w-[120px] items-center justify-center transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-[#0097B2]/30"
-        aria-label={isOpen ? "Close chat" : "Open chat assistant"}
-        aria-expanded={isOpen}
-      >
-        {isOpen ? (
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--andes-blue)] text-white shadow-lg">
-            <X className="h-6 w-6" />
-          </span>
-        ) : (
-          <>
-            <span className="absolute -left-36 top-1/2 z-20 hidden -translate-y-1/2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg sm:block">
-              Need help? Chat with Andy
-            </span>
-            <AndiAvatar greeting />
-          </>
-        )}
-      </button>
+      <ChatLauncherButton
+        isOpen={isOpen}
+        onToggle={() => setIsOpen((prev) => !prev)}
+        ariaLabel={isOpen ? "Close chat" : "Open chat assistant"}
+      />
     </div>
   );
 }
