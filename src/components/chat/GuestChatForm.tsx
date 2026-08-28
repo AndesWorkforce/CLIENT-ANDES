@@ -35,7 +35,7 @@ export function GuestChatForm({ onSubmit }: GuestChatFormProps) {
     onSubmit({
       email: normalized,
       kind,
-      identifier: buildGuestIdentifier(normalized),
+      identifier: buildGuestIdentifier(normalized, kind),
     });
   };
 

@@ -8,8 +8,12 @@ export interface ChatVisitor {
 
 const STORAGE_KEY = "andes-chat-visitor";
 
-export function buildGuestIdentifier(email: string): string {
-  return `guest:${email.trim().toLowerCase()}`;
+export function buildGuestIdentifier(
+  email: string,
+  kind?: ChatVisitorKind,
+): string {
+  const normalized = email.trim().toLowerCase();
+  return kind ? `guest:${kind}:${normalized}` : `guest:${normalized}`;
 }
 
 export function loadChatVisitor(): ChatVisitor | null {
@@ -33,7 +37,7 @@ export function loadChatVisitor(): ChatVisitor | null {
     return {
       email,
       kind: parsed.kind,
-      identifier: buildGuestIdentifier(email),
+      identifier: buildGuestIdentifier(email, parsed.kind),
     };
   } catch {
     return null;
