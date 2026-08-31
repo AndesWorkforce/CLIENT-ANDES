@@ -92,6 +92,22 @@ export async function loginAction(values: LoginFormValues) {
       // Si el inicio de sesión fue exitoso, establecer cookies
       if (data && data.data) {
         const userData = data.data.usuario || data.data;
+        const roles = Array.isArray(userData?.roles) ? userData.roles : [];
+        // Multi-rol sin elección: no crear sesión todavía. Si seteamos
+        // auth_token aquí, el middleware ve EMPLEADO_EMPRESA en /auth/login
+        // y manda al dashboard de empresa sin pasar por select-role ni MFA.
+        if (roles.length > 1 && !selectedRole) {
+          console.log(
+            "[loginAction] deferring session cookies until role selection",
+            { roles, activeRole: userData?.rol }
+          );
+          return {
+            success: true,
+            needsRoleSelection: true,
+            data: data.data,
+          };
+        }
+
         const token = data.data.accessToken || "default-token-placeholder";
         try {
           // Establecer cookie para el token (HTTP-only para seguridad)
