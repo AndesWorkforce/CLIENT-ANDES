@@ -227,35 +227,20 @@ export default function LoginForm() {
           const selectedWasProvided = Boolean((data as any).selectedRole);
 
           // Multi-rol sólo si hay 2 o más roles
-          if (rolesFromResponse.length > 1 && !selectedWasProvided) {
+          if (
+            (rolesFromResponse.length > 1 ||
+              (result as { needsRoleSelection?: boolean }).needsRoleSelection) &&
+            !selectedWasProvided
+          ) {
             try {
-              // Pre-cargar sesión local para que la vista de selección tenga contexto inmediatamente
-              if (user) {
-                try {
-                  // Guardar en store
-                  setUser(user);
-                  setAuthenticated(true);
-                  if (result.data?.accessToken)
-                    setToken(result.data?.accessToken);
-                  // Guardar cookie legible por el cliente usada como fallback en select-role
-                  const userInfo = encodeURIComponent(JSON.stringify(user));
-                  // 7 días
-                  document.cookie = `user_info=${userInfo}; path=/; max-age=${
-                    7 * 24 * 60 * 60
-                  }; samesite=strict`;
-                } catch (e) {
-                  console.warn(
-                    "[Login] could not prime local session before role selection",
-                    e
-                  );
-                }
-              }
               const payload = JSON.stringify({
                 correo: data.correo,
                 contrasena: data.contrasena,
-                roles: rolesFromResponse,
+                roles:
+                  rolesFromResponse.length > 0
+                    ? rolesFromResponse
+                    : [user?.rol].filter(Boolean),
               });
-              // Store plaintext payload to avoid CryptoJS issues
               sessionStorage.setItem("andes_pending_login", payload);
             } catch (e) {
               console.error("Error preparing pending login payload", e);
@@ -318,11 +303,30 @@ export default function LoginForm() {
             loginError.message.includes("307") ||
             loginError.message.includes("redirect"))
         ) {
-          // Flujo de redirección: intentar hidratar store desde cookie antes de redirigir
           const cookieUser = hydrateStoreFromCookieIfNeeded();
+          const redirectRoles = Array.isArray(cookieUser?.roles)
+            ? cookieUser.roles
+            : cookieUser?.rol
+              ? [cookieUser.rol]
+              : [];
+          if (redirectRoles.length > 1 && !(data as { selectedRole?: string }).selectedRole) {
+            try {
+              sessionStorage.setItem(
+                "andes_pending_login",
+                JSON.stringify({
+                  correo: data.correo,
+                  contrasena: data.contrasena,
+                  roles: redirectRoles,
+                })
+              );
+            } catch (e) {
+              console.error("Error preparing pending login payload", e);
+            }
+            router.push("/auth/login/select-role");
+            return;
+          }
           if (cookieUser) {
             addNotification("Successfully logged in", "success");
-            // Determinar destino según rol hidratrado
             const r = cookieUser?.rol;
             if (r === "EMPRESA" || r === "EMPLEADO_EMPRESA") {
               safeRedirect("/companies/dashboard");
