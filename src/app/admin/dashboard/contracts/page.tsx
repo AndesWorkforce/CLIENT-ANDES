@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getContracts,
   finalizarContrato,
@@ -185,6 +185,9 @@ export default function ContractsPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const mfaNotifiedRef = useRef(false);
   const [selectedClient, setSelectedClient] = useState<string>("");
   // Rows per page control
   const [rowsPerPage, setRowsPerPage] = useState<number>(15);
@@ -213,31 +216,58 @@ export default function ContractsPage() {
       const response = await getContracts(
         currentPage,
         rowsPerPage,
-        searchQuery
+        debouncedSearch
       );
       if (response.success && response.data) {
+        setLoadError(null);
         setContracts(response.data.resultados);
         setTotalPages(response.totalPages || 1);
       } else {
         setContracts([]);
         setTotalPages(1);
+        const isMfa =
+          response.status === 403 ||
+          String(response.message || "")
+            .toLowerCase()
+            .includes("mfa");
+        setLoadError(
+          isMfa
+            ? "MFA verification required. Log out, sign in as Admin and complete the authenticator code."
+            : response.message || "Could not load contracts."
+        );
+        if (isMfa && !mfaNotifiedRef.current) {
+          mfaNotifiedRef.current = true;
+          addNotification(
+            "MFA verification required. Please log in again as Admin and complete 2FA.",
+            "error"
+          );
+        }
       }
     } catch (error) {
       console.error("Error fetching contracts:", error);
       setContracts([]);
       setTotalPages(1);
+      setLoadError("Could not load contracts.");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
     loadContracts();
-  }, [currentPage, searchQuery, rowsPerPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearch, rowsPerPage]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(1);
   };
 
   const handleClientFilterChange = (
@@ -1456,8 +1486,8 @@ export default function ContractsPage() {
                 </div>
               </>
             ) : (
-              <div className="h-full flex items-center justify-center text-gray-500">
-                No contracts found.
+              <div className="h-full flex items-center justify-center text-gray-500 px-4 text-center">
+                {loadError || "No contracts found."}
               </div>
             )}
           </div>
@@ -1895,8 +1925,8 @@ export default function ContractsPage() {
               )}
             </>
           ) : (
-            <div className="text-center text-gray-500 mt-4">
-              No contracts found.
+            <div className="text-center text-gray-500 mt-4 px-4">
+              {loadError || "No contracts found."}
             </div>
           )}
         </div>

@@ -152,4 +152,6 @@ export interface GetContractsResponse {
     total: number;
   };
   totalPages: number;
+  message?: string;
+  status?: number;
 }
