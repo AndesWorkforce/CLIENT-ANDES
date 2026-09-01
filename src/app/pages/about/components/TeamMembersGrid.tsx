@@ -125,7 +125,7 @@ export default function TeamMembersGrid({
       {/* Dark teal overlay */}
       <div className="absolute inset-0 bg-[rgba(4,78,92,0.72)]" />
 
-      <div className="relative z-10 max-w-[1440px] mx-auto px-[21px] sm:px-[80px] flex flex-col gap-[22px] sm:gap-[55px] items-center">
+      <div className="relative z-10 max-w-[1092px] mx-auto px-[21px] sm:px-[49px] flex flex-col gap-[22px] sm:gap-[55px] items-center">
         {/* Centered header */}
         <div className="flex flex-col gap-[11px] items-center text-center">
           <h2 className="text-[24px] sm:text-[48px] font-bold text-white leading-[1.3]">
@@ -206,7 +206,7 @@ function MemberCard({
       className="flex flex-col cursor-pointer rounded-[15px] overflow-hidden hover:scale-[1.02] transition-transform h-full"
     >
       {/* Photo */}
-      <div className="relative w-full h-[204px] sm:h-[380px] bg-gray-200 rounded-tl-[15px] rounded-tr-[15px]">
+      <div className="relative w-full h-[204px] sm:h-[309px] bg-gray-200 rounded-tl-[15px] rounded-tr-[15px]">
         {member.image ? (
           <img
             src={member.image}

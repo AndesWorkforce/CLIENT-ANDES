@@ -35,7 +35,7 @@ const values = [
 export default function ValuesSection() {
   return (
     <section className="w-full bg-white py-8 sm:py-24">
-      <div className="max-w-[1440px] mx-auto px-[18px] sm:px-10 md:px-20">
+      <div className="max-w-[1092px] mx-auto px-[18px] sm:px-6">
         {/* Header */}
         <div className="text-center mb-[22px] sm:mb-10">
           <h2 className="text-[24px] sm:text-4xl md:text-[48px] font-bold text-[#343434] leading-[1.3]">
@@ -59,6 +59,7 @@ export default function ValuesSection() {
                   src={value.icon}
                   alt={value.title}
                   fill
+                  unoptimized
                   className="object-cover"
                 />
               </div>

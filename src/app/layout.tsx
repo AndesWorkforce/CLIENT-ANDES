@@ -93,32 +93,29 @@ export const metadata: Metadata = {
       "Andes Workforce connects businesses with skilled LATAM professionals through remote staffing, recruitment, and workforce management.",
     images: [
       {
-        url: "/logo.png",
-        width: 800,
-        height: 600,
+        url: "/icon-512.png",
+        width: 512,
+        height: 512,
         alt: "Andes Workforce Logo",
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Andes Workforce | HR Management",
     description:
       "Talent solutions across LATAM: remote staffing, recruitment, and workforce management.",
     creator: "@andesworkforce",
-    images: ["/logo.png"],
+    images: ["/icon-512.png"],
   },
   icons: {
     icon: [
-      { url: "/logo.png", type: "image/png" },
-      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48", type: "image/x-icon" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: "/logo.png",
-    apple: "/logo.png",
-    other: {
-      rel: "icon",
-      url: "/logo.png",
-    },
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 

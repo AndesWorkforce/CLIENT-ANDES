@@ -3,7 +3,7 @@ import Image from "next/image";
 const stats = [
   { value: "+300", label: "Global Contractors" },
   { value: "+12", label: "Countries" },
-  { value: "+15", label: "U.S.-based clients" },
+  { value: "+15", label: "U.S.- based clients" },
 ];
 
 export default function StatsSection() {
@@ -20,10 +20,10 @@ export default function StatsSection() {
       {/* Dark teal overlay */}
       <div className="absolute inset-0 bg-[rgba(4,78,92,0.7)]" />
 
-      <div className="relative z-10 max-w-[1440px] mx-auto px-[21px] sm:px-10 md:px-20 flex flex-col gap-8 sm:gap-16 items-center">
+      <div className="relative z-10 max-w-[1074px] mx-auto px-[21px] sm:px-10 flex flex-col gap-8 sm:gap-[59px] items-center">
         {/* Title */}
         <h2 className="text-[24px] sm:text-4xl md:text-[48px] font-bold text-white text-center leading-[1.3]">
-          Growing with results
+          Growing with <span className="text-[#22bcd8]">results</span>
         </h2>
 
         {/* Stats grid */}
