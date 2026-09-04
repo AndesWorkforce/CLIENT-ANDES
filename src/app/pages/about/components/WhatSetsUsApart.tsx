@@ -49,8 +49,9 @@ export default function WhatSetsUsApart() {
             <FadeIn
               key={idx}
               delay={1 + idx * 0.25}
-              className="bg-[rgba(4,78,92,0.06)] rounded-[12px] px-[22px] py-[44px] sm:px-6 sm:py-11 flex flex-col gap-[11px] sm:gap-3"
+              className="origin-center"
             >
+              <div className="flex origin-center flex-col gap-[11px] rounded-[12px] bg-[rgba(4,78,92,0.06)] px-[22px] py-[44px] transition-transform duration-300 ease-out motion-safe:hover:scale-[1.03] hover:shadow-lg sm:gap-3 sm:px-6 sm:py-11">
               {/* Title row */}
               <div className="flex items-center gap-2">
                 <div className="relative w-[45px] h-[45px] shrink-0 mix-blend-darken">
@@ -73,6 +74,7 @@ export default function WhatSetsUsApart() {
               <p className="text-[14px] sm:text-lg md:text-[20px] font-normal text-black leading-[1.5] tracking-[0.28px]">
                 {item.description}
               </p>
+              </div>
             </FadeIn>
           ))}
         </div>

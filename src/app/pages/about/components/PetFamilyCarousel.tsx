@@ -135,7 +135,7 @@ export default function PetFamilyCarousel({ petMembers }: PetFamilyCarouselProps
                 className="flex-shrink-0 px-3"
                 style={{ width: `${100 / visibleCount}%` }}
               >
-                <div className="flex flex-col rounded-[15px] overflow-hidden bg-white shadow-sm h-full">
+                <div className="flex h-full origin-center flex-col overflow-hidden rounded-[15px] bg-white shadow-sm transition-transform duration-300 ease-out motion-safe:hover:scale-[1.03] hover:shadow-lg">
                   {/* Rectangular Image */}
                   <div className="relative h-[204px] w-full flex-shrink-0">
                     {pet.image ? (

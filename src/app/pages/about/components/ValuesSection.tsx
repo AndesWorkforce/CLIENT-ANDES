@@ -51,13 +51,14 @@ export default function ValuesSection() {
         </FadeIn>
 
         {/* Cards — horizontal scroll on mobile, grid on desktop */}
-        <div className="flex overflow-x-auto gap-[22px] pb-2 md:grid md:grid-cols-3 lg:grid-cols-5 md:overflow-visible md:gap-8 md:pb-0">
+        <div className="flex overflow-x-auto gap-[22px] py-3 md:grid md:grid-cols-3 lg:grid-cols-5 md:overflow-visible md:gap-8">
           {values.map((value, index) => (
             <FadeIn
               key={value.title}
               delay={0.5 + index * 0.24}
-              className="bg-white rounded-[12px] shadow-[0px_4px_2px_rgba(167,162,162,0.25)] flex-shrink-0 w-[157px] px-[22px] py-[33px] md:flex-shrink md:w-auto md:px-6 md:py-8 flex flex-col gap-3"
+              className="flex-shrink-0 w-[157px] origin-center md:flex-shrink md:w-auto"
             >
+              <div className="flex h-full origin-center flex-col gap-3 rounded-[12px] bg-white px-[22px] py-[33px] shadow-[0px_4px_2px_rgba(167,162,162,0.25)] transition-transform duration-300 ease-out motion-safe:hover:scale-[1.03] hover:shadow-lg md:px-6 md:py-8">
               <div className="relative w-[50px] h-[50px] md:w-[89px] md:h-[89px]">
                 <Image
                   src={value.icon}
@@ -73,6 +74,7 @@ export default function ValuesSection() {
               <p className="text-black text-[12px] font-normal leading-[1.3] tracking-[0.24px]">
                 {value.description}
               </p>
+              </div>
             </FadeIn>
           ))}
         </div>

@@ -7,6 +7,7 @@ import { z } from "zod";
 import { ChevronDown, CircleCheck } from "lucide-react";
 import { submitContactFormMicrosoft } from "@/app/pages/contact/actions/microsoft-email-actions";
 import { servicesAssets } from "../services-assets";
+import { FadeIn, SlideIn } from "../../about/components/Reveal";
 
 interface Country {
   country: string;
@@ -30,7 +31,7 @@ const offersContactSchema = z.object({
 type OffersContactValues = z.infer<typeof offersContactSchema>;
 
 const inputClassName =
-  "w-full h-[50px] bg-white border border-[#C8C8C8] rounded-[8px] px-[16px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2]";
+  "w-full h-[50px] bg-white border border-[#EFEFEF] lg:border-[#C8C8C8] rounded-[8px] px-[16px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2]";
 
 const labelClassName =
   "absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]";
@@ -164,94 +165,95 @@ export default function ContactFormSection() {
       id="contact-form"
       className="relative w-full overflow-hidden lg:h-[749px]"
     >
-      {/* Full-bleed background image */}
-      <img
-        src={servicesAssets.contactHeroBg}
-        alt=""
-        aria-hidden
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-      <div
-        className="absolute inset-0"
-        aria-hidden
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(4,78,92,0.82) 18%, rgba(5,100,117,0.72) 52%, rgba(8,166,194,0.35) 78%)",
-        }}
-      />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[350px] lg:inset-0 lg:h-full">
+        <img
+          src={servicesAssets.contactHeroBg}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div
+          className="absolute inset-0"
+          aria-hidden
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(4,78,92,0.82) 18%, rgba(5,100,117,0.72) 52%, rgba(8,166,194,0.35) 78%)",
+          }}
+        />
+      </div>
 
       <div className="relative z-10 flex w-full flex-col lg:h-[749px] lg:flex-row">
-        {/* Left — copy */}
-        <div className="flex w-full items-center px-6 py-12 md:px-[79px] md:py-[169px] lg:w-[52%] lg:shrink-0">
-          <div className="flex max-w-[574px] flex-col gap-5">
-            <div className="inline-flex w-fit items-center gap-[7px] rounded-[20px] border border-white bg-[rgba(255,255,255,0.22)] px-[14px] py-[7px]">
+        <div className="flex h-[350px] w-full items-center px-[18px] py-[44px] lg:h-auto lg:w-[52%] lg:shrink-0 lg:px-[79px] lg:py-[169px]">
+          <FadeIn className="flex w-full max-w-[574px] flex-col gap-4 lg:gap-5">
+            <div className="inline-flex w-fit items-center gap-[7px] rounded-[20px] border border-white bg-[rgba(255,255,255,0.22)] px-[11px] py-[7px] lg:px-[14px]">
               <CircleCheck
-                className="h-[25px] w-[25px] text-[#4ADE80]"
+                className="h-[17px] w-[17px] text-[#4ADE80] lg:h-[25px] lg:w-[25px]"
                 strokeWidth={2.5}
                 aria-hidden
               />
-              <span className="text-[16px] font-semibold leading-[1.3] text-white">
+              <span className="text-[12px] font-semibold leading-[1.3] text-white lg:text-[16px]">
                 Available now
               </span>
             </div>
 
-            <h2 className="text-[32px] font-bold leading-[1.3] text-white md:text-[48px]">
-              Let&apos;s build your team-together
+            <h2 className="text-[24px] font-bold leading-[1.3] text-white lg:text-[48px]">
+              Let&apos;s build your team-
+              <span className="text-white lg:text-[#89e9fa]">together</span>
             </h2>
 
-            <p className="text-[16px] font-medium leading-[1.2] text-white md:text-[20px]">
+            <p className="text-[16px] font-medium leading-[1.2] text-white lg:text-[20px]">
               Our team typically replies within 24 hours with role-matched
               candidates and pricing
             </p>
 
-            <div className="flex max-w-[574px] flex-col gap-[29px]">
+            <div className="flex max-w-[574px] flex-col gap-[22px] lg:gap-[29px]">
               <div className="h-px w-full bg-white/30" />
 
-              <div className="flex flex-wrap items-start gap-x-8 gap-y-4 md:flex-nowrap">
-                <div className="flex w-[145px] flex-col gap-[3px]">
-                  <p className="text-[24px] font-bold leading-[1.3] text-white">
+              <div className="flex items-start gap-[11px] lg:flex-nowrap lg:gap-x-8">
+                <div className="flex min-w-0 flex-col gap-[3px]">
+                  <p className="text-[20px] font-bold leading-[1.3] text-white lg:text-[24px]">
                     +300
                   </p>
-                  <p className="text-[18px] font-semibold leading-[1.3] text-white">
+                  <p className="text-[14px] font-semibold leading-[1.3] text-white lg:text-[18px]">
                     Contractors
                   </p>
                 </div>
 
-                <div className="h-[78px] w-px bg-white/30" />
+                <div className="h-[78px] w-px shrink-0 bg-white/30" />
 
-                <div className="flex w-[145px] flex-col gap-[3px]">
-                  <p className="text-[24px] font-bold leading-[1.3] text-white">
+                <div className="flex min-w-0 flex-col gap-[3px]">
+                  <p className="text-[20px] font-bold leading-[1.3] text-white lg:text-[24px]">
                     +15
                   </p>
-                  <p className="text-[18px] font-semibold leading-[1.3] text-white">
+                  <p className="text-[14px] font-semibold leading-[1.3] text-white lg:text-[18px]">
                     US-based clients
                   </p>
                 </div>
 
-                <div className="h-[78px] w-px bg-white/30" />
+                <div className="h-[78px] w-px shrink-0 bg-white/30" />
 
-                <div className="flex w-[145px] flex-col gap-[3px]">
-                  <p className="text-[24px] font-bold leading-[1.3] text-white">
+                <div className="flex min-w-0 flex-col gap-[3px]">
+                  <p className="text-[20px] font-bold leading-[1.3] text-white lg:text-[24px]">
                     24 h
                   </p>
-                  <p className="text-[18px] font-semibold leading-[1.3] text-white">
+                  <p className="text-[14px] font-semibold leading-[1.3] text-white lg:text-[18px]">
                     Response
                   </p>
                 </div>
               </div>
             </div>
-          </div>
+          </FadeIn>
         </div>
 
-        {/* Right — form card */}
-        <div className="flex w-full items-start justify-center px-6 py-12 lg:h-[749px] lg:w-[48%] lg:shrink-0 lg:px-[77px] lg:py-[48px]">
-          <div className="w-full max-w-[552px] rounded-[24px] bg-white px-6 py-10 shadow-[7px_10px_10px_rgba(195,195,195,0.5)] md:px-[36px] md:py-[66px]">
-            <div className="flex flex-col gap-[66px]">
+        <div className="flex w-full items-start justify-center bg-[#F6FBFC] px-[19px] py-[44px] lg:h-[749px] lg:w-[48%] lg:shrink-0 lg:bg-transparent lg:px-[77px] lg:py-[48px]">
+          <SlideIn from="right" offset={900} delay={0.42} className="w-full max-w-[552px]">
+          <div className="w-full origin-center rounded-[24px] bg-white px-[22px] pb-[22px] pt-[33px] shadow-[7px_10px_10px_rgba(195,195,195,0.5)] lg:px-[36px] lg:py-[66px] lg:transition-transform lg:duration-300 lg:ease-out lg:motion-safe:hover:scale-[1.03] lg:hover:shadow-xl">
+            <div className="flex flex-col gap-[22px] lg:gap-[66px]">
               <div className="flex flex-col gap-[11px]">
-                <h3 className="text-[32px] font-bold leading-[1.3] text-black">
+                <h3 className="text-[24px] font-bold leading-[1.3] text-black lg:text-[32px]">
                   Contact Us
                 </h3>
-                <p className="text-[16px] font-medium leading-[1.2] text-black">
+                <p className="text-[14px] font-medium leading-[1.2] text-black lg:text-[16px]">
                   Fill out for a consultation. Our Andes Workforce team typically
                   reaches out within 24 hours.
                 </p>
@@ -259,9 +261,9 @@ export default function ContactFormSection() {
 
               <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="flex flex-col gap-[66px]"
+                className="flex flex-col gap-[22px] lg:gap-[66px]"
               >
-                <div className="flex flex-col gap-[11px]">
+                <div className="flex flex-col gap-[7px] lg:gap-[11px]">
                   {formResponse && (
                     <div
                       className={`mb-2 rounded-lg p-3 text-sm font-medium ${
@@ -329,7 +331,7 @@ export default function ContactFormSection() {
                         />
                       )}
                     </div>
-                    <label className={labelClassName}>Country</label>
+                    <label className={labelClassName}>Country*</label>
                     {errors.country && (
                       <p className="absolute -bottom-5 left-0 text-xs text-red-500">
                         {errors.country.message}
@@ -344,7 +346,7 @@ export default function ContactFormSection() {
                       {...register("phone")}
                       className={`absolute top-[9px] ${inputClassName}`}
                     />
-                    <label className={labelClassName}>Phone</label>
+                    <label className={labelClassName}>Phone*</label>
                   </div>
                 </div>
 
@@ -358,6 +360,7 @@ export default function ContactFormSection() {
               </form>
             </div>
           </div>
+          </SlideIn>
         </div>
       </div>
     </section>

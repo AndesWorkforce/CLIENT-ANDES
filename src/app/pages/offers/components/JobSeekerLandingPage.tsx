@@ -2,7 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Briefcase, Globe, TrendingUp, Shield, Clock, Award } from "lucide-react";
+import {
+  Award,
+  Briefcase,
+  Clock,
+  Globe,
+  Shield,
+  TrendingUp,
+  type LucideIcon,
+} from "lucide-react";
+import { FadeIn, SlideIn, ABOUT_MOTION } from "../../about/components/Reveal";
+
+const BANNER_SRC =
+  "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/04.+Join+Our+Team/Banner.webp";
 
 const steps = [
   {
@@ -27,39 +39,50 @@ const steps = [
   },
 ];
 
-const benefits = [
+const benefits: {
+  icon: LucideIcon;
+  iconSize: number;
+  title: string;
+  description: string;
+}[] = [
   {
     icon: Globe,
+    iconSize: 24,
     title: "100% Remote Work",
     description:
       "Work from anywhere in Latin America with top US and international companies",
   },
   {
     icon: Briefcase,
+    iconSize: 24,
     title: "Competitive Salaries",
     description:
       "Earn between $1,000 – $3,000 USD per month, paid consistently and on time",
   },
   {
     icon: TrendingUp,
+    iconSize: 21,
     title: "Career Growth",
     description:
       "Access mentorship, training, and a clear path to advance professionally",
   },
   {
     icon: Shield,
+    iconSize: 24,
     title: "Safe & Secure",
     description:
       "Formal contracts, legal compliance, and full HR support throughout your employment",
   },
   {
     icon: Clock,
+    iconSize: 21,
     title: "Flexible Opportunities",
     description:
       "Full-time and part-time roles across various industries and specializations",
   },
   {
     icon: Award,
+    iconSize: 24,
     title: "Performance Bonuses",
     description:
       "Earn extra with referral bonuses, performance incentives, and seniority rewards",
@@ -67,22 +90,21 @@ const benefits = [
 ];
 
 const stats = [
-  { value: "50+", label: "Partner Companies" },
-  { value: "300+", label: "Professionals Hired" },
+  { value: "+50", label: "Partner Companies" },
+  { value: "+200", label: "Professionals Hired" },
   { value: "$1K - $3K", label: "Monthly Salary Range" },
-  { value: "15+", label: "Countries Represented" },
+  { value: "+10", label: "Countries Represented" },
 ];
 
 export default function JobSeekerLandingPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero */}
-      <section className="relative w-full h-[500px] md:h-[600px] flex items-end px-6 sm:px-10 md:px-16 py-16 md:pb-20">
+    <div className="min-h-screen overflow-x-hidden bg-white">
+      <section className="relative flex h-[400px] w-full items-center px-[20px] py-16 md:h-[600px] md:px-[82px] md:py-[207px]">
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/04.+Join+Our+Team/Banner.webp"
+            src={BANNER_SRC}
             alt="Team celebrating"
             fill
             className="object-cover object-center"
@@ -91,140 +113,161 @@ export default function JobSeekerLandingPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#08252A]/90 via-[#08252A]/70 to-[#0097B2]/50" />
         </div>
 
-        <div className="relative z-10 max-w-[660px] text-white flex flex-col gap-6 md:gap-8">
-
-          {/* Heading */}
-          <h1 className="text-[34px] sm:text-[46px] md:text-[58px] font-bold leading-tight font-[family-name:var(--font-outfit)]">
-            Launch Your Career{" "}
-            <span className="text-[#00e5ff]">From Latin America</span>
+        <FadeIn
+          duration={ABOUT_MOTION.heroDuration}
+          className="relative z-10 flex max-w-[758px] flex-col gap-[10px] text-white"
+        >
+          <h1 className="text-[32px] font-bold leading-[1.3] md:text-[64px]">
+            Launch Your Career
+            <span className="block text-[#22BCD8]">From Latin America</span>
           </h1>
-
-          {/* Subtitle */}
-          <p className="text-base sm:text-lg text-white/90 leading-relaxed max-w-[560px]">
-            Join hundreds of professionals collaborating remotely with leading U.S. companies. Attractive compensation, clear agreements, and full career support, all from home.
+          <p className="max-w-[758px] text-[14px] font-medium leading-[1.3] md:text-[20px]">
+            Join hundreds of professionals collaborating remotely with leading
+            U.S. companies. Attractive compensation, clear agreements, and full
+            career support, all from home.
           </p>
-
-          {/* CTAs */}
-          <div className="flex flex-wrap gap-4 pt-2">
-            <button
-              onClick={() => router.push("/auth/register")}
-              className="bg-[#0097B2] hover:bg-[#007A8F] text-white px-8 py-3 rounded-[20px] text-base font-semibold transition-colors cursor-pointer shadow-lg"
-            >
-              Get Started Free
-            </button>
-            <button
-              onClick={() => router.push("/auth/login")}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white px-8 py-3 rounded-[20px] text-base font-semibold transition-colors cursor-pointer"
-            >
-              Login
-            </button>
-          </div>
-        </div>
+        </FadeIn>
       </section>
 
-      {/* Stats Bar */}
-      <section className="bg-[#0097B2] py-8">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-white text-center">
+      <section className="bg-[#22BCD8] px-[18px] py-[44px] md:h-[208px] md:px-[84px] md:py-[53px]">
+        <FadeIn>
+          <div className="mx-auto grid max-w-[1440px] grid-cols-2 gap-x-6 gap-y-8 text-white md:flex md:items-start md:justify-between md:gap-[40px] lg:gap-[80px]">
             {stats.map((stat) => (
-              <div key={stat.label} className="flex flex-col gap-1">
-                <span className="text-3xl md:text-4xl font-bold">{stat.value}</span>
-                <span className="text-sm text-white/80">{stat.label}</span>
+              <div key={stat.label} className="flex flex-col gap-[3px]">
+                <span className="text-[32px] font-bold leading-[1.3] md:text-[52px]">
+                  {stat.value}
+                </span>
+                <span className="text-[14px] font-semibold leading-[1.3] md:text-[18px]">
+                  {stat.label}
+                </span>
               </div>
             ))}
           </div>
-        </div>
+        </FadeIn>
       </section>
 
-      {/* How It Works */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-[28px] sm:text-[36px] md:text-[44px] font-bold text-[#08252A] mb-4">
-              How It Works
+      <section className="bg-white px-[18px] py-[44px] md:px-[75px] md:pb-[126px] md:pt-[101px]">
+        <div className="mx-auto flex max-w-[1281px] flex-col items-center gap-[41px]">
+          <FadeIn className="flex flex-col items-center gap-[22px] text-center">
+            <h2 className="text-[24px] font-bold leading-[1.2] text-[#343434] md:text-[52px]">
+              How It <span className="text-[#0097B2]">Works</span>
             </h2>
-            <p className="text-gray-600 max-w-xl mx-auto">
-              From registration to your first paycheck - simple and straightforward
+            <p className="max-w-[906px] text-[14px] font-medium leading-[1.2] text-[#525252] md:text-[22px]">
+              From registration to your first paycheck - simple and
+              straightforward
             </p>
-          </div>
+          </FadeIn>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 max-w-5xl mx-auto">
+          <div className="grid w-full grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0">
             {steps.map((step, i) => (
-              <div
+              <FadeIn
                 key={step.title}
-                className="relative flex flex-col items-center text-center gap-4"
+                delay={0.25 + i * 0.25}
+                className="flex origin-center flex-col items-center gap-[11px] text-center md:transition-transform md:duration-300 md:ease-out md:motion-safe:hover:scale-[1.03]"
               >
-                <div className="w-[73px] h-[73px] rounded-full bg-[#DFFAFF] border-2 border-[#0097B2] flex items-center justify-center flex-shrink-0 z-10">
-                  <span className="text-[#0097B2] font-bold text-[22px]">
+                <div className="flex size-[73px] shrink-0 items-center justify-center rounded-full border border-[#0097B2] bg-[#DFFAFF]">
+                  <span className="text-[22px] font-bold leading-[1.3] text-[#0097B2]">
                     {step.number}
                   </span>
                 </div>
-                <div>
-                  <h3 className="font-bold text-[#08252A] text-[20px] mb-2">{step.title}</h3>
-                  <p className="text-[14px] text-[#707070] leading-relaxed">{step.description}</p>
+                <div className="flex max-w-[261px] flex-col items-center gap-[7px]">
+                  <h3 className="text-[22px] font-bold leading-[1.3] text-black">
+                    {step.title}
+                  </h3>
+                  <p className="max-w-[243px] text-[16px] font-normal leading-[1.3] text-[#707070]">
+                    {step.description}
+                  </p>
                 </div>
-              </div>
+              </FadeIn>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Benefits */}
-      <section className="py-16 md:py-24 bg-[#F4FAFB]">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-[28px] sm:text-[36px] md:text-[44px] font-bold text-[#08252A] mb-4">
-              Why Join Andes Workforce?
+      <section className="bg-[#F6FBFC] px-[18px] py-[44px] md:px-[75px] md:py-[66px]">
+        <div className="mx-auto flex max-w-[1280px] flex-col items-center gap-[44px]">
+          <FadeIn className="flex flex-col items-center gap-[22px] text-center" delay={0.2}>
+            <h2 className="text-[24px] font-bold leading-[1.2] text-black md:text-[52px]">
+              Why Join <span className="text-[#0097B2]">Andes Workforce?</span>
             </h2>
-            <p className="text-gray-600 max-w-xl mx-auto">
-              We offer more than just a job — we offer a career path with support
-              at every step
+            <p className="max-w-[906px] text-[14px] font-medium leading-[1.2] text-[#525252] md:text-[22px]">
+              We offer more than just a job - we offer a career path with
+              support at every step
             </p>
-          </div>
+          </FadeIn>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {benefits.map((benefit) => (
-              <div
+          <div className="grid w-full grid-cols-1 items-stretch gap-[11px] sm:grid-cols-2 lg:grid-cols-3">
+            {benefits.map((benefit, i) => (
+              <SlideIn
                 key={benefit.title}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col gap-3 hover:shadow-md transition-shadow"
+                from="left"
+                offset={400}
+                delay={0.15 + i * 0.1}
+                className="h-full"
               >
-                <div className="w-12 h-12 bg-[#0097B2]/10 rounded-lg flex items-center justify-center">
-                  <benefit.icon size={24} className="text-[#0097B2]" />
+                <div className="flex h-full origin-center flex-col gap-[13px] rounded-[15px] border border-[#D2D2D2] bg-white px-[25px] py-[35px] md:transition-transform md:duration-300 md:ease-out md:motion-safe:hover:scale-[1.03] md:hover:shadow-md">
+                  <div className="flex size-[55px] shrink-0 items-center justify-center rounded-[4px] bg-[#DFFAFF]">
+                    <benefit.icon
+                      size={benefit.iconSize}
+                      className="text-[#0097B2]"
+                      strokeWidth={2}
+                      aria-hidden
+                    />
+                  </div>
+                  <h3 className="min-h-[50px] text-[20px] font-bold leading-[25px] text-[#343434]">
+                    {benefit.title}
+                  </h3>
+                  <p className="flex-1 text-[16px] font-normal leading-[1.5] text-[#707070]">
+                    {benefit.description}
+                  </p>
                 </div>
-                <h3 className="font-bold text-[#08252A]">{benefit.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {benefit.description}
-                </p>
-              </div>
+              </SlideIn>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-[#08252A] to-[#0097B2] text-white text-center">
-        <div className="container mx-auto px-4 max-w-2xl">
-          <h2 className="text-[28px] sm:text-[36px] md:text-[48px] font-bold mb-4">
+      <section className="relative h-auto w-full overflow-hidden md:h-[408px]">
+        <Image
+          src={BANNER_SRC}
+          alt=""
+          fill
+          aria-hidden
+          className="object-cover object-center"
+        />
+        <div
+          className="absolute inset-0"
+          aria-hidden
+          style={{ background: "rgba(4, 78, 92, 0.85)" }}
+        />
+        <FadeIn
+          delay={0.2}
+          className="relative z-10 flex flex-col items-start gap-[22px] px-[18px] py-[44px] md:px-[80px] md:py-[85px]"
+        >
+          <h2 className="text-[32px] font-bold leading-[1.3] text-white drop-shadow-[0px_4px_4px_#11525e] md:text-[48px]">
             Ready to start?
           </h2>
-          <p className="text-white/90 mb-8 text-base sm:text-lg leading-relaxed">
-            Join our growing community of Latin American professionals working remotely with top global companies
+          <p className="max-w-[869px] text-[16px] font-medium leading-[1.2] text-white md:text-[22px]">
+            Join our growing community of Latin American professionals working
+            remotely with top global companies
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-wrap items-center gap-[10px]">
             <button
+              type="button"
               onClick={() => router.push("/auth/register")}
-              className="bg-white text-[#0097B2] hover:bg-gray-100 px-10 py-3 rounded-[20px] text-base font-semibold transition-colors cursor-pointer shadow-md"
+              className="cursor-pointer rounded-[20px] bg-white px-[25px] py-[12px] text-[16px] font-semibold leading-[1.3] text-[rgba(4,78,92,0.85)] shadow-[0px_4px_2px_rgba(255,255,255,0.15)] md:text-[20px] md:transition-colors md:hover:bg-gray-100"
             >
               Create Account
             </button>
             <button
+              type="button"
               onClick={() => router.push("/auth/login")}
-              className="border border-white text-white hover:bg-white/10 px-10 py-3 rounded-[20px] text-base font-semibold transition-colors cursor-pointer shadow-[0px_4px_4px_rgba(255,255,255,0.15)]"
+              className="cursor-pointer rounded-[20px] border border-white px-[25px] py-[12px] text-[16px] font-semibold leading-[1.3] text-white shadow-[0px_4px_4px_rgba(255,255,255,0.15)] md:text-[20px] md:transition-colors md:hover:bg-white/10"
             >
               Sign In
             </button>
           </div>
-        </div>
+        </FadeIn>
       </section>
     </div>
   );

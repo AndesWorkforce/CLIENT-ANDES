@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { motion, useReducedMotion, type HTMLMotionProps } from "motion/react";
 
 /** Values taken from Figma About Us motion snippets (node 3761:7609). */
@@ -22,6 +29,38 @@ type RevealProps = HTMLMotionProps<"div"> & {
   duration?: number;
 };
 
+const MotionPrefsContext = createContext({ staticOnMobile: false });
+
+/** Disables entrance motion below the Tailwind `md` breakpoint (768px). */
+export function StaticOnMobile({ children }: { children: ReactNode }) {
+  return (
+    <MotionPrefsContext.Provider value={{ staticOnMobile: true }}>
+      {children}
+    </MotionPrefsContext.Provider>
+  );
+}
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useLayoutEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  return isMobile;
+}
+
+function useSkipMotion() {
+  const reduce = useReducedMotion();
+  const { staticOnMobile } = useContext(MotionPrefsContext);
+  const isMobile = useIsMobile();
+  return Boolean(reduce || (staticOnMobile && isMobile));
+}
+
 export function FadeIn({
   children,
   className,
@@ -29,17 +68,17 @@ export function FadeIn({
   duration = ABOUT_MOTION.fadeDuration,
   ...props
 }: RevealProps) {
-  const reduce = useReducedMotion();
+  const skip = useSkipMotion();
 
   return (
     <motion.div
       className={className}
-      initial={reduce ? { opacity: 1 } : { opacity: 0 }}
+      initial={skip ? { opacity: 1 } : { opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={aboutViewport}
       transition={{
-        duration: reduce ? 0 : duration,
-        delay: reduce ? 0 : delay,
+        duration: skip ? 0 : duration,
+        delay: skip ? 0 : delay,
         ease: ABOUT_MOTION.ease,
       }}
       {...props}
@@ -57,7 +96,7 @@ export function SlideIn({
   duration = ABOUT_MOTION.slideDuration,
   offset = ABOUT_MOTION.slideOffset,
 }: RevealProps & { from: "left" | "right"; offset?: number }) {
-  const reduce = useReducedMotion();
+  const skip = useSkipMotion();
   const x = from === "left" ? -offset : offset;
 
   return (
@@ -68,14 +107,14 @@ export function SlideIn({
       viewport={aboutViewport}
     >
       <motion.div
-        className="w-full"
+        className="h-full w-full"
         variants={{
-          hidden: reduce ? { x: 0 } : { x },
+          hidden: skip ? { x: 0 } : { x },
           visible: { x: 0 },
         }}
         transition={{
-          duration: reduce ? 0 : duration,
-          delay: reduce ? 0 : delay,
+          duration: skip ? 0 : duration,
+          delay: skip ? 0 : delay,
           ease: ABOUT_MOTION.ease,
         }}
       >

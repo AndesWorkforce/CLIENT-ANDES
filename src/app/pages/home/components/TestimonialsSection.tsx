@@ -102,8 +102,12 @@ function TestimonialCard({
       layout
       onClick={onToggle}
       aria-expanded={expanded}
-      className="flex h-full w-full cursor-pointer flex-col items-start rounded-[16px] bg-white p-8 text-left shadow-[0px_4px_20px_rgba(0,0,0,0.06)]"
-      transition={{ layout: { duration: reduce ? 0 : 0.5, ease: expandEase } }}
+      whileHover={reduce ? undefined : { scale: 1.03 }}
+      className="flex h-full w-full origin-center cursor-pointer flex-col items-start rounded-[16px] bg-white p-8 text-left shadow-[0px_4px_20px_rgba(0,0,0,0.06)]"
+      transition={{
+        layout: { duration: reduce ? 0 : 0.5, ease: expandEase },
+        scale: { duration: reduce ? 0 : 0.3, ease: "easeOut" },
+      }}
     >
       <div className="mb-5 flex gap-1">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -215,7 +219,7 @@ export default function TestimonialsSection() {
             >
               {Array.from({ length: totalSlides }).map((_, slideIdx) => (
                 <div key={slideIdx} className="w-full shrink-0 px-1">
-                  <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-3">
+                    <div className="grid grid-cols-1 items-start gap-6 py-3 md:grid-cols-3">
                     {testimonials
                       .slice(
                         slideIdx * ITEMS_PER_SLIDE,

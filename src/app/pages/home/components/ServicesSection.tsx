@@ -80,7 +80,7 @@ export default function ServicesSection() {
                 delay={service.delay}
                 duration={0.8}
               >
-                <div className="flex h-full flex-col rounded-[16px] bg-white p-8 shadow-[0px_4px_20px_rgba(0,0,0,0.06)]">
+                <div className="flex h-full origin-center flex-col rounded-[16px] bg-white p-8 shadow-[0px_4px_20px_rgba(0,0,0,0.06)] transition-transform duration-300 ease-out motion-safe:hover:scale-[1.03] hover:shadow-lg">
                   <div className="mb-6 flex size-12 items-center justify-center rounded-[16px] bg-[rgba(11,200,233,0.12)]">
                     <Icon className="size-5 text-[#0097b2]" strokeWidth={2} />
                   </div>

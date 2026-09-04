@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { FadeIn, SlideIn } from "../../about/components/Reveal";
 
 type Service = {
   id: number;
@@ -99,18 +100,24 @@ export default function WhatWeOfferSection() {
   };
 
   return (
-    <section className="w-full bg-white py-[44px] md:py-[101px] px-[18px] md:px-[75px]">
+    <section className="w-full overflow-x-hidden bg-white py-[44px] md:py-[101px] px-[18px] md:px-[75px]">
       <div className="max-w-[1440px] mx-auto">
         <div className="text-center mb-[22px] md:mb-[41px]">
-          <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">
-            WHAT WE OFFER
-          </p>
-          <h2 className="text-[#343434] font-bold text-[24px] md:text-[52px] leading-[1.3] md:leading-[1.2] mb-[11px]">
-            Specialized talent for the <span className="text-[#0097B2]">roles you need most</span>
-          </h2>
-          <p className="text-[#343434] md:text-[#525252] font-medium text-[14px] md:text-[22px] leading-[1.2]">
-            Seven core service lines - each backed by carefully vetted, English-fluent professionals from across Latin America.
-          </p>
+          <FadeIn>
+            <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">
+              WHAT WE OFFER
+            </p>
+            <h2 className="text-[#343434] font-bold text-[24px] md:text-[52px] leading-[1.3] md:leading-[1.2] mb-[11px]">
+              Specialized talent for the{" "}
+              <span className="text-[#0097B2]">roles you need most</span>
+            </h2>
+          </FadeIn>
+          <FadeIn delay={0.24}>
+            <p className="text-[#343434] md:text-[#525252] font-medium text-[14px] md:text-[22px] leading-[1.2]">
+              Seven core service lines - each backed by carefully vetted,
+              English-fluent professionals from across Latin America.
+            </p>
+          </FadeIn>
         </div>
 
         <div className="relative">
@@ -133,17 +140,18 @@ export default function WhatWeOfferSection() {
             </svg>
           </button>
 
+          <SlideIn from="right" offset={1300} delay={0.73}>
           <div
             ref={scrollContainerRef}
-            className="flex gap-[24px] overflow-x-auto scroll-smooth hide-scrollbar"
+            className="flex gap-[11px] overflow-x-auto scroll-smooth hide-scrollbar py-3 md:gap-[24px]"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {services.map((service) => (
               <div
                 key={service.id}
-              className="flex-shrink-0 w-[330px] md:w-[411px] bg-white border border-[#EFEFEF] rounded-[24px] overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <div className="relative h-[257px] rounded-tl-[24px] rounded-tr-[24px]">
+                className="group flex-shrink-0 w-[330px] md:w-[411px] origin-center bg-white border border-[#EFEFEF] rounded-[24px] overflow-hidden md:transition-transform md:duration-300 md:ease-out md:motion-safe:hover:scale-[1.03] md:hover:shadow-lg"
+              >
+              <div className="relative h-[257px] overflow-hidden rounded-tl-[24px] rounded-tr-[24px]">
                 <img
                   src={service.image}
                   alt={service.title}
@@ -212,6 +220,7 @@ export default function WhatWeOfferSection() {
             </div>
             ))}
           </div>
+          </SlideIn>
 
           <button
             onClick={() => scroll("right")}
