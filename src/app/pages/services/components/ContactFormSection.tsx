@@ -340,7 +340,7 @@ export default function ContactFormSection() {
                   <div className="relative h-[59px]">
                     <input
                       type="tel"
-                      placeholder="+1 234 567 890"
+                      placeholder="+1 (555) 123-4567"
                       {...register("phone")}
                       className={`absolute top-[9px] ${inputClassName}`}
                     />

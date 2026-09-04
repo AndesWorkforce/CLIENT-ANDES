@@ -8,7 +8,7 @@ import { FadeIn } from "../../about/components/Reveal";
 const stats = [
   {
     icon: Users,
-    value: "10M+",
+    value: "1000+",
     label: "Professionals in our talent network",
   },
   {
