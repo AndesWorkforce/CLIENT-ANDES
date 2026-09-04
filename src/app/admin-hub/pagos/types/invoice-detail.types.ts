@@ -1,7 +1,7 @@
 import type { Invoice, InvoiceStatus } from "./invoice.types";
 
 export type InvoiceLineItemStatus = "Pendiente" | "Aprobado" | "Rechazado";
-export type InvoicePayrollStatus = "Pendiente" | "Aprobada";
+export type InvoicePayrollStatus = "Pendiente" | "Aprobada" | "Rechazada";
 
 export interface InvoiceLineItem {
   id: string;
@@ -18,6 +18,8 @@ export interface InvoiceLineItem {
 
 export interface InvoicePayrollEntry {
   id: string;
+  /** Id de la línea de factura, para aprobarla o rechazarla. */
+  lineaFacturaId: string | null;
   contractorName: string;
   position: string;
   contractStartDate: string;

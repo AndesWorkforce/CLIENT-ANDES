@@ -11,10 +11,13 @@ export type InvoiceBadgeStatus =
 
 const statusStyles: Record<InvoiceBadgeStatus, string> = {
   Pendiente: "bg-[#DDE2FF] text-[#4356A6]",
+  Borrador: "bg-[#F2F4F7] text-[#475467]",
+  Emitida: "bg-[#DFFAFF] text-[#00637A]",
+  Anulada: "bg-[#FFE5E5] text-[#B42318]",
   Pagado: "bg-[#D4F4E2] text-[#2D6A4F]",
-  Vencido: "bg-[#FFE5E5] text-[#B42318]",
   Aprobado: "bg-[#D4F4E2] text-[#2D6A4F]",
   Aprobada: "bg-[#ECFDF3] text-[#027A48]",
+  Rechazada: "bg-[#FEF3F2] text-[#B42318]",
   Rechazado: "bg-[#FFE5E5] text-[#B42318]",
 };
 

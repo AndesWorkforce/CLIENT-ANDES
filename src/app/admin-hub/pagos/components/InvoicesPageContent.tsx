@@ -17,6 +17,7 @@ import {
   monthOptionToPeriod,
 } from "../../nominas/data/payroll-data";
 import {
+  getFacturas,
   getPagosClientes,
   type PagosCliente,
 } from "../actions/pagos.actions";
@@ -34,23 +35,32 @@ const AMOUNT_FILTER_OPTIONS = [
 ];
 
 const STATUS_FILTER_OPTIONS: { value: InvoiceStatus; label: string }[] = [
-  { value: "Pendiente", label: "Pendiente" },
+  { value: "Pendiente", label: "Sin factura" },
+  { value: "Borrador", label: "Borrador" },
+  { value: "Aprobada", label: "Aprobada" },
+  { value: "Emitida", label: "Emitida" },
   { value: "Pagado", label: "Pagado" },
-  { value: "Vencido", label: "Vencido" },
+  { value: "Anulada", label: "Anulada" },
 ];
 
+/**
+ * Fila del listado. Los clientes vienen de Empresa y la factura del período de
+ * `admin-hub/facturas`: si existe se muestran su total y su estado reales, y si
+ * todavía no se generó queda "Sin factura".
+ */
 function mapClienteToInvoiceRow(
   client: PagosCliente,
   period: string,
+  factura?: Invoice,
 ): Invoice {
   return {
-    id: client.id,
+    id: factura?.id ?? client.id,
     clientId: client.id.slice(0, 8),
     empresaId: client.id,
     client: client.nombre,
     period,
-    totalAmount: "—",
-    status: "Pendiente",
+    totalAmount: factura?.totalAmount ?? "—",
+    status: factura?.status ?? "Pendiente",
   };
 }
 
@@ -123,6 +133,30 @@ export default function InvoicesPageContent({
     void fetchClients(debouncedSearch);
   }, [debouncedSearch, fetchClients]);
 
+  // Facturas reales del periodo, indexadas por empresa.
+  const [facturasPorEmpresa, setFacturasPorEmpresa] = useState<
+    Map<string, Invoice>
+  >(new Map());
+
+  useEffect(() => {
+    let cancelado = false;
+
+    void (async () => {
+      const result = await getFacturas({ monthOption: selectedMonth, limit: 500 });
+      if (cancelado) return;
+
+      const mapa = new Map<string, Invoice>();
+      for (const factura of result.data ?? []) {
+        mapa.set(factura.empresaId, factura);
+      }
+      setFacturasPorEmpresa(mapa);
+    })();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [selectedMonth]);
+
   const clientFilterOptions = useMemo(
     () => buildClientFilterOptions(clients),
     [clients],
@@ -134,9 +168,13 @@ export default function InvoicesPageContent({
       : clients;
 
     return filtered.map((client) =>
-      mapClienteToInvoiceRow(client, selectedPeriod),
+      mapClienteToInvoiceRow(
+        client,
+        selectedPeriod,
+        facturasPorEmpresa.get(client.id),
+      ),
     );
-  }, [clients, clientFilter, selectedPeriod]);
+  }, [clients, clientFilter, selectedPeriod, facturasPorEmpresa]);
 
   function clearFilters() {
     setClientFilter("");

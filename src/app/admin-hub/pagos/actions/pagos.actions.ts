@@ -158,6 +158,7 @@ export interface FacturaDetalleApiItem {
     position: string;
     contractStartDate: string | null;
     clientPrice: number;
+    lineaFacturaId?: string | null;
     esHourly?: boolean;
     tarifaHoraria?: number | null;
     horasTrabajadas?: number | null;
@@ -218,10 +219,13 @@ function mapEstadoToUi(estado: BackendEstado): InvoiceStatus {
     case "PAGADA":
       return "Pagado";
     case "ANULADA":
-      return "Vencido";
-    case "BORRADOR":
+      return "Anulada";
     case "APROBADA":
+      return "Aprobada";
     case "EMITIDA":
+      return "Emitida";
+    case "BORRADOR":
+      return "Borrador";
     default:
       return "Pendiente";
   }
@@ -278,6 +282,7 @@ function mapApiInvoiceDetail(payload: FacturaDetalleApiItem): InvoiceDetail {
     position: entry.position,
     contractStartDate: entry.contractStartDate ?? "—",
     clientPrice: entry.clientPrice,
+    lineaFacturaId: entry.lineaFacturaId ?? null,
     esHourly: entry.esHourly ?? false,
     tarifaHoraria: entry.tarifaHoraria ?? null,
     horasTrabajadas: entry.horasTrabajadas ?? null,
@@ -1294,5 +1299,84 @@ export async function getReporteFacturasEmitidas(params?: {
   } catch (error: unknown) {
     console.error("[PAGOS] Error al obtener el reporte de facturas:", error);
     return { success: false, message: "Error al obtener el reporte de facturas" };
+  }
+}
+
+/**
+ * Aprueba una línea de nómina de la factura del cliente.
+ *
+ * Es un objeto propio de la factura: aprobarla valida el cobro al cliente por ese
+ * contrato, y no tiene relación con la nómina del contratista.
+ */
+export async function approveInvoicePayrollLine(
+  lineaFacturaId: string,
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+
+  try {
+    await axios.post(
+      `client-invoice/lineas-nomina/${lineaFacturaId}/aprobar`,
+      {},
+      { headers: { "Cache-Control": "no-store" } },
+    );
+    return { success: true, message: "Línea aprobada" };
+  } catch (error: unknown) {
+    return mapFacturaError(error, "No se pudo aprobar la línea de nómina");
+  }
+}
+
+export async function rejectInvoicePayrollLine(
+  lineaFacturaId: string,
+): Promise<ApiResponse> {
+  const axios = await createServerAxios();
+
+  try {
+    await axios.post(
+      `client-invoice/lineas-nomina/${lineaFacturaId}/rechazar`,
+      {},
+      { headers: { "Cache-Control": "no-store" } },
+    );
+    return { success: true, message: "Línea rechazada" };
+  } catch (error: unknown) {
+    return mapFacturaError(error, "No se pudo rechazar la línea de nómina");
+  }
+}
+
+export interface ApproveInvoicePayrollLinesResult extends ApiResponse {
+  data?: { aprobadas: number };
+}
+
+/** Sin `ids` aprueba todas las líneas pendientes del período. */
+export async function approveInvoicePayrollLinesBulk(
+  empresaId: string,
+  period: string,
+  ids?: string[],
+): Promise<ApproveInvoicePayrollLinesResult> {
+  const axios = await createServerAxios();
+
+  try {
+    const response = await axios.post(
+      `client-invoice/empresa/${empresaId}/lineas-nomina/aprobar`,
+      { ...(ids && ids.length > 0 ? { ids } : {}) },
+      {
+        params: { periodo: displayPeriodToApiPeriod(period) },
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+
+    const payload = response.data?.data ?? response.data;
+    const aprobadas = Number(payload?.aprobadas ?? 0);
+
+    return {
+      success: true,
+      message:
+        aprobadas > 0
+          ? `${aprobadas} línea(s) aprobada(s)`
+          : "No había líneas pendientes",
+      data: { aprobadas },
+    };
+  } catch (error: unknown) {
+    const r = mapFacturaError(error, "No se pudieron aprobar las líneas");
+    return { success: r.success, message: r.message };
   }
 }

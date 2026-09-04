@@ -31,7 +31,6 @@ const navItems = [
 const nominasSubItems = [
   { label: "Todas", href: "/admin-hub/nominas" },
   { label: "Variables de nómina", href: "/admin-hub/nominas/variables" },
-  { label: "Reporte de PTOs", href: "/admin-hub/nominas/ptos" },
 ];
 
 const nominasRelatedItems = [

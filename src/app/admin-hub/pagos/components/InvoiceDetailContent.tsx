@@ -7,6 +7,9 @@ import { useNotificationStore } from "@/store/notifications.store";
 import { formatClientPrice } from "../../nominas/data/mock-contractors";
 import {
   approveInvoice,
+  approveInvoicePayrollLine,
+  approveInvoicePayrollLinesBulk,
+  rejectInvoicePayrollLine,
   issueInvoice,
   downloadInvoicePdf,
   approveCustomerCharge,
@@ -188,12 +191,21 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     [invoice.sections]
   );
 
-  const allItemsApproved = useMemo(
-    () =>
-      invoiceLineItems.length > 0 &&
-      invoiceLineItems.every((item) => item.status === "Aprobado"),
-    [invoiceLineItems]
-  );
+  /**
+   * Para aprobar la factura tienen que estar aprobados los tres grupos: nóminas,
+   * cargos/créditos y adicionales. Antes solo miraba cargos/créditos y además
+   * exigía que hubiera al menos uno, así que una factura con solo nóminas nunca
+   * se podía aprobar.
+   */
+  const allItemsApproved = useMemo(() => {
+    const pendientes = [
+      ...invoice.payrollEntries.map((e) => e.status),
+      ...invoiceLineItems.map((i) => i.status),
+      ...invoice.additionalFees.map((f) => f.status),
+    ].filter((status) => status !== "Aprobado" && status !== "Aprobada");
+
+    return pendientes.length === 0;
+  }, [invoice.payrollEntries, invoice.additionalFees, invoiceLineItems]);
 
   const typeFilterOptions = useMemo(
     () =>
@@ -531,6 +543,57 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     addNotification("El adicional fue eliminado.", "success");
   }
 
+  /**
+   * Las líneas de nómina de la factura son objetos propios: aprobarlas valida el
+   * cobro al cliente por ese contrato, no la nómina del contratista.
+   */
+  async function handleApprovePayrollLine(lineaFacturaId: string) {
+    setIsApproving(true);
+    try {
+      const result = await approveInvoicePayrollLine(lineaFacturaId);
+      addNotification(
+        result.message || "Línea aprobada",
+        result.success ? "success" : "error",
+      );
+      if (result.success) router.refresh();
+    } finally {
+      setIsApproving(false);
+    }
+  }
+
+  async function handleRejectPayrollLine(lineaFacturaId: string) {
+    setIsApproving(true);
+    try {
+      const result = await rejectInvoicePayrollLine(lineaFacturaId);
+      addNotification(
+        result.message || "Línea rechazada",
+        result.success ? "success" : "error",
+      );
+      if (result.success) router.refresh();
+    } finally {
+      setIsApproving(false);
+    }
+  }
+
+  /** Sin ids aprueba todas las pendientes del período. */
+  async function handleApprovePayrollLinesBulk(ids?: string[]) {
+    setIsApproving(true);
+    try {
+      const result = await approveInvoicePayrollLinesBulk(
+        invoice.empresaId,
+        invoice.period,
+        ids,
+      );
+      addNotification(
+        result.message || "Líneas aprobadas",
+        result.success ? "success" : "error",
+      );
+      if (result.success) router.refresh();
+    } finally {
+      setIsApproving(false);
+    }
+  }
+
   /** Aprobar congela la factura para revisión; todavía no asigna número. */
   async function handleApproveInvoice() {
     if (!allItemsApproved) {
@@ -753,6 +816,10 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
             <InvoicePayrollSection
               entries={filteredPayrollEntries}
               subtotal={payrollSubtotal}
+              onApprove={handleApprovePayrollLine}
+              onReject={handleRejectPayrollLine}
+              onApproveSelected={handleApprovePayrollLinesBulk}
+              isBusy={isApproving}
             />
           )}
 

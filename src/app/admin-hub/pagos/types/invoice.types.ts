@@ -1,4 +1,15 @@
-export type InvoiceStatus = "Pendiente" | "Pagado" | "Vencido";
+/**
+ * Estado de la factura del cliente tal como lo maneja el backend. Antes
+ * BORRADOR, APROBADA y EMITIDA se mostraban todas como "Pendiente", así que una
+ * factura emitida se veía igual que un borrador.
+ */
+export type InvoiceStatus =
+  | "Borrador"
+  | "Aprobada"
+  | "Emitida"
+  | "Pagado"
+  | "Anulada"
+  | "Pendiente";
 
 export interface Invoice {
   id: string;

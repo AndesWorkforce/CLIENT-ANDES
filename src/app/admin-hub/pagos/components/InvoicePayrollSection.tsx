@@ -10,12 +10,20 @@ interface InvoicePayrollSectionProps {
   entries: InvoicePayrollEntry[];
   subtotal: string;
   defaultOpen?: boolean;
+  onApprove?: (lineaFacturaId: string) => void;
+  onReject?: (lineaFacturaId: string) => void;
+  onApproveSelected?: (lineaFacturaIds: string[]) => void;
+  isBusy?: boolean;
 }
 
 export default function InvoicePayrollSection({
   entries,
   subtotal,
   defaultOpen = true,
+  onApprove,
+  onReject,
+  onApproveSelected,
+  isBusy,
 }: InvoicePayrollSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -30,7 +38,16 @@ export default function InvoicePayrollSection({
         subtotal={subtotal}
         aggregateStatus={aggregateStatus}
       />
-      {isOpen && <InvoicePayrollTable entries={entries} subtotal={subtotal} />}
+      {isOpen && (
+        <InvoicePayrollTable
+          entries={entries}
+          subtotal={subtotal}
+          onApprove={onApprove}
+          onReject={onReject}
+          onApproveSelected={onApproveSelected}
+          isBusy={isBusy}
+        />
+      )}
     </div>
   );
 }
