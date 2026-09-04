@@ -18,6 +18,7 @@ export function GuestChatForm({ onSubmit }: GuestChatFormProps) {
   const [email, setEmail] = useState("");
   const [kind, setKind] = useState<ChatVisitorKind | "">("");
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -32,6 +33,7 @@ export function GuestChatForm({ onSubmit }: GuestChatFormProps) {
     }
 
     setError(null);
+    setSubmitting(true);
     onSubmit({
       email: normalized,
       kind,
@@ -111,9 +113,10 @@ export function GuestChatForm({ onSubmit }: GuestChatFormProps) {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-[#0097B2] px-3 py-2 text-sm font-semibold text-white hover:bg-[#007f96]"
+            disabled={submitting}
+            className="w-full rounded-xl bg-[#0097B2] px-3 py-2 text-sm font-semibold text-white hover:bg-[#007f96] disabled:opacity-70"
           >
-            Continue to chat
+            {submitting ? "Opening chat..." : "Continue to chat"}
           </button>
         </form>
       )}

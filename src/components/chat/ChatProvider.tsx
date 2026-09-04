@@ -12,7 +12,11 @@ import {
   saveChatVisitor,
   type ChatVisitor,
 } from "./chat-visitor";
-import { identityFromUser, type ChatwootIdentity } from "./chatwoot-sdk";
+import {
+  clearAndySession,
+  identityFromUser,
+  type ChatwootIdentity,
+} from "./chatwoot-sdk";
 
 const useChatwoot =
   process.env.NEXT_PUBLIC_CHATWOOT_ENABLED === "true" &&
@@ -51,6 +55,7 @@ export function ChatProvider() {
   };
 
   const handleChangeVisitor = () => {
+    clearAndySession();
     clearChatVisitor();
     setVisitor(null);
     setOpenChatAfterGuest(false);

@@ -65,8 +65,8 @@ export function ChatwootWidget({
       locale: "en",
       type: "standard",
       launcherTitle: "Chat with Andy",
-      enableFileUpload: true,
-      enableEmojiPicker: true,
+      enableFileUpload: false,
+      enableEmojiPicker: false,
       enableEndConversation: true,
     };
 
@@ -297,12 +297,9 @@ function ChatLauncher({
   const openAndySession = async (forceNew: boolean) => {
     const currentIdentity = identityRef.current;
     const identifierHash = await fetchChatwootIdentityHash(currentIdentity);
-    const startFresh =
-      forceNew ||
-      (!bootstrappedSessionRef.current &&
-        (autoOpen || currentIdentity.kind !== "contractor" || !agentTookOver));
+    ignoreClosedUntilRef.current = Date.now() + 2500;
 
-    if (startFresh) {
+    if (forceNew && bootstrappedSessionRef.current) {
       await startNewChatwootSession(currentIdentity, identifierHash);
     } else {
       await openChatwootWidget(currentIdentity, identifierHash);
@@ -322,7 +319,7 @@ function ChatLauncher({
     let cancelled = false;
 
     void (async () => {
-      await openAndySession(true);
+      await openAndySession(false);
       if (cancelled) return;
       pendingOpenRef.current = false;
     })();
@@ -353,6 +350,7 @@ function ChatLauncher({
     if (!sdkReady || isStartingSession) return;
 
     setIsStartingSession(true);
+    ignoreClosedUntilRef.current = Date.now() + 4000;
     try {
       const identifierHash = await syncIdentity();
       await startNewChatwootSession(identity, identifierHash);
