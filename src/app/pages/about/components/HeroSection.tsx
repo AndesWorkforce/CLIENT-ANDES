@@ -30,7 +30,7 @@ export default function HeroSection() {
           className="text-center text-white max-w-[1063px] drop-shadow-[0px_4px_2px_#0c505c]"
         >
           <h1 className="text-[32px] sm:text-5xl md:text-6xl lg:text-[64px] font-bold leading-[1.3]">
-            We are <span className="text-[#0bc8e9]">Andes</span> Workforce
+            We are <span className="text-[#0bc8e9]">Andes Workforce</span> 
           </h1>
           <p className="mt-[10px] sm:mt-4 text-[14px] sm:text-xl md:text-2xl lg:text-[28px] font-semibold leading-[1.3] max-w-[831px] mx-auto">
             A company specialized in connecting qualified talent from Latin

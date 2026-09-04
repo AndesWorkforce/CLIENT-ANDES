@@ -48,8 +48,8 @@ export default function TeamMembersGrid({
         const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
         const currentScroll = scrollContainer.scrollLeft;
         
-        // Calcular el ancho de una tarjeta más el gap (201px + 19px = 220px)
-        const cardWidth = 220;
+        // Ancho de una tarjeta más el gap (232px + 19px = 251px)
+        const cardWidth = 251;
         // Punto donde terminan los miembros originales (antes de los duplicados)
         const originalEndPoint = cardWidth * members.length;
 
@@ -126,7 +126,7 @@ export default function TeamMembersGrid({
       {/* Dark teal overlay */}
       <div className="absolute inset-0 bg-[rgba(4,78,92,0.72)]" />
 
-      <div className="relative z-10 max-w-[1092px] mx-auto px-[21px] sm:px-[49px] flex flex-col gap-[22px] sm:gap-[55px] items-center">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-col items-center gap-[22px] px-[21px] sm:gap-[55px] sm:px-8">
         {/* Centered header */}
         <FadeIn className="flex flex-col gap-[11px] items-center text-center">
           <h2 className="text-[24px] sm:text-[48px] font-bold text-white leading-[1.3]">
@@ -138,7 +138,7 @@ export default function TeamMembersGrid({
         </FadeIn>
 
         {/* Mobile: auto-scroll + manual scroll carousel */}
-        <FadeIn delay={0.72} className="md:hidden w-full">
+        <FadeIn delay={0.08} duration={0.4} className="md:hidden w-full">
         <div 
           ref={scrollRef}
           onScroll={handleScroll}
@@ -148,13 +148,13 @@ export default function TeamMembersGrid({
           <div className="flex gap-[19px] px-[21px] pb-[11px]">
             {/* Mostrar todos los miembros */}
             {members.map((member) => (
-              <div key={`carousel-${member.id}`} className="w-[201px] flex-shrink-0">
+              <div key={`carousel-${member.id}`} className="w-[232px] flex-shrink-0">
                 <MemberCard member={member} onMemberClick={onMemberClick} />
               </div>
             ))}
             {/* Duplicar solo los primeros 3 miembros para el loop */}
             {members.slice(0, 3).map((member, idx) => (
-              <div key={`carousel-loop-${member.id}-${idx}`} className="w-[201px] flex-shrink-0">
+              <div key={`carousel-loop-${member.id}-${idx}`} className="w-[232px] flex-shrink-0">
                 <MemberCard member={member} onMemberClick={onMemberClick} />
               </div>
             ))}
@@ -165,11 +165,12 @@ export default function TeamMembersGrid({
         {/* Desktop: rows of 4 */}
         <div className="hidden md:flex flex-col gap-[55px] w-full">
           {rows.map((row, rowIndex) => (
-            <div key={rowIndex} className="grid grid-cols-4 gap-[19px]">
+            <div key={rowIndex} className="grid grid-cols-4 gap-4">
               {row.map((member, colIndex) => (
                 <FadeIn
                   key={member.id}
-                  delay={0.72 + (rowIndex * 4 + colIndex) * 0.23}
+                  delay={0.04 + (rowIndex * 4 + colIndex) * 0.04}
+                  duration={0.4}
                 >
                   <MemberCard member={member} onMemberClick={onMemberClick} />
                 </FadeIn>
@@ -179,7 +180,7 @@ export default function TeamMembersGrid({
         </div>
 
         {/* See more / Show less — desktop only */}
-        <FadeIn delay={2.05} className="hidden md:flex justify-center">
+        <FadeIn delay={0.2} duration={0.4} className="hidden md:flex justify-center">
           {!showAll ? (
             <button
               onClick={() => setShowAll(true)}
@@ -229,12 +230,12 @@ function MemberCard({
       </div>
 
       {/* Info */}
-      <div className="bg-white flex flex-col flex-1 items-center justify-center gap-[11px] px-[25px] py-[22px] rounded-bl-[15px] rounded-br-[15px]">
-        <div className="flex flex-col items-center gap-[4px] text-center w-auto sm:w-[275px]">
-          <h3 className="text-[18px] sm:text-[24px] font-bold text-black leading-[1.3]">
+      <div className="flex flex-1 flex-col items-center justify-center gap-[11px] rounded-bl-[15px] rounded-br-[15px] bg-white px-4 py-[22px] sm:px-5">
+        <div className="flex w-full min-w-0 flex-col items-center gap-[4px] text-center">
+          <h3 className="w-full text-[18px] font-bold leading-[1.3] break-words text-black sm:text-[24px]">
             {member.name}
           </h3>
-          <p className="text-[12px] sm:text-[16px] font-normal text-black leading-[1.3]">
+          <p className="w-full text-[12px] font-normal leading-[1.3] break-words text-black sm:text-[16px]">
             {member.role}
           </p>
         </div>

@@ -150,7 +150,7 @@ export const teamMembers: TeamMember[] = [
         id: "queen",
         name: "Queen",
         role: "Feline Fun Facilitator",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/queen.jpg",
+        image: animalPhoto("Queen.webp"),
         bullets: [
           "Senior nap executive; majestic fluff with grumpy charm and zero tolerance for nonsense.",
         ],

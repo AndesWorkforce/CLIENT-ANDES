@@ -68,9 +68,9 @@ const benefits = [
 
 const stats = [
   { value: "50+", label: "Partner Companies" },
-  { value: "200+", label: "Professionals Hired" },
+  { value: "300+", label: "Professionals Hired" },
   { value: "$1K - $3K", label: "Monthly Salary Range" },
-  { value: "10+", label: "Countries Represented" },
+  { value: "15+", label: "Countries Represented" },
 ];
 
 export default function JobSeekerLandingPage() {
