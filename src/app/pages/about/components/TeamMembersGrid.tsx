@@ -206,7 +206,7 @@ function MemberCard({
       className="flex flex-col cursor-pointer rounded-[15px] overflow-hidden hover:scale-[1.02] transition-transform h-full"
     >
       {/* Photo */}
-      <div className="relative w-full h-[204px] sm:h-[309px] bg-gray-200 rounded-tl-[15px] rounded-tr-[15px]">
+      <div className="relative w-full h-[204px] sm:h-[309px] bg-gray-200 rounded-tl-[15px] rounded-tr-[15px] overflow-hidden">
         {member.image ? (
           <img
             src={member.image}

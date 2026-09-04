@@ -131,6 +131,86 @@ export const teamMembers: TeamMember[] = [
       },
     ],
   },
+  {
+    id: "julian-grisales",
+    name: "Julian Grisales",
+    role: "Marketing Assistant",
+    group: "Marketing & Client Relations",
+    image: equipoPhoto("Julian - 07.webp"),
+    summary: "Publicist and Marketing Assistant",
+    bullets: [
+      "Publicist and Marketing Assistant with experience in social media management, content creation, and marketing campaign planning for companies focused on remote talent and digital growth.",
+      "Skilled in tools and platforms such as Canva, Meta Ads, TikTok, LinkedIn, and Mailchimp, creating engaging content and helping brands improve their online presence and audience engagement.",
+      "Shares his home with his wife, two children, and two cats, enjoying quality family time and the balance between creativity, work, and personal life.",
+      "Passionate about music and creativity, especially playing guitar and drums, while always looking for new ways to connect ideas, people, and stories."
+    ],
+    imageClass: "object-cover",
+    pets: [
+      {
+        id: "queen",
+        name: "Queen",
+        role: "Feline Fun Facilitator",
+        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/queen.jpg",
+        bullets: [
+          "Senior nap executive; majestic fluff with grumpy charm and zero tolerance for nonsense.",
+        ],
+      }
+    ],
+  },
+  {
+    id: "milena-daleman",
+    name: "Milena D'aleman",
+    role: "Organizational Effectiveness Manager",
+    group: "Technology",
+    image: equipoPhoto("Milena - 09.webp"),
+    summary: "Information Systems Administrator, specialized in Project Management",
+    bullets: [
+      "Information Systems Administrator with a specialization in Project Management, bringing structured thinking and process expertise to every initiative.",
+      "Naturally organized with a keen eye for improving processes, spaces, and experiences — always finding ways to make things work better.",
+      "Values genuine human connection and thrives in meaningful in-person interactions with colleagues, friends, and community.",
+      "Devoted mom who treasures quality time with her son and embraces every opportunity to see the world through a child's eyes.",
+      "Enjoys cinema, binge-worthy series, and travel as constant sources of inspiration and new perspectives.",
+    ],
+    imageClass: "object-cover",
+  },
+  {
+    id: "laura-chica",
+    name: "Laura A. Chica",
+    role: "Manager, HR and Recruitment",
+    group: "HR & Recruitment",
+    image: equipoPhoto("Laura - 14.webp"),
+    summary: "Psychologist",
+    bullets: [
+      "Mom of two cats, Casper and Bagheera, Directors of Purr-sonal Affairs and soon welcoming a puppy.",
+      "Passionate about supporting team well-being and building strong connections.",
+      "Loves learning new things; often takes courses on a variety of topics and enjoys pondering the idea that we might all be living in the Matrix.",
+    ],
+    imageClass: "object-cover image-position-top",
+    pets: [
+      {
+        id: "casper",
+        name: "Casper",
+        role: "Director of Purr‑sonal Affairs",
+        image: animalPhoto("Casper.webp"),
+        bullets: [
+          "Master of emotional support and spontaneous cuddle sessions.",
+          "Expert in stress relief via purring and lap occupation.",
+          "Responsible for daily office patrols and sunbeam lounging.",
+        ],
+      },
+      {
+        id: "bagheera",
+        name: "Bagheera",
+        role: "Director of Purr‑sonal Affairs",
+        image: animalPhoto("Bagheera.webp"),
+        bullets: [
+          "Master of emotional support and spontaneous cuddle sessions.",
+          "Expert in stress relief via purring and lap occupation.",
+          "Responsible for daily office patrols and sunbeam lounging.",
+        ],
+      },
+    ],
+  },
 /*{
     id: "ruben-dario-romero",
     name: "Ruben D. Romero",
@@ -196,32 +276,6 @@ export const teamMembers: TeamMember[] = [
           "Proudly plus-size, deeply experienced, and always snack-ready.",
         ],
       },
-    ],
-  },
-  { 
-    id: "julian-grisales",
-    name: "Julian Grisales",
-    role: "Marketing Assistant",
-    group: "Marketing & Client Relations",
-    image: equipoPhoto("Julian - 07.webp"),
-    summary: "Publicist and Marketing Assistant",
-    bullets: [
-      "Publicist and Marketing Assistant with experience in social media management, content creation, and marketing campaign planning for companies focused on remote talent and digital growth.",
-      "Skilled in tools and platforms such as Canva, Meta Ads, TikTok, LinkedIn, and Mailchimp, creating engaging content and helping brands improve their online presence and audience engagement.",
-      "Shares his home with his wife, two children, and two cats, enjoying quality family time and the balance between creativity, work, and personal life.",
-      "Passionate about music and creativity, especially playing guitar and drums, while always looking for new ways to connect ideas, people, and stories."
-    ],
-    imageClass: "object-cover",
-    pets: [
-      {
-        id: "queen",
-        name: "Queen",
-        role: "Feline Fun Facilitator",
-        image: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/queen.jpg",
-        bullets: [
-          "Senior nap executive; majestic fluff with grumpy charm and zero tolerance for nonsense.",
-        ],
-      }
     ],
   },
 
@@ -296,28 +350,11 @@ export const teamMembers: TeamMember[] = [
       },
     ],
   },
-
-  // Client Teams (new members)
-  {
-    id: "milena-daleman",
-    name: "Milena D'aleman",
-    role: "Agile Coach",
-    group: "Technology",
-    image: equipoPhoto("Milena - 09.webp"),
-    summary: "Information Systems Administrator, specialized in Project Management",
-    bullets: [
-      "Information Systems Administrator with a specialization in Project Management, bringing structured thinking and process expertise to every initiative.",
-      "Naturally organized with a keen eye for improving processes, spaces, and experiences — always finding ways to make things work better.",
-      "Values genuine human connection and thrives in meaningful in-person interactions with colleagues, friends, and community.",
-      "Devoted mom who treasures quality time with her son and embraces every opportunity to see the world through a child's eyes.",
-      "Enjoys cinema, binge-worthy series, and travel as constant sources of inspiration and new perspectives.",
-    ],
-    imageClass: "object-cover",
-  },
+  // Technology
   {
     id: "david-morcillo",
     name: "David A. Morcillo",
-    role: "Fullstack Developer",
+    role: "Software Developer",
     group: "Technology",
     image: equipoPhoto("David - 11.webp"),
     summary: "Software Developer",
@@ -343,7 +380,7 @@ export const teamMembers: TeamMember[] = [
   {
     id: "fernando-campellone",
     name: "Fernando Campellone",
-    role: "Fullstack Developer",
+    role: "Software Developer",
     group: "Technology",
     image: equipoPhoto("Fernando -13.webp"),
     summary: "Software Developer",
@@ -427,8 +464,7 @@ export const teamMembers: TeamMember[] = [
     name: "Casper",
     role: "Director of Purr‑sonal Affairs",
     group: "Pet Family",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/casper.jpg",
+    image: animalPhoto("Casper.webp"),
     bullets: [
       "Master of emotional support and spontaneous cuddle sessions.",
       "Expert in stress relief via purring and lap occupation.",
@@ -440,8 +476,7 @@ export const teamMembers: TeamMember[] = [
     name: "Bagheera",
     role: "Director of Purr‑sonal Affairs",
     group: "Pet Family",
-    image:
-      "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/team/bagheera.jpg",
+    image: animalPhoto("Bagheera.webp"),
     bullets: [
       "Master of emotional support and spontaneous cuddle sessions.",
       "Expert in stress relief via purring and lap occupation.",

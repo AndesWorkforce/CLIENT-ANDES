@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toast } from "@/components/ui/Toast";
+import { ChatProvider } from "@/components/chat/ChatProvider";
 import { AuthValidator } from "@/components/AuthValidator";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -169,6 +170,7 @@ export default function RootLayout({
         </main>
         <Footer />
         <Toast />
+        <ChatProvider />
       </body>
     </html>
   );
