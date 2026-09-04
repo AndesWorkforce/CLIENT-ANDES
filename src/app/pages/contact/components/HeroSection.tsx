@@ -20,7 +20,7 @@ export default function HeroSection() {
         aria-hidden
       />
 
-      <div className="relative z-10 flex h-full items-center px-[18px] pt-[66px] sm:px-[82px] sm:pt-[77px]">
+      <div className="container relative z-10 flex h-full items-center px-[20px] pt-[66px] md:px-[40px] sm:pt-[77px]">
         <FadeIn
           duration={ABOUT_MOTION.heroDuration}
           className="flex w-full max-w-[601px] flex-col items-start gap-[13px] text-white drop-shadow-[0px_4px_2px_rgba(0,0,0,0.25)]"

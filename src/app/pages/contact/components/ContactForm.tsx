@@ -120,8 +120,8 @@ export default function ContactForm() {
       id="contact-form"
       className="relative w-full bg-[rgba(236,249,252,0.12)]"
     >
-      <div className="flex items-center justify-center bg-[rgba(137,233,250,0.05)] px-[18px] py-16 sm:px-[30px] sm:py-20">
-        <div className="mx-auto flex w-full max-w-[1282px] flex-col items-start gap-12 lg:flex-row lg:gap-[66px]">
+      <div className="bg-[rgba(137,233,250,0.05)] py-16 sm:py-20">
+        <div className="container flex w-full flex-col items-start gap-12 px-[20px] md:px-[40px] lg:flex-row lg:gap-[66px]">
           <SlideIn
             from="left"
             offset={80}

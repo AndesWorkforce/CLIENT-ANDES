@@ -22,20 +22,21 @@ export default function CtaSection({
     >
       <div className="h-px w-full bg-white/30" aria-hidden />
 
-      <FadeIn className="mx-auto flex w-full max-w-[1092px] flex-col items-start px-[18px] sm:px-6">
-        <p className="text-[14px] font-semibold uppercase leading-5 tracking-[1.4px] text-white/80">
-          Get Started Today
-        </p>
+      <FadeIn className="container px-[20px] md:px-[40px]">
+        <div className="flex w-full max-w-[1092px] flex-col items-start">
+          <p className="text-[14px] font-semibold uppercase leading-5 tracking-[1.4px] text-white/80">
+            Get Started Today
+          </p>
 
-        <h2 className="mt-4 text-left text-[32px] font-bold leading-[1.2] text-white drop-shadow-[0px_1px_2px_rgba(0,0,0,0.15)] sm:text-[48px] md:text-[60px] md:leading-[75px]">
-          Ready to take the next step
-        </h2>
+          <h2 className="mt-4 text-left text-[32px] font-bold leading-[1.2] text-white drop-shadow-[0px_1px_2px_rgba(0,0,0,0.15)] sm:text-[48px] md:text-[60px] md:leading-[75px]">
+            Ready to take the next step
+          </h2>
 
-        <p className="mt-6 text-left text-[16px] font-normal leading-[1.6] text-white/80 sm:text-[18px]">
-          Connecting businesses and talent to build stronger teams.
-        </p>
+          <p className="mt-6 text-left text-[16px] font-normal leading-[1.6] text-white/80 sm:text-[18px]">
+            Connecting businesses and talent to build stronger teams.
+          </p>
 
-        <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-4">
+          <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-4">
           <Link
             href="/pages/services"
             onClick={() => {
@@ -76,6 +77,7 @@ export default function CtaSection({
               />
             </span>
           </Link>
+        </div>
         </div>
       </FadeIn>
 
