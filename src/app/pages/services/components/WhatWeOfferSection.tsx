@@ -100,8 +100,8 @@ export default function WhatWeOfferSection() {
   };
 
   return (
-    <section className="w-full overflow-x-hidden bg-white py-[44px] md:py-[101px] px-[18px] md:px-[75px]">
-      <div className="max-w-[1440px] mx-auto">
+    <section className="w-full overflow-x-hidden bg-white py-[44px] md:py-[101px]">
+      <div className="container px-[20px] md:px-[40px]">
         <div className="text-center mb-[22px] md:mb-[41px]">
           <FadeIn>
             <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">

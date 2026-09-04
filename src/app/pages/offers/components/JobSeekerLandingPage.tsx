@@ -101,7 +101,7 @@ export default function JobSeekerLandingPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white">
-      <section className="relative flex h-[400px] w-full items-center px-[20px] py-16 md:h-[600px] md:px-[82px] md:py-[207px]">
+      <section className="relative flex h-[400px] w-full items-center md:h-[600px]">
         <div className="absolute inset-0 z-0">
           <Image
             src={BANNER_SRC}
@@ -115,9 +115,9 @@ export default function JobSeekerLandingPage() {
 
         <FadeIn
           duration={ABOUT_MOTION.heroDuration}
-          className="relative z-10 flex max-w-[758px] flex-col gap-[10px] text-white"
+          className="container relative z-10 flex max-w-[1440px] flex-col gap-[10px] px-[20px] py-16 text-white md:px-[40px] md:py-[207px]"
         >
-          <h1 className="text-[32px] font-bold leading-[1.3] md:text-[64px]">
+          <h1 className="max-w-[758px] text-[32px] font-bold leading-[1.3] md:text-[64px]">
             Launch Your Career
             <span className="block text-[#22BCD8]">From Latin America</span>
           </h1>
@@ -129,9 +129,9 @@ export default function JobSeekerLandingPage() {
         </FadeIn>
       </section>
 
-      <section className="bg-[#22BCD8] px-[18px] py-[44px] md:h-[208px] md:px-[84px] md:py-[53px]">
-        <FadeIn>
-          <div className="mx-auto grid max-w-[1440px] grid-cols-2 gap-x-6 gap-y-8 text-white md:flex md:items-start md:justify-between md:gap-[40px] lg:gap-[80px]">
+      <section className="bg-[#22BCD8] py-[44px] md:h-[208px] md:py-[53px]">
+        <FadeIn className="container px-[20px] md:px-[40px]">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 text-white md:flex md:items-start md:justify-between md:gap-[40px] lg:gap-[80px]">
             {stats.map((stat) => (
               <div key={stat.label} className="flex flex-col gap-[3px]">
                 <span className="text-[32px] font-bold leading-[1.3] md:text-[52px]">
@@ -146,8 +146,8 @@ export default function JobSeekerLandingPage() {
         </FadeIn>
       </section>
 
-      <section className="bg-white px-[18px] py-[44px] md:px-[75px] md:pb-[126px] md:pt-[101px]">
-        <div className="mx-auto flex max-w-[1281px] flex-col items-center gap-[41px]">
+      <section className="bg-white py-[44px] md:pb-[126px] md:pt-[101px]">
+        <div className="container flex flex-col items-center gap-[41px] px-[20px] md:px-[40px]">
           <FadeIn className="flex flex-col items-center gap-[22px] text-center">
             <h2 className="text-[24px] font-bold leading-[1.2] text-[#343434] md:text-[52px]">
               How It <span className="text-[#0097B2]">Works</span>
@@ -184,8 +184,8 @@ export default function JobSeekerLandingPage() {
         </div>
       </section>
 
-      <section className="bg-[#F6FBFC] px-[18px] py-[44px] md:px-[75px] md:py-[66px]">
-        <div className="mx-auto flex max-w-[1280px] flex-col items-center gap-[44px]">
+      <section className="bg-[#F6FBFC] py-[44px] md:py-[66px]">
+        <div className="container flex flex-col items-center gap-[44px] px-[20px] md:px-[40px]">
           <FadeIn className="flex flex-col items-center gap-[22px] text-center" delay={0.2}>
             <h2 className="text-[24px] font-bold leading-[1.2] text-black md:text-[52px]">
               Why Join <span className="text-[#0097B2]">Andes Workforce?</span>
@@ -242,7 +242,7 @@ export default function JobSeekerLandingPage() {
         />
         <FadeIn
           delay={0.2}
-          className="relative z-10 flex flex-col items-start gap-[22px] px-[18px] py-[44px] md:px-[80px] md:py-[85px]"
+          className="container relative z-10 flex flex-col items-start gap-[22px] px-[20px] py-[44px] md:px-[40px] md:py-[85px]"
         >
           <h2 className="text-[32px] font-bold leading-[1.3] text-white drop-shadow-[0px_4px_4px_#11525e] md:text-[48px]">
             Ready to start?

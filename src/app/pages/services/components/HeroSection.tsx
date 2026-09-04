@@ -19,7 +19,7 @@ export default function HeroSection() {
             "linear-gradient(90deg, rgba(4,78,92,0.8) 20.19%, rgba(5,100,117,0.76) 53.99%, rgba(8,166,194,0.24) 71.95%)",
         }}
       />
-      <div className="relative z-10 max-w-[1440px] mx-auto px-[20px] md:px-[82px] w-full">
+      <div className="container relative z-10 w-full px-[20px] md:px-[40px]">
         <FadeIn
           duration={ABOUT_MOTION.heroDuration}
           className="max-w-[1063px] text-white"

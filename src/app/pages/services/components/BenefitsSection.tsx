@@ -38,8 +38,9 @@ export default function BenefitsSection() {
   };
 
   return (
-    <section className="flex w-full flex-col overflow-x-hidden lg:flex-row lg:items-stretch lg:justify-between">
-      <div className="flex w-full items-start bg-white px-[18px] py-[44px] lg:h-[749px] lg:w-[52%] lg:shrink-0 lg:px-[80px] lg:py-[77px]">
+    <section className="w-full overflow-x-hidden bg-white">
+      <div className="container flex flex-col px-[20px] md:px-[40px] lg:h-[749px] lg:flex-row lg:items-stretch">
+      <div className="flex w-full items-start py-[44px] lg:w-[52%] lg:shrink-0 lg:py-[77px]">
         <div className="flex w-full max-w-[601px] flex-col gap-[38px]">
           <SlideIn from="left" offset={800}>
             <div className="flex flex-col gap-[11px]">
@@ -95,6 +96,7 @@ export default function BenefitsSection() {
           alt="Office professional"
           className="h-full w-full object-cover"
         />
+      </div>
       </div>
     </section>
   );
