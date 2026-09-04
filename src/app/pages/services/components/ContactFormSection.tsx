@@ -182,8 +182,8 @@ export default function ContactFormSection() {
         />
       </div>
 
-      <div className="relative z-10 flex w-full flex-col lg:h-[749px] lg:flex-row">
-        <div className="flex h-[350px] w-full items-center px-[18px] py-[44px] lg:h-auto lg:w-[52%] lg:shrink-0 lg:px-[79px] lg:py-[169px]">
+      <div className="container relative z-10 flex w-full flex-col px-[20px] md:px-[40px] lg:h-[749px] lg:flex-row">
+        <div className="flex h-[350px] w-full items-center py-[44px] lg:h-auto lg:w-[52%] lg:shrink-0 lg:py-[169px]">
           <FadeIn className="flex w-full max-w-[574px] flex-col gap-4 lg:gap-5">
             <div className="inline-flex w-fit items-center gap-[7px] rounded-[20px] border border-white bg-[rgba(255,255,255,0.22)] px-[11px] py-[7px] lg:px-[14px]">
               <CircleCheck
@@ -245,7 +245,7 @@ export default function ContactFormSection() {
           </FadeIn>
         </div>
 
-        <div className="flex w-full items-start justify-center bg-[#F6FBFC] px-[19px] py-[44px] lg:h-[749px] lg:w-[48%] lg:shrink-0 lg:bg-transparent lg:px-[77px] lg:py-[48px]">
+        <div className="flex w-full items-start justify-center bg-[#F6FBFC] py-[44px] lg:h-[749px] lg:w-[48%] lg:shrink-0 lg:bg-transparent lg:py-[48px]">
           <SlideIn from="right" offset={900} delay={0.42} className="w-full max-w-[552px]">
           <div className="w-full origin-center rounded-[24px] bg-white px-[22px] pb-[22px] pt-[33px] shadow-[7px_10px_10px_rgba(195,195,195,0.5)] lg:px-[36px] lg:py-[66px] lg:transition-transform lg:duration-300 lg:ease-out lg:motion-safe:hover:scale-[1.03] lg:hover:shadow-xl">
             <div className="flex flex-col gap-[22px] lg:gap-[66px]">

@@ -163,10 +163,10 @@ export default function FeaturedTalentSection() {
   if (loading || featuredTalent.length === 0) return null;
 
   return (
-    <section className="relative w-full overflow-x-hidden bg-white py-[44px] px-0 md:bg-[#F6FBFC] md:px-[75px] md:py-[55px]">
-      <div className="max-w-[1440px] mx-auto">
+    <section className="relative w-full overflow-x-hidden bg-white py-[44px] md:bg-[#F6FBFC] md:py-[55px]">
+      <div className="container px-[20px] md:px-[40px]">
         {/* Header */}
-        <div className="text-center mb-[22px] md:mb-[33px] px-[18px] md:px-0">
+        <div className="mb-[22px] text-center md:mb-[33px]">
           <FadeIn>
             <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">
               MEET OUR TALENT
@@ -186,7 +186,7 @@ export default function FeaturedTalentSection() {
         </div>
 
         {/* Grid de tarjetas - Desktop | Scroll horizontal - Mobile */}
-        <div className="md:grid md:grid-cols-2 md:gap-[24px] flex md:flex-none overflow-x-auto gap-[11px] px-[18px] md:px-0 py-3 md:py-3 scrollbar-hide">
+        <div className="flex gap-[11px] overflow-x-auto py-3 scrollbar-hide md:grid md:grid-cols-2 md:flex-none md:gap-[24px]">
           {featuredTalent.map((talent, idx) => (
             <FadeIn
               key={talent.id}

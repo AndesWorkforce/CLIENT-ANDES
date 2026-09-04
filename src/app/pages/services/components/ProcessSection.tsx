@@ -28,8 +28,8 @@ const steps = [
 
 export default function ProcessSection() {
   return (
-    <section className="w-full overflow-x-hidden bg-white py-[44px] md:py-[117px] px-[18px] md:px-[80px]">
-      <div className="max-w-[1440px] mx-auto">
+    <section className="w-full overflow-x-hidden bg-white py-[44px] md:py-[117px]">
+      <div className="container px-[20px] md:px-[40px]">
         <FadeIn className="text-center mb-[22px] md:mb-[30px]">
           <p className="mb-[11px] text-[14px] font-semibold leading-[1.3] text-[#0097B2]">
             HOW IT WORKS
