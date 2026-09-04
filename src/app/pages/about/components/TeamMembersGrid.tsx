@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { TeamMember } from "../../team/team.data";
+import { FadeIn } from "./Reveal";
 
 const INITIAL_COUNT = 4;
 
@@ -127,21 +128,22 @@ export default function TeamMembersGrid({
 
       <div className="relative z-10 max-w-[1092px] mx-auto px-[21px] sm:px-[49px] flex flex-col gap-[22px] sm:gap-[55px] items-center">
         {/* Centered header */}
-        <div className="flex flex-col gap-[11px] items-center text-center">
+        <FadeIn className="flex flex-col gap-[11px] items-center text-center">
           <h2 className="text-[24px] sm:text-[48px] font-bold text-white leading-[1.3]">
             The <span className="text-[#89e9fa]">people</span> behind it all
           </h2>
           <p className="text-[14px] sm:text-[22px] font-semibold text-white leading-[1.3]">
             Behind every great result, there&apos;s a team that makes it possible.
           </p>
-        </div>
+        </FadeIn>
 
         {/* Mobile: auto-scroll + manual scroll carousel */}
+        <FadeIn delay={0.72} className="md:hidden w-full">
         <div 
           ref={scrollRef}
           onScroll={handleScroll}
           onTouchStart={handleTouchStart}
-          className="md:hidden -mx-[21px] overflow-x-auto w-[calc(100%+42px)] scrollbar-hide"
+          className="-mx-[21px] overflow-x-auto w-[calc(100%+42px)] scrollbar-hide"
         >
           <div className="flex gap-[19px] px-[21px] pb-[11px]">
             {/* Mostrar todos los miembros */}
@@ -158,20 +160,26 @@ export default function TeamMembersGrid({
             ))}
           </div>
         </div>
+        </FadeIn>
 
         {/* Desktop: rows of 4 */}
         <div className="hidden md:flex flex-col gap-[55px] w-full">
           {rows.map((row, rowIndex) => (
             <div key={rowIndex} className="grid grid-cols-4 gap-[19px]">
-              {row.map((member) => (
-                <MemberCard key={member.id} member={member} onMemberClick={onMemberClick} />
+              {row.map((member, colIndex) => (
+                <FadeIn
+                  key={member.id}
+                  delay={0.72 + (rowIndex * 4 + colIndex) * 0.23}
+                >
+                  <MemberCard member={member} onMemberClick={onMemberClick} />
+                </FadeIn>
               ))}
             </div>
           ))}
         </div>
 
         {/* See more / Show less — desktop only */}
-        <div className="hidden md:flex justify-center">
+        <FadeIn delay={2.05} className="hidden md:flex justify-center">
           {!showAll ? (
             <button
               onClick={() => setShowAll(true)}
@@ -187,7 +195,7 @@ export default function TeamMembersGrid({
               Show less
             </button>
           )}
-        </div>
+        </FadeIn>
       </div>
     </section>
   );

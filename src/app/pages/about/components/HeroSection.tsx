@@ -1,3 +1,7 @@
+"use client";
+
+import { FadeIn, ABOUT_MOTION } from "./Reveal";
+
 export default function HeroSection() {
   return (
     <section
@@ -21,7 +25,10 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-[rgba(4,78,92,0.8)]" />
 
       <div className="relative z-10 h-full flex items-center justify-center px-[18px] sm:px-6 pt-[66px] sm:pt-[77px]">
-        <div className="text-center text-white max-w-[1063px] drop-shadow-[0px_4px_2px_#0c505c]">
+        <FadeIn
+          duration={ABOUT_MOTION.heroDuration}
+          className="text-center text-white max-w-[1063px] drop-shadow-[0px_4px_2px_#0c505c]"
+        >
           <h1 className="text-[32px] sm:text-5xl md:text-6xl lg:text-[64px] font-bold leading-[1.3]">
             We are <span className="text-[#0bc8e9]">Andes</span> Workforce
           </h1>
@@ -29,7 +36,7 @@ export default function HeroSection() {
             A company specialized in connecting qualified talent from Latin
             America with global companies
           </p>
-        </div>
+        </FadeIn>
       </div>
     </section>
   );

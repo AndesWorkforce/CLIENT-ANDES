@@ -1,30 +1,21 @@
 import HeroSection from "./components/HeroSection";
 import AboutSection from "./components/AboutSection";
 import PartnersSection from "./components/PartnersSection";
+import ServicesSection from "./components/ServicesSection";
+import StatsSection from "./components/StatsSection";
 import TestimonialsSection from "./components/TestimonialsSection";
-import PersonnelTypes from "./components/PersonnelTypes";
 import CTASection from "./components/CTASection";
 
 export default function HomePage() {
   return (
-    <>
-      {/* Hero Section */}
+    <div className="overflow-x-hidden">
       <HeroSection />
-
-      {/* Partners Section */}
       <PartnersSection />
-
-      {/* Personnel Types Section */}
-      <PersonnelTypes />
-
-      {/* Testimonials Section */}
+      <ServicesSection />
+      <StatsSection />
       <TestimonialsSection />
-
-      {/* About Section */}
       <AboutSection />
-
-      {/* CTA Section */}
       <CTASection />
-    </>
+    </div>
   );
 }

@@ -114,7 +114,9 @@ export default function Navbar() {
     pathname.startsWith("/pages/home/");
   const isAboutPage =
     pathname === "/pages/about" || pathname.startsWith("/pages/about/");
-  const isHeroOverlayPage = isHomePage || isAboutPage;
+  const isContactPage =
+    pathname === "/pages/contact" || pathname.startsWith("/pages/contact/");
+  const isHeroOverlayPage = isHomePage || isAboutPage || isContactPage;
   const isTransparentNav = isHeroOverlayPage && !isScrolled;
   /**
    * Alias leído en caliente desde `users/me`. Esto evita depender de la cookie
@@ -139,7 +141,8 @@ export default function Navbar() {
     const updateNavStyle = () => {
       const hero =
         document.getElementById("home-hero") ||
-        document.getElementById("about-hero");
+        document.getElementById("about-hero") ||
+        document.getElementById("contact-hero");
       if (!hero) {
         setIsScrolled(window.scrollY > 40);
         return;
@@ -481,7 +484,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Espaciador: en home/about el hero ocupa el espacio bajo el navbar fijo */}
+      {/* Espaciador: en home/about/contact el hero ocupa el espacio bajo el navbar fijo */}
       {!isHeroOverlayPage && (
         <div className="h-[45px] md:h-[85px]" aria-hidden="true" />
       )}
@@ -493,7 +496,7 @@ export default function Navbar() {
             : "bg-white shadow-[0px_4px_4px_0px_rgba(210,210,210,0.25)]"
         }`}
       >
-      {/* Top Header - Contact & Social (oculto en home/about según diseño Figma) */}
+      {/* Top Header - Contact & Social (oculto en home/about/contact según diseño Figma) */}
       {!isHeroOverlayPage && (
         <div className="hidden md:block bg-white border-b border-[rgba(210,210,210,0.5)]">
           <div className="container px-[20px] md:px-[40px]">

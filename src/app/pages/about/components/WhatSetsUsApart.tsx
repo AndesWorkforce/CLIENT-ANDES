@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { FadeIn } from "./Reveal";
 
 const items = [
   {
@@ -27,20 +30,25 @@ export default function WhatSetsUsApart() {
       <div className="max-w-[1092px] mx-auto px-[21px] sm:px-6">
         {/* Header */}
         <div className="text-center mb-[22px] sm:mb-14">
-          <h2 className="text-[24px] sm:text-4xl md:text-[48px] font-bold text-black leading-[1.3]">
-            What sets us apart
-          </h2>
-          <p className="mt-3 text-[14px] sm:text-lg md:text-[22px] font-medium text-[#525252] leading-[1.2]">
-            Combining exceptional talent, operational support, and long-term
-            partnership.
-          </p>
+          <FadeIn>
+            <h2 className="text-[24px] sm:text-4xl md:text-[48px] font-bold text-black leading-[1.3]">
+              What sets us apart
+            </h2>
+          </FadeIn>
+          <FadeIn delay={0.5}>
+            <p className="mt-3 text-[14px] sm:text-lg md:text-[22px] font-medium text-[#525252] leading-[1.2]">
+              Combining exceptional talent, operational support, and long-term
+              partnership.
+            </p>
+          </FadeIn>
         </div>
 
         {/* Items */}
         <div className="flex flex-col gap-[22px] sm:gap-7">
           {items.map((item, idx) => (
-            <div
+            <FadeIn
               key={idx}
+              delay={1 + idx * 0.25}
               className="bg-[rgba(4,78,92,0.06)] rounded-[12px] px-[22px] py-[44px] sm:px-6 sm:py-11 flex flex-col gap-[11px] sm:gap-3"
             >
               {/* Title row */}
@@ -65,7 +73,7 @@ export default function WhatSetsUsApart() {
               <p className="text-[14px] sm:text-lg md:text-[20px] font-normal text-black leading-[1.5] tracking-[0.28px]">
                 {item.description}
               </p>
-            </div>
+            </FadeIn>
           ))}
         </div>
       </div>

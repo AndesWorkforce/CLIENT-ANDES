@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { FadeIn } from "./Reveal";
 
 const values = [
   {
@@ -37,7 +40,7 @@ export default function ValuesSection() {
     <section className="w-full bg-white py-8 sm:py-24">
       <div className="max-w-[1092px] mx-auto px-[18px] sm:px-6">
         {/* Header */}
-        <div className="text-center mb-[22px] sm:mb-10">
+        <FadeIn className="text-center mb-[22px] sm:mb-10">
           <h2 className="text-[24px] sm:text-4xl md:text-[48px] font-bold text-[#343434] leading-[1.3]">
             What <span className="text-[#0097b2]">guides</span> us
           </h2>
@@ -45,13 +48,14 @@ export default function ValuesSection() {
             The principles that shape how we work, collaborate, and grow
             together.
           </p>
-        </div>
+        </FadeIn>
 
         {/* Cards — horizontal scroll on mobile, grid on desktop */}
         <div className="flex overflow-x-auto gap-[22px] pb-2 md:grid md:grid-cols-3 lg:grid-cols-5 md:overflow-visible md:gap-8 md:pb-0">
-          {values.map((value) => (
-            <div
+          {values.map((value, index) => (
+            <FadeIn
               key={value.title}
+              delay={0.5 + index * 0.24}
               className="bg-white rounded-[12px] shadow-[0px_4px_2px_rgba(167,162,162,0.25)] flex-shrink-0 w-[157px] px-[22px] py-[33px] md:flex-shrink md:w-auto md:px-6 md:py-8 flex flex-col gap-3"
             >
               <div className="relative w-[50px] h-[50px] md:w-[89px] md:h-[89px]">
@@ -69,7 +73,7 @@ export default function ValuesSection() {
               <p className="text-black text-[12px] font-normal leading-[1.3] tracking-[0.24px]">
                 {value.description}
               </p>
-            </div>
+            </FadeIn>
           ))}
         </div>
       </div>

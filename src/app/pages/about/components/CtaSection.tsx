@@ -1,8 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { FadeIn } from "./Reveal";
 
-export default function CtaSection() {
+type CtaSectionProps = {
+  findTalentEvent?: string;
+  joinUsEvent?: string;
+};
+
+export default function CtaSection({
+  findTalentEvent = "ads_click_AboutPage_FindTalent",
+  joinUsEvent = "ads_click_AboutPage_JoinTeam",
+}: CtaSectionProps = {}) {
   return (
     <section
       className="relative flex w-full flex-col items-stretch justify-center gap-12 overflow-hidden py-0 sm:gap-[95px]"
@@ -13,7 +22,7 @@ export default function CtaSection() {
     >
       <div className="h-px w-full bg-white/30" aria-hidden />
 
-      <div className="mx-auto flex w-full max-w-[1092px] flex-col items-start px-[18px] sm:px-6">
+      <FadeIn className="mx-auto flex w-full max-w-[1092px] flex-col items-start px-[18px] sm:px-6">
         <p className="text-[14px] font-semibold uppercase leading-5 tracking-[1.4px] text-white/80">
           Get Started Today
         </p>
@@ -31,7 +40,7 @@ export default function CtaSection() {
             href="/pages/services"
             onClick={() => {
               if (typeof window !== "undefined" && window.gtag) {
-                window.gtag("event", "ads_click_AboutPage_FindTalent", {});
+                window.gtag("event", findTalentEvent, {});
               }
             }}
             className="inline-flex items-center justify-center gap-1 rounded-[20px] bg-white px-[13px] py-3 text-[16px] font-medium leading-[1.2] text-[#0097b2] transition-colors hover:bg-gray-50"
@@ -51,7 +60,7 @@ export default function CtaSection() {
             href="/pages/offers"
             onClick={() => {
               if (typeof window !== "undefined" && window.gtag) {
-                window.gtag("event", "ads_click_AboutPage_JoinTeam", {});
+                window.gtag("event", joinUsEvent, {});
               }
             }}
             className="inline-flex items-center justify-center gap-1 rounded-[20px] px-[13px] py-3 text-[16px] font-medium leading-[1.2] text-white transition-colors hover:bg-white/10"
@@ -68,7 +77,7 @@ export default function CtaSection() {
             </span>
           </Link>
         </div>
-      </div>
+      </FadeIn>
 
       <div className="h-px w-full bg-black/10" aria-hidden />
     </section>
