@@ -66,29 +66,35 @@ export function ChatLauncherButton({
   }, [greetingDone]);
 
   const showWaiting = !isOpen && greetingDone;
+  const showSpeech = !isOpen && !greetingUnmounted;
 
   return (
-    <div className="relative flex items-end justify-end">
-      {!isOpen && !greetingUnmounted && (
+    <div
+      className={cn(
+        "relative flex flex-col items-end justify-end overflow-visible",
+        showSpeech ? "size-20 sm:h-[106px] sm:w-[255px]" : "size-20",
+      )}
+    >
+      {showSpeech && (
         <div
           className={cn(
-            "chat-launcher-speech pointer-events-none absolute bottom-[18px] right-[92px] z-20 hidden sm:flex",
+            "chat-launcher-speech pointer-events-none absolute left-0 top-0 z-10 hidden sm:block",
             greetingDone && "chat-launcher-speech--leaving",
           )}
         >
-          <div className="relative flex w-[203px] flex-col items-center">
+          <div className="relative w-[203px]">
             <div className="rounded-2xl bg-white px-[25px] py-2.5 shadow-[0px_10px_7.5px_rgba(0,0,0,0.1),0px_4px_3px_rgba(0,0,0,0.1)]">
               <p className="whitespace-nowrap text-center text-base leading-[22px] tracking-[-0.31px] text-[#1e2939]">
                 Need help? Just ask
               </p>
             </div>
-            <span className="absolute -bottom-[8px] right-[26px] h-[12px] w-[18px] overflow-hidden">
+            <span className="absolute left-[159px] top-[42px] h-[12px] w-[18px]">
               <img
                 src="/chatbot/speech-tail.svg"
                 alt=""
                 width={18}
                 height={12}
-                className="block h-full w-full"
+                className="block size-full"
               />
             </span>
           </div>
@@ -103,7 +109,7 @@ export function ChatLauncherButton({
         aria-expanded={isOpen}
         aria-busy={isLoading || showWaiting}
         className={cn(
-          "chat-launcher-icon relative size-20 shrink-0 rounded-[20px] border-[1.08px] border-[#3FC6E0] bg-white shadow-[0_8px_20px_rgba(0,79,94,0.18)] focus:outline-none focus:ring-4 focus:ring-[#3FC6E0]/30 disabled:cursor-wait disabled:opacity-90",
+          "chat-launcher-icon relative z-20 size-20 shrink-0 rounded-[20px] border-[1.08px] border-[#3FC6E0] bg-white shadow-[0_8px_20px_rgba(0,79,94,0.18)] focus:outline-none focus:ring-4 focus:ring-[#3FC6E0]/30 disabled:cursor-wait disabled:opacity-90",
           !isOpen && !greetingDone && "chat-launcher-icon--andy",
         )}
       >
