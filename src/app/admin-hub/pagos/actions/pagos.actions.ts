@@ -16,7 +16,7 @@ import type {
   InvoiceSection,
 } from "../types/invoice-detail.types";
 
-type BackendEstado = "BORRADOR" | "EMITIDA" | "PAGADA" | "ANULADA";
+type BackendEstado = "BORRADOR" | "APROBADA" | "EMITIDA" | "PAGADA" | "ANULADA";
 
 export interface PagosCliente {
   id: string;
@@ -139,6 +139,10 @@ export interface FacturaDetalleApiItem {
   client: string;
   periodo: string;
   estado: BackendEstado;
+  numeroFactura?: string | null;
+  pdfUrl?: string | null;
+  aprobadoEn?: string | null;
+  emitidaEn?: string | null;
   country: string;
   issueDate: string | null;
   dueDate: string | null;
@@ -154,6 +158,11 @@ export interface FacturaDetalleApiItem {
     position: string;
     contractStartDate: string | null;
     clientPrice: number;
+    esHourly?: boolean;
+    tarifaHoraria?: number | null;
+    horasTrabajadas?: number | null;
+    sinHorasCargadas?: boolean;
+    calculadoEn?: string | null;
     status: BackendPayrollStatus;
   }>;
   additionalFees: Array<{
@@ -211,6 +220,7 @@ function mapEstadoToUi(estado: BackendEstado): InvoiceStatus {
     case "ANULADA":
       return "Vencido";
     case "BORRADOR":
+    case "APROBADA":
     case "EMITIDA":
     default:
       return "Pendiente";
@@ -268,6 +278,11 @@ function mapApiInvoiceDetail(payload: FacturaDetalleApiItem): InvoiceDetail {
     position: entry.position,
     contractStartDate: entry.contractStartDate ?? "—",
     clientPrice: entry.clientPrice,
+    esHourly: entry.esHourly ?? false,
+    tarifaHoraria: entry.tarifaHoraria ?? null,
+    horasTrabajadas: entry.horasTrabajadas ?? null,
+    sinHorasCargadas: entry.sinHorasCargadas ?? false,
+    calculadoEn: entry.calculadoEn ?? null,
     status: entry.status,
   }));
 
@@ -290,6 +305,11 @@ function mapApiInvoiceDetail(payload: FacturaDetalleApiItem): InvoiceDetail {
     period: apiPeriodoToDisplay(payload.periodo),
     totalAmount: formatMoney(payload.grandTotal),
     status: mapEstadoToUi(payload.estado),
+    estado: payload.estado,
+    numeroFactura: payload.numeroFactura ?? null,
+    pdfUrl: payload.pdfUrl ?? null,
+    aprobadoEn: payload.aprobadoEn ?? null,
+    emitidaEn: payload.emitidaEn ?? null,
     country: payload.country || "—",
     issueDate: payload.issueDate ?? "—",
     dueDate: payload.dueDate ?? "—",
@@ -504,7 +524,7 @@ export async function ensureInvoiceSnapshot(
   }
 }
 
-export type EstadoSnapshot = "BORRADOR" | "EMITIDA" | "PAGADA" | "ANULADA";
+export type EstadoSnapshot = BackendEstado;
 
 /**
  * Genera o regenera el snapshot de una factura
@@ -614,24 +634,6 @@ export async function updateInvoiceStatus(
       message: "Error al actualizar el estado de la factura",
     };
   }
-}
-
-/**
- * Emite una factura (genera snapshot + cambia estado a EMITIDA)
- */
-export async function emitInvoice(
-  empresaId: string,
-  period: string
-): Promise<ApiResponse> {
-  // Primero generar/actualizar el snapshot
-  const snapshotResult = await generateInvoiceSnapshot(empresaId, period);
-  
-  if (!snapshotResult.success) {
-    return snapshotResult;
-  }
-
-  // Luego cambiar el estado a EMITIDA
-  return updateInvoiceStatus(empresaId, period, "EMITIDA");
 }
 
 /**
@@ -1085,5 +1087,212 @@ export async function approveCustomerCredit(
       success: false,
       message: error.response?.data?.message || "Error al aprobar el crédito",
     };
+  }
+}
+
+export interface FacturaEmitida {
+  id: string;
+  empresaId: string;
+  empresaNombre: string;
+  periodo: string;
+  estado: EstadoSnapshot;
+  numeroFactura: string | null;
+  pdfUrl: string | null;
+  totalFacturar: number;
+  aprobadoEn: string | null;
+  aprobadoPorId: string | null;
+  emitidaEn: string | null;
+  emitidaPorId: string | null;
+}
+
+export interface FacturaAccionResult extends ApiResponse {
+  data?: FacturaEmitida;
+}
+
+/** Traduce los errores del backend a un mensaje accionable para el admin. */
+function mapFacturaError(error: unknown, fallback: string): FacturaAccionResult {
+  const status = (error as { response?: { status?: number } })?.response?.status;
+  const apiMessage = (
+    error as { response?: { data?: { message?: string } } }
+  )?.response?.data?.message;
+
+  if (status === 409 || status === 400 || status === 404) {
+    return { success: false, message: apiMessage ?? fallback };
+  }
+
+  console.error("[PAGOS]", fallback, error);
+  return { success: false, message: fallback };
+}
+
+/**
+ * Aprueba la factura del cliente (BORRADOR → APROBADA).
+ * A partir de acá el snapshot no se regenera; el número se asigna al emitir.
+ */
+export async function approveInvoice(
+  empresaId: string,
+  period: string,
+): Promise<FacturaAccionResult> {
+  const axios = await createServerAxios();
+
+  try {
+    const response = await axios.post(
+      `client-invoice/empresa/${empresaId}/aprobar`,
+      {},
+      {
+        params: { periodo: displayPeriodToApiPeriod(period) },
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+
+    const payload = response.data?.data ?? response.data;
+    return {
+      success: true,
+      message: "Factura aprobada correctamente",
+      data: payload as FacturaEmitida,
+    };
+  } catch (error: unknown) {
+    return mapFacturaError(error, "Error al aprobar la factura");
+  }
+}
+
+/**
+ * Emite la factura aprobada: asigna número secuencial y genera el PDF oficial.
+ */
+export async function issueInvoice(
+  empresaId: string,
+  period: string,
+): Promise<FacturaAccionResult> {
+  const axios = await createServerAxios();
+
+  try {
+    const response = await axios.post(
+      `client-invoice/empresa/${empresaId}/emitir`,
+      {},
+      {
+        params: { periodo: displayPeriodToApiPeriod(period) },
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+
+    const payload = response.data?.data ?? response.data;
+    if (!payload?.numeroFactura) {
+      return { success: false, message: "Respuesta vacía al emitir la factura" };
+    }
+
+    return {
+      success: true,
+      message: `Factura emitida — ${payload.numeroFactura}`,
+      data: payload as FacturaEmitida,
+    };
+  } catch (error: unknown) {
+    return mapFacturaError(error, "Error al emitir la factura");
+  }
+}
+
+export interface DownloadInvoiceResult extends ApiResponse {
+  data?: { filename: string; base64: string };
+}
+
+/**
+ * Descarga el PDF de la factura emitida. Viaja en base64 porque la server action
+ * no puede transmitir un stream binario al cliente.
+ */
+export async function downloadInvoicePdf(
+  empresaId: string,
+  period: string,
+): Promise<DownloadInvoiceResult> {
+  const axios = await createServerAxios();
+
+  try {
+    const response = await axios.get(
+      `client-invoice/empresa/${empresaId}/factura/descargar`,
+      {
+        params: { periodo: displayPeriodToApiPeriod(period) },
+        responseType: "arraybuffer",
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+
+    const disposition = String(response.headers?.["content-disposition"] ?? "");
+    const filename =
+      /filename="?([^"]+)"?/.exec(disposition)?.[1] ?? "factura.pdf";
+
+    return {
+      success: true,
+      message: "Factura descargada",
+      data: {
+        filename,
+        base64: Buffer.from(response.data as ArrayBuffer).toString("base64"),
+      },
+    };
+  } catch (error: unknown) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    if (status === 404) {
+      return { success: false, message: "La factura todavía no fue emitida" };
+    }
+
+    console.error("[PAGOS] Error al descargar la factura:", error);
+    return { success: false, message: "Error al descargar la factura" };
+  }
+}
+
+export interface FacturaEmitidaReporte {
+  numeroFactura: string;
+  empresaId: string;
+  empresaNombre: string;
+  periodo: string;
+  estado: EstadoSnapshot;
+  totalFacturar: number;
+  emitidaEn: string | null;
+  emitidaPor: string | null;
+  aprobadoPor: string | null;
+  aprobadoEn: string | null;
+  pdfUrl: string | null;
+}
+
+export interface ReporteFacturasEmitidas {
+  cantidad: number;
+  totalFacturado: number;
+  facturas: FacturaEmitidaReporte[];
+}
+
+export interface GetReporteFacturasResult extends ApiResponse {
+  data?: ReporteFacturasEmitidas;
+}
+
+/**
+ * Reporte de facturas emitidas: qué se facturó, a quién, por cuánto, y quién
+ * aprobó y emitió cada documento.
+ */
+export async function getReporteFacturasEmitidas(params?: {
+  desde?: string;
+  hasta?: string;
+  empresaId?: string;
+}): Promise<GetReporteFacturasResult> {
+  const axios = await createServerAxios();
+
+  try {
+    const response = await axios.get("client-invoice/reporte-emitidas", {
+      params: {
+        ...(params?.desde ? { desde: params.desde } : {}),
+        ...(params?.hasta ? { hasta: params.hasta } : {}),
+        ...(params?.empresaId ? { empresaId: params.empresaId } : {}),
+      },
+      headers: { "Cache-Control": "no-store" },
+    });
+
+    const payload = response.data?.data ?? response.data;
+    if (!payload) {
+      return { success: false, message: "Respuesta vacía del reporte" };
+    }
+
+    return {
+      success: true,
+      message: "Reporte obtenido correctamente",
+      data: payload as ReporteFacturasEmitidas,
+    };
+  } catch (error: unknown) {
+    console.error("[PAGOS] Error al obtener el reporte de facturas:", error);
+    return { success: false, message: "Error al obtener el reporte de facturas" };
   }
 }

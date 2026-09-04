@@ -11,6 +11,7 @@ import type { PayrollVariableStatus } from "../data/mock-payroll-variables";
 import type {
   NominaDetailApiResponse,
   PayrollDetail,
+  PayrollPayslipDocument,
 } from "../types/nomina-detail.types";
 
 export interface NominaListItem {
@@ -257,6 +258,7 @@ function mapNominaDetailToPayrollDetail(detail: NominaDetailApiResponse): Payrol
     totalDeductions: detail.totalDeductions,
     totalAmount: detail.totalAmount,
     nominaId: detail.nominaId ?? null,
+    desprendible: detail.desprendible ?? null,
     variables: detail.variables.map((variable) => ({
       id: variable.id,
       date: "",
@@ -414,5 +416,133 @@ export async function saveHorasTrabajadas(
       success: false,
       message: typeof message === "string" ? message : "Error al guardar horas trabajadas",
     };
+  }
+}
+
+const PERIODO_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+export interface EmitPayrollResult extends ApiResponse {
+  data?: PayrollPayslipDocument;
+}
+
+/**
+ * Emite la nómina del período (APROBADA → EMITIDA) y genera el desprendible de
+ * pago en PDF. El backend valida el estado y que no se emita dos veces.
+ */
+export async function emitPayroll(
+  procesoContratacionId: string,
+  periodo: string,
+): Promise<EmitPayrollResult> {
+  if (!PERIODO_REGEX.test(periodo?.trim() ?? "")) {
+    return { success: false, message: "El período debe tener formato YYYY-MM" };
+  }
+
+  const axios = await createServerAxios();
+
+  try {
+    const response = await axios.post(
+      `admin-hub/nominas/${procesoContratacionId}/emitir`,
+      {},
+      {
+        params: { periodo: periodo.trim() },
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+
+    const payload = response.data?.data ?? response.data;
+    if (!payload?.numeroDocumento) {
+      return { success: false, message: "Respuesta vacía al emitir la nómina" };
+    }
+
+    return {
+      success: true,
+      message: `Nómina emitida — desprendible ${payload.numeroDocumento}`,
+      data: {
+        numeroDocumento: payload.numeroDocumento,
+        pdfUrl: payload.pdfUrl,
+        emitidoEn: payload.emitidoEn,
+      },
+    };
+  } catch (error: unknown) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    const apiMessage = (
+      error as { response?: { data?: { message?: string } } }
+    )?.response?.data?.message;
+
+    if (status === 409) {
+      return {
+        success: false,
+        message: apiMessage ?? "La nómina ya fue emitida y no puede volver a emitirse",
+      };
+    }
+    if (status === 400) {
+      return {
+        success: false,
+        message: apiMessage ?? "Solo se puede emitir una nómina aprobada",
+      };
+    }
+    if (status === 404) {
+      return {
+        success: false,
+        message: apiMessage ?? "No existe nómina del período para este contrato",
+      };
+    }
+
+    console.error("[NOMINAS] Error al emitir nómina:", error);
+    return { success: false, message: "Error al emitir la nómina" };
+  }
+}
+
+export interface DownloadPayslipResult extends ApiResponse {
+  data?: { filename: string; base64: string };
+}
+
+/**
+ * Descarga el PDF del desprendible emitido. Se devuelve en base64 porque la
+ * server action no puede transmitir un stream binario al cliente.
+ */
+export async function downloadPayslip(
+  procesoContratacionId: string,
+  periodo: string,
+): Promise<DownloadPayslipResult> {
+  if (!PERIODO_REGEX.test(periodo?.trim() ?? "")) {
+    return { success: false, message: "El período debe tener formato YYYY-MM" };
+  }
+
+  const axios = await createServerAxios();
+
+  try {
+    const response = await axios.get(
+      `admin-hub/nominas/${procesoContratacionId}/desprendible/descargar`,
+      {
+        params: { periodo: periodo.trim() },
+        responseType: "arraybuffer",
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+
+    const disposition = String(response.headers?.["content-disposition"] ?? "");
+    const filename =
+      /filename="?([^"]+)"?/.exec(disposition)?.[1] ?? "desprendible.pdf";
+
+    return {
+      success: true,
+      message: "Desprendible descargado",
+      data: {
+        filename,
+        base64: Buffer.from(response.data as ArrayBuffer).toString("base64"),
+      },
+    };
+  } catch (error: unknown) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    if (status === 404) {
+      return {
+        success: false,
+        message: "La nómina todavía no fue emitida",
+      };
+    }
+
+    console.error("[NOMINAS] Error al descargar desprendible:", error);
+    return { success: false, message: "Error al descargar el desprendible" };
   }
 }

@@ -175,6 +175,8 @@ export function getPayrollDetail(
 
   return {
     id: payrollId,
+    // Los datos mockeados nunca representan una nómina emitida.
+    desprendible: null,
     contractorId: parsed.contractorId,
     contractId: parsed.contractId,
     contractorName: contractor.name,

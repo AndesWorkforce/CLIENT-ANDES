@@ -54,6 +54,7 @@ import {
   generateUserInboxAction,
 } from "./actions/invoices.actions";
 import { uploadMonthlyProofFromClient } from "@/lib/monthly-proof-upload.client";
+import PayslipsTab from "./components/PayslipsTab";
 
 export default function CurrentApplication() {
   const router = useRouter();
@@ -86,9 +87,9 @@ export default function CurrentApplication() {
   } | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<"proofs" | "inboxes">(
-    "proofs"
-  );
+  const [selectedTab, setSelectedTab] = useState<
+    "proofs" | "inboxes" | "payslips"
+  >("proofs");
   // Skeleton state for smoother contract switching UX
   const [isSwitchingContract, setIsSwitchingContract] = useState(false);
   // Set initial tab based on user's country (Colombia -> proofs, others -> inboxes)
@@ -2573,16 +2574,20 @@ export default function CurrentApplication() {
                 <h2 className="text-xl font-semibold text-gray-900">
                   Documents
                 </h2>
-                <button
-                  type="button"
-                  onClick={() =>
-                    selectedTab === "inboxes" ? startInboxesTour() : startTour()
-                  }
-                  aria-label="Mostrar guía de uso"
-                  className="p-1 rounded text-[#0097B2] hover:bg-blue-50 cursor-pointer"
-                >
-                  <HelpCircle size={18} />
-                </button>
+                {/* Payslips no tiene tour propio; lanzar el de proofs resaltaría
+                    elementos que no existen en ese tab. */}
+                {selectedTab !== "payslips" && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      selectedTab === "inboxes" ? startInboxesTour() : startTour()
+                    }
+                    aria-label="Mostrar guía de uso"
+                    className="p-1 rounded text-[#0097B2] hover:bg-blue-50 cursor-pointer"
+                  >
+                    <HelpCircle size={18} />
+                  </button>
+                )}
               </div>
               <div className="flex gap-2">
                 {showProofsTab && (
@@ -2609,17 +2614,33 @@ export default function CurrentApplication() {
                     Invoices
                   </button>
                 )}
+                {/* El desprendible es un documento distinto del invoice: el invoice
+                    lo emite el contratista, el desprendible lo emite Andes. */}
+                <button
+                  onClick={() => setSelectedTab("payslips")}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                    selectedTab === "payslips"
+                      ? "bg-[#0097B2] text-white cursor-pointer"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 cursor-pointer"
+                  }`}
+                >
+                  Payslips
+                </button>
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              {isColombiaUser
-                ? "Sube tu seguridad social mensual para habilitar el procesamiento de pago"
-                : "View your payment inboxes"}
+              {selectedTab === "payslips"
+                ? "Consultá y descargá tu desprendible de pago por período"
+                : isColombiaUser
+                  ? "Sube tu seguridad social mensual para habilitar el procesamiento de pago"
+                  : "View your payment inboxes"}
             </p>
           </div>
 
           <div className="p-6">
-            {selectedTab === "proofs" ? (
+            {selectedTab === "payslips" ? (
+              <PayslipsTab />
+            ) : selectedTab === "proofs" ? (
               <>
                 {/* Tab Heading: Monthly Proofs */}
                 <div className="bg-gray-50 rounded-lg p-3 mb-3">

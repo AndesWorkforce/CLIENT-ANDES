@@ -15,7 +15,11 @@ import {
 import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubSelect from "../../components/AdminHubSelect";
-import { saveHorasTrabajadas } from "../actions/nominas.actions";
+import {
+  downloadPayslip,
+  emitPayroll,
+  saveHorasTrabajadas,
+} from "../actions/nominas.actions";
 import { formatMoney } from "../data/payroll-data";
 import type { PayrollDetail } from "../types/nomina-detail.types";
 import type { PayrollVariableStatus } from "../data/mock-payroll-variables";
@@ -47,6 +51,11 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
   );
   const [emitModal, setEmitModal] = useState<PayrollEmitModalVariant | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [isEmitting, setIsEmitting] = useState(false);
+
+  // Una nómina emitida es un documento oficial: no se re-emite ni se edita.
+  const isEmitted = detail.desprendible != null;
+  const canEmit = detail.status === "Aprobado" && !isEmitted;
 
   const allVariablesApproved = useMemo(
     () =>
@@ -81,8 +90,45 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
   const canEditHours =
     detail.esHourly && detail.status !== "Emitido";
 
+  /**
+   * Descarga el desprendible emitido. El PDF llega en base64 desde la server
+   * action y se materializa como blob para disparar la descarga en el browser.
+   */
   function handleDownload() {
-    addNotification("La descarga del recibo estará disponible próximamente.", "info");
+    if (!isEmitted) {
+      addNotification(
+        "El desprendible se genera al emitir la nómina.",
+        "info",
+      );
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await downloadPayslip(
+        detail.contractId,
+        detail.periodoAnioMes,
+      );
+
+      if (!result.success || !result.data) {
+        addNotification(
+          result.message || "No se pudo descargar el desprendible.",
+          "error",
+        );
+        return;
+      }
+
+      const bytes = Uint8Array.from(atob(result.data.base64), (c) =>
+        c.charCodeAt(0),
+      );
+      const url = URL.createObjectURL(
+        new Blob([bytes], { type: "application/pdf" }),
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.data.filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
   }
 
   function handleSaveDraft() {
@@ -124,6 +170,22 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
   }
 
   function handleEmitPayrollClick() {
+    if (isEmitted) {
+      addNotification(
+        `La nómina ya fue emitida (${detail.desprendible?.numeroDocumento}).`,
+        "info",
+      );
+      return;
+    }
+
+    if (detail.status !== "Aprobado") {
+      addNotification(
+        "Solo se puede emitir una nómina aprobada.",
+        "error",
+      );
+      return;
+    }
+
     if (detail.esHourly) {
       const horas = Number(hoursInput.replace(",", "."));
       if (!Number.isFinite(horas) || !(horas > 0)) {
@@ -141,9 +203,34 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
     }
   }
 
-  function handleConfirmEmitPayroll() {
-    setEmitModal(null);
-    addNotification("Nómina emitida correctamente.", "success");
+  async function handleConfirmEmitPayroll() {
+    setIsEmitting(true);
+
+    try {
+      const result = await emitPayroll(
+        detail.contractId,
+        detail.periodoAnioMes,
+      );
+
+      if (!result.success || !result.data) {
+        addNotification(result.message || "No se pudo emitir la nómina.", "error");
+        return;
+      }
+
+      setEmitModal(null);
+      setDetail((prev) => ({ ...prev, status: "Emitido", desprendible: result.data! }));
+      setStatus("Emitido");
+      addNotification(
+        `Nómina emitida. Desprendible ${result.data.numeroDocumento} generado.`,
+        "success",
+      );
+      router.refresh();
+    } catch (error) {
+      console.error("[NOMINAS] Error al emitir nómina:", error);
+      addNotification("Error al emitir la nómina.", "error");
+    } finally {
+      setIsEmitting(false);
+    }
   }
 
   return (
@@ -165,7 +252,13 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
           <button
             type="button"
             onClick={handleDownload}
-            className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
+            disabled={!isEmitted || isPending}
+            title={
+              isEmitted
+                ? `Descargar ${detail.desprendible?.numeroDocumento}`
+                : "El desprendible se genera al emitir la nómina"
+            }
+            className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Download size={18} />
             Descargar
@@ -408,7 +501,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
                 <button
                   type="button"
                   onClick={handleSaveDraft}
-                  disabled={isPending}
+                  disabled={isPending || isEmitted}
                   className="inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-[8px] border border-[#0097B2] px-3 text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#F5FAFB] disabled:opacity-60"
                 >
                   Guardar borrador
@@ -416,9 +509,21 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
                 <button
                   type="button"
                   onClick={handleEmitPayrollClick}
-                  className="inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-[8px] bg-[#0097B2] px-3 text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
+                  disabled={!canEmit || isEmitting}
+                  title={
+                    isEmitted
+                      ? `Emitida como ${detail.desprendible?.numeroDocumento}`
+                      : detail.status !== "Aprobado"
+                        ? "Solo se puede emitir una nómina aprobada"
+                        : undefined
+                  }
+                  className="inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-[8px] bg-[#0097B2] px-3 text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Emitir Nómina
+                  {isEmitting
+                    ? "Emitiendo..."
+                    : isEmitted
+                      ? "Nómina emitida"
+                      : "Emitir Nómina"}
                 </button>
               </div>
             </section>
@@ -436,7 +541,8 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
         <PayrollEmitModal
           open
           variant={emitModal}
-          onClose={() => setEmitModal(null)}
+          isLoading={isEmitting}
+          onClose={() => !isEmitting && setEmitModal(null)}
           onPrimaryAction={() => {
             if (emitModal === "confirm-emit") {
               handleConfirmEmitPayroll();

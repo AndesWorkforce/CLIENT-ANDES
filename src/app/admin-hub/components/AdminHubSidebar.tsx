@@ -31,15 +31,20 @@ const navItems = [
 const nominasSubItems = [
   { label: "Todas", href: "/admin-hub/nominas" },
   { label: "Variables de nómina", href: "/admin-hub/nominas/variables" },
+  { label: "Reporte de PTOs", href: "/admin-hub/nominas/ptos" },
 ];
 
 const nominasRelatedItems = [
   { label: "Pagos", href: "/admin-hub/pagos", icon: Dock },
+  { label: "Facturas emitidas", href: "/admin-hub/pagos/emitidas", icon: Dock },
   { label: "Historial", href: "/admin-hub/historial", icon: Clock },
 ];
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/admin-hub/pagos") {
+    // El detalle de una factura sigue resaltando "Pagos", pero el reporte de
+    // emitidas tiene su propia entrada y no debe encender las dos a la vez.
+    if (pathname.startsWith("/admin-hub/pagos/emitidas")) return false;
     return pathname === href || pathname.startsWith("/admin-hub/pagos/");
   }
   return pathname === href || pathname.startsWith(`${href}/`);

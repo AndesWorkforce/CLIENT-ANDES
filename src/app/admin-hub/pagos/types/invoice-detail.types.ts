@@ -22,6 +22,16 @@ export interface InvoicePayrollEntry {
   position: string;
   contractStartDate: string;
   clientPrice: number;
+  /** true cuando el contrato es HOURLY_TIME: el cobro es tarifa horaria × horas. */
+  esHourly: boolean;
+  /** Tarifa por hora facturada al cliente. Solo HOURLY_TIME. */
+  tarifaHoraria: number | null;
+  /** Horas facturadas del periodo. Solo HOURLY_TIME. */
+  horasTrabajadas: number | null;
+  /** HOURLY_TIME sin horas cargadas: el cobro queda en 0 hasta cargarlas. */
+  sinHorasCargadas: boolean;
+  /** ISO del momento en que se calculó / recalculó el total del contrato. */
+  calculadoEn: string | null;
   status: InvoicePayrollStatus;
 }
 
@@ -45,7 +55,21 @@ export interface InvoiceSection {
   subtotalIsNegative?: boolean;
 }
 
+/** Estados reales del snapshot en el backend (el `status` de Invoice es la vista UI). */
+export type InvoiceBackendEstado =
+  | "BORRADOR"
+  | "APROBADA"
+  | "EMITIDA"
+  | "PAGADA"
+  | "ANULADA";
+
 export interface InvoiceDetail extends Invoice {
+  /** Estado real, necesario para decidir si se puede aprobar, emitir o descargar. */
+  estado: InvoiceBackendEstado;
+  numeroFactura: string | null;
+  pdfUrl: string | null;
+  aprobadoEn: string | null;
+  emitidaEn: string | null;
   country: string;
   issueDate: string;
   dueDate: string;

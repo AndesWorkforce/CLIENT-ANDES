@@ -34,6 +34,14 @@ export interface PayrollDetail {
   totalAmount: number;
   variables: PayrollVariable[];
   nominaId?: string | null;
+  desprendible: PayrollPayslipDocument | null;
+}
+
+/** Desprendible de pago emitido (HU1). null mientras la nómina no fue emitida. */
+export interface PayrollPayslipDocument {
+  numeroDocumento: string;
+  pdfUrl: string;
+  emitidoEn: string;
 }
 
 export interface NominaDetailApiResponse {
@@ -60,6 +68,7 @@ export interface NominaDetailApiResponse {
   totalVariableEarnings: number;
   totalDeductions: number;
   totalAmount: number;
+  desprendible?: PayrollPayslipDocument | null;
   variables: Array<{
     id: string;
     type: string;

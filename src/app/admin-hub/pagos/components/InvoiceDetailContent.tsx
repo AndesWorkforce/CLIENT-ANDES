@@ -5,9 +5,11 @@ import { Download, Filter, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useNotificationStore } from "@/store/notifications.store";
 import { formatClientPrice } from "../../nominas/data/mock-contractors";
-import { 
-  emitInvoice, 
-  approveCustomerCharge, 
+import {
+  approveInvoice,
+  issueInvoice,
+  downloadInvoicePdf,
+  approveCustomerCharge,
   cancelCustomerCharge,
   approveCustomerCredit
 } from "../actions/pagos.actions";
@@ -142,6 +144,13 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   const [contractorFilter, setContractorFilter] = useState("");
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
   const [emitModal, setEmitModal] = useState<InvoiceEmitModalVariant | null>(null);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  // Flujo BORRADOR → APROBADA → EMITIDA → PAGADA. Cada paso habilita el siguiente.
+  const puedeAprobar = invoice.estado === "BORRADOR";
+  const puedeEmitir = invoice.estado === "APROBADA";
+  const yaEmitida = invoice.estado === "EMITIDA" || invoice.estado === "PAGADA";
   const [isEmitting, setIsEmitting] = useState(false);
   const [isFooterDocked, setIsFooterDocked] = useState(false);
   const [footerHeight, setFooterHeight] = useState(0);
@@ -522,11 +531,70 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     addNotification("El adicional fue eliminado.", "success");
   }
 
-  function handleEmitInvoiceClick() {
-    if (allItemsApproved) {
-      setEmitModal("confirm-emit");
-    } else {
+  /** Aprobar congela la factura para revisión; todavía no asigna número. */
+  async function handleApproveInvoice() {
+    if (!allItemsApproved) {
       setEmitModal("cannot-emit");
+      return;
+    }
+
+    setIsApproving(true);
+    try {
+      const result = await approveInvoice(invoice.empresaId, invoice.period);
+
+      if (!result.success) {
+        addNotification(result.message || "No se pudo aprobar la factura", "error");
+        return;
+      }
+
+      addNotification("Factura aprobada. Ya puede emitirse.", "success");
+      router.refresh();
+    } catch (error) {
+      console.error("[INVOICE] Error al aprobar factura:", error);
+      addNotification("Error al aprobar la factura", "error");
+    } finally {
+      setIsApproving(false);
+    }
+  }
+
+  function handleEmitInvoiceClick() {
+    if (!puedeEmitir) {
+      addNotification(
+        "Hay que aprobar la factura antes de emitirla.",
+        "error",
+      );
+      return;
+    }
+    setEmitModal("confirm-emit");
+  }
+
+  /** Descarga el PDF oficial; llega en base64 y se materializa como blob. */
+  async function handleDownloadInvoice() {
+    setIsDownloading(true);
+    try {
+      const result = await downloadInvoicePdf(invoice.empresaId, invoice.period);
+
+      if (!result.success || !result.data) {
+        addNotification(
+          result.message || "No se pudo descargar la factura",
+          "error",
+        );
+        return;
+      }
+
+      const bytes = Uint8Array.from(atob(result.data.base64), (c) =>
+        c.charCodeAt(0),
+      );
+      const url = URL.createObjectURL(
+        new Blob([bytes], { type: "application/pdf" }),
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.data.filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsDownloading(false);
     }
   }
 
@@ -534,12 +602,15 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     setIsEmitting(true);
     
     try {
-      const result = await emitInvoice(invoice.empresaId, invoice.period);
-      
-      if (result.success) {
-        addNotification("La factura fue emitida correctamente.", "success");
+      const result = await issueInvoice(invoice.empresaId, invoice.period);
+
+      if (result.success && result.data) {
+        addNotification(
+          `Factura emitida. Documento ${result.data.numeroFactura} generado.`,
+          "success",
+        );
         setEmitModal(null);
-        
+
         // Refrescar la página para obtener el estado actualizado
         router.refresh();
       } else {
@@ -726,20 +797,66 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <button
-              type="button"
-              className="inline-flex h-9 items-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] text-[#0097B2] leading-5 hover:bg-[#DFFAFF] transition-colors"
-            >
-              Guardar Cambios
-            </button>
-            <button
-              type="button"
-              onClick={handleEmitInvoiceClick}
-              disabled={isEmitting}
-              className="inline-flex h-9 items-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isEmitting ? "Emitiendo..." : "Emitir Invoice"}
-            </button>
+            {yaEmitida ? (
+              <>
+                {invoice.numeroFactura && (
+                  <span className="text-[14px] text-[#707070]">
+                    Documento{" "}
+                    <span className="font-semibold text-[#343434]">
+                      {invoice.numeroFactura}
+                    </span>
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={handleDownloadInvoice}
+                  disabled={isDownloading}
+                  className="inline-flex h-9 items-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Download size={18} />
+                  {isDownloading ? "Descargando..." : "Descargar factura"}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="inline-flex h-9 items-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] text-[#0097B2] leading-5 hover:bg-[#DFFAFF] transition-colors"
+                >
+                  Guardar Cambios
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApproveInvoice}
+                  disabled={!puedeAprobar || isApproving}
+                  title={
+                    puedeAprobar
+                      ? undefined
+                      : "La factura ya fue aprobada"
+                  }
+                  className="inline-flex h-9 items-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] text-[#0097B2] leading-5 hover:bg-[#DFFAFF] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isApproving
+                    ? "Aprobando..."
+                    : puedeAprobar
+                      ? "Aprobar factura"
+                      : "Aprobada"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEmitInvoiceClick}
+                  disabled={!puedeEmitir || isEmitting}
+                  title={
+                    puedeEmitir
+                      ? undefined
+                      : "Hay que aprobar la factura antes de emitirla"
+                  }
+                  className="inline-flex h-9 items-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isEmitting ? "Emitiendo..." : "Emitir Invoice"}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

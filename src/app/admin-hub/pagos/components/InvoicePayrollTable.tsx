@@ -8,6 +8,42 @@ import { formatClientPrice } from "../../nominas/data/mock-contractors";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 import InvoiceTableTotalRow from "./InvoiceTableTotalRow";
 
+const HOURS_FORMATTER = new Intl.NumberFormat("es-AR", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+
+/**
+ * En HOURLY_TIME el precio del cliente es el resultado de tarifa horaria x horas,
+ * no un monto mensual. Mostramos los tres valores para que la factura sea auditable.
+ */
+function PayrollClientPriceCell({ entry }: { entry: InvoicePayrollEntry }) {
+  if (!entry.esHourly) {
+    return <>{formatClientPrice(entry.clientPrice)}</>;
+  }
+
+  if (entry.sinHorasCargadas) {
+    return (
+      <div className="flex flex-col gap-0.5">
+        <span>{formatClientPrice(0)}</span>
+        <span className="text-[12px] leading-[1.3] text-[#C87A00]">
+          Faltan horas del periodo
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span>{formatClientPrice(entry.clientPrice)}</span>
+      <span className="text-[12px] leading-[1.3] text-[#A5A5A5]">
+        {formatClientPrice(entry.tarifaHoraria ?? 0)}/h &times;{" "}
+        {HOURS_FORMATTER.format(entry.horasTrabajadas ?? 0)} h
+      </span>
+    </div>
+  );
+}
+
 interface InvoicePayrollTableProps {
   entries: InvoicePayrollEntry[];
   subtotal: string;
@@ -34,6 +70,7 @@ export default function InvoicePayrollTable({ entries, subtotal }: InvoicePayrol
   }
 
   const cellClass = "px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585] whitespace-nowrap";
+  const hasHourly = entries.some((entry) => entry.esHourly);
 
   return (
     <AdminHubTableShell variant="nested">
@@ -59,7 +96,7 @@ export default function InvoicePayrollTable({ entries, subtotal }: InvoicePayrol
               Fecha de inicio de contrato
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Precio del cliente
+              {hasHourly ? "Precio del cliente / desglose" : "Precio del cliente"}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
               <span className="inline-flex items-center gap-1">
@@ -88,7 +125,9 @@ export default function InvoicePayrollTable({ entries, subtotal }: InvoicePayrol
               <td className={cellClass}>{entry.contractorName}</td>
               <td className={cellClass}>{entry.position}</td>
               <td className={cellClass}>{entry.contractStartDate}</td>
-              <td className={cellClass}>{formatClientPrice(entry.clientPrice)}</td>
+              <td className={cellClass}>
+                <PayrollClientPriceCell entry={entry} />
+              </td>
               <td className="px-3 py-6">
                 <InvoiceStatusBadge status={entry.status} enlarged />
               </td>
