@@ -38,14 +38,16 @@ export default function StatsSection() {
               <FadeIn
                 key={stat.label}
                 delay={0.5 + index * 0.26}
-                className="bg-[rgba(4,78,92,0.73)] border border-[#044e5c] rounded-[12px] flex flex-col items-center justify-end px-[14px] sm:px-6 pb-[11px] sm:pb-8 pt-[60px] sm:pt-16"
+                className="origin-center"
               >
+                <div className="flex origin-center flex-col items-center justify-end rounded-[12px] border border-[#044e5c] bg-[rgba(4,78,92,0.73)] px-[14px] pb-[11px] pt-[60px] transition-transform duration-300 ease-out motion-safe:hover:scale-[1.03] hover:shadow-lg sm:px-6 sm:pb-8 sm:pt-16">
                 <p className="text-[22px] sm:text-[48px] md:text-[64px] font-bold text-white leading-[1.3]">
                   {stat.value}
                 </p>
                 <p className="text-[14px] sm:text-[18px] md:text-[20px] font-semibold text-white leading-[1.3] text-center">
                   {stat.label}
                 </p>
+                </div>
               </FadeIn>
             ))}
           </div>

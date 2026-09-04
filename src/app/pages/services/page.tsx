@@ -1,3 +1,6 @@
+"use client";
+
+import { StaticOnMobile } from "../about/components/Reveal";
 import HeroSection from "./components/HeroSection";
 import WhatWeOfferSection from "./components/WhatWeOfferSection";
 import ProcessSection from "./components/ProcessSection";
@@ -7,13 +10,15 @@ import BenefitsSection from "./components/BenefitsSection";
 
 export default function ServicesPage() {
   return (
-    <main className="min-h-screen">
-      <HeroSection />
-      <WhatWeOfferSection />
-      <ProcessSection />
-      <FeaturedTalentSection />
-      <ContactFormSection />
-      <BenefitsSection />
-    </main>
+    <StaticOnMobile>
+      <main className="min-h-screen overflow-x-hidden">
+        <HeroSection />
+        <WhatWeOfferSection />
+        <ProcessSection />
+        <FeaturedTalentSection />
+        <ContactFormSection />
+        <BenefitsSection />
+      </main>
+    </StaticOnMobile>
   );
 }

@@ -111,7 +111,7 @@ export default function StatsSection() {
             const delay = 0.5 + index * 0.22;
             return (
               <FadeIn key={stat.label} delay={delay}>
-                <div className="flex flex-col items-center rounded-[16px] border border-[rgba(11,200,233,0.12)] bg-white p-8 text-center">
+                <div className="flex origin-center flex-col items-center rounded-[16px] border border-[rgba(11,200,233,0.12)] bg-white p-8 text-center transition-transform duration-300 ease-out motion-safe:hover:scale-[1.03] hover:shadow-lg">
                   <div className="mb-5 flex size-11 items-center justify-center rounded-[16px] bg-[rgba(11,200,233,0.12)]">
                     <Icon className="size-5 text-[#0097b2]" strokeWidth={2} />
                   </div>

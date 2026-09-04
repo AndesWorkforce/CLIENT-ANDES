@@ -212,7 +212,7 @@ function MemberCard({
   return (
     <div
       onClick={() => onMemberClick(member)}
-      className="flex flex-col cursor-pointer rounded-[15px] overflow-hidden hover:scale-[1.02] transition-transform h-full"
+      className="flex h-full origin-center cursor-pointer flex-col overflow-hidden rounded-[15px] transition-transform duration-300 ease-out motion-safe:hover:scale-[1.03] hover:shadow-lg"
     >
       {/* Photo */}
       <div className="relative w-full h-[204px] sm:h-[309px] bg-gray-200 rounded-tl-[15px] rounded-tr-[15px] overflow-hidden">

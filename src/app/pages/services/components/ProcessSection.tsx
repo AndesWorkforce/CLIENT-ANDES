@@ -1,68 +1,71 @@
+"use client";
+
+import { FadeIn } from "../../about/components/Reveal";
+
+const steps = [
+  {
+    num: "01",
+    title: "Tell us your needs",
+    description:
+      "Share the role, hours, and the exact skills you're looking for",
+  },
+  {
+    num: "02",
+    title: "Get matched in 48h",
+    description: "We hand-pick 3 vetted candidates from our 300+ talent pool",
+  },
+  {
+    num: "03",
+    title: "Select your candidates",
+    description: "You interview, we handle contracts, payroll, and compliance.",
+  },
+  {
+    num: "04",
+    title: "Scale with confidence",
+    description: "Ongoing support and a dedicated success manager.",
+  },
+];
+
 export default function ProcessSection() {
   return (
-    <section className="w-full bg-white py-[44px] md:py-[117px] px-[18px] md:px-[80px]">
+    <section className="w-full overflow-x-hidden bg-white py-[44px] md:py-[117px] px-[18px] md:px-[80px]">
       <div className="max-w-[1440px] mx-auto">
-        <div className="text-center mb-[22px] md:mb-[30px]">
-          <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">
-            MEET OUR TALENT
+        <FadeIn className="text-center mb-[22px] md:mb-[30px]">
+          <p className="mb-[11px] text-[14px] font-semibold leading-[1.3] text-[#0097B2]">
+            HOW IT WORKS
           </p>
-          <h2 className="text-black font-bold text-[24px] md:text-[52px] leading-[1.3] md:leading-[1.2] mb-[22px]">
+          <h2 className="mb-[11px] text-[24px] font-bold leading-[1.3] text-[#343434] md:mb-[22px] md:text-[52px] md:leading-[1.2] md:text-black">
             From <span className="text-[#0097B2]">request</span> to ready in days,
-            <br /> not weeks
+            <br className="hidden md:block" /> not weeks
           </h2>
-          <p className="text-[#343434] md:text-[#525252] font-medium text-[14px] md:text-[22px] leading-[1.2]">
-            A simple, transparent process designer to remove friction from your hiring
+          <p className="text-[14px] font-medium leading-[1.2] text-[#343434] md:text-[22px] md:text-[#525252]">
+            A simple, transparent process designed to remove friction from your
+            hiring
           </p>
-        </div>
+        </FadeIn>
 
         <div className="flex flex-col md:flex-row justify-center gap-[44px]">
-          <div className="flex flex-col gap-[18px] w-full md:w-[287px]">
-            <div className="bg-[#DFFAFF] rounded-[12px] w-[58px] h-[58px] flex items-center justify-center">
-              <p className="text-[#0097B2] font-bold text-[22px] leading-[1.3]">01</p>
-            </div>
-            <h3 className="text-black font-bold text-[22px] leading-[1.3]">
-              Tell us your needs
-            </h3>
-            <p className="text-[#525252] font-medium text-[18px] leading-[1.5]">
-              Shre the role, hours, and the exact skills you're looking for
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-[18px] w-full md:w-[287px]">
-            <div className="bg-[#DFFAFF] rounded-[12px] w-[58px] h-[58px] flex items-center justify-center">
-              <p className="text-[#0097B2] font-bold text-[22px] leading-[1.3]">02</p>
-            </div>
-            <h3 className="text-black font-bold text-[22px] leading-[1.3]">
-              Get matched in 48h
-            </h3>
-            <p className="text-[#525252] font-medium text-[18px] leading-[1.5]">
-              We hand-pick 3 vetted candidates from out 300+ talent tool
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-[18px] w-full md:w-[287px]">
-            <div className="bg-[#DFFAFF] rounded-[12px] w-[58px] h-[58px] flex items-center justify-center">
-              <p className="text-[#0097B2] font-bold text-[22px] leading-[1.3]">03</p>
-            </div>
-            <h3 className="text-black font-bold text-[22px] leading-[1.3]">
-              Select your candidates
-            </h3>
-            <p className="text-[#525252] font-medium text-[18px] leading-[1.5]">
-              You interview, we handle contracts, payroll, and compliance.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-[18px] w-full md:w-[287px]">
-            <div className="bg-[#DFFAFF] rounded-[12px] w-[58px] h-[58px] flex items-center justify-center">
-              <p className="text-[#0097B2] font-bold text-[22px] leading-[1.3]">04</p>
-            </div>
-            <h3 className="text-black font-bold text-[22px] leading-[1.3]">
-              Scale with confidence
-            </h3>
-            <p className="text-[#525252] font-medium text-[18px] leading-[1.5]">
-              Ongoing support and a dedicated success manager.
-            </p>
-          </div>
+          {steps.map((step, idx) => (
+            <FadeIn
+              key={step.num}
+              delay={0.5 + idx * 0.25}
+              className="w-full origin-center md:w-[287px]"
+            >
+              <div className="flex origin-center flex-col gap-[18px] md:transition-transform md:duration-300 md:ease-out md:motion-safe:hover:scale-[1.03]">
+                <div className="flex h-[58px] w-[58px] items-center justify-center rounded-[12px] bg-[#DFFAFF]">
+                  <p className="text-[22px] font-bold leading-[1.3] text-[#0097B2]">
+                    {step.num}
+                  </p>
+                </div>
+                <h3 className="text-[22px] font-bold leading-[1.3] text-black">
+                  {step.title}
+                </h3>
+                <p className="text-[18px] font-medium leading-[1.5] text-[#525252]">
+                  {step.description}
+                </p>
+              </div>
+            </FadeIn>
+          ))}
         </div>
       </div>
     </section>

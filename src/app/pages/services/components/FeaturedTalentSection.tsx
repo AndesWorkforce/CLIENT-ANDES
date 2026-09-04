@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  getFeaturedProfiles,
-  FeaturedProfile,
-} from "@/app/admin/dashboard/actions/featured-profiles.actions";
+import { FadeIn } from "../../about/components/Reveal";
 
 type TalentCard = {
   id: string;
@@ -58,19 +55,6 @@ function ProfileAvatar({
       />
     </div>
   );
-}
-
-function mapProfileToCard(profile: FeaturedProfile): TalentCard {
-  return {
-    id: profile.id,
-    name: `${profile.nombre ?? ""} ${profile.apellido ?? ""}`.trim(),
-    position: profile.position ?? "",
-    profesion: profile.profesion ?? "",
-    country: profile.pais ?? "",
-    company: "",
-    fotoPerfil: profile.fotoPerfil ?? null,
-    paisImagen: profile.paisImagen ?? null,
-  };
 }
 
 // Manually curated talent cards — fill in fotoPerfil URLs as needed
@@ -179,39 +163,45 @@ export default function FeaturedTalentSection() {
   if (loading || featuredTalent.length === 0) return null;
 
   return (
-    <section className="relative w-full bg-[#F6FBFC] py-[44px] md:py-[55px] px-0 md:px-[75px]">
+    <section className="relative w-full overflow-x-hidden bg-white py-[44px] px-0 md:bg-[#F6FBFC] md:px-[75px] md:py-[55px]">
       <div className="max-w-[1440px] mx-auto">
         {/* Header */}
         <div className="text-center mb-[22px] md:mb-[33px] px-[18px] md:px-0">
-          <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">
-            MEET OUT TALENT
-          </p>
-          <h2 className="text-[#343434] font-bold text-[24px] md:text-[52px] leading-[1.3] mb-[11px] md:mb-[22px]">
-            Meet Our Featured Talent
-          </h2>
-          <p className="text-[#343434] md:text-[#525252] font-medium text-[14px] md:text-[22px] leading-[1.2] max-w-[1026px] mx-auto">
-            Discover the potential of our specialized talent. High-level professionals
-            committed to excellence, available from $2,000 USD per month. Geet maximum
-            performance for a competitive investment.
-          </p>
+          <FadeIn>
+            <p className="text-[#0097B2] font-semibold text-[12px] md:text-[14px] leading-[1.3] mb-[11px]">
+              MEET OUR TALENT
+            </p>
+            <h2 className="mb-[11px] text-[24px] font-bold leading-[1.3] text-[#343434] md:mb-[22px] md:text-[52px]">
+              Meet Our{" "}
+              <span className="md:text-[#0097B2]">Featured Talent</span>
+            </h2>
+          </FadeIn>
+          <FadeIn delay={0.5}>
+            <p className="text-[#343434] md:text-[#525252] font-medium text-[14px] md:text-[22px] leading-[1.2] max-w-[1026px] mx-auto">
+              Discover the potential of our specialized talent. High-level
+              professionals committed to excellence, available from $2,000 USD
+              per month. Get maximum performance for a competitive investment.
+            </p>
+          </FadeIn>
         </div>
 
         {/* Grid de tarjetas - Desktop | Scroll horizontal - Mobile */}
-        <div className="md:grid md:grid-cols-2 md:gap-[24px] flex md:flex-none overflow-x-auto gap-[11px] px-[18px] md:px-0 pb-[11px] md:pb-0 scrollbar-hide">
-          {featuredTalent.map((talent) => (
-            <div
+        <div className="md:grid md:grid-cols-2 md:gap-[24px] flex md:flex-none overflow-x-auto gap-[11px] px-[18px] md:px-0 py-3 md:py-3 scrollbar-hide">
+          {featuredTalent.map((talent, idx) => (
+            <FadeIn
               key={talent.id}
-              className="bg-white border border-[#C8C8C8] rounded-[24px] p-[21px] md:p-[29px] flex gap-[18px] flex-shrink-0 w-[355px] md:w-auto"
+              delay={1 + Math.floor(idx / 2) * 0.25}
+              className="flex-shrink-0 w-[355px] md:w-auto origin-center"
             >
-              {/* Left side - Photo and Experience */}
-              <div className="flex flex-col gap-[13px] items-center">
+              <div className="flex h-full origin-center gap-[18px] rounded-[24px] border border-[#C8C8C8] bg-white px-[21px] py-[22px] md:p-[29px] md:transition-transform md:duration-300 md:ease-out md:motion-safe:hover:scale-[1.03] md:hover:shadow-lg">
+              <div className="relative flex shrink-0 flex-col items-center md:gap-[13px]">
                 <ProfileAvatar
                   src={talent.fotoPerfil}
                   name={talent.name}
                   sizeClass="w-[119px] h-[167px]"
                 />
                 {talent.experience && (
-                  <div className="bg-[rgba(4,78,92,0.8)] px-[11px] py-[5px] rounded-[12px] flex items-center gap-[6px]">
+                  <div className="absolute bottom-[6px] left-[15px] z-10 flex items-center gap-[6px] rounded-[12px] bg-[rgba(4,78,92,0.8)] px-[11px] py-[5px] md:static md:bg-black">
                     <svg
                       width="16"
                       height="16"
@@ -225,7 +215,7 @@ export default function FeaturedTalentSection() {
                       <circle cx="8" cy="8" r="6" />
                       <path d="M8 4v4l2 2" />
                     </svg>
-                    <span className="text-white font-semibold text-[14px] leading-[1.3]">
+                    <span className="text-[14px] font-semibold leading-[1.3] text-white">
                       {talent.experience}
                     </span>
                   </div>
@@ -240,14 +230,24 @@ export default function FeaturedTalentSection() {
                     {talent.name}
                   </h3>
                   <div className="flex items-center gap-[5px]">
-                    <span className="text-black font-semibold text-[12px] md:text-[14px] leading-[1.3]">
-                      {talent.countryCode || talent.country.substring(0, 2).toUpperCase()}
-                    </span>
-                    <span className="text-[#343434] font-medium text-[12px] md:text-[14px] leading-[1.2]">
+                    {talent.paisImagen ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={talent.paisImagen}
+                        alt=""
+                        className="h-[14px] w-[25px] object-cover"
+                      />
+                    ) : (
+                      <span className="text-[12px] font-semibold leading-[1.3] text-black md:text-[14px]">
+                        {talent.countryCode ||
+                          talent.country.substring(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                    <span className="text-[12px] font-medium leading-[1.2] text-[#343434] md:text-[14px]">
                       {talent.country}
                     </span>
                   </div>
-                  <p className="text-[#343434] font-medium text-[12px] md:text-[14px] leading-[1.2]">
+                  <p className="line-clamp-2 text-[12px] font-medium leading-[1.2] text-[#343434] md:text-[14px]">
                     {talent.profesion}
                   </p>
                 </div>
@@ -286,7 +286,8 @@ export default function FeaturedTalentSection() {
                   ))}
                 </div>
               </div>
-            </div>
+              </div>
+            </FadeIn>
           ))}
         </div>
       </div>

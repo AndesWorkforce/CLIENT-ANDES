@@ -90,7 +90,7 @@ export default function PersonnelTypes() {
           {services.map((service) => (
             <div
               key={service.title}
-              className="bg-white rounded-[20px] p-[30px] h-[300px] flex flex-col gap-[15px] shadow-[0px_4px_20px_rgba(0,0,0,0.08)] transition-transform duration-300 hover:scale-[1.03] cursor-default"
+              className="flex h-[300px] origin-center cursor-default flex-col gap-[15px] rounded-[20px] bg-white p-[30px] shadow-[0px_4px_20px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out motion-safe:hover:scale-[1.03] hover:shadow-lg"
             >
               <img
                 src={service.icon}
