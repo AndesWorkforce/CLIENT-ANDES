@@ -1,6 +1,19 @@
-import Image from "next/image";
+"use client";
 
-const storyBlocks = [
+import Image from "next/image";
+import { FadeIn, SlideIn } from "./Reveal";
+
+type StoryBlock = {
+  id: string;
+  title: string;
+  body: string | string[];
+  image: string;
+  imageAlt: string;
+  imageLeft: boolean;
+  imageClass?: string;
+};
+
+const storyBlocks: StoryBlock[] = [
   {
     id: "started",
     title: "Where it all started",
@@ -8,8 +21,7 @@ const storyBlocks = [
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Our+Story+-+foto+01.webp",
     imageAlt: "Where it all started",
-    imageLeft: false,
-    imageMaxWidth: 480,
+    imageLeft: true,
   },
   {
     id: "began",
@@ -18,67 +30,83 @@ const storyBlocks = [
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Our+Story+-+foto+02.webp",
     imageAlt: "Where it all began",
-    imageLeft: true,
-    imageMaxWidth: 480,
+    imageLeft: false,
   },
   {
     id: "service",
     title: "A path defined by service",
     body: [
-      "He later returned to the United States to serve 22 years in the U.S. Navy, where discipline, trust, and service became core values that still define Andes today.",
-      "After his military service, Miguel sought to continue supporting his fellow sailors. He began working with veteran-focused law firms, alongside former Navy service members who are now attorneys dedicated to helping veterans secure the benefits they deserve. Andes was created to provide these teams with high-quality, reliable remote administrative support, allowing them to focus on their mission.",
+      "He later returned to the U.S. to serve 22 years in the Navy, where discipline, trust, and service became the values that still define Andes today.",
+      "After his service, Miguel continued supporting fellow sailors, working with veteran-focused law firms led by former Navy members now practicing law. Andes was born to give these teams reliable remote administrative support, so they can focus on their mission.",
     ],
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Our+Story+-+foto+03.webp",
     imageAlt: "A path defined by service",
-    imageLeft: false,
-    // Native aspect is taller — keep it smaller so it matches the others visually
-    imageMaxWidth: 440,
+    imageLeft: true,
+    imageClass: "object-cover object-top",
   },
   {
     id: "expanding",
     title: "Expanding with purpose",
     body: [
-      "What began as a purpose-driven initiative quickly grew into a trusted partner for organizations seeking dependable, skilled remote teams. Today, Andes supports law firms, insurance companies, consulting firms, and other professional services, connecting exceptional talent in Latin America with companies across the U.S.",
-      "Rooted in service and driven by people, Andes continues to grow with integrity, proving that when purpose meets opportunity, everyone thrives.",
+      "What began as a purpose-driven initiative grew into a trusted partner for organizations seeking dependable, skilled remote teams. Today, Andes connects exceptional Latin American talent with U.S. law firms, insurance companies, and consulting firms.",
+      "Rooted in service and driven by people, Andes grows with integrity — proving that when purpose meets opportunity, everyone thrives.",
     ],
     image:
       "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Our+Story+-+foto+04.webp",
     imageAlt: "Expanding with purpose",
-    imageLeft: true,
-    imageMaxWidth: 380,
+    imageLeft: false,
   },
 ];
 
 export default function OurStorySection() {
   return (
-    <section className="w-full bg-white py-8 sm:py-24">
-      <div className="max-w-[1440px] mx-auto px-[18px] sm:px-10 md:px-20">
-        {/* Section header */}
-        <div className="text-center mb-8 sm:mb-16">
-          <h2 className="text-[#0097b2] text-[32px] sm:text-4xl md:text-[52px] font-bold leading-[1.3]">
-            Our Story
-          </h2>
-          <p className="mt-3 text-[#525252] text-[14px] sm:text-lg md:text-[22px] font-medium leading-[1.2]">
-            Built on service, shaped by experience, and driven by people.
-          </p>
+    <section className="w-full bg-white py-8 sm:py-24 overflow-x-hidden">
+      <div className="max-w-[1092px] mx-auto px-[18px] sm:px-6">
+        <div className="text-center mb-8 sm:mb-[53px]">
+          <FadeIn>
+            <h2 className="text-[#0097b2] text-[32px] sm:text-4xl md:text-[52px] font-bold leading-[1.3]">
+              Our Story
+            </h2>
+          </FadeIn>
+          <FadeIn delay={0.5}>
+            <p className="mt-[11px] text-[#525252] text-[14px] sm:text-lg md:text-[22px] font-medium leading-[1.2]">
+              Built on service, shaped by experience, and driven by people.
+            </p>
+          </FadeIn>
         </div>
 
-        {/* Story blocks */}
-        <div className="flex flex-col gap-8 sm:gap-16">
-          {storyBlocks.map((block) => (
+        <div className="flex flex-col gap-8 sm:gap-[88px]">
+          {storyBlocks.map((block) => {
+            const imageFrom = block.imageLeft ? "left" : "right";
+            const textFrom = block.imageLeft ? "right" : "left";
+
+            return (
             <div
               key={block.id}
-              className={`flex flex-col gap-[22px] sm:gap-12 items-center ${
-                block.imageLeft ? "lg:flex-row-reverse" : "lg:flex-row"
+              className={`flex flex-col gap-[22px] lg:gap-[44px] items-center ${
+                block.imageLeft ? "lg:flex-row" : "lg:flex-row-reverse"
               }`}
             >
-              {/* Text — keeps the same column space */}
+              <SlideIn from={imageFrom} className="w-full lg:w-[528px] shrink-0">
+              <div className="relative w-full aspect-[528/364] lg:w-[528px] lg:h-[364px] lg:aspect-auto overflow-hidden rounded-[16px]">
+                <Image
+                  src={block.image}
+                  alt={block.imageAlt}
+                  fill
+                  className={`rounded-[16px] ${block.imageClass ?? "object-cover object-center"}`}
+                />
+              </div>
+              </SlideIn>
+
               <div className="flex-1 w-full min-w-0">
-                <h3 className="text-[24px] sm:text-3xl md:text-[48px] font-bold text-[#343434] leading-[1.3] text-center lg:text-left">
+                <SlideIn from={textFrom} delay={0.24}>
+                <h3 className="text-[24px] sm:text-3xl md:text-[48px] font-bold text-[#343434] leading-[1.3]">
                   {block.title}
                 </h3>
-                <div className="mt-[22px] sm:mt-8 text-[14px] sm:text-[18px] text-black leading-[1.6] flex flex-col gap-4">
+                </SlideIn>
+                <SlideIn from={textFrom} delay={0.46}>
+                <div className="mt-[22px] sm:mt-[33px] text-[14px] sm:text-[18px] text-black leading-[1.6] flex flex-col gap-4">
                   {Array.isArray(block.body) ? (
                     block.body.map((paragraph, i) => (
                       <p key={i}>{paragraph}</p>
@@ -87,25 +115,11 @@ export default function OurStorySection() {
                     <p>{block.body}</p>
                   )}
                 </div>
-              </div>
-
-              {/* Image column keeps original desktop width so text width stays the same */}
-              <div className="w-full shrink-0 flex justify-center lg:w-[611px]">
-                <div
-                  className="w-full flex justify-center"
-                  style={{ maxWidth: block.imageMaxWidth }}
-                >
-                  <Image
-                    src={block.image}
-                    alt={block.imageAlt}
-                    width={block.imageMaxWidth}
-                    height={Math.round(block.imageMaxWidth * 0.75)}
-                    className="w-full h-auto object-contain rounded-[15px]"
-                  />
-                </div>
+                </SlideIn>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -112,7 +112,12 @@ export default function Navbar() {
     pathname === "/" ||
     pathname === "/pages/home" ||
     pathname.startsWith("/pages/home/");
-  const isTransparentNav = isHomePage && !isScrolled;
+  const isAboutPage =
+    pathname === "/pages/about" || pathname.startsWith("/pages/about/");
+  const isContactPage =
+    pathname === "/pages/contact" || pathname.startsWith("/pages/contact/");
+  const isHeroOverlayPage = isHomePage || isAboutPage || isContactPage;
+  const isTransparentNav = isHeroOverlayPage && !isScrolled;
   /**
    * Alias leído en caliente desde `users/me`. Esto evita depender de la cookie
    * `user_info` (que puede tener un objeto de usuario viejo sin `alias`).
@@ -128,13 +133,16 @@ export default function Navbar() {
   );
 
   useEffect(() => {
-    if (!isHomePage) {
+    if (!isHeroOverlayPage) {
       setIsScrolled(false);
       return;
     }
 
     const updateNavStyle = () => {
-      const hero = document.getElementById("home-hero");
+      const hero =
+        document.getElementById("home-hero") ||
+        document.getElementById("about-hero") ||
+        document.getElementById("contact-hero");
       if (!hero) {
         setIsScrolled(window.scrollY > 40);
         return;
@@ -152,7 +160,7 @@ export default function Navbar() {
       window.removeEventListener("scroll", updateNavStyle);
       window.removeEventListener("resize", updateNavStyle);
     };
-  }, [isHomePage]);
+  }, [isHeroOverlayPage]);
 
   const fetchAndUpdateProfileStatus = async () => {
     if (!user?.id) return;
@@ -476,8 +484,8 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Espaciador: en home el hero ocupa el espacio bajo el navbar fijo */}
-      {!isHomePage && (
+      {/* Espaciador: en home/about/contact el hero ocupa el espacio bajo el navbar fijo */}
+      {!isHeroOverlayPage && (
         <div className="h-[45px] md:h-[85px]" aria-hidden="true" />
       )}
       
@@ -488,8 +496,8 @@ export default function Navbar() {
             : "bg-white shadow-[0px_4px_4px_0px_rgba(210,210,210,0.25)]"
         }`}
       >
-      {/* Top Header - Contact & Social (oculto en home según diseño Figma) */}
-      {!isHomePage && (
+      {/* Top Header - Contact & Social (oculto en home/about/contact según diseño Figma) */}
+      {!isHeroOverlayPage && (
         <div className="hidden md:block bg-white border-b border-[rgba(210,210,210,0.5)]">
           <div className="container px-[20px] md:px-[40px]">
             <div className="flex items-center justify-between h-[25px]">

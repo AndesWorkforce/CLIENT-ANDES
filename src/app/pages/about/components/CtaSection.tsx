@@ -1,57 +1,85 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { FadeIn } from "./Reveal";
 
-export default function CtaSection() {
+type CtaSectionProps = {
+  findTalentEvent?: string;
+  joinUsEvent?: string;
+};
+
+export default function CtaSection({
+  findTalentEvent = "ads_click_AboutPage_FindTalent",
+  joinUsEvent = "ads_click_AboutPage_JoinTeam",
+}: CtaSectionProps = {}) {
   return (
-    <section className="relative w-full min-h-[308px] sm:h-[356px] overflow-hidden">
-      {/* Background image */}
-      <Image
-        src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Call+to+Action+-Fondo.webp"
-        alt=""
-        fill
-        className="object-cover"
-        aria-hidden
-      />
-      {/* Dark teal overlay */}
-      <div className="absolute inset-0 bg-[rgba(4,78,92,0.85)]" />
+    <section
+      className="relative flex w-full flex-col items-stretch justify-center gap-12 overflow-hidden py-0 sm:gap-[95px]"
+      style={{
+        backgroundImage:
+          "linear-gradient(-14.77deg, #97d5e0 0%, #22bcd8 40%, #145262 100%)",
+      }}
+    >
+      <div className="h-px w-full bg-white/30" aria-hidden />
 
-      {/* Content */}
-      <div className="relative z-10 h-full flex items-center py-[55px] sm:py-0 px-[21px] sm:px-10 md:px-20">
-        <div className="flex flex-col gap-[22px] sm:gap-6 max-w-full sm:max-w-[666px]">
-          <h2 className="text-[22px] sm:text-4xl md:text-[48px] font-bold text-white leading-[1.3] drop-shadow-[0px_4px_4px_#11525e]">
-            Ready to take the next step?
-          </h2>
-          <p className="text-[18px] sm:text-[22px] font-medium text-white leading-[1.2]">
-            Connecting businesses and talent to build stronger teams.
-          </p>
-          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-[10px] sm:gap-4">
-            <Link
-              href="/pages/contact"
-              onClick={() => {
-                if (typeof window !== "undefined" && window.gtag) {
-                  window.gtag("event", "ads_click_AboutPage_FindTalent", {});
-                }
-              }}
-              className="bg-white rounded-[20px] px-6 py-3 text-[rgba(4,78,92,0.85)] text-[16px] sm:text-lg md:text-[20px] font-medium leading-[1.2] shadow-[0px_4px_2px_rgba(255,255,255,0.15)] hover:bg-gray-100 transition-colors text-center"
-            >
-              Find Talent Now
-            </Link>
-            <Link
-              href="/pages/jobs"
-              onClick={() => {
-                if (typeof window !== "undefined" && window.gtag) {
-                  window.gtag("event", "ads_click_AboutPage_JoinTeam", {});
-                }
-              }}
-              className="border border-white rounded-[20px] px-6 py-3 text-white text-[16px] sm:text-lg md:text-[20px] font-medium leading-[1.2] shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] hover:bg-white/10 transition-colors text-center"
-            >
-              Join Our Team
-            </Link>
-          </div>
+      <FadeIn className="mx-auto flex w-full max-w-[1092px] flex-col items-start px-[18px] sm:px-6">
+        <p className="text-[14px] font-semibold uppercase leading-5 tracking-[1.4px] text-white/80">
+          Get Started Today
+        </p>
+
+        <h2 className="mt-4 text-left text-[32px] font-bold leading-[1.2] text-white drop-shadow-[0px_1px_2px_rgba(0,0,0,0.15)] sm:text-[48px] md:text-[60px] md:leading-[75px]">
+          Ready to take the next step
+        </h2>
+
+        <p className="mt-6 text-left text-[16px] font-normal leading-[1.6] text-white/80 sm:text-[18px]">
+          Connecting businesses and talent to build stronger teams.
+        </p>
+
+        <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-4">
+          <Link
+            href="/pages/services"
+            onClick={() => {
+              if (typeof window !== "undefined" && window.gtag) {
+                window.gtag("event", findTalentEvent, {});
+              }
+            }}
+            className="inline-flex items-center justify-center gap-1 rounded-[20px] bg-white px-[13px] py-3 text-[16px] font-medium leading-[1.2] text-[#0097b2] transition-colors hover:bg-gray-50"
+          >
+            Find Talent Now
+            <span className="relative size-[18px] shrink-0 overflow-hidden">
+              <img
+                src="/images/about/cta-chevron-teal.svg"
+                alt=""
+                width={18}
+                height={18}
+                className="size-full"
+              />
+            </span>
+          </Link>
+          <Link
+            href="/pages/offers"
+            onClick={() => {
+              if (typeof window !== "undefined" && window.gtag) {
+                window.gtag("event", joinUsEvent, {});
+              }
+            }}
+            className="inline-flex items-center justify-center gap-1 rounded-[20px] px-[13px] py-3 text-[16px] font-medium leading-[1.2] text-white transition-colors hover:bg-white/10"
+          >
+            Join Us
+            <span className="relative size-[18px] shrink-0 overflow-hidden">
+              <img
+                src="/images/about-arrow.svg"
+                alt=""
+                width={18}
+                height={18}
+                className="size-full"
+              />
+            </span>
+          </Link>
         </div>
-      </div>
+      </FadeIn>
+
+      <div className="h-px w-full bg-black/10" aria-hidden />
     </section>
   );
 }

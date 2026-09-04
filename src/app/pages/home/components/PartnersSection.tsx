@@ -116,60 +116,6 @@ export default function PartnersSection() {
           </div>
         </div>
       </section>
-
-      {/* Why Choose Us */}
-      <section className="py-12 bg-white">
-        <div className="max-w-[1440px] mx-auto px-5">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-[#00224d]">Why Choose Us?</h2>
-            <p className="text-base text-[#676565] mt-2">
-              We make offshore staffing simple, reliable, and results-driven
-            </p>
-          </div>
-
-          {/* Desktop: Grid de 4 columnas */}
-          <div className="hidden md:grid grid-cols-4 gap-4">
-            {[
-              { stat: "40h", title: "Fast Hiring", desc: "Pre-evaluated expert talent ready to join your team today" },
-              { stat: "60%", title: "Cost Effective", desc: "Reduce your payroll costs by hiring elite professionals" },
-              { stat: "10–15%", title: "Top of talent", desc: "Carefully selected through a rigorous, multi‑step selection process"},
-              { stat: "100%", title: "Cybersecurity", desc: "Full protection under international protocols" },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="border border-gray-200 rounded-2xl p-6 flex flex-col gap-2"
-              >
-                <span className="text-4xl font-bold text-[#0097b2]">{item.stat}</span>
-                <h3 className="text-lg font-bold text-[#00224d]">{item.title}</h3>
-                <p className="text-base text-[#676565] leading-snug">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Mobile: Carrusel con 2 tarjetas visibles */}
-          <div className="md:hidden relative">
-            <div className="overflow-x-auto scrollbar-hide snap-x snap-mandatory">
-              <div className="flex gap-4 pb-2">
-                {[
-                  { stat: "40h", title: "Fast Hiring", desc: "Pre-evaluated expert talent ready to join your team today" },
-                  { stat: "60%", title: "Cost Effective", desc: "Reduce your payroll costs by hiring elite professionals" },
-                  { stat: "10–15%", title: "Top of talent", desc: "Carefully selected through a rigorous, multi‑step selection process"},
-                  { stat: "100%", title: "Cybersecurity", desc: "Full protection under international protocols" },
-                ].map((item) => (
-                  <div
-                    key={item.title}
-                    className="border border-gray-200 rounded-2xl p-6 flex flex-col gap-2 min-w-[260px] snap-start"
-                  >
-                    <span className="text-4xl font-bold text-[#0097b2]">{item.stat}</span>
-                    <h3 className="text-lg font-bold text-[#00224d]">{item.title}</h3>
-                    <p className="text-sm text-[#676565] leading-snug">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </>
   );
 }

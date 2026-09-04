@@ -1,123 +1,119 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { Check, Globe, Shield, UserPlus } from "lucide-react";
+import { SlideIn } from "../../about/components/Reveal";
+
+const services = [
+  {
+    title: "Legal & Administrative",
+    description:
+      "Full compliance management, contracts, and documentation across Latin American jurisdictions — so your firm can build an offshore legal team without the legal risk.",
+    icon: Shield,
+    features: [
+      "Employment contracts",
+      "Tax compliance",
+      "Social security",
+      "Work permits",
+    ],
+    delay: 1.37,
+  },
+  {
+    title: "Talent Acquisition",
+    description:
+      "A curated, pre-vetted network of top Latin American professionals — screened for technical skill, English fluency, and cultural fit before they ever meet your team.",
+    icon: UserPlus,
+    features: [
+      "Tech professionals",
+      "Creative talent",
+      "Operations experts",
+      "Executive search",
+    ],
+    delay: 0.96,
+  },
+  {
+    title: "Global Opportunities",
+    description:
+      "We connect nearshore talent with U.S. and global companies building distributed teams — same time zones, seamless collaboration.",
+    icon: Globe,
+    features: [
+      "Remote placements",
+      "Cross-border teams",
+      "Global benefits",
+      "Relocation support",
+    ],
+    delay: 0.58,
+  },
+];
 
 export default function ServicesSection() {
-  const services = [
-    {
-      title: "Legal & Administrative",
-      description: "Full compliance management, contracts, and documentation across Latin American jurisdictions — so you can hire without legal risk.",
-      icon: "/icons/shield-check.svg",
-      gradient: "linear-gradient(135deg, rgba(0, 187, 167, 0.2) 0%, rgba(0, 150, 137, 0.05) 100%)",
-      features: [
-        "Employment contracts",
-        "Tax compliance",
-        "Social security",
-        "Work permits"
-      ]
-    },
-    {
-      title: "Talent Acquisition",
-      description: "A curated pool of top-tier professionals screened for technical skills, English fluency, and cultural fit with your team.",
-      icon: "/icons/users.svg",
-      gradient: "linear-gradient(135deg, rgba(0, 184, 219, 0.2) 0%, rgba(0, 146, 184, 0.05) 100%)",
-      features: [
-        "Tech professionals",
-        "Creative talent",
-        "Operations experts",
-        "Executive search"
-      ]
-    },
-    {
-      title: "Global Opportunities",
-      description: "Bridge the gap between Latin American talent and international companies seeking world-class remote expertise.",
-      icon: "/icons/globe.svg",
-      gradient: "linear-gradient(135deg, rgba(0, 188, 125, 0.2) 0%, rgba(0, 153, 102, 0.05) 100%)",
-      features: [
-        "Remote placements",
-        "Cross-border teams",
-        "Global benefits",
-        "Relocation support"
-      ]
-    }
-  ];
-
   return (
-    <section className="bg-[#f7f9fb] py-14 px-6">
-      <div className="mx-auto max-w-[1440px]">
-        {/* Header */}
-        <div className="max-w-[672px] mb-16">
-          <p className="text-[#0c9b8e] text-[14px] font-semibold leading-[1.3] mb-3">
-            OUR SERVICES
-          </p>
-          <h2 className="text-[#0a1628] text-[32px] md:text-[48px] font-bold leading-[1.3] mb-4">
-            Everything you need to hire
-            <br />
-            across borders
-          </h2>
-          <p className="text-[#5a6a7a] text-[18px] font-normal leading-[1.6]">
-            From sourcing to compliance — we handle the complexity so you can focus on building great teams.
-          </p>
+    <section className="overflow-x-hidden bg-[#f7f9fb] px-6 py-14 sm:py-[55px]">
+      <div className="mx-auto max-w-[1300px]">
+        <div className="mb-10 max-w-[672px] sm:mb-16">
+          <SlideIn from="left" offset={400}>
+            <p className="mb-3 text-[14px] font-semibold uppercase leading-[1.3] tracking-[1.4px] text-[#0097b2]">
+              OUR SERVICES
+            </p>
+          </SlideIn>
+          <SlideIn from="left" offset={860} delay={0.19}>
+            <h2 className="mb-4 text-[32px] font-bold leading-[1.3] text-[#0a1628] md:text-[48px]">
+              One partner for every stage of offshore hiring
+            </h2>
+          </SlideIn>
+          <SlideIn from="left" offset={900} delay={0.4}>
+            <p className="text-[18px] font-normal leading-[1.6] text-[#5a6a7a]">
+              From sourcing to compliance, we manage the complexity of nearshore
+              staffing so you can focus on growing your team.
+            </p>
+          </SlideIn>
         </div>
 
-        {/* Service Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service, index) => (
-            <div
-              key={index}
-              className="bg-white border border-[rgba(0,0,0,0.05)] rounded-[16px] p-8 flex flex-col"
-            >
-              {/* Icon */}
-              <div
-                className="w-12 h-12 rounded-[16px] flex items-center justify-center mb-6"
-                style={{ backgroundImage: service.gradient }}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {services.map((service) => {
+            const Icon = service.icon;
+            return (
+              <SlideIn
+                key={service.title}
+                from="left"
+                offset={800}
+                delay={service.delay}
+                duration={0.8}
               >
-                <div className="w-5 h-5 text-[#0c9b8e]">
-                  {/* Icon placeholder - using emoji for now */}
-                  {index === 0 && <span className="text-xl">🛡️</span>}
-                  {index === 1 && <span className="text-xl">👥</span>}
-                  {index === 2 && <span className="text-xl">🌍</span>}
+                <div className="flex h-full flex-col rounded-[16px] bg-white p-8 shadow-[0px_4px_20px_rgba(0,0,0,0.06)]">
+                  <div className="mb-6 flex size-12 items-center justify-center rounded-[16px] bg-[rgba(11,200,233,0.12)]">
+                    <Icon className="size-5 text-[#0097b2]" strokeWidth={2} />
+                  </div>
+                  <h3 className="mb-3 text-[20px] font-bold leading-[28px] text-black">
+                    {service.title}
+                  </h3>
+                  <p className="mb-6 text-[14px] font-normal leading-[1.5] text-[#707070]">
+                    {service.description}
+                  </p>
+                  <ul className="mb-8 flex flex-col gap-2">
+                    {service.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2">
+                        <Check
+                          className="size-[14px] shrink-0 text-[#0097b2]"
+                          strokeWidth={2.5}
+                        />
+                        <span className="text-[14px] leading-5 text-[#707070]">
+                          {feature}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href="/pages/services"
+                    className="mt-auto flex items-center gap-1 text-[14px] font-semibold leading-5 text-[#0bc8e9] transition-all hover:gap-2"
+                  >
+                    Learn more
+                    <span aria-hidden>→</span>
+                  </Link>
                 </div>
-              </div>
-
-              {/* Title */}
-              <h3 className="text-[#0a1628] text-[20px] font-bold leading-[28px] mb-3">
-                {service.title}
-              </h3>
-
-              {/* Description */}
-              <p className="text-[#5a6a7a] text-[14px] font-normal leading-[1.5] mb-6">
-                {service.description}
-              </p>
-
-              {/* Features List */}
-              <ul className="flex flex-col gap-2 mb-8">
-                {service.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-center gap-2">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
-                      <circle cx="7" cy="7" r="6" stroke="#0c9b8e" strokeWidth="2"/>
-                      <path d="M4 7l2 2 4-4" stroke="#0c9b8e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <span className="text-[rgba(10,22,40,0.7)] text-[14px] font-normal leading-[20px]">
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* Learn More Link */}
-              <Link
-                href="/pages/services"
-                className="flex items-center gap-1 text-[#0c9b8e] text-[14px] font-semibold leading-[20px] mt-auto hover:gap-2 transition-all"
-              >
-                <span>Learn more</span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M6 12l4-4-4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </Link>
-            </div>
-          ))}
+              </SlideIn>
+            );
+          })}
         </div>
       </div>
     </section>

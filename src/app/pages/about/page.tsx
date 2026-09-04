@@ -19,7 +19,7 @@ export default function AboutPage() {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen overflow-x-hidden">
       <HeroSection />
       <ImpactSection />
       <FutureSection />

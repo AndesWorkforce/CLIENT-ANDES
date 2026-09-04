@@ -1,43 +1,54 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { ChevronDown, CircleCheck } from "lucide-react";
+import { Check } from "lucide-react";
 import { submitContactFormMicrosoft } from "../actions/microsoft-email-actions";
-import { servicesAssets } from "@/app/pages/services/services-assets";
+import {
+  contactFormSchema,
+  type ContactFormValues,
+} from "../schema/contact-schema";
+import { FadeIn, SlideIn } from "../../about/components/Reveal";
 
-interface Country {
-  country: string;
-  iso2: string;
-  iso3: string;
-}
+const SUPPORT_TYPES = [
+  "Administrative Support",
+  "Customer Service",
+  "Legal Support",
+  "Data & Operations",
+  "Virtual Assistance",
+  "Other",
+] as const;
 
-interface CountriesAPIResponse {
-  error: boolean;
-  msg: string;
-  data: Country[];
-}
-
-const contactSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  phone: z.string().optional(),
-  country: z.string().min(1, "Please select a country"),
-});
-
-type ContactValues = z.infer<typeof contactSchema>;
+const TEAM_SIZES = ["1", "2-5", "6-10", "+10"] as const;
 
 const inputClassName =
-  "w-full h-[50px] bg-white border border-[#C8C8C8] rounded-[8px] px-[16px] text-[#343434] text-[14px] tracking-[0.28px] leading-[1.3] focus:outline-none focus:border-[#0097B2]";
+  "mt-[9px] h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 text-[14px] leading-[1.3] tracking-[0.28px] text-[#343434] placeholder:text-[#525252] focus:border-[#0097B2] focus:outline-none";
 
 const labelClassName =
-  "absolute top-0 left-[13px] bg-white px-[4px] h-[15px] text-[#525252] text-[14px] tracking-[0.28px] leading-[1.3]";
+  "absolute left-[13px] top-0 z-10 h-[15px] bg-white px-1 text-[14px] leading-[1.3] tracking-[0.28px] text-[#525252]";
+
+function FloatingField({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative w-full">
+      {children}
+      <label className={labelClassName}>{label}</label>
+      {error ? (
+        <p className="mt-1 text-xs text-red-500">{error}</p>
+      ) : null}
+    </div>
+  );
+}
 
 export default function ContactForm() {
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [loadingCountries, setLoadingCountries] = useState(false);
   const [formResponse, setFormResponse] = useState<{
     success: boolean;
     message: string;
@@ -47,98 +58,43 @@ export default function ContactForm() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
-  } = useForm<ContactValues>({
-    resolver: zodResolver(contactSchema),
-    defaultValues: { name: "", email: "", phone: "", country: "" },
+  } = useForm<ContactFormValues>({
+    resolver: zodResolver(contactFormSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      companyName: "",
+      supportTypes: [],
+      message: "",
+    },
   });
 
-  useEffect(() => {
-    const fetchCountries = async () => {
-      setLoadingCountries(true);
-      try {
-        const response = await fetch(
-          "https://countriesnow.space/api/v0.1/countries",
-        );
-        if (!response.ok) throw new Error("Error fetching countries");
-        const result: CountriesAPIResponse = await response.json();
-
-        if (result.error) {
-          throw new Error(result.msg);
-        }
-
-        const sorted = result.data.sort((a, b) =>
-          a.country.localeCompare(b.country),
-        );
-
-        const priorityCountries = ["United States", "Colombia", "Canada"];
-        const latinCountries = [
-          "Argentina",
-          "Bolivia",
-          "Brazil",
-          "Chile",
-          "Costa Rica",
-          "Cuba",
-          "Dominican Republic",
-          "Ecuador",
-          "El Salvador",
-          "Guatemala",
-          "Honduras",
-          "Mexico",
-          "Nicaragua",
-          "Panama",
-          "Paraguay",
-          "Peru",
-          "Uruguay",
-          "Venezuela",
-        ];
-
-        const priority = sorted.filter((c) =>
-          priorityCountries.includes(c.country),
-        );
-        const latin = sorted.filter(
-          (c) =>
-            latinCountries.includes(c.country) &&
-            !priorityCountries.includes(c.country),
-        );
-        const rest = sorted.filter(
-          (c) =>
-            !priorityCountries.includes(c.country) &&
-            !latinCountries.includes(c.country),
-        );
-
-        const orderedPriority = priorityCountries
-          .map((name) => priority.find((c) => c.country === name))
-          .filter((c): c is Country => c !== undefined);
-
-        setCountries([...orderedPriority, ...latin, ...rest]);
-      } catch (error) {
-        console.error("Error fetching countries:", error);
-      } finally {
-        setLoadingCountries(false);
-      }
-    };
-    fetchCountries();
-  }, []);
-
-  const onSubmit = async (data: ContactValues) => {
+  const onSubmit = async (data: ContactFormValues) => {
     setIsSubmitting(true);
     setFormResponse(null);
 
-    const parts = data.name.trim().split(/\s+/);
-    const firstName = parts[0] ?? data.name;
-    const lastName = parts.slice(1).join(" ") || firstName;
+    const composedMessage = [
+      data.message,
+      "",
+      `Company: ${data.companyName}`,
+      `Support types: ${data.supportTypes.join(", ")}`,
+      `Team size: ${data.teamSize}`,
+    ].join("\n");
 
     try {
       const response = await submitContactFormMicrosoft({
-        firstName,
-        lastName,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
-        phone: data.phone || "",
+        phone: data.phone,
         smsConsent: false,
         service: "talent",
-        message: `Contact from Contact page. Country: ${data.country}`,
+        message: composedMessage,
       });
 
       setFormResponse(response);
@@ -160,237 +116,260 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="min-h-screen">
-      <section
-        id="contact-form"
-        className="relative w-full overflow-hidden lg:h-[749px]"
-      >
-        {/* Full-bleed background image */}
-        <img
-          src={servicesAssets.contactHeroBg}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div
-          className="absolute inset-0"
-          aria-hidden
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(4,78,92,0.82) 18%, rgba(5,100,117,0.72) 52%, rgba(8,166,194,0.35) 78%)",
-          }}
-        />
-
-        <div className="relative z-10 flex w-full flex-col lg:h-[749px] lg:flex-row">
-          {/* Left — copy */}
-          <div className="flex w-full items-center px-6 py-12 md:px-[79px] md:py-[169px] lg:w-[52%] lg:shrink-0">
-            <div className="flex max-w-[574px] flex-col gap-5">
-              <div className="inline-flex w-fit items-center gap-[7px] rounded-[20px] border border-white bg-[rgba(255,255,255,0.22)] px-[14px] py-[7px]">
-                <CircleCheck
-                  className="h-[25px] w-[25px] text-[#4ADE80]"
-                  strokeWidth={2.5}
-                  aria-hidden
-                />
-                <span className="text-[16px] font-semibold leading-[1.3] text-white">
-                  Available now
-                </span>
-              </div>
-
-              <h1 className="text-[32px] font-bold leading-[1.3] text-white md:text-[48px]">
-                Let&apos;s build your team-together
-              </h1>
-
-              <p className="text-[16px] font-medium leading-[1.2] text-white md:text-[20px]">
-                Our team typically replies within 24 hours with role-matched
-                candidates and pricing
-              </p>
-
-              <div className="flex max-w-[574px] flex-col gap-[29px]">
-                <div className="h-px w-full bg-white/30" />
-
-                <div className="flex flex-wrap items-start gap-x-8 gap-y-4 md:flex-nowrap">
-                  <div className="flex w-[145px] flex-col gap-[3px]">
-                    <p className="text-[24px] font-bold leading-[1.3] text-white">
-                      +300
-                    </p>
-                    <p className="text-[18px] font-semibold leading-[1.3] text-white">
-                      Contractors
-                    </p>
-                  </div>
-
-                  <div className="h-[78px] w-px bg-white/30" />
-
-                  <div className="flex w-[145px] flex-col gap-[3px]">
-                    <p className="text-[24px] font-bold leading-[1.3] text-white">
-                      +15
-                    </p>
-                    <p className="text-[18px] font-semibold leading-[1.3] text-white">
-                      US-based clients
-                    </p>
-                  </div>
-
-                  <div className="h-[78px] w-px bg-white/30" />
-
-                  <div className="flex w-[145px] flex-col gap-[3px]">
-                    <p className="text-[24px] font-bold leading-[1.3] text-white">
-                      24 h
-                    </p>
-                    <p className="text-[18px] font-semibold leading-[1.3] text-white">
-                      Response
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right — form card */}
-          <div className="flex w-full items-start justify-center px-6 py-12 lg:h-[749px] lg:w-[48%] lg:shrink-0 lg:px-[77px] lg:py-[48px]">
-            <div className="w-full max-w-[552px] rounded-[24px] bg-white px-6 py-10 shadow-[7px_10px_10px_rgba(195,195,195,0.5)] md:px-[36px] md:py-[66px]">
-              <div className="flex flex-col gap-[66px]">
+    <section
+      id="contact-form"
+      className="relative w-full bg-[rgba(236,249,252,0.12)]"
+    >
+      <div className="flex items-center justify-center bg-[rgba(137,233,250,0.05)] px-[18px] py-16 sm:px-[30px] sm:py-20">
+        <div className="mx-auto flex w-full max-w-[1282px] flex-col items-start gap-12 lg:flex-row lg:gap-[66px]">
+          <SlideIn
+            from="left"
+            offset={80}
+            className="w-full shrink-0 lg:w-[552px]"
+          >
+            <div className="flex flex-col gap-[11px]">
+              <div className="flex flex-col gap-[22px]">
                 <div className="flex flex-col gap-[11px]">
-                  <h2 className="text-[32px] font-bold leading-[1.3] text-black">
-                    Contact Us
-                  </h2>
-                  <p className="text-[16px] font-medium leading-[1.2] text-black">
-                    Fill out for a consultation. Our Andes Workforce team
-                    typically reaches out within 24 hours.
+                  <p className="text-[14px] font-semibold leading-[1.3] text-[#0097b2]">
+                    CONTACT US
                   </p>
+                  <h2 className="max-w-[400px] text-[32px] font-bold leading-[1.3] text-[#343434] sm:text-[52px]">
+                    Tell us what you need
+                  </h2>
+                </div>
+                <p className="text-[16px] font-medium leading-[1.5] text-[#343434] sm:text-[20px]">
+                  Share a few details about your business needs and our team
+                  will help you{" "}
+                  <span className="font-extrabold">find the right support</span>{" "}
+                  for your company.
+                </p>
+              </div>
+              <p className="text-[16px] font-medium leading-[1.5] text-[#343434]">
+                *No commitment required. We&apos;ll review your request and get
+                in touch to better understand your needs and discuss possible
+                solutions.*
+              </p>
+            </div>
+          </SlideIn>
+
+          <FadeIn className="w-full min-w-0 flex-1" delay={0.1}>
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex w-full flex-col rounded-[25px] bg-white p-6 shadow-[0px_4px_5px_rgba(209,209,209,0.25)] sm:p-12"
+              noValidate
+            >
+              <div className="flex flex-col gap-11">
+                <div className="flex flex-col gap-[22px]">
+                  {formResponse ? (
+                    <div
+                      className={`rounded-lg p-3 text-sm font-medium ${
+                        formResponse.success
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {formResponse.message}
+                    </div>
+                  ) : null}
+
+                  <FloatingField
+                    label="First name*"
+                    error={errors.firstName?.message}
+                  >
+                    <input
+                      type="text"
+                      autoComplete="given-name"
+                      placeholder="Juan"
+                      {...register("firstName")}
+                      className={inputClassName}
+                    />
+                  </FloatingField>
+
+                  <FloatingField
+                    label="Last name*"
+                    error={errors.lastName?.message}
+                  >
+                    <input
+                      type="text"
+                      autoComplete="family-name"
+                      placeholder="Perez"
+                      {...register("lastName")}
+                      className={inputClassName}
+                    />
+                  </FloatingField>
+
+                  <FloatingField
+                    label="Work email*"
+                    error={errors.email?.message}
+                  >
+                    <input
+                      type="email"
+                      autoComplete="email"
+                      placeholder="jperez@adds.com"
+                      {...register("email")}
+                      className={inputClassName}
+                    />
+                  </FloatingField>
+
+                  <FloatingField
+                    label="Phone number*"
+                    error={errors.phone?.message}
+                  >
+                    <input
+                      type="tel"
+                      autoComplete="tel"
+                      placeholder="+54 223 541 4853"
+                      {...register("phone")}
+                      className={inputClassName}
+                    />
+                  </FloatingField>
+
+                  <FloatingField
+                    label="Company name*"
+                    error={errors.companyName?.message}
+                  >
+                    <input
+                      type="text"
+                      autoComplete="organization"
+                      placeholder="ADDS"
+                      {...register("companyName")}
+                      className={inputClassName}
+                    />
+                  </FloatingField>
                 </div>
 
-                <form
-                  onSubmit={handleSubmit(onSubmit)}
-                  className="flex flex-col gap-[66px]"
-                >
-                  <div className="flex flex-col gap-[11px]">
-                    {formResponse && (
-                      <div
-                        className={`mb-2 rounded-lg p-3 text-sm font-medium ${
-                          formResponse.success
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {formResponse.message}
+                <fieldset className="flex flex-col border-0 p-0">
+                  <legend className="float-none mb-[22px] w-full p-0 text-[20px] font-medium leading-[1.2] text-[#343434]">
+                    What type of support are you looking for? *
+                  </legend>
+                  <Controller
+                    name="supportTypes"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex flex-col gap-[11px]">
+                        {SUPPORT_TYPES.map((type) => {
+                          const checked = field.value.includes(type);
+                          return (
+                            <label
+                              key={type}
+                              className="flex cursor-pointer items-center gap-[11px] text-[16px] font-medium leading-[1.2] text-[#343434]"
+                            >
+                              <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={checked}
+                                onChange={() => {
+                                  field.onChange(
+                                    checked
+                                      ? field.value.filter(
+                                          (value) => value !== type,
+                                        )
+                                      : [...field.value, type],
+                                  );
+                                }}
+                              />
+                              <span
+                                className={`flex size-4 shrink-0 items-center justify-center rounded-[4px] ${
+                                  checked
+                                    ? "bg-[#0097b2]"
+                                    : "border border-[#EFEFEF] bg-white"
+                                }`}
+                                aria-hidden
+                              >
+                                {checked ? (
+                                  <Check
+                                    className="size-3 text-white"
+                                    strokeWidth={3}
+                                  />
+                                ) : null}
+                              </span>
+                              {type}
+                            </label>
+                          );
+                        })}
                       </div>
                     )}
+                  />
+                  {errors.supportTypes ? (
+                    <p className="text-xs text-red-500">
+                      {errors.supportTypes.message}
+                    </p>
+                  ) : null}
+                </fieldset>
 
-                    <div className="relative h-[59px]">
-                      <input
-                        type="text"
-                        placeholder="First Last"
-                        {...register("name")}
-                        className={`absolute top-[9px] ${inputClassName}`}
-                      />
-                      <label className={labelClassName}>Full Name*</label>
-                      {errors.name && (
-                        <p className="absolute -bottom-5 left-0 text-xs text-red-500">
-                          {errors.name.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="relative h-[59px]">
-                      <input
-                        type="email"
-                        placeholder="name@adds.com"
-                        {...register("email")}
-                        className={`absolute top-[9px] ${inputClassName}`}
-                      />
-                      <label className={labelClassName}>Email Address*</label>
-                      {errors.email && (
-                        <p className="absolute -bottom-5 left-0 text-xs text-red-500">
-                          {errors.email.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="relative h-[59px]">
-                      <div className="absolute top-[9px] h-[50px] w-full">
-                        <select
-                          {...register("country")}
-                          className={`${inputClassName} cursor-pointer appearance-none pr-[40px]`}
-                          disabled={loadingCountries}
-                        >
-                          <option value="">Select your country...</option>
-                          {countries.map((country) => (
-                            <option key={country.iso3} value={country.country}>
-                              {country.country}
-                            </option>
-                          ))}
-                        </select>
-                        {loadingCountries ? (
-                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0097B2] border-t-transparent" />
-                          </div>
-                        ) : (
-                          <ChevronDown
-                            size={18}
-                            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                          />
-                        )}
+                <fieldset className="flex flex-col border-0 p-0">
+                  <legend className="float-none mb-[22px] w-full p-0 text-[20px] font-medium leading-[1.2] text-[#343434]">
+                    How many team members are you looking to hire?
+                  </legend>
+                  <Controller
+                    name="teamSize"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex flex-col gap-[11px]">
+                        {TEAM_SIZES.map((size) => {
+                          const selected = field.value === size;
+                          return (
+                            <label
+                              key={size}
+                              className="flex cursor-pointer items-center gap-[11px] text-[16px] font-medium leading-[1.2] text-[#343434]"
+                            >
+                              <input
+                                type="radio"
+                                className="sr-only"
+                                value={size}
+                                checked={selected}
+                                onChange={() => field.onChange(size)}
+                              />
+                              <span
+                                className={`flex size-4 shrink-0 items-center justify-center rounded-full border ${
+                                  selected
+                                    ? "border-[#0097b2]"
+                                    : "border-[#C8C8C8]"
+                                }`}
+                                aria-hidden
+                              >
+                                {selected ? (
+                                  <span className="size-2 rounded-full bg-[#0097b2]" />
+                                ) : null}
+                              </span>
+                              {size}
+                            </label>
+                          );
+                        })}
                       </div>
-                      <label className={labelClassName}>Country</label>
-                      {errors.country && (
-                        <p className="absolute -bottom-5 left-0 text-xs text-red-500">
-                          {errors.country.message}
-                        </p>
-                      )}
-                    </div>
+                    )}
+                  />
+                  {errors.teamSize ? (
+                    <p className="text-xs text-red-500">
+                      {errors.teamSize.message}
+                    </p>
+                  ) : null}
+                </fieldset>
 
-                    <div className="relative h-[59px]">
-                      <input
-                        type="tel"
-                        placeholder="+1 234 567 890"
-                        {...register("phone")}
-                        className={`absolute top-[9px] ${inputClassName}`}
-                      />
-                      <label className={labelClassName}>Phone</label>
-                    </div>
-                  </div>
+                <FloatingField
+                  label="Message*"
+                  error={errors.message?.message}
+                >
+                  <textarea
+                    rows={4}
+                    placeholder="Hello! My name is..."
+                    {...register("message")}
+                    className="mt-[9px] min-h-[100px] w-full resize-y rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-[17px] text-[14px] leading-[1.3] tracking-[0.28px] text-[#343434] placeholder:text-[#343434] focus:border-[#0097B2] focus:outline-none"
+                  />
+                </FloatingField>
 
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="h-[48px] w-full rounded-[8px] bg-[#0097B2] text-[14px] font-semibold leading-[1.3] text-white transition-colors hover:bg-[#007A8F] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isSubmitting ? "Sending..." : "Submit Request"}
-                  </button>
-                </form>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex h-[43px] w-fit items-center justify-center rounded-[20px] bg-[#0097B2] px-[25px] py-3 text-[16px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#007A8F] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmitting ? "Sending..." : "Let's Talk"}
+                </button>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Opportunities Section */}
-      <div className="relative bg-[#044e5c] px-4 py-16 md:px-20">
-        <div className="mx-auto max-w-5xl">
-          <div className="w-full rounded-3xl bg-white/40 p-8 shadow-[0px_4px_4px_0px_#003d49] backdrop-blur-md md:p-14">
-            <h3 className="mb-3 text-3xl font-bold leading-tight text-white md:text-[32px]">
-              Looking for opportunities?
-            </h3>
-            <p className="mb-8 text-lg font-medium leading-relaxed text-white md:mb-11 md:text-[22px]">
-              To explore available opportunities and view open positions, please
-              create an account or sign in to our talent portal.
-            </p>
-            <div className="flex flex-col gap-3 md:flex-row">
-              <a
-                href="/auth/register"
-                className="w-full rounded-[20px] bg-white px-6 py-3 text-center text-xl font-semibold text-[#044e5c] shadow-[0px_4px_2px_rgba(255,255,255,0.15)] transition-colors hover:bg-gray-100 md:w-auto"
-              >
-                Create Account
-              </a>
-              <a
-                href="/auth/login"
-                className="w-full rounded-[20px] border-2 border-white bg-transparent px-6 py-3 text-center text-xl font-semibold text-white shadow-[0px_4px_4px_0px_rgba(255,255,255,0.15)] transition-colors hover:bg-white/10 md:w-auto"
-              >
-                Sign In
-              </a>
-            </div>
-          </div>
+            </form>
+          </FadeIn>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
