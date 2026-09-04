@@ -179,7 +179,7 @@ export default function ContactForm() {
                     <input
                       type="text"
                       autoComplete="given-name"
-                      placeholder="Juan"
+                      placeholder="First name"
                       {...register("firstName")}
                       className={inputClassName}
                     />
@@ -192,7 +192,7 @@ export default function ContactForm() {
                     <input
                       type="text"
                       autoComplete="family-name"
-                      placeholder="Perez"
+                      placeholder="Last name"
                       {...register("lastName")}
                       className={inputClassName}
                     />
@@ -205,7 +205,7 @@ export default function ContactForm() {
                     <input
                       type="email"
                       autoComplete="email"
-                      placeholder="jperez@adds.com"
+                      placeholder="name@company.com"
                       {...register("email")}
                       className={inputClassName}
                     />
@@ -218,7 +218,7 @@ export default function ContactForm() {
                     <input
                       type="tel"
                       autoComplete="tel"
-                      placeholder="+54 223 541 4853"
+                      placeholder="+1 (555) 123-4567"
                       {...register("phone")}
                       className={inputClassName}
                     />
@@ -231,7 +231,7 @@ export default function ContactForm() {
                     <input
                       type="text"
                       autoComplete="organization"
-                      placeholder="ADDS"
+                      placeholder="Company name"
                       {...register("companyName")}
                       className={inputClassName}
                     />

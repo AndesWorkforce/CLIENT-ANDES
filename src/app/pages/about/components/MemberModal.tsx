@@ -109,9 +109,6 @@ export default function MemberModal({ member, onClose }: MemberModalProps) {
                 {/* About Us */}
                 {member.bullets && member.bullets.length > 0 && (
                   <div className="flex flex-col gap-[14px]">
-                    <p className="font-semibold text-[18px] text-black leading-[1.3]">
-                      About Us
-                    </p>
                     <ul className="list-disc text-[14px] text-black leading-[1.5] ms-[21px]">
                       {member.bullets.map((bullet, idx) => (
                         <li key={idx} className="mb-0">
