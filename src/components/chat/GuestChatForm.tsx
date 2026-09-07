@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { AndiAvatar } from "./AndiAvatar";
 import { ChatLauncherButton } from "./ChatLauncherButton";
 import {
@@ -40,6 +40,17 @@ export function GuestChatForm({ onSubmit }: GuestChatFormProps) {
       identifier: buildGuestIdentifier(normalized, kind),
     });
   };
+
+  useEffect(() => {
+    if (!submitting) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setSubmitting(false);
+      setError("We could not open the chat. Please try again.");
+    }, 12000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [submitting]);
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
