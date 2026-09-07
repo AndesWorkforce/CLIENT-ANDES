@@ -46,11 +46,14 @@ export function ChatwootWidget({
     }
 
     let cancelled = false;
+    let readyHandled = false;
+    let timeoutId = 0;
 
     const fail = () => {
-      if (!cancelled) {
-        onUnavailableRef.current?.();
-      }
+      if (cancelled || readyHandled) return;
+      readyHandled = true;
+      window.clearTimeout(timeoutId);
+      onUnavailableRef.current?.();
     };
 
     const identifyUser = async () => {
@@ -70,11 +73,10 @@ export function ChatwootWidget({
       enableEndConversation: true,
     };
 
-    let readyHandled = false;
-
     const markReady = () => {
       if (readyHandled || cancelled) return;
       readyHandled = true;
+      window.clearTimeout(timeoutId);
 
       identifyUser().finally(() => {
         if (!cancelled) {
@@ -100,10 +102,9 @@ export function ChatwootWidget({
     script.async = true;
     script.defer = true;
 
-    const timeoutId = window.setTimeout(fail, 8000);
+    timeoutId = window.setTimeout(fail, 12000);
 
     script.onload = () => {
-      window.clearTimeout(timeoutId);
       if (cancelled) return;
 
       if (window.chatwootSDK) {
@@ -124,7 +125,6 @@ export function ChatwootWidget({
     };
 
     script.onerror = () => {
-      window.clearTimeout(timeoutId);
       fail();
     };
 

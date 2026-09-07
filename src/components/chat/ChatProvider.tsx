@@ -49,6 +49,7 @@ export function ChatProvider() {
   }, []);
 
   const handleGuestSubmit = (nextVisitor: ChatVisitor) => {
+    setChatwootFailed(false);
     saveChatVisitor(nextVisitor);
     setOpenChatAfterGuest(true);
     setVisitor(nextVisitor);
