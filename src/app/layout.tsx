@@ -9,6 +9,7 @@ import Footer from "./components/Footer";
 import "react-quill/dist/quill.snow.css";
 import "quill/dist/quill.snow.css";
 import Script from "next/script";
+import { GA_MEASUREMENT_ID, GOOGLE_ADS_ID } from "@/lib/google-ads";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -128,17 +129,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Google tag (gtag.js) */}
+        {/* Google tag (gtag.js) — GA4 + Google Ads */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-11VQNRYDS8"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID || GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"
         />
         <Script id="gtag-init" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);} 
+            function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-11VQNRYDS8');
+            gtag('config', '${GA_MEASUREMENT_ID}');
+            ${GOOGLE_ADS_ID ? `gtag('config', '${GOOGLE_ADS_ID}');` : ""}
           `}
         </Script>
 

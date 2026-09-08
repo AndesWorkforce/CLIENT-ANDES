@@ -58,6 +58,12 @@ export default function PartnersSection() {
       width: 110,
       height: 40,
     },
+    {
+      name: "Rocket Benefits",
+      logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/home/Logos+Clientes/rocket-benefits-logo.webp",
+      width: 110,
+      height: 40,
+    },
     /*     {
       name: "Jelks Veteran Services",
       logo: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/home/Logos+Clientes/Jelks.webp",

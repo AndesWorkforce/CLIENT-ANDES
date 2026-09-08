@@ -8,6 +8,7 @@ import { ChevronDown, CircleCheck } from "lucide-react";
 import { submitContactFormMicrosoft } from "@/app/pages/contact/actions/microsoft-email-actions";
 import { servicesAssets } from "../services-assets";
 import { FadeIn, SlideIn } from "../../about/components/Reveal";
+import { trackContactFormConversion } from "@/lib/google-ads";
 
 interface Country {
   country: string;
@@ -145,9 +146,7 @@ export default function ContactFormSection() {
       setFormResponse(response);
       if (response.success) {
         reset();
-        if (typeof window !== "undefined" && window.gtag) {
-          window.gtag("event", "ads_conversion_Form_OffersPage", {});
-        }
+        trackContactFormConversion();
       }
     } catch (error) {
       console.error("Error submitting form:", error);

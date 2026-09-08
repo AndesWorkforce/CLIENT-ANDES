@@ -8,6 +8,8 @@ services:
       args:
         # Misma URL pública que el router Traefik del API — obligatorio para el build de Next.js
         NEXT_PUBLIC_API_URL: https://andes.api.andes-workforce.com/api/
+        NEXT_PUBLIC_GOOGLE_ADS_ID: ${NEXT_PUBLIC_GOOGLE_ADS_ID:-}
+        NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_SEND_TO: ${NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_SEND_TO:-}
     image: andes/client:latest
     container_name: andes-client
     restart: unless-stopped

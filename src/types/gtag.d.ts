@@ -14,7 +14,7 @@ interface Window {
   gtagSendEvent?: (url: string, eventName?: string) => boolean;
 
   /**
-   * Google Analytics gtag function
+   * Google Analytics / Google Ads gtag function
    */
   gtag?: (...args: any[]) => void;
 
