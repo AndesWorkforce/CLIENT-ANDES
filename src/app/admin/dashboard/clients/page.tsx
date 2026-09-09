@@ -13,15 +13,23 @@ interface Client {
   descripcion?: string;
   activo: boolean;
   fechaCreacion: string;
-  usuarioResponsable: {
+  usuarioResponsable?: {
     id: string;
     nombre?: string;
     apellido?: string;
     correo: string;
-  };
-  _count: {
+  } | null;
+  _count?: {
     empleados: number;
   };
+}
+
+function representativeName(client: Client): string {
+  if (!client.usuarioResponsable) return "—";
+  const name = `${client.usuarioResponsable.nombre || ""} ${
+    client.usuarioResponsable.apellido || ""
+  }`.trim();
+  return name || "—";
 }
 
 export default function ClientsPage() {
@@ -179,14 +187,13 @@ export default function ClientsPage() {
                             )}
                           </td>
                           <td className="py-4 px-4">
-                            {client.usuarioResponsable.nombre}{" "}
-                            {client.usuarioResponsable.apellido}
+                            {representativeName(client)}
                           </td>
                           <td className="py-4 px-4">
-                            {client.usuarioResponsable.correo}
+                            {client.usuarioResponsable?.correo || "—"}
                           </td>
                           <td className="py-4 px-4">
-                            {client._count.empleados}
+                            {client._count?.empleados ?? 0}
                           </td>
                           <td className="py-4 px-4">
                             {renderClientStatus(client.activo)}
@@ -340,14 +347,13 @@ export default function ClientsPage() {
                         </p>
                       )}
                       <p className="text-sm text-gray-600 mt-2">
-                        {client.usuarioResponsable.nombre}{" "}
-                        {client.usuarioResponsable.apellido}
+                        {representativeName(client)}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {client.usuarioResponsable.correo}
+                        {client.usuarioResponsable?.correo || "—"}
                       </p>
                       <p className="text-sm text-gray-600 mt-2">
-                        Employees: {client._count.empleados}
+                        Employees: {client._count?.empleados ?? 0}
                       </p>
                       <div className="mt-2">
                         {renderClientStatus(client.activo)}
