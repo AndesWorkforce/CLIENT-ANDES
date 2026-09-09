@@ -10,6 +10,7 @@ import {
   type ContactFormValues,
 } from "../schema/contact-schema";
 import { FadeIn, SlideIn } from "../../about/components/Reveal";
+import { trackContactFormConversion } from "@/lib/google-ads";
 
 const SUPPORT_TYPES = [
   "Administrative Support",
@@ -100,9 +101,7 @@ export default function ContactForm() {
       setFormResponse(response);
       if (response.success) {
         reset();
-        if (typeof window !== "undefined" && window.gtag) {
-          window.gtag("event", "ads_conversion_Form_ContactPage", {});
-        }
+        trackContactFormConversion();
       }
     } catch (error) {
       console.error("Error submitting form:", error);

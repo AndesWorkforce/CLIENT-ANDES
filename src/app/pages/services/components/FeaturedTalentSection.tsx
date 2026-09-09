@@ -83,7 +83,7 @@ const STATIC_TALENT: TalentCard[] = [
     fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Lacomba.webp",
     paisImagen: null,
   },
-  {
+  /*{
     id: "static-3",
     name: "Fernando Casamalhuapa",
     country: "El Salvador",
@@ -94,7 +94,7 @@ const STATIC_TALENT: TalentCard[] = [
     experience: "3y exp",
     fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Fernando.webp",
     paisImagen: null,
-  },
+  },*/
   {
     id: "static-4",
     name: "Pedro Barahona",
@@ -118,7 +118,20 @@ const STATIC_TALENT: TalentCard[] = [
     experience: "8y exp",
     fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Pabon.webp",
     paisImagen: null,
-  }
+  },
+  /*{
+    id: "static-7",
+    name: "Melissa González Córdoba",
+    country: "Colombia",
+    countryCode: "🇨🇴",
+    profesion: "Corporate Attorney",
+    position: "Junior Attorney at US Law Firm",
+    company: "US Law Firm",
+    experience: "4y exp",
+    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Melissa.webp",
+    paisImagen: null,
+  },
+  */
 ];
 
 export default function FeaturedTalentSection() {
