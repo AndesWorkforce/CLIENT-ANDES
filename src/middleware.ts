@@ -13,8 +13,11 @@ function createCleanRedirect(request: NextRequest, pathname: string) {
   // En producción, limpiar el puerto si es necesario
   if (process.env.NODE_ENV === "production") {
     url.port = "";
-    // Asegurar que use el host correcto en producción
-    if (url.hostname.includes("andes-workforce.com")) {
+    // Solo forzar el apex en alias de producción, no en test/preview
+    if (
+      url.hostname === "andes.client.andes-workforce.com" ||
+      url.hostname === "www.andes-workforce.com"
+    ) {
       url.host = "andes-workforce.com";
     }
   }
