@@ -2,13 +2,17 @@
 
 import type { MovementType } from "./CreateInvoiceItemDrawer";
 import AdminHubFormField from "../../components/AdminHubFormField";
+import {
+  INVOICE_ITEM_CURRENCY,
+  isCreateItemFormComplete,
+  type CreateItemFormData,
+} from "./invoice-item-currency";
 
-export interface CreateItemFormData {
-  tipo: string;
-  descripcion: string;
-  monto: string;
-  moneda: string;
-}
+export {
+  INVOICE_ITEM_CURRENCY,
+  isCreateItemFormComplete,
+  type CreateItemFormData,
+};
 
 interface CreateInvoiceItemFormProps {
   movementType: MovementType;
@@ -29,16 +33,6 @@ const CREDIT_TYPES = [
   { value: "ausencia", label: "Ausencia" },
   { value: "ajuste", label: "Ajuste manual" },
 ];
-
-const CURRENCIES = [
-  { value: "USD", label: "USD" },
-  { value: "COP", label: "COP" },
-  { value: "EUR", label: "EUR" },
-];
-
-export function isCreateItemFormComplete(data: CreateItemFormData): boolean {
-  return Boolean(data.tipo && data.descripcion.trim() && data.monto.trim() && data.moneda);
-}
 
 export default function CreateInvoiceItemForm({
   movementType,
@@ -85,12 +79,11 @@ export default function CreateInvoiceItemForm({
           </div>
           <div className="w-full sm:w-[222px] shrink-0">
             <AdminHubFormField
-              type="select"
+              type="input"
               label="Moneda"
-              value={formData.moneda}
-              onChange={(v) => updateField("moneda", v)}
-              options={CURRENCIES}
-              placeholder="Moneda"
+              value={INVOICE_ITEM_CURRENCY}
+              onChange={() => undefined}
+              readOnly
             />
           </div>
         </div>

@@ -674,7 +674,7 @@ export interface CustomerCharge {
   procesoContratacionId?: string | null;
   tipo: TipoCargoCliente;
   monto: number;
-  moneda: string;
+  moneda: "USD";
   fecha: string;
   periodo?: string | null;
   descripcion?: string | null;
@@ -705,7 +705,6 @@ export interface CreateCustomerChargeDto {
   procesoContratacionId?: string;
   tipo: TipoCargoCliente;
   monto: number;
-  moneda?: string;
   fecha: string;
   periodo?: string;
   descripcion?: string;

@@ -20,6 +20,7 @@ import CreateAdditionalItemForm, {
 import CreateInvoiceItemForm, {
   type CreateItemFormData,
   isCreateItemFormComplete,
+  INVOICE_ITEM_CURRENCY,
 } from "./CreateInvoiceItemForm";
 import type { InvoiceAdditionalFee, InvoiceLineItem } from "../types/invoice-detail.types";
 
@@ -37,7 +38,6 @@ const EMPTY_FORM: CreateItemFormData = {
   tipo: "",
   descripcion: "",
   monto: "",
-  moneda: "",
 };
 
 const EMPTY_ADDITIONAL_FORM: CreateAdditionalFormData = {
@@ -132,7 +132,6 @@ export default function CreateInvoiceItemDrawer({
     contractor: string,
     description: string,
     monto: string,
-    moneda: string,
     isCredit: boolean
   ): InvoiceLineItem {
     const rawAmount = monto.replace(/[^\d.]/g, "");
@@ -155,7 +154,7 @@ export default function CreateInvoiceItemDrawer({
       contractor,
       description,
       amount: isCredit ? `-${baseAmount}` : baseAmount,
-      currency: moneda,
+      currency: INVOICE_ITEM_CURRENCY,
       amountIsNegative: isCredit,
       status: "Pendiente",
       createdBy: "Violeta Q",
@@ -213,7 +212,6 @@ export default function CreateInvoiceItemDrawer({
           empresaId,
           tipo,
           monto: numericAmount,
-          moneda: formData.moneda || "USD",
           fecha: new Date().toISOString().split("T")[0],
           periodo: apiPeriodo,
           descripcion: formData.descripcion,
