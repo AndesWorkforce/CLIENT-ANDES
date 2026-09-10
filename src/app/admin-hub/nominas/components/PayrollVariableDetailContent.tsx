@@ -28,6 +28,7 @@ import PayrollVariableInfoCard from "./PayrollVariableInfoCard";
 import PayrollVariableInfoRow from "./PayrollVariableInfoRow";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
 import DeletePayrollVariableModal from "./DeletePayrollVariableModal";
+import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
 
 interface PayrollVariableDetailContentProps {
   detail: PayrollVariableDetail;
@@ -976,6 +977,11 @@ export default function PayrollVariableDetailContent({
           </div>
         </div>
       </div>
+
+      <ObjectHistorialTable
+        entidadId={detail.id}
+        title="Historial de cambios"
+      />
 
       <DeletePayrollVariableModal
         variable={variableForModal}

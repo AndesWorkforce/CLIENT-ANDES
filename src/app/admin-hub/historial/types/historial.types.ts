@@ -1,4 +1,16 @@
-export const HISTORIAL_MODULOS = ["NOMINA", "FACTURA", "VARIABLE"] as const;
+export const HISTORIAL_MODULOS = [
+  "NOMINA",
+  "FACTURA",
+  "VARIABLE",
+  "CONTRATO",
+  "PERSONA",
+  "DEDUCCION",
+  "CUSTOMER_CHARGE",
+  "CUSTOMER_CREDIT",
+  "ALERTA",
+  "PAIS",
+  "DIA_LIBRE",
+] as const;
 export const HISTORIAL_ACCIONES = [
   "CREAR",
   "ACTUALIZAR",
@@ -35,6 +47,14 @@ export const HISTORIAL_MODULO_LABEL: Record<HistorialModulo, string> = {
   NOMINA: "Nómina",
   FACTURA: "Factura",
   VARIABLE: "Variable",
+  CONTRATO: "Contrato",
+  PERSONA: "Persona",
+  DEDUCCION: "Deducción",
+  CUSTOMER_CHARGE: "Cargo al cliente",
+  CUSTOMER_CREDIT: "Crédito al cliente",
+  ALERTA: "Alerta",
+  PAIS: "País",
+  DIA_LIBRE: "Ausencia",
 };
 
 export const HISTORIAL_ACCION_LABEL: Record<HistorialAccion, string> = {

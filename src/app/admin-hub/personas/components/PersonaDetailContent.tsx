@@ -18,6 +18,7 @@ import {
 } from "../utils/persona-detail.utils";
 import PersonaFormSection from "./PersonaFormSection";
 import PersonaStatusBadge from "./PersonaStatusBadge";
+import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
 
 interface PersonaDetailContentProps {
   detail: PersonaDetail;
@@ -555,6 +556,12 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
           </div>
         </div>
       </div>
+
+      <ObjectHistorialTable
+        entidadId={detailState.id}
+        entidadTipo="Usuario"
+        title="Historial de cambios"
+      />
     </div>
   );
 }

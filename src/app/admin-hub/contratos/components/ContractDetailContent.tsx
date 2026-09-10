@@ -27,6 +27,7 @@ import {
 } from "../data/contract-detail-display";
 import type { ContratoDetail } from "../types/contrato-detail.types";
 import { personaToDetailPath } from "../../personas/utils/persona-detail.utils";
+import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
 import ContractApprovalBadge from "./ContractApprovalBadge";
 import ContractInfoCard from "./ContractInfoCard";
 
@@ -776,24 +777,10 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
           </AdminHubTableShell>
         </section>
 
-        <section className="rounded-[12px] border border-[#EFEFEF] bg-white px-[30px] py-[33px]">
-          <h2 className="mb-[23px] text-[18px] font-bold leading-[1.3] text-black">
-            Historial de cambios del contrato
-          </h2>
-          <ul className="list-disc space-y-[18px] pl-5 text-[16px] leading-[1.3] text-[#343434]">
-            {detailState.historialCambios.length === 0 ? (
-              <li className="list-none text-[#858585]">
-                No hay cambios registrados para este contrato.
-              </li>
-            ) : (
-              detailState.historialCambios.map((entry) => (
-              <li key={entry.id} className="border-b border-[#C8C8C8] pb-[18px] last:border-b-0 last:pb-0">
-                {entry.descripcion} · {entry.fecha}
-              </li>
-              ))
-            )}
-          </ul>
-        </section>
+        <ObjectHistorialTable
+          entidadId={detailState.id}
+          title="Historial de cambios del contrato"
+        />
       </div>
     </div>
   );

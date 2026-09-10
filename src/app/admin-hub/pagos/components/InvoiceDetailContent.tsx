@@ -38,6 +38,7 @@ import InvoiceClientInfoGrid from "./InvoiceClientInfoGrid";
 import InvoiceDetailSection from "./InvoiceDetailSection";
 import InvoiceEmitModal, { type InvoiceEmitModalVariant } from "./InvoiceEmitModal";
 import InvoicePayrollSection from "./InvoicePayrollSection";
+import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
 
 type TabKey = "all" | "nomina" | "adicionales" | "customer-charges" | "customer-credits";
 
@@ -843,6 +844,12 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
             />
           )}
         </div>
+
+        <ObjectHistorialTable
+          entidadId={invoice.id}
+          entidadTipo="ClientInvoiceSnapshot"
+          title="Historial de cambios de la factura"
+        />
 
         <div ref={footerDockSentinelRef} className="h-px w-full shrink-0" aria-hidden />
 

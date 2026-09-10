@@ -6,6 +6,7 @@ import {
   HISTORIAL_ACCION_LABEL,
   HISTORIAL_MODULO_LABEL,
 } from "../types/historial.types";
+import { formatHistorialCambios } from "../utils/format-historial-cambios";
 
 interface HistorialTableProps {
   rows: HistorialItem[];
@@ -18,19 +19,6 @@ function formatDateTime(iso: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
-}
-
-function formatCambios(cambios: unknown): string {
-  if (!cambios || typeof cambios !== "object") return "—";
-  const record = cambios as {
-    estado?: { de?: string | null; a?: string | null };
-  };
-  if (record.estado && (record.estado.de || record.estado.a)) {
-    const from = record.estado.de ?? "—";
-    const to = record.estado.a ?? "—";
-    return `${from} → ${to}`;
-  }
-  return "—";
 }
 
 export default function HistorialTable({ rows }: HistorialTableProps) {
@@ -72,8 +60,8 @@ export default function HistorialTable({ rows }: HistorialTableProps) {
               </td>
               <td className={cellClass}>{HISTORIAL_MODULO_LABEL[row.modulo]}</td>
               <td className={cellClass}>{HISTORIAL_ACCION_LABEL[row.accion]}</td>
-              <td className={`${cellClass} whitespace-nowrap`}>
-                {formatCambios(row.cambios)}
+              <td className={`${cellClass} whitespace-normal`}>
+                {formatHistorialCambios(row.cambios)}
               </td>
               <td className={`${cellClass} max-w-[360px] whitespace-normal`}>
                 {row.descripcion}

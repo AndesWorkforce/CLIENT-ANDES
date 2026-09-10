@@ -20,6 +20,8 @@ export interface GetHistorialParams {
   usuario?: string;
   desde?: string;
   hasta?: string;
+  entidadId?: string;
+  entidadTipo?: string;
 }
 
 export interface GetHistorialResult extends ApiResponse {
@@ -64,6 +66,8 @@ export async function getHistorial(
         ...(params.usuario?.trim() ? { usuario: params.usuario.trim() } : {}),
         ...(params.desde ? { desde: params.desde } : {}),
         ...(params.hasta ? { hasta: params.hasta } : {}),
+        ...(params.entidadId?.trim() ? { entidadId: params.entidadId.trim() } : {}),
+        ...(params.entidadTipo?.trim() ? { entidadTipo: params.entidadTipo.trim() } : {}),
       },
       headers: {
         "Cache-Control": "no-store",

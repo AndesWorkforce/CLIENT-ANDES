@@ -7,6 +7,8 @@ import AdminHubTableShell, { ADMIN_HUB_TABLE_ROW } from "../../components/AdminH
 import type { InvoiceLineItem } from "../data/mock-invoice-details";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 import InvoiceTableTotalRow from "./InvoiceTableTotalRow";
+import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
+import type { HistorialModulo } from "../../historial/types/historial.types";
 
 const MENU_MIN_WIDTH = 148;
 
@@ -17,6 +19,8 @@ interface InvoiceLineItemsTableProps {
   onApprove: (itemId: string) => void;
   onReject: (itemId: string) => void;
   onDelete: (itemId: string) => void;
+  historialModulo?: HistorialModulo;
+  historialEntidadTipo?: string;
 }
 
 type MenuPosition = { top: number; left: number };
@@ -28,10 +32,13 @@ export default function InvoiceLineItemsTable({
   onApprove,
   onReject,
   onDelete,
+  historialModulo,
+  historialEntidadTipo,
 }: InvoiceLineItemsTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
+  const [historialItemId, setHistorialItemId] = useState<string | null>(null);
   const menuButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const updateMenuPosition = useCallback((itemId: string) => {
@@ -122,6 +129,15 @@ export default function InvoiceLineItemsTable({
     closeMenu();
     onDelete(itemId);
   }
+
+  function handleViewHistorial(itemId: string) {
+    closeMenu();
+    setHistorialItemId((current) => (current === itemId ? null : itemId));
+  }
+
+  const historialItem = historialItemId
+    ? items.find((item) => item.id === historialItemId)
+    : null;
 
   const menuButtonClass = (itemId: string) =>
     `rounded p-1 transition-colors ${
@@ -248,6 +264,17 @@ export default function InvoiceLineItemsTable({
         </table>
       </AdminHubTableShell>
 
+      {historialItem && historialEntidadTipo && (
+        <ObjectHistorialTable
+          entidadId={historialItem.id}
+          entidadTipo={historialEntidadTipo}
+          modulo={historialModulo}
+          title={`Historial · ${historialItem.description || historialItem.type}`}
+          variant="plain"
+          limit={15}
+        />
+      )}
+
       {openMenuId &&
         openMenuItem &&
         menuPosition &&
@@ -274,6 +301,14 @@ export default function InvoiceLineItemsTable({
               className={menuItemClass}
             >
               Rechazar
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => handleViewHistorial(openMenuItem.id)}
+              className={menuItemClass}
+            >
+              Ver historial
             </button>
             <button
               type="button"

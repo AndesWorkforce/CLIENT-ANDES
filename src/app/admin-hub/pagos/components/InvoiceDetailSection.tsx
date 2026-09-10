@@ -5,6 +5,7 @@ import type { InvoiceSection } from "../data/mock-invoice-details";
 import { resolveLineItemsApprovalStatus } from "../lib/invoice-approval-status";
 import InvoiceCollapsibleSectionHeader from "./InvoiceCollapsibleSectionHeader";
 import InvoiceLineItemsTable from "./InvoiceLineItemsTable";
+import type { HistorialModulo } from "../../historial/types/historial.types";
 
 interface InvoiceDetailSectionProps {
   section: InvoiceSection;
@@ -43,6 +44,16 @@ export default function InvoiceDetailSection({
           onApprove={onApproveItem}
           onReject={onRejectItem}
           onDelete={onDeleteItem}
+          historialModulo={
+            (section.tabKey === "customer-charges"
+              ? "CUSTOMER_CHARGE"
+              : "CUSTOMER_CREDIT") as HistorialModulo
+          }
+          historialEntidadTipo={
+            section.tabKey === "customer-charges"
+              ? "CustomerCharge"
+              : "CustomerCredit"
+          }
         />
       )}
     </div>

@@ -16,6 +16,11 @@ export interface ContractChangeLog {
   id: string;
   descripcion: string;
   fecha: string;
+  campo?: string | null;
+  valorAnterior?: string | null;
+  valorNuevo?: string | null;
+  usuario?: string | null;
+  accion?: string | null;
 }
 
 export interface ContractPayrollHistoryRow {
