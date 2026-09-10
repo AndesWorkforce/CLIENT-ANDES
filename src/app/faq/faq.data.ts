@@ -104,7 +104,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         answer: [
           {
             type: "paragraph",
-            text: "The invoice shows your monthly base salary only—it does not include additional payments (bonuses, overtime, or other extras). The value corresponds to the initial contract, without considering variables (if applicable).",
+            text: "Your invoice reflects the monthly amount payable for your contracted services. If the amount currently displayed is outdated, it is likely because you have not yet received or signed the addendum reflecting your updated rate.\nOnce the addendum has been signed, the updated amount will be reflected on the platform and your invoice.",
           },
         ],
       },
@@ -199,7 +199,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         answer: [
           {
             type: "paragraph",
-            text: "Almost anywhere except from the United States. And you must inform IT rromero@teamandes.com and administration vquintero@teamandes.com by mail to enable access.",
+            text: "Almost anywhere except from the United States. And you must inform IT pluna@teamandes.com and administration vquintero@teamandes.com by mail to enable access.",
           },
         ],
       },
@@ -207,11 +207,11 @@ export const FAQ_SECTIONS: FaqSection[] = [
   },
   {
     id: "days-off",
-    title: "Days Off",
+    title: "PTO",
     items: [
       {
         id: "request-days-off",
-        question: "How do I request days off?",
+        question: "How do I request PTO?",
         answer: [
           {
             type: "paragraph",
@@ -225,7 +225,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
       },
       {
         id: "whg-days-off",
-        question: "How do I apply for days off if I belong to WHG?",
+        question: "How do I apply for PTO if I belong to WHG?",
         answer: [
           {
             type: "paragraph",
@@ -235,14 +235,14 @@ export const FAQ_SECTIONS: FaqSection[] = [
             type: "list",
             items: [
               "Team Leader, Karen Meadows – KMeadows@wernerhoffman.com",
-              "Laura Chica – LChica@wernerhoffman.com",
+              "María Salinas – msalinas@teamandes.com",
             ],
           },
         ],
       },
       {
         id: "advance-notice",
-        question: "How far in advance should I request days off?",
+        question: "How far in advance should I request PTO?",
         answer: [
           { type: "paragraph", text: "Minimum 1 week before." },
         ],
@@ -257,40 +257,27 @@ export const FAQ_SECTIONS: FaqSection[] = [
           },
           {
             type: "note",
-            text: "Remember that you have 12 days off 2026, they are deducted in the month you take them, and 6 days are reimbursed in June and 6 in December. If you take all 12 days before December 31, 2026, you will receive an additional 3 paid days in December, for a total of 9 days that month.",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "pto",
-    title: "PTO (contractors linked before October 1, 2025)",
-    items: [
-      {
-        id: "pto-until-when",
-        question: "Until when can I use PTO 2025?",
-        answer: [
-          { type: "list", items: ["If you have less than 10 days: until June 30, 2026", "If you have 10 days or more: until December 31, 2026"] },
-        ],
-      },
-      {
-        id: "pto-not-used",
-        question: "What happens if I don't use it?",
-        answer: [
-          {
-            type: "paragraph",
-            text: "If you don't use it, the time you have accumulated is lost.",
+            text: "Remember that you have 12 PTO days in 2026, they are deducted in the month you take them, and 6 days are reimbursed in June and 6 in December. If you take all 12 PTO days before December 31, 2026, you will receive an additional 3 paid days in December, for a total of 9 days that month.",
           },
         ],
       },
       {
-        id: "pto-remaining",
-        question: "How do I know how many days of PTO 2025 I have left?",
+        id: "pto-accrual",
+        question: "How much PTO do I accrue?",
         answer: [
           {
             type: "paragraph",
-            text: "Send an email to the administration team (VQuintero@teamandes.com and/or AVargas@teamandes.com).",
+            text: "For each month worked, you accrue 1.25 days of paid time off (PTO).",
+          },
+        ],
+      },
+      {
+        id: "pto-balance",
+        question: "Where can I see my accrued PTO?",
+        answer: [
+          {
+            type: "paragraph",
+            text: "You can see your accrued PTO balance on your paystub, under the PTO or Paid Time Off section.",
           },
         ],
       },
