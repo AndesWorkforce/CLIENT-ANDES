@@ -1,19 +1,15 @@
-import ArticleHeroSection from "./components/ArticleHeroSection";
-import ArticleContentSection from "./components/ArticleContentSection";
-import RelatedArticlesSection from "./components/RelatedArticlesSection";
+import BlogListingSection from "./_components/BlogListingSection";
 
 export const metadata = {
-  title: "Meet Miguel Rendon | Andes Workforce Blog",
+  title: "Blog",
   description:
-    "Meet Miguel Rendon: From the idea to building careers across Latin America. An exclusive interview with the founder of Andes Workforce.",
+    "Latest from Andes Workforce — interviews, company stories, and insights on hiring talent across Latin America.",
 };
 
-export default function BlogArticlePage() {
+export default function BlogPage() {
   return (
     <main className="min-h-screen bg-white">
-      <ArticleHeroSection />
-      <ArticleContentSection />
-      <RelatedArticlesSection />
+      <BlogListingSection />
     </main>
   );
 }

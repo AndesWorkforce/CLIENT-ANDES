@@ -13,6 +13,12 @@ export function trackContactFormConversion() {
     return;
   }
 
+  // GA4 recommended event — maps to the Google Ads "Submit lead form" goal.
+  window.gtag("event", "generate_lead", {
+    currency: "USD",
+    value: 1.0,
+  });
+
   if (!GOOGLE_ADS_CONVERSION_SEND_TO) {
     return;
   }
