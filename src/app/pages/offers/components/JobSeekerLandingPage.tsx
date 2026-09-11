@@ -101,7 +101,10 @@ export default function JobSeekerLandingPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white">
-      <section className="relative flex h-[400px] w-full items-center md:h-[600px]">
+      <section
+        id="offers-hero"
+        className="relative flex h-[400px] w-full items-center md:h-[600px]"
+      >
         <div className="absolute inset-0 z-0">
           <Image
             src={BANNER_SRC}
@@ -115,7 +118,7 @@ export default function JobSeekerLandingPage() {
 
         <FadeIn
           duration={ABOUT_MOTION.heroDuration}
-          className="container relative z-10 flex max-w-[1440px] flex-col gap-[10px] px-[20px] py-16 text-white md:px-[40px] md:py-[207px]"
+          className="container relative z-10 flex max-w-[1440px] flex-col gap-[10px] px-[20px] pt-[90px] pb-16 text-white md:px-[40px] md:pt-[120px] md:pb-[80px]"
         >
           <h1 className="max-w-[758px] text-[32px] font-bold leading-[1.3] md:text-[64px]">
             Launch Your Career
@@ -196,7 +199,7 @@ export default function JobSeekerLandingPage() {
             </p>
           </FadeIn>
 
-          <div className="grid w-full grid-cols-1 items-stretch gap-[11px] sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid w-full grid-cols-1 items-stretch gap-[11px] overflow-hidden sm:grid-cols-2 lg:grid-cols-3">
             {benefits.map((benefit, i) => (
               <SlideIn
                 key={benefit.title}

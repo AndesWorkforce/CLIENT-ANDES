@@ -112,11 +112,18 @@ export default function Navbar() {
     pathname === "/" ||
     pathname === "/pages/home" ||
     pathname.startsWith("/pages/home/");
-  const isAboutPage =
-    pathname === "/pages/about" || pathname.startsWith("/pages/about/");
-  const isContactPage =
-    pathname === "/pages/contact" || pathname.startsWith("/pages/contact/");
-  const isHeroOverlayPage = isHomePage || isAboutPage || isContactPage;
+  const overlayPrefixes = [
+    "/pages/home",
+    "/pages/about",
+    "/pages/contact",
+    "/pages/services",
+    "/pages/offers",
+  ];
+  const isHeroOverlayPage =
+    pathname === "/" ||
+    overlayPrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    );
   const isTransparentNav = isHeroOverlayPage && !isScrolled;
   /**
    * Alias leído en caliente desde `users/me`. Esto evita depender de la cookie
@@ -142,7 +149,9 @@ export default function Navbar() {
       const hero =
         document.getElementById("home-hero") ||
         document.getElementById("about-hero") ||
-        document.getElementById("contact-hero");
+        document.getElementById("contact-hero") ||
+        document.getElementById("services-hero") ||
+        document.getElementById("offers-hero");
       if (!hero) {
         setIsScrolled(window.scrollY > 40);
         return;
@@ -484,7 +493,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Espaciador: en home/about/contact el hero ocupa el espacio bajo el navbar fijo */}
+      {/* Espaciador: en páginas con hero overlay el banner ocupa el espacio bajo el navbar fijo */}
       {!isHeroOverlayPage && (
         <div className="h-[45px] md:h-[85px]" aria-hidden="true" />
       )}
@@ -496,7 +505,7 @@ export default function Navbar() {
             : "bg-white shadow-[0px_4px_4px_0px_rgba(210,210,210,0.25)]"
         }`}
       >
-      {/* Top Header - Contact & Social (oculto en home/about/contact según diseño Figma) */}
+      {/* Top Header - Contact & Social (oculto sobre héroes overlay) */}
       {!isHeroOverlayPage && (
         <div className="hidden md:block bg-white border-b border-[rgba(210,210,210,0.5)]">
           <div className="container px-[20px] md:px-[40px]">

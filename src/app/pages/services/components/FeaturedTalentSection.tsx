@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FadeIn } from "../../about/components/Reveal";
 
 type TalentCard = {
@@ -9,12 +9,16 @@ type TalentCard = {
   position: string;
   profesion: string;
   country: string;
-  countryCode?: string;
+  countryCode: string;
   company?: string;
   experience?: string;
   fotoPerfil: string | null;
-  paisImagen: string | null;
 };
+
+/** Same CDN used in profile contact; restcountries v3.1 is deprecated. */
+function flagUrl(iso2: string) {
+  return `https://flagcdn.com/w40/${iso2.toLowerCase()}.png`;
+}
 
 /** Renders a profile photo or initials — never loops on 404 */
 function ProfileAvatar({
@@ -63,117 +67,105 @@ const STATIC_TALENT: TalentCard[] = [
     id: "static-1",
     name: "Carlos Soto",
     country: "Colombia",
-    countryCode: "🇨🇴",
+    countryCode: "CO",
     profesion: "Industrial Engineer",
     position: "Team Lead, VA Department",
     company: "US Law Firm",
     experience: "10y exp",
     fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Soto.webp",
-    paisImagen: null,
   },
   {
     id: "static-2",
     name: "Celeste Lacomba",
     country: "Mexico",
-    countryCode: "🇲🇽",
+    countryCode: "MX",
     profesion: "Graphic Designer with a Master's in International Business Administration",
     position: "Case Manager, Social Security-Hearing Level",
     company: "US Law Firm",
     experience: "5y exp",
     fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Lacomba.webp",
-    paisImagen: null,
   },
   /*{
     id: "static-3",
     name: "Fernando Casamalhuapa",
     country: "El Salvador",
-    countryCode: "🇸🇻",
+    countryCode: "SV",
     profesion: "International Business and Law Student",
     position: "Legal Assistant - Workers Comp",
     company: "US Law Firm",
     experience: "3y exp",
     fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Fernando.webp",
-    paisImagen: null,
   },*/
   {
     id: "static-4",
     name: "Pedro Barahona",
     country: "Honduras",
-    countryCode: "🇭🇳",
+    countryCode: "HN",
     profesion: "Technology engineer",
     position: "IT Assistant",
     company: "US Law Firm",
     experience: "2y exp",
     fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Barahona.webp",
-    paisImagen: null,
   },
   {
     id: "static-5",
     name: "Marco Pabon",
     country: "Colombia",
-    countryCode: "🇨🇴",
+    countryCode: "CO",
     profesion: "Bachelor's Degree in English Language Teaching",
     position: "Team Lead - VA and SSA",
     company: "US Law Firm",
     experience: "8y exp",
     fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Pabon.webp",
-    paisImagen: null,
   },
-  /*{
+  {
     id: "static-7",
+    name: "Eddy Arias",
+    country: "Colombia",
+    countryCode: "CO",
+    profesion: "Attorney",
+    position: "VA Attorney Supervisor",
+    company: "US Law Firm",
+    experience: "5y exp",
+    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/eddy_a_madrigal.webp",
+  },
+  {
+    id: "static-8",
     name: "Melissa González Córdoba",
     country: "Colombia",
-    countryCode: "🇨🇴",
+    countryCode: "CO",
     profesion: "Corporate Attorney",
-    position: "Junior Attorney at US Law Firm",
+    position: "Junior Attorney",
     company: "US Law Firm",
     experience: "4y exp",
-    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/Melissa.webp",
-    paisImagen: null,
+    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/melissa_gonzales_cordoba.webp",
   },
-  */
+  {
+    id: "static-9",
+    name: "Byron Galvis",
+    country: "Colombia",
+    countryCode: "CO",
+    profesion: "Mechatronics Engineer",
+    position: "Associate Manager, Projects & Support",
+    company: "US Consultant Firm",
+    experience: "7y exp",
+    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/byron_galvis.webp",
+  },
+  {
+    id: "static-10",
+    name: "Juan Felipe Aislant Díaz",
+    country: "Colombia",
+    countryCode: "CO",
+    profesion: "Audiovisual Arts professional, AI Consultant",
+    position: "Team Lead, SS Initial/Recon Department",
+    company: "US Law Firm",
+    experience: "5y exp",
+    fotoPerfil: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/03.+Our+Services/optimized/Talento/felipe_aislant.webp",
+  },
 ];
 
 export default function FeaturedTalentSection() {
-  const [featuredTalent, setFeaturedTalent] = useState<TalentCard[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      const cards = [...STATIC_TALENT];
-
-      // Collect unique country names that are missing a flag URL
-      const missing = [...new Set(
-        cards.filter((c) => c.country && !c.paisImagen).map((c) => c.country)
-      )];
-
-      if (missing.length > 0) {
-        try {
-          const flagRes = await fetch(
-            `https://restcountries.com/v3.1/all?fields=name,flags`
-          );
-          if (flagRes.ok) {
-            const all: { name: { common: string }; flags: { png: string } }[] =
-              await flagRes.json();
-            const flagMap = new Map(all.map((c) => [c.name.common, c.flags.png]));
-            for (const card of cards) {
-              if (card.country && !card.paisImagen) {
-                card.paisImagen = flagMap.get(card.country) ?? null;
-              }
-            }
-          }
-        } catch {
-          // fallback: show country text instead
-        }
-      }
-
-      setFeaturedTalent(cards);
-      setLoading(false);
-    }
-    load();
-  }, []);
-
-  if (loading || featuredTalent.length === 0) return null;
+  const featuredTalent = STATIC_TALENT;
 
   return (
     <section className="relative w-full overflow-x-hidden bg-white py-[44px] md:bg-[#F6FBFC] md:py-[55px]">
@@ -199,14 +191,14 @@ export default function FeaturedTalentSection() {
         </div>
 
         {/* Grid de tarjetas - Desktop | Scroll horizontal - Mobile */}
-        <div className="flex gap-[11px] overflow-x-auto py-3 scrollbar-hide md:grid md:grid-cols-2 md:flex-none md:gap-[24px]">
+        <div className="flex gap-[11px] overflow-x-auto py-3 scrollbar-hide md:grid md:grid-cols-2 md:flex-none md:gap-x-[32px] md:gap-y-[36px] md:overflow-visible md:px-1">
           {featuredTalent.map((talent, idx) => (
             <FadeIn
               key={talent.id}
               delay={1 + Math.floor(idx / 2) * 0.25}
-              className="flex-shrink-0 w-[355px] md:w-auto origin-center"
+              className="flex-shrink-0 w-[355px] md:w-auto"
             >
-              <div className="flex h-full origin-center gap-[18px] rounded-[24px] border border-[#C8C8C8] bg-white px-[21px] py-[22px] md:p-[29px] md:transition-transform md:duration-300 md:ease-out md:motion-safe:hover:scale-[1.03] md:hover:shadow-lg">
+              <div className="flex h-full gap-[18px] rounded-[24px] border border-[#C8C8C8] bg-white px-[21px] py-[22px] md:p-[29px] md:transition-shadow md:duration-300 md:ease-out md:hover:shadow-lg">
               <div className="relative flex shrink-0 flex-col items-center md:gap-[13px]">
                 <ProfileAvatar
                   src={talent.fotoPerfil}
@@ -243,19 +235,12 @@ export default function FeaturedTalentSection() {
                     {talent.name}
                   </h3>
                   <div className="flex items-center gap-[5px]">
-                    {talent.paisImagen ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={talent.paisImagen}
-                        alt=""
-                        className="h-[14px] w-[25px] object-cover"
-                      />
-                    ) : (
-                      <span className="text-[12px] font-semibold leading-[1.3] text-black md:text-[14px]">
-                        {talent.countryCode ||
-                          talent.country.substring(0, 2).toUpperCase()}
-                      </span>
-                    )}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={flagUrl(talent.countryCode)}
+                      alt=""
+                      className="h-[14px] w-[25px] object-cover"
+                    />
                     <span className="text-[12px] font-medium leading-[1.2] text-[#343434] md:text-[14px]">
                       {talent.country}
                     </span>

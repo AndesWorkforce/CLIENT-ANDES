@@ -1,24 +1,23 @@
 "use client";
 
 import Image from "next/image";
-import QuoteBlock from "./QuoteBlock";
+import QuoteBlock from "../../_components/QuoteBlock";
+import { miguelAssets } from "../_assets";
 
-export default function ArticleContentSection() {
+export default function ContentSection() {
   return (
     <section className="relative w-full bg-white pt-0 pb-[11px] md:pb-[44px]">
       <div className="max-w-[850px] mx-auto px-[18px] md:px-[44px]">
         <div className="flex flex-col gap-[44px]">
-          {/* First Image */}
           <div className="relative w-full h-[250px] md:h-[336px] rounded-[20px] overflow-hidden">
             <Image
-              src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/01+-+Miguel+fondo+gris.webp"
+              src={miguelAssets.portrait}
               alt="Article Image"
               fill
               className="object-cover"
             />
           </div>
 
-          {/* EDUCATION & CAREER Section */}
           <div className="flex flex-col gap-[22px]">
             <p className="font-semibold text-[14px] text-[#044E5C] leading-[1.3]">
               EDUCATION & CAREER
@@ -51,7 +50,6 @@ export default function ArticleContentSection() {
               </p>
             </div>
 
-            {/* Two Column Layout with Image */}
             <div className="flex flex-col md:flex-row gap-[22px] mt-[22px]">
               <div className="flex-1 space-y-[16px]">
                 <p className="font-medium text-[16px] text-black leading-[1.2]">
@@ -69,7 +67,7 @@ export default function ArticleContentSection() {
               </div>
               <div className="relative w-full md:w-[494px] h-[250px] md:h-[294px] rounded-[20px] overflow-hidden flex-shrink-0">
                 <Image
-                  src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/02+-+Miguel+apreton+de+manos.webp"
+                  src={miguelAssets.handshake}
                   alt="BUD/S Training"
                   fill
                   className="object-cover"
@@ -78,13 +76,11 @@ export default function ArticleContentSection() {
             </div>
           </div>
 
-          {/* Quote Block 1 */}
           <QuoteBlock
             text="Although I didn't finish training, I had the opportunity to lead a 250-student class, and that was where I learned how to lead people."
             author="Miguel Rendon"
           />
 
-          {/* PERSONAL LIFE Section */}
           <div className="flex flex-col gap-[22px]">
             <p className="font-semibold text-[14px] text-[#044E5C] leading-[1.3]">
               PERSONAL LIFE
@@ -123,11 +119,10 @@ export default function ArticleContentSection() {
               </p>
             </div>
 
-            {/* Two Column Layout with Image (Image on Left) */}
             <div className="flex flex-col md:flex-row gap-[22px] mt-[22px]">
               <div className="relative w-full md:w-[494px] h-[250px] md:h-[294px] rounded-[20px] overflow-hidden flex-shrink-0">
                 <Image
-                  src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/20250301_133829117_iOS+(2).webp"
+                  src={miguelAssets.hiking}
                   alt="Hiking Mountains"
                   fill
                   className="object-cover"
@@ -147,7 +142,6 @@ export default function ArticleContentSection() {
             </div>
           </div>
 
-          {/* REFLECTIONS & ADVICE Section */}
           <div className="flex flex-col gap-[22px]">
             <p className="font-semibold text-[14px] text-[#044E5C] leading-[1.3]">
               REFLECTIONS & ADVICE
@@ -217,23 +211,20 @@ export default function ArticleContentSection() {
             </div>
           </div>
 
-          {/* Quote Block 2 */}
           <QuoteBlock
             text="Live your life with a purpose. You should constantly be planning and executing a plan throughout your life."
             author="Miguel Rendón"
           />
 
-          {/* Final Team Image */}
           <div className="relative w-full h-[250px] md:h-[294px] rounded-[20px] overflow-hidden">
             <Image
-              src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/1.+Meet+Miguel/03+-+Equipo.webp"
+              src={miguelAssets.team}
               alt="Andes Workforce Team"
               fill
               className="object-cover"
             />
           </div>
 
-          {/* CONCLUSION Section */}
           <div className="flex flex-col gap-[16px]">
             <p className="font-semibold text-[14px] text-[#044E5C] leading-[1.3]">
               CONCLUSION
@@ -255,7 +246,6 @@ export default function ArticleContentSection() {
             </div>
           </div>
 
-          {/* Final Quote Block */}
           <QuoteBlock
             text="Become the owner of your time, it is a currency that cannot be replaced."
             author="Miguel Rendon"
