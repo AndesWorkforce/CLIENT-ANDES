@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Filter, Plus } from "lucide-react";
+import { Filter } from "lucide-react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
   ADMIN_HUB_CLEAR_FILTERS_CLASS,
@@ -197,13 +197,6 @@ export default function InvoicesPageContent({
           variant="filter"
         />
 
-        <button
-          type="button"
-          className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors"
-        >
-          <Plus size={20} />
-          Crear nuevo
-        </button>
       </div>
 
       <div className="flex flex-col gap-6">

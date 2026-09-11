@@ -48,6 +48,8 @@ export interface GetNominasParams {
   search?: string;
   cliente?: string;
   estado?: PayrollVariableStatus;
+  invoice?: Exclude<PayrollInvoiceStatus, null>;
+  proof?: Exclude<PayrollProofStatus, null>;
 }
 
 export interface GetNominasResult extends ApiResponse {
@@ -117,6 +119,8 @@ export async function getNominas(
         ...(params.search?.trim() ? { search: params.search.trim() } : {}),
         ...(params.cliente?.trim() ? { cliente: params.cliente.trim() } : {}),
         ...(params.estado ? { estado: params.estado } : {}),
+        ...(params.invoice ? { invoice: params.invoice } : {}),
+        ...(params.proof ? { proof: params.proof } : {}),
       },
       headers: {
         "Cache-Control": "no-store",

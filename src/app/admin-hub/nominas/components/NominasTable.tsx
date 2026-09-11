@@ -164,8 +164,9 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
     : undefined;
 
   const cellClass = "px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585] whitespace-nowrap";
-  const positionCellClass = "px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]";
-  const positionTextClass = "block max-w-[28ch] whitespace-normal break-words";
+  const positionCellClass =
+    "max-w-[220px] px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]";
+  const positionTextClass = "block truncate whitespace-nowrap";
 
   function SortableHeader({
     label,
@@ -246,7 +247,7 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
                 />
               </td>
               <td className={cellClass}>{row.contractorName}</td>
-              <td className={positionCellClass}>
+              <td className={positionCellClass} title={row.position}>
                 <span className={positionTextClass}>{row.position}</span>
               </td>
               <td className={`${cellClass} ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}>

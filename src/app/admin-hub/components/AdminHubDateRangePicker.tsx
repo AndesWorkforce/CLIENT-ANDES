@@ -33,6 +33,8 @@ export default function AdminHubDateRangePicker({
   variant = "default",
 }: AdminHubDateRangePickerProps) {
   const [validationError, setValidationError] = useState<string | null>(null);
+  // Coordina que "Desde" y "Hasta" nunca estén desplegados al mismo tiempo.
+  const [openField, setOpenField] = useState<"from" | "to" | null>(null);
 
   // Obtener la fecha actual en formato ISO (YYYY-MM-DD)
   const todayIso = useMemo(() => {
@@ -99,6 +101,8 @@ export default function AdminHubDateRangePicker({
           placeholder="dd.mm.aa"
           required={false}
           maxDate={toDate || todayIso}
+          onOpen={() => setOpenField("from")}
+          forceClose={openField === "to"}
         />
       </div>
 
@@ -120,6 +124,8 @@ export default function AdminHubDateRangePicker({
           required={false}
           minDate={fromDate || undefined}
           maxDate={todayIso}
+          onOpen={() => setOpenField("to")}
+          forceClose={openField === "from"}
         />
       </div>
     </>

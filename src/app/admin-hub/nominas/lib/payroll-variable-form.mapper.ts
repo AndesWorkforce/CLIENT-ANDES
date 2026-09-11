@@ -43,7 +43,10 @@ function deriveTipoDiaFromFecha(fecha: string): "DIA_SEMANA" | "SABADO" | "DOMIN
 
 function deriveHorasFromForm(formData: CreatePayrollVariableFormData): number {
   const quantity = parseFloat(formData.cantidad.replace(",", ".")) || 1;
-  return formData.duracion === "minutos" ? quantity / 60 : quantity;
+  const horas = formData.duracion === "minutos" ? quantity / 60 : quantity;
+  // El backend valida horas con máximo 2 decimales (maxDecimalPlaces: 2);
+  // minutos no múltiplos de 60 (ej. 100min = 1.6666...h) rompían esa validación.
+  return Math.round(horas * 100) / 100;
 }
 
 export function formDataToCreateNominaVariablePayload(

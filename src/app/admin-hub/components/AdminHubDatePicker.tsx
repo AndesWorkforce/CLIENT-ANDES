@@ -28,6 +28,10 @@ interface AdminHubDatePickerProps {
   variant?: "form" | "filter";
   className?: string;
   labelBackground?: string;
+  /** Notifica al padre que este picker se abrió (para coordinar exclusividad con otros). */
+  onOpen?: () => void;
+  /** Cuando pasa a `true`, cierra este picker (lo controla un padre que coordina varios). */
+  forceClose?: boolean;
 }
 
 function parseIsoDate(value: string): Date | null {
@@ -118,6 +122,8 @@ export default function AdminHubDatePicker({
   variant = "form",
   className = "",
   labelBackground,
+  onOpen,
+  forceClose = false,
 }: AdminHubDatePickerProps) {
   const id = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -162,6 +168,10 @@ export default function AdminHubDatePicker({
     setIsOpen(false);
     setPanelPosition(null);
   }, []);
+
+  useEffect(() => {
+    if (forceClose) close();
+  }, [forceClose, close]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -231,6 +241,7 @@ export default function AdminHubDatePicker({
     }
 
     setIsOpen(true);
+    onOpen?.();
   }
 
   function handleCancel() {

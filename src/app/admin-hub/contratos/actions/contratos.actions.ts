@@ -39,6 +39,7 @@ export interface GetContratosParams {
   puesto?: string;
   tipoJornada?: JornadaLaboral;
   estado?: ContractStatusLabel;
+  metodoPago?: string;
 }
 
 export interface GetContratosResult extends ApiResponse {
@@ -132,6 +133,7 @@ export async function getContratos(
         ...(params.puesto?.trim() ? { puesto: params.puesto.trim() } : {}),
         ...(params.tipoJornada ? { tipoJornada: params.tipoJornada } : {}),
         ...(params.estado ? { estado: params.estado } : {}),
+        ...(params.metodoPago ? { metodoPago: params.metodoPago } : {}),
       },
       headers: {
         "Cache-Control": "no-store",

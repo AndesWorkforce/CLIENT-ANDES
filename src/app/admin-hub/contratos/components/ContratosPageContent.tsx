@@ -23,6 +23,7 @@ import {
   tipoJornadaFromDisplay,
   type ContractStatusLabel,
 } from "../data/contract-display";
+import type { JornadaLaboral } from "../data/mock-contracts";
 import ContractsTable from "./ContractsTable";
 
 /** Listado de contratos del Admin Hub. */
@@ -41,6 +42,18 @@ const STATUS_FILTER_OPTIONS: { value: ContractStatusLabel; label: string }[] = [
   { value: "Inactivo", label: "Inactivo" },
 ];
 
+// Enums fijos: no se derivan de la muestra de contratos cargada, para que
+// nunca falte una opción por no aparecer todavía en los datos visibles.
+const CONTRACT_TYPE_FILTER_OPTIONS: { value: JornadaLaboral; label: string }[] = (
+  ["FULL_TIME", "PART_TIME", "HOURLY_TIME"] as JornadaLaboral[]
+).map((value) => ({ value, label: getTipoJornadaDisplay(value) }));
+
+const PAYMENT_METHOD_FILTER_OPTIONS: { value: string; label: string }[] = [
+  "Dollar App",
+  "Transferencia Bancaria",
+  "No Especifica",
+].map((value) => ({ value, label: value }));
+
 function collectFilterOptions(contracts: ContratoListItem[]) {
   return {
     clients: buildFilterOptions(contracts.map((contract) => contract.empresaNombre)),
@@ -48,12 +61,6 @@ function collectFilterOptions(contracts: ContratoListItem[]) {
       contracts.map((contract) =>
         getPaisDisplay(contract.paisCodigo, contract.paisNombre),
       ),
-    ),
-    contractTypes: buildFilterOptions(
-      contracts.map((contract) => getTipoJornadaDisplay(contract.tipoJornada)),
-    ),
-    paymentMethods: buildFilterOptions(
-      contracts.map((contract) => contract.metodoPago),
     ),
     statuses: buildFilterOptions(
       contracts.map((contract) => getContractStatusLabel(contract.activo)),
@@ -73,14 +80,6 @@ function mergeFilterOptions(
     countries: buildFilterOptions([
       ...current.countries.map((option) => option.value),
       ...incoming.countries.map((option) => option.value),
-    ]),
-    contractTypes: buildFilterOptions([
-      ...current.contractTypes.map((option) => option.value),
-      ...incoming.contractTypes.map((option) => option.value),
-    ]),
-    paymentMethods: buildFilterOptions([
-      ...current.paymentMethods.map((option) => option.value),
-      ...incoming.paymentMethods.map((option) => option.value),
     ]),
     statuses: buildFilterOptions([
       ...current.statuses.map((option) => option.value),
@@ -102,8 +101,6 @@ export default function ContratosPageContent() {
   const [filterOptions, setFilterOptions] = useState({
     clients: [] as { value: string; label: string }[],
     countries: [] as { value: string; label: string }[],
-    contractTypes: [] as { value: string; label: string }[],
-    paymentMethods: [] as { value: string; label: string }[],
     statuses: [] as { value: string; label: string }[],
   });
   const [loading, setLoading] = useState(true);
@@ -153,6 +150,7 @@ export default function ContratosPageContent() {
       pais: countryFilter || undefined,
       tipoJornada: tipoJornada ?? undefined,
       estado: (statusFilter as ContractStatusLabel) || undefined,
+      metodoPago: paymentFilter || undefined,
     });
 
     if (!response.success || !response.data) {
@@ -170,13 +168,7 @@ export default function ContratosPageContent() {
       return;
     }
 
-    let items = response.data;
-
-    if (paymentFilter) {
-      items = items.filter((contract) => contract.metodoPago === paymentFilter);
-    }
-
-    setContracts(items);
+    setContracts(response.data);
     if (response.pagination) {
       setPagination(response.pagination);
     }
@@ -282,7 +274,7 @@ export default function ContratosPageContent() {
                 setContractTypeFilter(value);
                 setPage(1);
               }}
-              options={filterOptions.contractTypes}
+              options={CONTRACT_TYPE_FILTER_OPTIONS}
             />
             <InvoiceFilterSelect
               label="Filtrar por Método de pago"
@@ -292,7 +284,7 @@ export default function ContratosPageContent() {
                 setPaymentFilter(value);
                 setPage(1);
               }}
-              options={filterOptions.paymentMethods}
+              options={PAYMENT_METHOD_FILTER_OPTIONS}
             />
             <InvoiceFilterSelect
               label="Filtrar por Estado"

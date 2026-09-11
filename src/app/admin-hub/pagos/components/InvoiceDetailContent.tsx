@@ -39,6 +39,7 @@ import InvoiceDetailSection from "./InvoiceDetailSection";
 import InvoiceEmitModal, { type InvoiceEmitModalVariant } from "./InvoiceEmitModal";
 import InvoicePayrollSection from "./InvoicePayrollSection";
 import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
+import AdminHubConfirmModal from "../../nominas/components/AdminHubConfirmModal";
 
 type TabKey = "all" | "nomina" | "adicionales" | "customer-charges" | "customer-credits";
 
@@ -150,6 +151,12 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   const [emitModal, setEmitModal] = useState<InvoiceEmitModalVariant | null>(null);
   const [isApproving, setIsApproving] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<
+    | { kind: "item"; sectionId: string; itemId: string }
+    | { kind: "fee"; itemId: string }
+    | null
+  >(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Flujo BORRADOR → APROBADA → EMITIDA → PAGADA. Cada paso habilita el siguiente.
   const puedeAprobar = invoice.estado === "BORRADOR";
@@ -478,7 +485,11 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     updateItemStatus(sectionId, itemId, "Rechazado", "El ítem fue rechazado.");
   }
 
-  async function handleDeleteItem(sectionId: string, itemId: string) {
+  function handleDeleteItem(sectionId: string, itemId: string) {
+    setConfirmDelete({ kind: "item", sectionId, itemId });
+  }
+
+  async function performDeleteItem(sectionId: string, itemId: string) {
     const section = invoice.sections.find((s) => s.id === sectionId);
     if (!section) return;
 
@@ -525,6 +536,10 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   }
 
   function handleDeleteAdditionalFee(itemId: string) {
+    setConfirmDelete({ kind: "fee", itemId });
+  }
+
+  function performDeleteAdditionalFee(itemId: string) {
     setInvoice((prev) => {
       const additionalFees = prev.additionalFees.filter((fee) => fee.id !== itemId);
       const additionalFeesSubtotal = recalculateAdditionalFeesSubtotal(additionalFees);
@@ -542,6 +557,21 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     });
 
     addNotification("El adicional fue eliminado.", "success");
+  }
+
+  async function handleConfirmDelete() {
+    if (!confirmDelete) return;
+    setIsDeleting(true);
+    try {
+      if (confirmDelete.kind === "item") {
+        await performDeleteItem(confirmDelete.sectionId, confirmDelete.itemId);
+      } else {
+        performDeleteAdditionalFee(confirmDelete.itemId);
+      }
+      setConfirmDelete(null);
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   /**
@@ -961,6 +991,20 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
           }}
           isLoading={isEmitting}
         />
+      )}
+
+      {confirmDelete && (
+        <AdminHubConfirmModal
+          open
+          title="Eliminar ítem"
+          cancelLabel="Cancelar"
+          confirmLabel={isDeleting ? "Eliminando..." : "Eliminar"}
+          confirmLoading={isDeleting}
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={() => void handleConfirmDelete()}
+        >
+          ¿Seguro que querés eliminar este ítem? Esta acción no se puede deshacer.
+        </AdminHubConfirmModal>
       )}
     </div>
   );

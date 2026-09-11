@@ -79,27 +79,38 @@ function mapTipoToCategoria(tipo: BackendTipoAlerta): AvisoCategory {
   }
 }
 
+/** Período actual (YYYY-MM), usado como mejor esfuerzo cuando la alerta no
+ * está atada a una Nomina puntual (deducción, horas extra, días libres). */
+function currentAnioMes(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
 /**
  * Genera la URL de acción basada en el tipo de alerta y los IDs relacionados.
+ *
+ * La ruta de detalle de nómina es `/admin-hub/nominas/:procesoContratacionId?periodo=YYYY-MM`
+ * (el id de la URL es el contrato, no el id de la fila Nomina) — por eso acá
+ * siempre se usa `procesoContratacionId`, nunca `nominaId`.
  */
 function generateActionUrl(alerta: BackendAlerta): string {
-  const { tipo, nominaId, incomeVariableId, deduccionId } = alerta;
+  const { tipo, procesoContratacionId, incomeVariableId, nomina } = alerta;
 
   switch (tipo) {
     case "NOMINA_PENDIENTE":
-      return nominaId ? `/admin-hub/nominas/${nominaId}` : "/admin-hub/nominas";
+    case "DEDUCCION_PENDIENTE":
+    case "HORAS_EXTRA_PENDIENTE":
+    case "DIAS_LIBRES_PENDIENTE": {
+      if (!procesoContratacionId) return "/admin-hub/nominas";
+      const periodo = nomina?.periodo ?? currentAnioMes();
+      return `/admin-hub/nominas/${procesoContratacionId}?periodo=${periodo}`;
+    }
     case "VARIABLE_INGRESO_PENDIENTE":
       return incomeVariableId
         ? `/admin-hub/nominas/variables/${incomeVariableId}`
         : "/admin-hub/nominas/variables";
-    case "DEDUCCION_PENDIENTE":
-      return "/admin-hub/nominas";
     case "FACTURA_PENDIENTE":
       return "/admin-hub/pagos";
-    case "HORAS_EXTRA_PENDIENTE":
-      return "/admin-hub/nominas";
-    case "DIAS_LIBRES_PENDIENTE":
-      return "/admin-hub/nominas";
     default:
       return "/admin-hub/dashboard";
   }

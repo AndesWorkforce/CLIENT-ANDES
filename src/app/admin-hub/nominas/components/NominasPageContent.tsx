@@ -27,6 +27,7 @@ import {
   type PayrollRow,
 } from "../data/payroll-data";
 import type { PayrollVariableStatus } from "../data/mock-payroll-variables";
+import type { PayrollInvoiceStatus, PayrollProofStatus } from "../data/payroll-data";
 import NominasTable from "./NominasTable";
 import AdminHubConfirmModal from "./AdminHubConfirmModal";
 import { useNotificationStore } from "@/store/notifications.store";
@@ -46,6 +47,24 @@ const STATUS_FILTER_OPTIONS: { value: PayrollVariableStatus; label: string }[] =
   { value: "Aprobado", label: "Aprobado" },
   { value: "Rechazado", label: "Rechazado" },
   { value: "Emitido", label: "Emitido" },
+];
+
+const INVOICE_FILTER_OPTIONS: {
+  value: Exclude<PayrollInvoiceStatus, null>;
+  label: string;
+}[] = [
+  { value: "Generado", label: "Generado" },
+  { value: "Pendiente", label: "Pendiente" },
+  { value: "Faltan datos", label: "Faltan datos" },
+];
+
+const PROOF_FILTER_OPTIONS: {
+  value: Exclude<PayrollProofStatus, null>;
+  label: string;
+}[] = [
+  { value: "Cargado", label: "Cargado" },
+  { value: "Pendiente", label: "Pendiente" },
+  { value: "Not req.", label: "Not req." },
 ];
 
 function buildFilterOptions(values: string[]) {
@@ -80,6 +99,8 @@ export default function NominasPageContent() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [invoiceFilter, setInvoiceFilter] = useState("");
+  const [proofFilter, setProofFilter] = useState("");
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -138,6 +159,8 @@ export default function NominasPageContent() {
       search: debouncedSearch || undefined,
       cliente: clientFilter || undefined,
       estado: (statusFilter as PayrollVariableStatus) || undefined,
+      invoice: (invoiceFilter as Exclude<PayrollInvoiceStatus, null>) || undefined,
+      proof: (proofFilter as Exclude<PayrollProofStatus, null>) || undefined,
     });
 
     if (!response.success || !response.data) {
@@ -161,7 +184,15 @@ export default function NominasPageContent() {
     }
     setSelectedIds(new Set());
     setLoading(false);
-  }, [periodoApi, page, debouncedSearch, clientFilter, statusFilter]);
+  }, [
+    periodoApi,
+    page,
+    debouncedSearch,
+    clientFilter,
+    statusFilter,
+    invoiceFilter,
+    proofFilter,
+  ]);
 
   useEffect(() => {
     void loadNominas();
@@ -170,10 +201,14 @@ export default function NominasPageContent() {
   function clearFilters() {
     setClientFilter("");
     setStatusFilter("");
+    setInvoiceFilter("");
+    setProofFilter("");
     setPage(1);
   }
 
-  const hasActiveFilters = Boolean(clientFilter || statusFilter);
+  const hasActiveFilters = Boolean(
+    clientFilter || statusFilter || invoiceFilter || proofFilter,
+  );
   const hasSelectedRows = selectedIds.size > 0;
 
   const visiblePages = useMemo(() => {
@@ -367,6 +402,26 @@ export default function NominasPageContent() {
                 setPage(1);
               }}
               options={STATUS_FILTER_OPTIONS}
+            />
+            <InvoiceFilterSelect
+              label="Filtrar por Invoice"
+              placeholder="Invoice"
+              value={invoiceFilter}
+              onChange={(value) => {
+                setInvoiceFilter(value);
+                setPage(1);
+              }}
+              options={INVOICE_FILTER_OPTIONS}
+            />
+            <InvoiceFilterSelect
+              label="Filtrar por Proof"
+              placeholder="Proof"
+              value={proofFilter}
+              onChange={(value) => {
+                setProofFilter(value);
+                setPage(1);
+              }}
+              options={PROOF_FILTER_OPTIONS}
             />
             <button
               type="button"

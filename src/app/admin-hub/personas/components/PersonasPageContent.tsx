@@ -385,10 +385,20 @@ export default function PersonasPageContent() {
                           aria-label={`Seleccionar ${contractor.name}`}
                         />
                       </td>
-                      <td className={`pl-3 pr-3 ${cellClass}`}>{contractor.name}</td>
+                      <td
+                        className={`max-w-[220px] truncate pl-3 pr-3 ${cellClass}`}
+                        title={contractor.name}
+                      >
+                        {contractor.name}
+                      </td>
                       <td className={cellClass}>{contractor.countryName}</td>
                       <td className={cellClass}>{primaryContract?.client ?? "—"}</td>
-                      <td className={cellClass}>{primaryContract?.position ?? "—"}</td>
+                      <td
+                        className={`max-w-[200px] truncate ${cellClass}`}
+                        title={primaryContract?.position ?? undefined}
+                      >
+                        {primaryContract?.position ?? "—"}
+                      </td>
                       <td className="whitespace-nowrap px-3 py-3">
                         <PersonaStatusBadge status={contractor.status} />
                       </td>

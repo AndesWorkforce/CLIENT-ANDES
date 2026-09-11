@@ -9,7 +9,7 @@ interface AdminHubTableShellProps {
 export const ADMIN_HUB_TABLE_HEAD_FIRST_CELL =
   "w-16 rounded-tl-[12px] px-6 py-5 text-left";
 
-export const ADMIN_HUB_TABLE_HEAD_LAST_CELL = "w-[70px] rounded-tr-[12px] px-3 py-5";
+export const ADMIN_HUB_TABLE_HEAD_LAST_CELL = "w-[70px] rounded-tr-[12px] px-6 py-5";
 
 export const ADMIN_HUB_TABLE_ROW =
   "border-b border-[#EFEFEF] hover:bg-[#FAFAFA] transition-colors";
