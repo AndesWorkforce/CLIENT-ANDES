@@ -1,3 +1,7 @@
+"use client";
+
+import { useAdminHubI18n } from "../i18n";
+
 interface AdminHubDrawerFooterProps {
   onCancel: () => void;
   primaryLabel: string;
@@ -14,10 +18,12 @@ export default function AdminHubDrawerFooter({
   primaryLabel,
   onPrimary,
   primaryDisabled = false,
-  cancelLabel = "Cancelar",
+  cancelLabel,
   cancelVariant = "cancel",
   cancelActive = false,
 }: AdminHubDrawerFooterProps) {
+  const { t } = useAdminHubI18n();
+  const resolvedCancelLabel = cancelLabel ?? t("common.cancel");
   const cancelClass =
     cancelVariant === "back"
       ? cancelActive
@@ -35,7 +41,7 @@ export default function AdminHubDrawerFooter({
           onClick={onCancel}
           className={`inline-flex h-9 items-center justify-center rounded-[8px] border bg-white px-[22px] text-[14px] font-medium leading-5 transition-colors ${cancelClass}`}
         >
-          {cancelLabel}
+          {resolvedCancelLabel}
         </button>
         <button
           type="button"

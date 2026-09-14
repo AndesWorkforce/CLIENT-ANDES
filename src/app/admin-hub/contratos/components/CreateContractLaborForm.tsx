@@ -5,6 +5,7 @@ import { Info } from "lucide-react";
 import AdminHubDatePicker from "../../components/AdminHubDatePicker";
 import AdminHubFormField from "../../components/AdminHubFormField";
 import AdminHubSelect from "../../components/AdminHubSelect";
+import { useAdminHubI18n } from "../../i18n";
 import {
   CLIENT_OPTIONS,
   DISCRETIONARY_BONUS_OPTIONS,
@@ -63,6 +64,7 @@ export default function CreateContractLaborForm({
   onChange,
   contractType,
 }: CreateContractLaborFormProps) {
+  const { t } = useAdminHubI18n();
   const isPartTime = contractType === "part-time";
 
   function patch(partial: Partial<CreateContractFormData>) {
@@ -95,10 +97,19 @@ export default function CreateContractLaborForm({
     onChange,
   ]);
 
+  const yesNoOptions = YES_NO_OPTIONS.map((option) => ({
+    ...option,
+    label: option.value === "Si" ? t("common.yes") : t("common.no"),
+  }));
+  const bonusOptions = DISCRETIONARY_BONUS_OPTIONS.map((option) => ({
+    ...option,
+    label: t(`bonus.${option.value}`),
+  }));
+
   return (
-    <ContractFormSection title="Información Laboral">
+    <ContractFormSection title={t("personas.laborInfo")}>
       <AdminHubDatePicker
-        label="Fecha de inicio del contrato"
+        label={t("personas.startDate")}
         required
         value={formData.fechaInicioContrato}
         onChange={(fechaInicioContrato) => patch({ fechaInicioContrato })}
@@ -106,7 +117,7 @@ export default function CreateContractLaborForm({
       />
       <AdminHubFormField
         type="select"
-        label="Posición"
+        label={t("personas.position")}
         value={formData.posicion}
         onChange={(posicion) => patch({ posicion })}
         options={POSITION_OPTIONS}
@@ -114,7 +125,7 @@ export default function CreateContractLaborForm({
       />
       <AdminHubFormField
         type="select"
-        label="Cliente"
+        label={t("personas.client")}
         value={formData.cliente}
         onChange={(cliente) => patch({ cliente })}
         options={CLIENT_OPTIONS}
@@ -122,14 +133,14 @@ export default function CreateContractLaborForm({
       />
       <AdminHubFormField
         type="input"
-        label="Salario"
+        label={t("personas.salary")}
         value={formData.salario}
         onChange={(salario) => patch({ salario })}
         placeholder="$1000"
         inputMode="decimal"
       />
       <InfoSelectField
-        label="HR Rate Holidays"
+        label={t("personas.hrRateHolidays")}
         value={formData.hrRateHolidays}
         onChange={(hrRateHolidays) => patch({ hrRateHolidays })}
         options={HR_RATE_HOLIDAYS_OPTIONS}
@@ -137,32 +148,32 @@ export default function CreateContractLaborForm({
       />
       <AdminHubFormField
         type="select"
-        label="Paid Holidays"
+        label={t("personas.paidHolidays")}
         value={formData.paidHolidays}
         onChange={(paidHolidays) => patch({ paidHolidays })}
-        options={YES_NO_OPTIONS}
-        placeholder="Si"
+        options={yesNoOptions}
+        placeholder={t("common.yes")}
         readOnly={isPartTime}
       />
       <InfoSelectField
-        label="Discretionary Bonus"
+        label={t("personas.ipbBalance")}
         value={formData.discretionaryBonus}
         onChange={(discretionaryBonus) =>
           patch({
             discretionaryBonus: discretionaryBonus as CreateContractFormData["discretionaryBonus"],
           })
         }
-        options={DISCRETIONARY_BONUS_OPTIONS}
-        placeholder="Media vez al mes de Diciembre"
+        options={bonusOptions}
+        placeholder={t("bonus.HALF_MONTH_ONCE_DECEMBER")}
         disabled={isPartTime}
       />
       <AdminHubFormField
         type="select"
-        label="IPB Bonus"
+        label={t("personas.ipbBalance")}
         value={formData.ipbBonus}
         onChange={(ipbBonus) => patch({ ipbBonus })}
-        options={YES_NO_OPTIONS}
-        placeholder="Si"
+        options={yesNoOptions}
+        placeholder={t("common.yes")}
         readOnly={isPartTime}
       />
     </ContractFormSection>

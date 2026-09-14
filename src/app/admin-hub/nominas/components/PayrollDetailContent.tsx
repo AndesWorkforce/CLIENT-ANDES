@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
@@ -28,6 +28,7 @@ import PayrollDetailInfoRow from "./PayrollDetailInfoRow";
 import PayrollEmitModal, { type PayrollEmitModalVariant } from "./PayrollEmitModal";
 import PayrollPayslipPreviewModal from "./PayrollPayslipPreviewModal";
 import PayrollPayslipPreviewThumbnail from "./PayrollPayslipPreviewThumbnail";
+import { useAdminHubI18n } from "../../i18n";
 
 const STATUS_OPTIONS: { value: PayrollVariableStatus; label: string }[] = [
   { value: "Pendiente", label: "Pendiente" },
@@ -40,6 +41,7 @@ interface PayrollDetailContentProps {
 }
 
 export default function PayrollDetailContent({ detail: initialDetail }: PayrollDetailContentProps) {
+  const { t } = useAdminHubI18n();
   const router = useRouter();
   const { addNotification } = useNotificationStore();
   const [isPending, startTransition] = useTransition();
@@ -64,13 +66,22 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
     [detail.variables],
   );
 
+  const statusOptions = useMemo(
+    () =>
+      STATUS_OPTIONS.map((option) => ({
+        value: option.value,
+        label: t(`status.payroll.${option.value}`),
+      })),
+    [t],
+  );
+
   const breadcrumbItems = useMemo(
     () => [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Nóminas", href: "/admin-hub/nominas" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.nominas"), href: "/admin-hub/nominas" },
       { label: detail.contractorName },
     ],
-    [detail.contractorName],
+    [detail.contractorName, t],
   );
 
   const hoursPreview = useMemo(() => {
@@ -97,7 +108,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
   function handleDownload() {
     if (!isEmitted) {
       addNotification(
-        "El desprendible se genera al emitir la nómina.",
+        t("nominas.payslipGeneratedOnEmit"),
         "info",
       );
       return;
@@ -111,7 +122,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
 
       if (!result.success || !result.data) {
         addNotification(
-          result.message || "No se pudo descargar el desprendible.",
+          result.message || t("nominas.downloadPayslipError"),
           "error",
         );
         return;
@@ -136,14 +147,14 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
       handleSaveHours();
       return;
     }
-    addNotification("Borrador guardado correctamente.", "success");
+    addNotification(t("nominas.draftSaved"), "success");
   }
 
   function handleSaveHours() {
     if (!detail.esHourly) return;
     const horas = Number(hoursInput.replace(",", "."));
     if (!Number.isFinite(horas) || horas < 0) {
-      addNotification("Ingresá una cantidad de horas válida (≥ 0).", "error");
+      addNotification(t("nominas.invalidHours"), "error");
       return;
     }
 
@@ -154,7 +165,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
         horas,
       );
       if (!result.success || !result.data) {
-        addNotification(result.message || "No se pudieron guardar las horas.", "error");
+        addNotification(result.message || t("nominas.hoursSaveError"), "error");
         return;
       }
       setDetail(result.data);
@@ -164,7 +175,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
           : "",
       );
       setStatus(result.data.status);
-      addNotification("Horas trabajadas guardadas.", "success");
+      addNotification(t("nominas.hoursSaved"), "success");
       router.refresh();
     });
   }
@@ -172,7 +183,9 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
   function handleEmitPayrollClick() {
     if (isEmitted) {
       addNotification(
-        `La nómina ya fue emitida (${detail.desprendible?.numeroDocumento}).`,
+        t("nominas.alreadyEmittedDoc", {
+          doc: detail.desprendible?.numeroDocumento ?? "",
+        }),
         "info",
       );
       return;
@@ -180,7 +193,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
 
     if (detail.status !== "Aprobado") {
       addNotification(
-        "Solo se puede emitir una nómina aprobada.",
+        t("nominas.onlyApprovedCanEmit"),
         "error",
       );
       return;
@@ -190,7 +203,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
       const horas = Number(hoursInput.replace(",", "."));
       if (!Number.isFinite(horas) || !(horas > 0)) {
         addNotification(
-          "Cargá y guardá las horas trabajadas antes de emitir la nómina.",
+          t("nominas.hoursRequiredBeforeEmit"),
           "error",
         );
         return;
@@ -213,7 +226,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
       );
 
       if (!result.success || !result.data) {
-        addNotification(result.message || "No se pudo emitir la nómina.", "error");
+        addNotification(result.message || t("nominas.emitError"), "error");
         return;
       }
 
@@ -221,13 +234,13 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
       setDetail((prev) => ({ ...prev, status: "Emitido", desprendible: result.data! }));
       setStatus("Emitido");
       addNotification(
-        `Nómina emitida. Desprendible ${result.data.numeroDocumento} generado.`,
+        t("nominas.emittedSuccess", { doc: result.data.numeroDocumento }),
         "success",
       );
       router.refresh();
     } catch (error) {
       console.error("[NOMINAS] Error al emitir nómina:", error);
-      addNotification("Error al emitir la nómina.", "error");
+      addNotification(t("nominas.emitUnexpectedError"), "error");
     } finally {
       setIsEmitting(false);
     }
@@ -239,7 +252,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-[32px] font-bold leading-[1.3] text-black">
-          Detalle de Nómina
+          {t("nominas.detailTitle")}
         </h1>
 
         <div className="flex flex-wrap items-center gap-4">
@@ -247,7 +260,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
             href="/admin-hub/nominas/variables"
             className="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#F5FAFB]"
           >
-            Ir a Variables
+            {t("nominas.goToVariables")}
           </Link>
           <button
             type="button"
@@ -255,13 +268,15 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
             disabled={!isEmitted || isPending}
             title={
               isEmitted
-                ? `Descargar ${detail.desprendible?.numeroDocumento}`
-                : "El desprendible se genera al emitir la nómina"
+                ? t("nominas.downloadDoc", {
+                    doc: detail.desprendible?.numeroDocumento ?? "",
+                  })
+                : t("nominas.payslipGeneratedOnEmit")
             }
             className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Download size={18} />
-            Descargar
+            {t("nominas.download")}
           </button>
         </div>
       </div>
@@ -271,53 +286,53 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
           <div className="flex min-w-0 flex-1 flex-col gap-4">
             <section className="rounded-[8px] border border-[#EFEFEF] bg-white px-[30px] py-6">
               <h2 className="mb-2.5 text-[18px] font-bold leading-[1.3] text-black">
-                Información del contrato
+                {t("nominas.contractInfo")}
               </h2>
               <div className="rounded-[12px] border border-[#EFEFEF] bg-white px-[30px] py-[30px]">
                 <h3 className="mb-[33px] text-[18px] font-bold leading-[1.3] text-black">
-                  Informacion Personal
+                  {t("nominas.personalInfo")}
                 </h3>
                 <div className="flex flex-col gap-[11px]">
                   <PayrollDetailInfoRow
                     icon={CircleUser}
-                    label="Nombre"
+                    label={t("nominas.name")}
                     value={detail.contractorName}
                   />
                   <PayrollDetailInfoRow
                     icon={CircleUser}
-                    label="Cliente"
+                    label={t("nominas.client")}
                     value={detail.client}
                   />
                   <PayrollDetailInfoRow
                     icon={BriefcaseBusiness}
-                    label="Puesto"
+                    label={t("nominas.position")}
                     value={detail.position}
                   />
                   <PayrollDetailInfoRow
                     icon={Globe}
-                    label="País"
+                    label={t("personas.countryName")}
                     value={detail.country}
                   />
                   <PayrollDetailInfoRow
                     icon={Calendar}
-                    label="Contratado desde"
+                    label={t("nominas.hiredFrom")}
                     value={detail.contractStartDate}
                   />
                   <PayrollDetailInfoRow
                     icon={Calendar}
-                    label="Contratado hasta"
+                    label={t("nominas.hiredUntil")}
                     value={detail.contractEndDate}
                   />
                   <PayrollDetailInfoRow
                     icon={Mail}
-                    label="Email de contacto"
+                    label={t("nominas.contactEmail")}
                     value={detail.contactEmail}
                   />
                   {detail.esHourly && (
                     <PayrollDetailInfoRow
                       icon={Clock3}
-                      label="Tipo de jornada"
-                      value="Hourly Time"
+                      label={t("nominas.workScheduleType")}
+                      value={t("jornada.HOURLY_TIME")}
                     />
                   )}
                 </div>
@@ -326,7 +341,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
 
             <section className="rounded-[8px] border border-[#EFEFEF] bg-white px-[30px] py-6">
               <h2 className="mb-2.5 text-[18px] font-bold leading-[1.3] text-black">
-                Base de pago
+                {t("nominas.paymentBase")}
               </h2>
 
               {detail.esHourly && (
@@ -337,7 +352,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
                         htmlFor="payroll-hours"
                         className="absolute left-3 top-0 z-10 bg-[#FAFAFA] px-1 text-[14px] leading-[1.3] tracking-[0.28px] text-[#525252]"
                       >
-                        Horas trabajadas
+                        {t("nominas.hoursWorked")}
                       </label>
                       <input
                         id="payroll-hours"
@@ -363,12 +378,15 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
                       onClick={handleSaveHours}
                       className="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#0097B2] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:bg-[#C8C8C8]"
                     >
-                      {isPending ? "Guardando…" : "Guardar horas"}
+                      {isPending ? t("common.saving") : t("nominas.saveHours")}
                     </button>
                   </div>
                   {hoursPreview && (
                     <p className="text-[14px] leading-[1.3] text-[#525252]">
-                      Tarifa {formatMoney(hoursPreview.tarifa)}/h × {hoursPreview.horas} h ={" "}
+                      {t("nominas.hourlyRatePreview", {
+                        rate: formatMoney(hoursPreview.tarifa),
+                        hours: hoursPreview.horas,
+                      })}{" "}
                       <span className="font-semibold text-black">
                         {formatMoney(hoursPreview.monto)}
                       </span>
@@ -380,30 +398,30 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
               <div className="flex flex-col gap-[27px]">
                 <div className="flex flex-col gap-[15px] lg:flex-row lg:flex-wrap">
                   <PayrollAmountColumn
-                    title="Ganancias"
+                    title={t("nominas.earnings")}
                     lines={detail.earnings}
-                    totalLabel="Total Ganancias"
+                    totalLabel={t("nominas.totalEarnings")}
                     totalAmount={formatMoney(detail.totalEarnings)}
                   />
                   <PayrollAmountColumn
-                    title="Deducciones"
+                    title={t("nominas.deductions")}
                     lines={detail.deductions}
-                    totalLabel="Total Deducciones"
+                    totalLabel={t("nominas.totalDeductions")}
                     totalAmount={formatMoney(detail.totalDeductions)}
-                    emptyLabel="Sin deducciones"
+                    emptyLabel={t("nominas.noDeductions")}
                   />
                 </div>
 
                 <div className="w-full min-w-[286px]">
                   <div className="flex h-[50px] items-center rounded-tl-[12px] rounded-tr-[12px] border border-[#EFEFEF] bg-white px-[11px]">
                     <span className="text-[14px] font-semibold leading-[1.3] text-black">
-                      Resumen total
+                      {t("nominas.totalSummary")}
                     </span>
                   </div>
                   <div className="flex">
                     <div className="flex h-[50px] flex-1 items-center border border-t-0 border-[#EFEFEF] bg-white px-[11px]">
                       <span className="text-[14px] leading-[1.3] tracking-[0.28px] text-black">
-                        Ganancias
+                        {t("nominas.earnings")}
                       </span>
                     </div>
                     <div className="flex h-[50px] w-[100px] items-center justify-center border border-l-0 border-t-0 border-[#EFEFEF] bg-white px-[10px]">
@@ -415,7 +433,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
                   <div className="flex">
                     <div className="flex h-[50px] flex-1 items-center border border-t-0 border-[#EFEFEF] bg-white px-[11px]">
                       <span className="text-[14px] leading-[1.3] tracking-[0.28px] text-black">
-                        Deducciones
+                        {t("nominas.deductions")}
                       </span>
                     </div>
                     <div className="flex h-[50px] w-[100px] items-center justify-center border border-l-0 border-t-0 border-[#EFEFEF] bg-white px-[10px]">
@@ -427,7 +445,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
                   <div className="flex">
                     <div className="flex h-[50px] flex-1 items-center rounded-bl-[12px] border border-t-0 border-[#EFEFEF] bg-white px-[11px]">
                       <span className="text-[14px] font-medium leading-[1.2] text-black">
-                        Monto total
+                        {t("nominas.totalAmount")}
                       </span>
                     </div>
                     <div className="flex h-[50px] w-[100px] items-center justify-center rounded-br-[12px] border border-l-0 border-t-0 border-[#EFEFEF] bg-white px-[10px]">
@@ -444,14 +462,14 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
           <div className="flex w-full flex-col gap-4 xl:w-[424px] xl:shrink-0 xl:self-start">
             <section className="rounded-[8px] border border-[#EFEFEF] bg-white px-[30px] py-6">
               <h2 className="mb-2.5 text-[18px] font-bold leading-[1.3] text-black">
-                Estado de la nómina
+                {t("nominas.payrollStatus")}
               </h2>
               <AdminHubSelect
-                label="Estado"
+                label={t("nominas.status")}
                 required
                 value={status}
                 onChange={(value) => setStatus(value as PayrollVariableStatus)}
-                options={STATUS_OPTIONS}
+                options={statusOptions}
                 variant="form"
                 labelBackground="#FFFFFF"
               />
@@ -459,20 +477,20 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
 
             <section className="rounded-[8px] border border-[#EFEFEF] bg-white px-[30px] py-6">
               <h2 className="mb-2.5 text-[18px] font-bold leading-[1.3] text-black">
-                Notas
+                {t("nominas.notes")}
               </h2>
               <div className="relative w-full pt-2">
                 <label
                   htmlFor="payroll-notes"
                   className="absolute left-3 top-0 z-10 bg-white px-1 text-[14px] leading-[1.3] tracking-[0.28px] text-[#525252]"
                 >
-                  Notas
+                  {t("nominas.notes")}
                 </label>
                 <textarea
                   id="payroll-notes"
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
-                  placeholder="Agregar comentario o aclaración"
+                  placeholder={t("nominas.notesPlaceholder")}
                   rows={8}
                   className="min-h-[209px] w-full resize-y rounded-[8px] border border-[#EFEFEF] bg-white px-4 py-3 text-[14px] leading-[1.3] tracking-[0.28px] text-[#525252] placeholder:text-[#C8C8C8] focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
                 />
@@ -482,7 +500,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
             <section className="flex flex-col gap-4 rounded-[8px] border border-[#EFEFEF] bg-white px-5 py-5">
               <div className="flex flex-col gap-2">
                 <h2 className="text-[14px] font-semibold leading-[1.3] text-[#525252]">
-                  Previsualización
+                  {t("nominas.preview")}
                 </h2>
                 <PayrollPayslipPreviewThumbnail
                   detail={detail}
@@ -496,7 +514,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
                   onClick={() => router.push("/admin-hub/nominas")}
                   className="inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap px-3 text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:text-[#008099]"
                 >
-                  Cancelar
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="button"
@@ -504,7 +522,7 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
                   disabled={isPending || isEmitted}
                   className="inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-[8px] border border-[#0097B2] px-3 text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#F5FAFB] disabled:opacity-60"
                 >
-                  Guardar borrador
+                  {t("nominas.saveDraft")}
                 </button>
                 <button
                   type="button"
@@ -512,18 +530,20 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
                   disabled={!canEmit || isEmitting}
                   title={
                     isEmitted
-                      ? `Emitida como ${detail.desprendible?.numeroDocumento}`
+                      ? t("nominas.issuedAs", {
+                          doc: detail.desprendible?.numeroDocumento ?? "",
+                        })
                       : detail.status !== "Aprobado"
-                        ? "Solo se puede emitir una nómina aprobada"
+                        ? t("nominas.onlyApprovedCanEmit")
                         : undefined
                   }
                   className="inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-[8px] bg-[#0097B2] px-3 text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isEmitting
-                    ? "Emitiendo..."
+                    ? t("nominas.emitting")
                     : isEmitted
-                      ? "Nómina emitida"
-                      : "Emitir Nómina"}
+                      ? t("nominas.payrollEmitted")
+                      : t("nominas.emitPayroll")}
                 </button>
               </div>
             </section>

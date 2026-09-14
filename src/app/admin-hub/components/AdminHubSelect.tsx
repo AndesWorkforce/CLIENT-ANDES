@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ChevronDown, CircleX } from "lucide-react";
 import useOutsideClick from "@/hooks/useOutsideClick";
+import { useAdminHubI18n } from "../i18n";
 
 export interface AdminHubSelectOption {
   value: string;
@@ -41,7 +42,7 @@ export default function AdminHubSelect({
   value,
   onChange,
   options,
-  placeholder = "Seleccionar",
+  placeholder,
   disabled = false,
   viewOnly = false,
   variant = "form",
@@ -54,6 +55,8 @@ export default function AdminHubSelect({
   clearable = false,
   searchable = false,
 }: AdminHubSelectProps) {
+  const { t } = useAdminHubI18n();
+  const resolvedPlaceholder = placeholder ?? t("common.select");
   const generatedId = useId();
   const id = idProp ?? generatedId;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -80,7 +83,7 @@ export default function AdminHubSelect({
         )
       : options;
 
-  const displayLabel = selectedOption?.label ?? placeholder;
+  const displayLabel = selectedOption?.label ?? resolvedPlaceholder;
   const hasValue = Boolean(selectedOption);
 
   const isForm = variant === "form";
@@ -171,7 +174,7 @@ export default function AdminHubSelect({
           onChange={(event) => handleSearchChange(event.target.value)}
           onFocus={handleSearchFocus}
           onKeyDown={handleSearchKeyDown}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           autoComplete="off"
           aria-haspopup="listbox"
           aria-expanded={isOpen}
@@ -210,7 +213,7 @@ export default function AdminHubSelect({
           type="button"
           onClick={handleClear}
           className="absolute right-[11px] top-1/2 z-10 -translate-y-1/2 rounded p-0 text-[#707070] transition-colors hover:text-[#0097B2]"
-          aria-label={label ? `Limpiar ${label}` : "Limpiar filtro"}
+          aria-label={label ? t("common.clearFilterNamed", { label }) : t("common.clearFilter")}
         >
           <CircleX size={18} strokeWidth={1.75} />
         </button>
@@ -236,7 +239,7 @@ export default function AdminHubSelect({
           <ul className={MENU_LIST_CLASS}>
             {visibleOptions.length === 0 ? (
               <li className="px-4 py-3 text-[14px] leading-[1.3] text-[#858585]">
-                Sin resultados
+                {t("common.noResults")}
               </li>
             ) : (
               visibleOptions.map((option) => {

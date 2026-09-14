@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { InvoiceSection } from "../data/mock-invoice-details";
 import { resolveLineItemsApprovalStatus } from "../lib/invoice-approval-status";
+import { useAdminHubI18n } from "../../i18n";
 import InvoiceCollapsibleSectionHeader from "./InvoiceCollapsibleSectionHeader";
 import InvoiceLineItemsTable from "./InvoiceLineItemsTable";
 import type { HistorialModulo } from "../../historial/types/historial.types";
@@ -22,14 +23,19 @@ export default function InvoiceDetailSection({
   onRejectItem,
   onDeleteItem,
 }: InvoiceDetailSectionProps) {
+  const { t } = useAdminHubI18n();
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const aggregateStatus = resolveLineItemsApprovalStatus(section.items);
+  const title =
+    section.tabKey === "customer-charges"
+      ? t("pagos.sections.customerCharges")
+      : t("pagos.sections.customerCredits");
 
   return (
     <div className="w-full overflow-hidden rounded-[12px] border border-[#EFEFEF] bg-white">
       <InvoiceCollapsibleSectionHeader
-        title={section.title}
+        title={title}
         isOpen={isOpen}
         onToggle={() => setIsOpen((prev) => !prev)}
         subtotal={section.subtotal}

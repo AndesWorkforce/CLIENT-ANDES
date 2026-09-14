@@ -1,6 +1,7 @@
 "use client";
 
 import AdminHubFormField from "../../components/AdminHubFormField";
+import { useAdminHubI18n } from "../../i18n";
 import { HOW_DID_YOU_HEAR_OPTIONS, YES_NO_OPTIONS } from "../data/mock-contract-form-options";
 import type { CreateContractFormData } from "../data/contract-creation-types";
 import ContractFormSection from "./ContractFormSection";
@@ -14,6 +15,7 @@ export default function CreateContractAdditionalIncomeForm({
   formData,
   onChange,
 }: CreateContractAdditionalIncomeFormProps) {
+  const { t } = useAdminHubI18n();
   function patch(partial: Partial<CreateContractFormData>) {
     onChange({ ...formData, ...partial });
   }
@@ -26,11 +28,16 @@ export default function CreateContractAdditionalIncomeForm({
     });
   }
 
+  const yesNoOptions = YES_NO_OPTIONS.map((option) => ({
+    ...option,
+    label: option.value === "Si" ? t("common.yes") : t("common.no"),
+  }));
+
   return (
-    <ContractFormSection title="Ingresos Adicionales">
+    <ContractFormSection title={t("personas.additionalIncome")}>
       <AdminHubFormField
         type="select"
-        label="¿Como nos conoció?"
+        label={t("personas.howDidYouMeetUs")}
         value={formData.comoNosConocio}
         onChange={(comoNosConocio) => patch({ comoNosConocio })}
         options={HOW_DID_YOU_HEAR_OPTIONS}
@@ -40,17 +47,17 @@ export default function CreateContractAdditionalIncomeForm({
         <div className="w-[222px] shrink-0">
           <AdminHubFormField
             type="select"
-            label="¿Fue recomendado?"
+            label={t("personas.wasReferred")}
             value={formData.fueRecomendado}
             onChange={handleReferredChange}
-            options={YES_NO_OPTIONS}
-            placeholder="Si"
+            options={yesNoOptions}
+            placeholder={t("common.yes")}
           />
         </div>
         <div className="min-w-0 flex-1">
           <AdminHubFormField
             type="input"
-            label="¿Por quién?"
+            label={t("personas.referredBy")}
             required={false}
             value={formData.porQuien}
             onChange={(porQuien) => patch({ porQuien })}
@@ -63,13 +70,13 @@ export default function CreateContractAdditionalIncomeForm({
           htmlFor="contract-notes"
           className="absolute left-3 top-0 z-10 bg-white px-1 text-[14px] leading-[1.3] tracking-[0.28px] text-[#525252]"
         >
-          Notas
+          {t("personas.notes")}
         </label>
         <textarea
           id="contract-notes"
           value={formData.notas}
           onChange={(event) => patch({ notas: event.target.value })}
-          placeholder="Añadir nota"
+          placeholder={t("personas.addNote")}
           rows={3}
           className="min-h-[50px] w-full resize-y rounded-[8px] border border-[#EFEFEF] bg-white px-4 py-3 text-[14px] leading-[1.3] tracking-[0.28px] text-[#343434] placeholder:text-[#C8C8C8] focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
         />

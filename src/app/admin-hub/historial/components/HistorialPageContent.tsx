@@ -17,17 +17,20 @@ import {
   type HistorialPagination,
 } from "../actions/historial.actions";
 import type { HistorialItem, HistorialModulo } from "../types/historial.types";
-import { HISTORIAL_MODULO_LABEL } from "../types/historial.types";
+import { HISTORIAL_MODULOS } from "../types/historial.types";
+import { useAdminHubI18n } from "../../i18n";
+import { translateHistorialModule } from "../utils/historial-labels";
 import HistorialTable from "./HistorialTable";
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 350;
 
-const MODULO_OPTIONS = (
-  Object.entries(HISTORIAL_MODULO_LABEL) as [HistorialModulo, string][]
-).map(([value, label]) => ({ value, label }));
-
 export default function HistorialPageContent() {
+  const { t } = useAdminHubI18n();
+  const moduloOptions = HISTORIAL_MODULOS.map((value) => ({
+    value,
+    label: translateHistorialModule(value, t),
+  }));
   const [rows, setRows] = useState<HistorialItem[]>([]);
   const [pagination, setPagination] = useState<HistorialPagination>({
     total: 0,
@@ -80,7 +83,7 @@ export default function HistorialPageContent() {
         hasPreviousPage: false,
         hasNextPage: false,
       }));
-      setError(response.message || "No se pudo cargar el historial");
+      setError(t("historial.loadError"));
       setLoading(false);
       return;
     }
@@ -90,7 +93,7 @@ export default function HistorialPageContent() {
       setPagination(response.pagination);
     }
     setLoading(false);
-  }, [page, moduloFilter, debouncedUsuario, fromDate, toDate]);
+  }, [page, moduloFilter, debouncedUsuario, fromDate, toDate, t]);
 
   useEffect(() => {
     void loadHistorial();
@@ -123,14 +126,14 @@ export default function HistorialPageContent() {
   return (
     <div className="flex flex-col gap-6">
       <AdminHubBreadcrumbs />
-      <h1 className="text-[32px] font-bold text-black leading-[1.3]">Historial</h1>
+      <h1 className="text-[32px] font-bold text-black leading-[1.3]">{t("historial.title")}</h1>
 
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <AdminHubSearchInput
             value={usuarioQuery}
             onChange={setUsuarioQuery}
-            placeholder="Buscar por usuario"
+            placeholder={t("historial.searchUser")}
           />
 
           <button
@@ -143,7 +146,7 @@ export default function HistorialPageContent() {
                 : "border-[#C8C8C8] text-[#858585] hover:border-[#0097B2] hover:text-[#0097B2]"
             }`}
           >
-            Filtros
+            {t("common.filters")}
             <Filter size={18} />
           </button>
         </div>
@@ -151,14 +154,14 @@ export default function HistorialPageContent() {
         {filtersOpen && (
           <div className={`${ADMIN_HUB_FILTERS_ROW_CLASS} items-end`}>
             <InvoiceFilterSelect
-              label="Filtrar por Módulo"
-              placeholder="Módulo"
+              label={t("historial.filterModule")}
+              placeholder={t("historial.module")}
               value={moduloFilter}
               onChange={(value) => {
                 setModuloFilter((value as HistorialModulo) || "");
                 setPage(1);
               }}
-              options={MODULO_OPTIONS}
+              options={moduloOptions}
             />
             <AdminHubDateRangePicker
               variant="filter"
@@ -183,7 +186,7 @@ export default function HistorialPageContent() {
                   : "cursor-default text-[#C8C8C8]"
               }`}
             >
-              Limpiar filtros
+              {t("common.clearFilters")}
             </button>
           </div>
         )}
@@ -201,9 +204,7 @@ export default function HistorialPageContent() {
         </div>
       ) : rows.length === 0 ? (
         <div className="rounded-[12px] border border-[#EFEFEF] bg-white px-6 py-12 text-center text-[14px] text-[#858585]">
-          {hasActiveFilters
-            ? "No hay acciones que coincidan con los filtros aplicados."
-            : "Aún no hay acciones registradas en el Admin Hub."}
+          {t("historial.empty")}
         </div>
       ) : (
         <HistorialTable rows={rows} />
@@ -212,8 +213,10 @@ export default function HistorialPageContent() {
       {!loading && pagination.totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="text-[14px] text-[#858585]">
-            Mostrando página {pagination.page} de {pagination.totalPages} (
-            {pagination.total} acciones)
+            {t("common.showingPage", {
+              page: pagination.page,
+              total: pagination.totalPages,
+            })}
           </p>
 
           <div className="inline-flex overflow-hidden rounded-[8px] border border-[#EFEFEF]">
@@ -222,7 +225,7 @@ export default function HistorialPageContent() {
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               disabled={!pagination.hasPreviousPage}
               className="flex items-center justify-center px-3 py-2 text-[#0097B2] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Página anterior"
+              aria-label={t("common.previousPage")}
             >
               <ChevronLeft size={18} />
             </button>
@@ -249,7 +252,7 @@ export default function HistorialPageContent() {
               }
               disabled={!pagination.hasNextPage}
               className="flex items-center justify-center px-3 py-2 text-[#0097B2] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Página siguiente"
+              aria-label={t("common.nextPage")}
             >
               <ChevronRight size={18} />
             </button>

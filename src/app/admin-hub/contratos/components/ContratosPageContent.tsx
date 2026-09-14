@@ -11,6 +11,7 @@ import {
 import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import TableSkeleton from "../../dashboard/components/TableSkeleton";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
+import { useAdminHubI18n } from "../../i18n";
 import {
   getContratos,
   type ContratoListItem,
@@ -19,8 +20,6 @@ import {
 import {
   getContractStatusLabel,
   getPaisDisplay,
-  getTipoJornadaDisplay,
-  tipoJornadaFromDisplay,
   type ContractStatusLabel,
 } from "../data/contract-display";
 import type { JornadaLaboral } from "../data/mock-contracts";
@@ -37,22 +36,17 @@ function buildFilterOptions(values: string[]) {
   }));
 }
 
-const STATUS_FILTER_OPTIONS: { value: ContractStatusLabel; label: string }[] = [
-  { value: "Activo", label: "Activo" },
-  { value: "Inactivo", label: "Inactivo" },
+const STATUS_FILTER_VALUES: ContractStatusLabel[] = ["Activo", "Inactivo"];
+const CONTRACT_TYPE_FILTER_VALUES: JornadaLaboral[] = [
+  "FULL_TIME",
+  "PART_TIME",
+  "HOURLY_TIME",
 ];
-
-// Enums fijos: no se derivan de la muestra de contratos cargada, para que
-// nunca falte una opción por no aparecer todavía en los datos visibles.
-const CONTRACT_TYPE_FILTER_OPTIONS: { value: JornadaLaboral; label: string }[] = (
-  ["FULL_TIME", "PART_TIME", "HOURLY_TIME"] as JornadaLaboral[]
-).map((value) => ({ value, label: getTipoJornadaDisplay(value) }));
-
-const PAYMENT_METHOD_FILTER_OPTIONS: { value: string; label: string }[] = [
+const PAYMENT_METHOD_FILTER_VALUES = [
   "Dollar App",
   "Transferencia Bancaria",
   "No Especifica",
-].map((value) => ({ value, label: value }));
+] as const;
 
 function collectFilterOptions(contracts: ContratoListItem[]) {
   return {
@@ -89,6 +83,7 @@ function mergeFilterOptions(
 }
 
 export default function ContratosPageContent() {
+  const { t } = useAdminHubI18n();
   const [contracts, setContracts] = useState<ContratoListItem[]>([]);
   const [pagination, setPagination] = useState<ContratosPagination>({
     total: 0,
@@ -138,17 +133,13 @@ export default function ContratosPageContent() {
     setLoading(true);
     setError(null);
 
-    const tipoJornada = contractTypeFilter
-      ? tipoJornadaFromDisplay(contractTypeFilter)
-      : undefined;
-
     const response = await getContratos({
       page,
       limit: PAGE_SIZE,
       search: debouncedSearch || undefined,
       cliente: clientFilter || undefined,
       pais: countryFilter || undefined,
-      tipoJornada: tipoJornada ?? undefined,
+      tipoJornada: (contractTypeFilter as JornadaLaboral) || undefined,
       estado: (statusFilter as ContractStatusLabel) || undefined,
       metodoPago: paymentFilter || undefined,
     });
@@ -163,7 +154,7 @@ export default function ContratosPageContent() {
         hasPreviousPage: false,
         hasNextPage: false,
       }));
-      setError(response.message || "No se pudieron cargar los contratos");
+      setError(response.message || t("contratos.loadError"));
       setLoading(false);
       return;
     }
@@ -184,6 +175,7 @@ export default function ContratosPageContent() {
     contractTypeFilter,
     paymentFilter,
     statusFilter,
+    t,
   ]);
 
   useEffect(() => {
@@ -207,6 +199,38 @@ export default function ContratosPageContent() {
       statusFilter,
   );
 
+  const statusFilterOptions = useMemo(
+    () =>
+      STATUS_FILTER_VALUES.map((value) => ({
+        value,
+        label: t(`status.contract.${value}`),
+      })),
+    [t],
+  );
+
+  const contractTypeFilterOptions = useMemo(
+    () =>
+      CONTRACT_TYPE_FILTER_VALUES.map((value) => ({
+        value,
+        label: t(`jornada.${value}`),
+      })),
+    [t],
+  );
+
+  const paymentMethodFilterOptions = useMemo(
+    () =>
+      PAYMENT_METHOD_FILTER_VALUES.map((value) => ({
+        value,
+        label:
+          value === "Dollar App"
+            ? t("paymentMethod.dollarApp")
+            : value === "Transferencia Bancaria"
+              ? t("paymentMethod.bankTransfer")
+              : t("paymentMethod.unspecified"),
+      })),
+    [t],
+  );
+
   const visiblePages = useMemo(() => {
     const total = pagination.totalPages;
     if (total <= 1) return [];
@@ -223,7 +247,7 @@ export default function ContratosPageContent() {
     <div className="flex flex-col gap-6">
       <AdminHubBreadcrumbs />
 
-      <h1 className="text-[32px] font-bold leading-[1.3] text-black">Contratos</h1>
+      <h1 className="text-[32px] font-bold leading-[1.3] text-black">{t("contratos.title")}</h1>
 
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -239,7 +263,7 @@ export default function ContratosPageContent() {
                 : "border-[#C8C8C8] text-[#858585] hover:border-[#0097B2] hover:text-[#0097B2]"
             }`}
           >
-            Filtros
+            {t("common.filters")}
             <Filter size={18} />
           </button>
         </div>
@@ -247,8 +271,8 @@ export default function ContratosPageContent() {
         {filtersOpen && (
           <div className={ADMIN_HUB_FILTERS_ROW_CLASS}>
             <InvoiceFilterSelect
-              label="Filtrar por Cliente"
-              placeholder="Cliente"
+              label={t("contratos.filterClient")}
+              placeholder={t("contratos.client")}
               value={clientFilter}
               onChange={(value) => {
                 setClientFilter(value);
@@ -257,8 +281,8 @@ export default function ContratosPageContent() {
               options={filterOptions.clients}
             />
             <InvoiceFilterSelect
-              label="Filtrar por País"
-              placeholder="País"
+              label={t("contratos.filterCountry")}
+              placeholder={t("contratos.country")}
               value={countryFilter}
               onChange={(value) => {
                 setCountryFilter(value);
@@ -267,34 +291,34 @@ export default function ContratosPageContent() {
               options={filterOptions.countries}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Tipo de contrato"
-              placeholder="Tipo de contrato"
+              label={t("contratos.filterType")}
+              placeholder={t("contratos.type")}
               value={contractTypeFilter}
               onChange={(value) => {
                 setContractTypeFilter(value);
                 setPage(1);
               }}
-              options={CONTRACT_TYPE_FILTER_OPTIONS}
+              options={contractTypeFilterOptions}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Método de pago"
-              placeholder="Método de pago"
+              label={t("contratos.filterPayment")}
+              placeholder={t("contratos.paymentMethod")}
               value={paymentFilter}
               onChange={(value) => {
                 setPaymentFilter(value);
                 setPage(1);
               }}
-              options={PAYMENT_METHOD_FILTER_OPTIONS}
+              options={paymentMethodFilterOptions}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Estado"
-              placeholder="Estado"
+              label={t("contratos.filterStatus")}
+              placeholder={t("contratos.status")}
               value={statusFilter}
               onChange={(value) => {
                 setStatusFilter(value);
                 setPage(1);
               }}
-              options={STATUS_FILTER_OPTIONS}
+              options={statusFilterOptions}
             />
             <button
               type="button"
@@ -306,7 +330,7 @@ export default function ContratosPageContent() {
                   : "cursor-default text-[#C8C8C8]"
               }`}
             >
-              Limpiar filtros
+              {t("common.clearFilters")}
             </button>
           </div>
         )}
@@ -329,8 +353,10 @@ export default function ContratosPageContent() {
       {!loading && pagination.totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="text-[14px] text-[#858585]">
-            Mostrando página {pagination.page} de {pagination.totalPages} (
-            {pagination.total} contratos)
+            {t("common.showingPage", {
+              page: pagination.page,
+              total: pagination.totalPages,
+            })}
           </p>
 
           <div className="inline-flex overflow-hidden rounded-[8px] border border-[#EFEFEF]">
@@ -339,7 +365,7 @@ export default function ContratosPageContent() {
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               disabled={!pagination.hasPreviousPage}
               className="flex items-center justify-center px-3 py-2 text-[#0097B2] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Página anterior"
+              aria-label={t("common.previousPage")}
             >
               <ChevronLeft size={18} />
             </button>
@@ -366,7 +392,7 @@ export default function ContratosPageContent() {
               }
               disabled={!pagination.hasNextPage}
               className="flex items-center justify-center px-3 py-2 text-[#0097B2] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Página siguiente"
+              aria-label={t("common.nextPage")}
             >
               <ChevronRight size={18} />
             </button>

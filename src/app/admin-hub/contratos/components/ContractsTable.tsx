@@ -9,12 +9,10 @@ import AdminHubTableShell, {
   ADMIN_HUB_TABLE_HEAD_LAST_CELL,
   ADMIN_HUB_TABLE_ROW,
 } from "../../components/AdminHubTableShell";
+import { useAdminHubI18n, type AdminHubTranslate } from "../../i18n";
 import type { ContratoListItem } from "../actions/contratos.actions";
-import {
-  getContractStatusLabel,
-  getPaisDisplay,
-  getTipoJornadaDisplay,
-} from "../data/contract-display";
+import { getContractStatusLabel, getPaisDisplay } from "../data/contract-display";
+import type { JornadaLaboral } from "../data/mock-contracts";
 import { contractToDetailPath } from "../data/mock-contract-detail";
 import { personaToDetailPath } from "../../personas/utils/persona-detail.utils";
 import ContractStatusBadge from "./ContractStatusBadge";
@@ -23,7 +21,22 @@ interface ContractsTableProps {
   contracts: ContratoListItem[];
 }
 
+function jornadaLabel(tipoJornada: JornadaLaboral | null, t: AdminHubTranslate): string {
+  if (!tipoJornada) return t("common.dash");
+  return t(`jornada.${tipoJornada}`);
+}
+
+function paymentMethodLabel(value: string, t: AdminHubTranslate): string {
+  if (value === "Dollar App") return t("paymentMethod.dollarApp");
+  if (value === "Transferencia Bancaria" || value === "Transferencia bancaria") {
+    return t("paymentMethod.bankTransfer");
+  }
+  if (value === "No Especifica") return t("paymentMethod.unspecified");
+  return value;
+}
+
 export default function ContractsTable({ contracts }: ContractsTableProps) {
+  const { t } = useAdminHubI18n();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -80,31 +93,31 @@ export default function ContractsTable({ contracts }: ContractsTableProps) {
                 checked={allSelected}
                 onChange={toggleAll}
                 className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                aria-label="Seleccionar todos"
+                aria-label={t("common.selectAll")}
               />
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Contratista
+              {t("contratos.contractor")}
             </th>
             <th className="max-w-[28ch] px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Puesto
+              {t("personas.position")}
             </th>
             <th
               className={`px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252] ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}
             >
-              Cliente
+              {t("contratos.client")}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Tipo de contrato
+              {t("personas.contractType")}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              País
+              {t("contratos.country")}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Metodo de Pago
+              {t("contratos.paymentMethod")}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Estado
+              {t("contratos.status")}
             </th>
             <th className={ADMIN_HUB_TABLE_HEAD_LAST_CELL} />
           </tr>
@@ -116,7 +129,7 @@ export default function ContractsTable({ contracts }: ContractsTableProps) {
                 colSpan={9}
                 className="px-6 py-12 text-center text-[14px] text-[#858585]"
               >
-                No se encontraron contratos con los criterios seleccionados.
+                {t("contratos.empty")}
               </td>
             </tr>
           ) : (
@@ -131,7 +144,7 @@ export default function ContractsTable({ contracts }: ContractsTableProps) {
                       checked={selectedIds.has(contract.id)}
                       onChange={() => toggleOne(contract.id)}
                       className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                      aria-label={`Seleccionar ${contract.nombreCompleto}`}
+                      aria-label={`${t("common.select")} ${contract.nombreCompleto}`}
                     />
                   </td>
                   <td className={cellClass}>{contract.nombreCompleto}</td>
@@ -142,12 +155,12 @@ export default function ContractsTable({ contracts }: ContractsTableProps) {
                     {contract.empresaNombre}
                   </td>
                   <td className={cellClass}>
-                    {getTipoJornadaDisplay(contract.tipoJornada)}
+                    {jornadaLabel(contract.tipoJornada, t)}
                   </td>
                   <td className={cellClass}>
                     {getPaisDisplay(contract.paisCodigo, contract.paisNombre)}
                   </td>
-                  <td className={cellClass}>{contract.metodoPago}</td>
+                  <td className={cellClass}>{paymentMethodLabel(contract.metodoPago, t)}</td>
                   <td className="px-3 py-6">
                     <ContractStatusBadge status={status} />
                   </td>
@@ -155,7 +168,7 @@ export default function ContractsTable({ contracts }: ContractsTableProps) {
                     <div className="relative inline-block" data-contract-row-menu>
                       <button
                         type="button"
-                        aria-label="Más opciones"
+                        aria-label={t("common.moreOptions")}
                         aria-expanded={openMenuId === contract.id}
                         aria-haspopup="menu"
                         onClick={() =>
@@ -181,7 +194,7 @@ export default function ContractsTable({ contracts }: ContractsTableProps) {
                             onClick={() => setOpenMenuId(null)}
                             className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] transition-colors hover:bg-[#F8F8F8]"
                           >
-                            Ver Contrato
+                            {t("common.view")}
                           </Link>
                           <Link
                             href={personaToDetailPath({ id: contract.usuarioId })}
@@ -189,7 +202,7 @@ export default function ContractsTable({ contracts }: ContractsTableProps) {
                             onClick={() => setOpenMenuId(null)}
                             className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] transition-colors hover:bg-[#F8F8F8]"
                           >
-                            Ver Contratista
+                            {t("common.viewProfile")}
                           </Link>
                         </div>
                       )}

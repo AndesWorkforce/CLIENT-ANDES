@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { PayrollDetail } from "../types/nomina-detail.types";
 import PayrollPayslipPreview from "./PayrollPayslipPreview";
+import { useAdminHubI18n } from "../../i18n";
 
 interface PayrollPayslipPreviewModalProps {
   open: boolean;
@@ -17,6 +18,7 @@ export default function PayrollPayslipPreviewModal({
   onClose,
   detail,
 }: PayrollPayslipPreviewModalProps) {
+  const { t } = useAdminHubI18n();
   useEffect(() => {
     if (!open) return;
 
@@ -44,7 +46,7 @@ export default function PayrollPayslipPreviewModal({
     >
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={t("common.close")}
         className="absolute inset-0 bg-black/50"
         onClick={onClose}
       />
@@ -55,12 +57,12 @@ export default function PayrollPayslipPreviewModal({
             id="payroll-preview-modal-title"
             className="text-[18px] font-bold leading-[1.3] text-black"
           >
-            Previsualización del desprendible
+            {t("nominas.payslipPreview")}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label={t("common.close")}
             className="rounded p-1 text-[#707070] transition-colors hover:bg-[#F8F8F8] hover:text-[#343434]"
           >
             <X size={20} strokeWidth={1.75} />

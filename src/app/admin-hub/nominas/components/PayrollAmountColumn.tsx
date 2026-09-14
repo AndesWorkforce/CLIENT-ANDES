@@ -1,3 +1,7 @@
+"use client";
+
+import { useAdminHubI18n } from "../../i18n";
+
 interface PayrollAmountColumnProps {
   title: string;
   lines: { id?: string; label: string; value: string }[];
@@ -11,8 +15,10 @@ export default function PayrollAmountColumn({
   lines,
   totalLabel,
   totalAmount,
-  emptyLabel = "Sin registros",
+  emptyLabel,
 }: PayrollAmountColumnProps) {
+  const { t } = useAdminHubI18n();
+  const resolvedEmptyLabel = emptyLabel ?? t("nominas.emptyRecords");
   const fillerCount = Math.max(0, 3 - lines.length);
 
   return (
@@ -24,7 +30,7 @@ export default function PayrollAmountColumn({
       {lines.length === 0 ? (
         <div className="flex h-[50px] items-center border border-t-0 border-[#EFEFEF] bg-white px-[11px]">
           <span className="text-[14px] leading-[1.3] tracking-[0.28px] text-[#858585]">
-            {emptyLabel}
+            {resolvedEmptyLabel}
           </span>
         </div>
       ) : (

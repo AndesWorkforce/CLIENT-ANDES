@@ -1,4 +1,7 @@
+"use client";
+
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
+import { useAdminHubI18n } from "../../i18n";
 
 interface InvoiceTableTotalRowProps {
   /** Columnas vacías entre la etiqueta "Total" y el monto */
@@ -15,11 +18,12 @@ export default function InvoiceTableTotalRow({
   subtotal,
   subtotalIsNegative = false,
 }: InvoiceTableTotalRowProps) {
+  const { t } = useAdminHubI18n();
   return (
     <tr className="border-t border-[#EFEFEF]">
       <td className="px-6 py-6" />
       <td className="px-3 py-6">
-        <span className="text-[16.8px] font-semibold text-[#525252]">Total</span>
+        <span className="text-[16.8px] font-semibold text-[#525252]">{t("pagos.total")}</span>
       </td>
       {Array.from({ length: emptyColumnsBeforeAmount }).map((_, index) => (
         <td key={`empty-before-${index}`} className="px-3 py-6" />

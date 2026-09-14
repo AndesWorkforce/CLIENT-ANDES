@@ -4,39 +4,40 @@ import { Bell } from "lucide-react";
 import Link from "next/link";
 import type { Aviso } from "../types/avisos.types";
 import AvisoStatusBadge from "./AvisoStatusBadge";
+import { useAdminHubI18n } from "../../i18n";
 
 interface AvisosCardProps {
   avisos: Aviso[];
 }
 
 export default function AvisosCard({ avisos }: AvisosCardProps) {
+  const { t } = useAdminHubI18n();
+
   if (avisos.length === 0) {
     return null;
   }
 
   return (
     <div className="bg-white rounded-[12px] border border-[#EFEFEF] overflow-hidden">
-      {/* Header */}
       <div className="flex items-center gap-2 px-5 py-4 border-b border-[#EFEFEF]">
         <Bell className="w-5 h-5 text-[#0097B2]" />
         <h2 className="text-[22px] font-bold text-[#343434] leading-[1.3]">
-          Avisos
+          {t("avisos.title")}
         </h2>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="bg-white border-b border-[#EFEFEF]">
               <th className="text-left px-5 py-[18px] text-[12px] font-bold text-[#525252] leading-[18px]">
-                Tipo
+                {t("avisos.type")}
               </th>
               <th className="text-left px-5 py-[18px] text-[12px] font-bold text-[#525252] leading-[18px]">
-                Estado
+                {t("avisos.status")}
               </th>
               <th className="text-left px-5 py-[18px] text-[12px] font-bold text-[#525252] leading-[18px]">
-                Descripción
+                {t("avisos.description")}
               </th>
             </tr>
           </thead>

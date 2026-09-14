@@ -40,21 +40,19 @@ import InvoiceEmitModal, { type InvoiceEmitModalVariant } from "./InvoiceEmitMod
 import InvoicePayrollSection from "./InvoicePayrollSection";
 import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
 import AdminHubConfirmModal from "../../nominas/components/AdminHubConfirmModal";
+import { displayPeriodToApiPeriod } from "../actions/pagos.utils";
+import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
 
 type TabKey = "all" | "nomina" | "adicionales" | "customer-charges" | "customer-credits";
 
-const DETAIL_STATUS_FILTER_OPTIONS = [
-  { value: "Pendiente", label: "Pendiente" },
-  { value: "Aprobado", label: "Aprobado" },
-  { value: "Rechazado", label: "Rechazado" },
-];
+const DETAIL_STATUS_FILTER_VALUES = ["Pendiente", "Aprobado", "Rechazado"] as const;
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "all", label: "Todos" },
-  { key: "nomina", label: "Nóminas" },
-  { key: "adicionales", label: "Adicionales" },
-  { key: "customer-charges", label: "Cargos al cliente" },
-  { key: "customer-credits", label: "Créditos al cliente" },
+const TAB_KEYS: TabKey[] = [
+  "all",
+  "nomina",
+  "adicionales",
+  "customer-charges",
+  "customer-credits",
 ];
 
 interface InvoiceDetailContentProps {
@@ -138,6 +136,7 @@ function recalculateGrandTotal(
 }
 
 export default function InvoiceDetailContent({ invoice: initialInvoice }: InvoiceDetailContentProps) {
+  const { t } = useAdminHubI18n();
   const { addNotification } = useNotificationStore();
   const router = useRouter();
   const [invoice, setInvoice] = useState<InvoiceDetail>(initialInvoice);
@@ -167,6 +166,41 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   const [footerHeight, setFooterHeight] = useState(0);
   const footerDockSentinelRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
+
+  const statusFilterOptions = useMemo(
+    () =>
+      DETAIL_STATUS_FILTER_VALUES.map((value) => ({
+        value,
+        label: t(`status.invoice.${value}`),
+      })),
+    [t],
+  );
+
+  const tabs = useMemo(
+    () =>
+      TAB_KEYS.map((key) => ({
+        key,
+        label:
+          key === "all"
+            ? t("common.all")
+            : key === "nomina"
+              ? t("pagos.sections.payrolls")
+              : key === "adicionales"
+                ? t("pagos.sections.additional")
+                : key === "customer-charges"
+                  ? t("pagos.sections.customerCharges")
+                  : t("pagos.sections.customerCredits"),
+      })),
+    [t],
+  );
+
+  const periodLabel = useMemo(() => {
+    try {
+      return formatAdminHubPeriod(displayPeriodToApiPeriod(invoice.period), t);
+    } catch {
+      return formatAdminHubPeriod(invoice.period, t);
+    }
+  }, [invoice.period, t]);
 
   useEffect(() => {
     const footer = footerRef.current;
@@ -376,7 +410,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
       };
     });
 
-    addNotification("El ítem ingresado fue creado correctamente.", "success");
+    addNotification(t("pagos.toasts.itemCreated"), "success");
   }
 
   function handleAdditionalFeeCreated(fee: InvoiceAdditionalFee) {
@@ -396,7 +430,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
       };
     });
 
-    addNotification("El adicional fue creado correctamente.", "success");
+    addNotification(t("pagos.toasts.itemCreated"), "success");
   }
 
   function updateItemStatus(
@@ -463,26 +497,26 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     if (section.tabKey === "customer-charges") {
       const result = await approveCustomerCharge(itemId);
       if (result.success) {
-        addNotification("Cargo aprobado exitosamente", "success");
+        addNotification(t("pagos.toasts.chargeApproved"), "success");
         setTimeout(() => router.refresh(), 500);
       } else {
-        addNotification(result.message || "Error al aprobar el cargo", "error");
+        addNotification(result.message || t("pagos.toasts.chargeApproveError"), "error");
       }
     } else if (section.tabKey === "customer-credits") {
       const result = await approveCustomerCredit(itemId);
       if (result.success) {
-        addNotification("Crédito aprobado exitosamente", "success");
+        addNotification(t("pagos.toasts.creditApproved"), "success");
         setTimeout(() => router.refresh(), 500);
       } else {
-        addNotification(result.message || "Error al aprobar el crédito", "error");
+        addNotification(result.message || t("pagos.toasts.creditApproveError"), "error");
       }
     } else {
-      updateItemStatus(sectionId, itemId, "Aprobado", "El ítem fue aprobado correctamente.");
+      updateItemStatus(sectionId, itemId, "Aprobado", t("pagos.toasts.itemApproved"));
     }
   }
 
   function handleRejectItem(sectionId: string, itemId: string) {
-    updateItemStatus(sectionId, itemId, "Rechazado", "El ítem fue rechazado.");
+    updateItemStatus(sectionId, itemId, "Rechazado", t("pagos.toasts.itemRejected"));
   }
 
   function handleDeleteItem(sectionId: string, itemId: string) {
@@ -496,11 +530,11 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     if (section.tabKey === "customer-charges") {
       const result = await cancelCustomerCharge(itemId);
       if (result.success) {
-        addNotification("Cargo anulado exitosamente", "success");
+        addNotification(t("pagos.toasts.chargeVoided"), "success");
         // Pequeño delay para asegurar que el backend actualizó los datos
         setTimeout(() => router.refresh(), 100);
       } else {
-        addNotification(result.message || "Error al anular el cargo", "error");
+        addNotification(result.message || t("pagos.toasts.chargeVoidError"), "error");
       }
     } else {
       setInvoice((prev) => {
@@ -523,16 +557,16 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         };
       });
 
-      addNotification("El ítem fue eliminado.", "success");
+      addNotification(t("pagos.toasts.itemDeleted"), "success");
     }
   }
 
   function handleApproveAdditionalFee(itemId: string) {
-    updateAdditionalFeeStatus(itemId, "Aprobado", "El adicional fue aprobado correctamente.");
+    updateAdditionalFeeStatus(itemId, "Aprobado", t("pagos.toasts.itemApproved"));
   }
 
   function handleRejectAdditionalFee(itemId: string) {
-    updateAdditionalFeeStatus(itemId, "Rechazado", "El adicional fue rechazado.");
+    updateAdditionalFeeStatus(itemId, "Rechazado", t("pagos.toasts.itemRejected"));
   }
 
   function handleDeleteAdditionalFee(itemId: string) {
@@ -556,7 +590,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
       };
     });
 
-    addNotification("El adicional fue eliminado.", "success");
+    addNotification(t("pagos.toasts.itemDeleted"), "success");
   }
 
   async function handleConfirmDelete() {
@@ -583,7 +617,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     try {
       const result = await approveInvoicePayrollLine(lineaFacturaId);
       addNotification(
-        result.message || "Línea aprobada",
+        result.message || t("pagos.toasts.lineApproved"),
         result.success ? "success" : "error",
       );
       if (result.success) router.refresh();
@@ -597,7 +631,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
     try {
       const result = await rejectInvoicePayrollLine(lineaFacturaId);
       addNotification(
-        result.message || "Línea rechazada",
+        result.message || t("pagos.toasts.lineRejected"),
         result.success ? "success" : "error",
       );
       if (result.success) router.refresh();
@@ -616,7 +650,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         ids,
       );
       addNotification(
-        result.message || "Líneas aprobadas",
+        result.message || t("pagos.toasts.linesApproved"),
         result.success ? "success" : "error",
       );
       if (result.success) router.refresh();
@@ -637,15 +671,15 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
       const result = await approveInvoice(invoice.empresaId, invoice.period);
 
       if (!result.success) {
-        addNotification(result.message || "No se pudo aprobar la factura", "error");
+        addNotification(result.message || t("pagos.toasts.invoiceApproveError"), "error");
         return;
       }
 
-      addNotification("Factura aprobada. Ya puede emitirse.", "success");
+      addNotification(t("pagos.toasts.invoiceApproved"), "success");
       router.refresh();
     } catch (error) {
       console.error("[INVOICE] Error al aprobar factura:", error);
-      addNotification("Error al aprobar la factura", "error");
+      addNotification(t("pagos.toasts.invoiceApproveError"), "error");
     } finally {
       setIsApproving(false);
     }
@@ -654,7 +688,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   function handleEmitInvoiceClick() {
     if (!puedeEmitir) {
       addNotification(
-        "Hay que aprobar la factura antes de emitirla.",
+        t("pagos.approveBeforeEmit"),
         "error",
       );
       return;
@@ -670,7 +704,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
 
       if (!result.success || !result.data) {
         addNotification(
-          result.message || "No se pudo descargar la factura",
+          result.message || t("pagos.toasts.downloadError"),
           "error",
         );
         return;
@@ -700,7 +734,9 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
 
       if (result.success && result.data) {
         addNotification(
-          `Factura emitida. Documento ${result.data.numeroFactura} generado.`,
+          t("pagos.toasts.invoiceIssued", {
+            number: result.data.numeroFactura ?? "",
+          }),
           "success",
         );
         setEmitModal(null);
@@ -708,11 +744,11 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         // Refrescar la página para obtener el estado actualizado
         router.refresh();
       } else {
-        addNotification(result.message || "Error al emitir la factura", "error");
+        addNotification(result.message || t("pagos.toasts.invoiceIssueError"), "error");
       }
     } catch (error) {
       console.error("[INVOICE] Error al emitir factura:", error);
-      addNotification("Error al emitir la factura", "error");
+      addNotification(t("pagos.toasts.invoiceIssueError"), "error");
     } finally {
       setIsEmitting(false);
     }
@@ -736,9 +772,9 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
       <AdminHubBreadcrumbs />
 
       <div>
-        <h1 className="text-[32px] font-bold text-black leading-[1.3]">Factura</h1>
+        <h1 className="text-[32px] font-bold text-black leading-[1.3]">{t("breadcrumbs.factura")}</h1>
         <p className="text-[16px] font-semibold text-[#343434] leading-[1.3]">
-          Cliente {invoice.client} - {invoice.period}
+          {t("pagos.clientLine", { client: invoice.client, period: periodLabel })}
         </p>
       </div>
 
@@ -750,7 +786,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
           className="inline-flex h-9 items-center gap-2.5 rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] text-[#0097B2] leading-5 hover:bg-[#DFFAFF] transition-colors"
         >
           <Download size={20} />
-          Exportar
+          {t("common.export")}
         </button>
         <button
           type="button"
@@ -758,14 +794,14 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
           className="inline-flex h-9 items-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors"
         >
           <Plus size={20} />
-          Crear ítem
+          {t("pagos.createItem")}
         </button>
       </div>
 
       <div className="flex flex-col gap-6">
         <div className="border-b border-[#EFEFEF]">
           <div className="flex flex-wrap gap-[38px]">
-            {TABS.map((tab) => {
+            {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               return (
                 <button
@@ -797,7 +833,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
                 : "border-[#C8C8C8] text-[#858585] hover:border-[#0097B2] hover:text-[#0097B2]"
             }`}
           >
-            Filtros
+            {t("common.filters")}
             <Filter size={18} />
           </button>
         </div>
@@ -805,24 +841,24 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         {filtersOpen && (
           <div className={ADMIN_HUB_FILTERS_ROW_CLASS}>
             <InvoiceFilterSelect
-              label="Filtrar por Estado"
-              placeholder="Pendiente"
+              label={t("pagos.filterStatus")}
+              placeholder={t("status.invoice.Pendiente")}
               value={statusFilter}
               onChange={setStatusFilter}
-              options={DETAIL_STATUS_FILTER_OPTIONS}
+              options={statusFilterOptions}
             />
             {showTypeFilter && (
               <InvoiceFilterSelect
-                label="Filtrar por Tipo"
-                placeholder="Tipo"
+                label={t("nominas.filterType")}
+                placeholder={t("nominas.type")}
                 value={typeFilter}
                 onChange={setTypeFilter}
                 options={typeFilterOptions}
               />
             )}
             <InvoiceFilterSelect
-              label="Filtrar por Contratista"
-              placeholder="Contratista"
+              label={t("pagos.filterContractor")}
+              placeholder={t("nominas.contractor")}
               value={contractorFilter}
               onChange={setContractorFilter}
               options={contractorFilterOptions}
@@ -837,7 +873,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
                   : "cursor-default text-[#C8C8C8]"
               }`}
             >
-              Limpiar filtros
+              {t("common.clearFilters")}
             </button>
           </div>
         )}
@@ -878,7 +914,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         <ObjectHistorialTable
           entidadId={invoice.id}
           entidadTipo="ClientInvoiceSnapshot"
-          title="Historial de cambios de la factura"
+          title={t("pagos.invoiceHistory")}
         />
 
         <div ref={footerDockSentinelRef} className="h-px w-full shrink-0" aria-hidden />
@@ -896,7 +932,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
           }`}
         >
           <div className="flex w-full items-center justify-between rounded-[8px] border border-[#0097B2] bg-white px-6 py-4">
-            <span className="text-[18px] font-bold text-[#0097B2]">Total</span>
+            <span className="text-[18px] font-bold text-[#0097B2]">{t("pagos.total")}</span>
             <span className="text-[18px] font-semibold text-[#0097B2]">{invoice.grandTotal}</span>
           </div>
 
@@ -905,7 +941,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
               <>
                 {invoice.numeroFactura && (
                   <span className="text-[14px] text-[#707070]">
-                    Documento{" "}
+                    {t("pagos.document")}{" "}
                     <span className="font-semibold text-[#343434]">
                       {invoice.numeroFactura}
                     </span>
@@ -918,7 +954,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
                   className="inline-flex h-9 items-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Download size={18} />
-                  {isDownloading ? "Descargando..." : "Descargar factura"}
+                  {isDownloading ? t("pagos.downloading") : t("pagos.downloadInvoice")}
                 </button>
               </>
             ) : (
@@ -927,7 +963,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
                   type="button"
                   className="inline-flex h-9 items-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] text-[#0097B2] leading-5 hover:bg-[#DFFAFF] transition-colors"
                 >
-                  Guardar Cambios
+                  {t("pagos.savingChanges")}
                 </button>
                 <button
                   type="button"
@@ -936,15 +972,15 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
                   title={
                     puedeAprobar
                       ? undefined
-                      : "La factura ya fue aprobada"
+                      : t("pagos.alreadyApproved")
                   }
                   className="inline-flex h-9 items-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] text-[#0097B2] leading-5 hover:bg-[#DFFAFF] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isApproving
-                    ? "Aprobando..."
+                    ? t("nominas.confirming")
                     : puedeAprobar
-                      ? "Aprobar factura"
-                      : "Aprobada"}
+                      ? t("pagos.approveInvoice")
+                      : t("status.invoice.Aprobada")}
                 </button>
                 <button
                   type="button"
@@ -953,11 +989,11 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
                   title={
                     puedeEmitir
                       ? undefined
-                      : "Hay que aprobar la factura antes de emitirla"
+                      : t("pagos.approveBeforeEmit")
                   }
                   className="inline-flex h-9 items-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] text-white leading-5 hover:bg-[#008099] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isEmitting ? "Emitiendo..." : "Emitir Invoice"}
+                  {isEmitting ? t("nominas.emitting") : t("pagos.emitInvoice")}
                 </button>
               </>
             )}
@@ -996,14 +1032,14 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
       {confirmDelete && (
         <AdminHubConfirmModal
           open
-          title="Eliminar ítem"
-          cancelLabel="Cancelar"
-          confirmLabel={isDeleting ? "Eliminando..." : "Eliminar"}
+          title={t("pagos.deleteItem")}
+          cancelLabel={t("common.cancel")}
+          confirmLabel={isDeleting ? t("pagos.deleting") : t("common.delete")}
           confirmLoading={isDeleting}
           onClose={() => setConfirmDelete(null)}
           onConfirm={() => void handleConfirmDelete()}
         >
-          ¿Seguro que querés eliminar este ítem? Esta acción no se puede deshacer.
+          {t("pagos.deleteConfirm")}
         </AdminHubConfirmModal>
       )}
     </div>

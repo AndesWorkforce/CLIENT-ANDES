@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
+import { useAdminHubI18n, type AdminHubTranslate } from "../../i18n";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubDatePicker from "../../components/AdminHubDatePicker";
 import AdminHubFormField from "../../components/AdminHubFormField";
@@ -68,9 +69,34 @@ interface ContractFormState {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const UNSPECIFIED_SENTINEL = "No especificado";
+
+const VARIABLE_TAB_I18N: Record<ContractVariableTab, string> = {
+  todos: "nominas.tabs.all",
+  overtimes: "nominas.tabs.overtimes",
+  holidays: "nominas.tabs.holidays",
+  deducciones: "nominas.tabs.deductions",
+  incomeVariables: "nominas.tabs.incomeVariables",
+};
 
 function displayOptional(value: string | null): string {
-  return value ?? "No especificado";
+  return value ?? UNSPECIFIED_SENTINEL;
+}
+
+function optionalFieldValue(value: string, t: AdminHubTranslate): string {
+  if (!value || value === UNSPECIFIED_SENTINEL) {
+    return t("common.notSpecified");
+  }
+  return value;
+}
+
+function paymentMethodLabel(value: string, t: AdminHubTranslate): string {
+  if (value === "Dollar App") return t("paymentMethod.dollarApp");
+  if (value === "Transferencia Bancaria" || value === "Transferencia bancaria") {
+    return t("paymentMethod.bankTransfer");
+  }
+  if (value === "No Especifica") return t("paymentMethod.unspecified");
+  return value;
 }
 
 function buildContractFormState(detail: ContratoDetail): ContractFormState {
@@ -172,6 +198,7 @@ function buildSectionPayload(
 }
 
 export default function ContractDetailContent({ detail }: ContractDetailContentProps) {
+  const { t } = useAdminHubI18n();
   const router = useRouter();
   const { addNotification } = useNotificationStore();
   const [detailState, setDetailState] = useState(detail);
@@ -193,11 +220,11 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
 
   const breadcrumbItems = useMemo(
     () => [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Contratos", href: "/admin-hub/contratos" },
-      { label: `Contrato - ${detailState.codigoContrato}` },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.contratos"), href: "/admin-hub/contratos" },
+      { label: `${t("breadcrumbs.contractDetail")} - ${detailState.codigoContrato}` },
     ],
-    [detailState.codigoContrato]
+    [detailState.codigoContrato, t],
   );
 
   const filteredVariables = useMemo(() => {
@@ -284,7 +311,17 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
 
     const { payload, error } = buildSectionPayload(section, form, detailState);
     if (error || !payload) {
-      addNotification(error ?? "No se pudo armar el payload de actualización.", "error");
+      const validationKeys: Record<string, string> = {
+        "El nombre completo es obligatorio.": "contratos.fullNameRequired",
+        "El email es obligatorio.": "contratos.emailRequired",
+        "El email no tiene un formato válido.": "contratos.invalidEmail",
+        "La fecha de nacimiento debe tener formato YYYY-MM-DD.": "contratos.invalidBirthDate",
+        "El salario debe ser un número válido mayor o igual a 0.": "personas.invalidSalary",
+      };
+      const translatedError = error
+        ? t(validationKeys[error] ?? error)
+        : undefined;
+      addNotification(translatedError ?? t("personas.saveError"), "error");
       return;
     }
 
@@ -292,14 +329,14 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
     try {
       const result = await updateContrato(detailState.id, payload);
       if (!result.success || !result.data) {
-        addNotification(result.message || "Error al guardar los cambios.", "error");
+        addNotification(result.message || t("personas.saveError"), "error");
         return;
       }
 
       setDetailState(result.data);
       setForm(buildContractFormState(result.data));
       setEditingSections((prev) => ({ ...prev, [section]: false }));
-      addNotification("Cambios guardados correctamente.", "success");
+      addNotification(t("personas.saveSuccess"), "success");
       router.refresh();
     } finally {
       setSavingSection(null);
@@ -307,7 +344,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
   }
 
   function handleExport() {
-    addNotification("La exportación del contrato estará disponible próximamente.", "info");
+    addNotification(t("contratos.exportSoon"), "info");
   }
 
   function handleGoToPayrollVariables() {
@@ -325,7 +362,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
 
       <div className="flex flex-col gap-1">
         <h1 className="text-[32px] font-bold leading-[1.3] text-black">
-          Contrato - {detailState.codigoContrato}
+          {t("breadcrumbs.contractDetail")} - {detailState.codigoContrato}
         </h1>
         <p className="text-[16px] leading-[1.3] text-[#343434]">
           {detailState.nombreCompleto} - {detailState.puestoTrabajo}
@@ -339,62 +376,62 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
           className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
         >
           <Download size={20} />
-          Exportar
+          {t("common.export")}
         </button>
         <button
           type="button"
           onClick={handleGoToProfile}
           className="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
         >
-          Ir al perfil
+          {t("contratos.goToProfile")}
         </button>
       </div>
 
       <div className="flex flex-col gap-[18px]">
         <div className="grid gap-[18px] lg:grid-cols-2">
           <ContractInfoCard
-            title="Información General"
+            title={t("personas.generalInfo")}
             isEditing={editingSections.general}
             isSaving={savingSection === "general"}
             onEditClick={() => void toggleSectionEdit("general")}
           >
             <AdminHubFormField
               type="input"
-              label="Nombre completo"
+              label={t("contratos.contractorName")}
               value={form.nombreCompleto}
               onChange={(value) => updateField("nombreCompleto", value)}
               viewOnly={!editingSections.general}
             />
             <AdminHubFormField
               type="input"
-              label="Email"
+              label={t("personas.personalEmail")}
               value={form.correo}
               onChange={(value) => updateField("correo", value)}
               viewOnly={!editingSections.general}
             />
             <AdminHubFormField
               type="input"
-              label="Télefono"
+              label={t("personas.phone")}
               value={form.telefono}
               onChange={(value) => updateField("telefono", value)}
               viewOnly={!editingSections.general}
             />
             <AdminHubFormField
               type="input"
-              label="N° de documento"
+              label={t("personas.documentNumber")}
               value={form.documentoIdentidad}
               onChange={(value) => updateField("documentoIdentidad", value)}
               viewOnly={!editingSections.general}
             />
             <AdminHubDatePicker
-              label="Fecha de nacimiento"
+              label={t("personas.birthDate")}
               value={form.fechaNacimiento}
               onChange={(value) => updateField("fechaNacimiento", value)}
               viewOnly={!editingSections.general}
             />
             <AdminHubFormField
               type="input"
-              label="País"
+              label={t("personas.countryName")}
               value={form.pais}
               onChange={(value) => updateField("pais", value)}
               viewOnly={!editingSections.general}
@@ -402,35 +439,35 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
           </ContractInfoCard>
 
           <ContractInfoCard
-            title="Dirección de Residencia"
+            title={t("personas.residence")}
             isEditing={editingSections.residence}
             isSaving={savingSection === "residence"}
             onEditClick={() => void toggleSectionEdit("residence")}
           >
             <AdminHubFormField
               type="input"
-              label="País"
+              label={t("personas.countryName")}
               value={form.pais}
               onChange={(value) => updateField("pais", value)}
               viewOnly={!editingSections.residence}
             />
             <AdminHubFormField
               type="input"
-              label="Estado"
+              label={t("personas.state")}
               value={form.estadoResidencia}
               onChange={(value) => updateField("estadoResidencia", value)}
               viewOnly={!editingSections.residence}
             />
             <AdminHubFormField
               type="input"
-              label="Ciudad"
+              label={t("personas.city")}
               value={form.ciudadResidencia}
               onChange={(value) => updateField("ciudadResidencia", value)}
               viewOnly={!editingSections.residence}
             />
             <AdminHubFormField
               type="input"
-              label="Dirección"
+              label={t("personas.street")}
               value={form.direccionResidencia}
               onChange={(value) => updateField("direccionResidencia", value)}
               viewOnly={!editingSections.residence}
@@ -440,131 +477,139 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
 
         <div className="grid gap-[18px] lg:grid-cols-2">
           <ContractInfoCard
-            title="Información Laboral"
+            title={t("personas.laborInfo")}
             isEditing={editingSections.labor}
             isSaving={savingSection === "labor"}
             onEditClick={() => void toggleSectionEdit("labor")}
           >
             <AdminHubFormField
               type="input"
-              label="ID Contrato"
+              label={t("personas.contractId")}
               value={form.idContrato}
               onChange={(value) => updateField("idContrato", value)}
               viewOnly
             />
             <AdminHubDatePicker
-              label="Fecha inicio de Contrato"
+              label={t("personas.startDate")}
               value={form.fechaInicioContrato}
               onChange={(value) => updateField("fechaInicioContrato", value)}
               viewOnly
             />
             <AdminHubDatePicker
-              label="Fecha última modificación de Contrato"
+              label={t("personas.startDate")}
               value={form.fechaUltimaModificacionContrato}
               onChange={(value) => updateField("fechaUltimaModificacionContrato", value)}
               viewOnly
             />
             <AdminHubFormField
               type="input"
-              label="Posición"
+              label={t("personas.position")}
               value={form.puestoTrabajo}
               onChange={(value) => updateField("puestoTrabajo", value)}
               viewOnly
             />
             <AdminHubFormField
               type="input"
-              label="Cliente"
+              label={t("personas.client")}
               value={form.empresaNombre}
               onChange={(value) => updateField("empresaNombre", value)}
               viewOnly
             />
             <AdminHubFormField
               type="input"
-              label="Salario"
+              label={t("personas.salary")}
               value={form.salario}
               onChange={(value) => updateField("salario", value)}
               viewOnly={!editingSections.labor}
             />
             <AdminHubFormField
               type="input"
-              label="HR Rate Holidays"
+              label={t("personas.hrRateHolidays")}
               value={form.tarifaHrNacional}
               onChange={(value) => updateField("tarifaHrNacional", value)}
               viewOnly
             />
             <AdminHubFormField
               type="input"
-              label="Bonos"
+              label={t("personas.paidHolidays")}
               value={form.bonusLabel}
               onChange={(value) => updateField("bonusLabel", value)}
               viewOnly
             />
             <AdminHubFormField
               type="input"
-              label="IPB Balance"
-              value={form.ipbBalance}
+              label={t("personas.ipbBalance")}
+              value={
+                detailState.discretionaryBonusType
+                  ? t(`bonus.${detailState.discretionaryBonusType}`)
+                  : t("bonus.NONE")
+              }
               onChange={(value) => updateField("ipbBalance", value)}
               viewOnly
             />
           </ContractInfoCard>
 
           <ContractInfoCard
-            title="Información Financiera"
+            title={t("personas.financialInfo")}
             isEditing={editingSections.financial}
             isSaving={savingSection === "financial"}
             onEditClick={() => void toggleSectionEdit("financial")}
           >
             <AdminHubFormField
               type="input"
-              label="País de Facturación"
+              label={t("personas.billingCountry")}
               value={form.paisFacturacion}
               onChange={(value) => updateField("paisFacturacion", value)}
               viewOnly={!editingSections.financial}
             />
             <AdminHubFormField
               type="input"
-              label="Método de pago"
-              value={form.metodoPago}
+              label={t("personas.paymentMethod")}
+              value={
+                editingSections.financial
+                  ? form.metodoPago
+                  : paymentMethodLabel(form.metodoPago, t)
+              }
               onChange={(value) => updateField("metodoPago", value)}
               viewOnly={!editingSections.financial}
             />
             <AdminHubFormField
               type="input"
-              label="Dollar Tag"
+              label={t("personas.dollarTag")}
               required={false}
-              value={form.dollarTag}
+              value={optionalFieldValue(form.dollarTag, t)}
               onChange={(value) => updateField("dollarTag", value)}
               viewOnly={!editingSections.financial}
             />
             <AdminHubFormField
               type="input"
-              label="Banco Personal"
+              label={t("personas.personalBank")}
               required={false}
-              value={form.bancoNombre}
+              value={optionalFieldValue(form.bancoNombre, t)}
               onChange={(value) => updateField("bancoNombre", value)}
               viewOnly={!editingSections.financial}
             />
             <AdminHubFormField
               type="input"
-              label="Numero de cuenta bancaria personal"
+              label={t("personas.personalAccountNumber")}
               required={false}
-              value={form.numeroCuentaBancaria}
+              value={optionalFieldValue(form.numeroCuentaBancaria, t)}
               onChange={(value) => updateField("numeroCuentaBancaria", value)}
               viewOnly={!editingSections.financial}
             />
             <AdminHubFormField
               type="input"
-              label="Nombre del Banco de Facturación"
+              label={t("personas.billingBankName")}
               required={false}
-              value={form.bancoFacturacionNombre}
+              value={optionalFieldValue(form.bancoFacturacionNombre, t)}
               onChange={(value) => updateField("bancoFacturacionNombre", value)}
               viewOnly
             />
             <AdminHubFormField
               type="input"
-              label="Numero de cuenta de Facturación"
+              label={t("personas.billingBankNumber")}
               required={false}
-              value={form.numeroCuentaFacturacion}
+              value={optionalFieldValue(form.numeroCuentaFacturacion, t)}
               onChange={(value) => updateField("numeroCuentaFacturacion", value)}
               viewOnly={!editingSections.financial}
             />
@@ -573,7 +618,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
 
         <section className="rounded-[12px] border border-[#EFEFEF] bg-white px-5 py-6">
           <h2 className="mb-[15px] text-[18px] font-bold leading-[1.3] text-black">
-            Historial de nómina
+            {t("contratos.payrollHistory")}
           </h2>
 
           <AdminHubTableShell variant="nested">
@@ -586,17 +631,17 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                       checked={allPayrollHistorySelected}
                       onChange={togglePayrollHistoryAll}
                       className={checkboxClass}
-                      aria-label="Seleccionar todo el historial de nómina"
+                      aria-label={t("common.selectAll")}
                     />
                   </th>
                   <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                    Período
+                    {t("nominas.period")}
                   </th>
                   <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                    Total Pagado
+                    {t("contratos.totalPaid")}
                   </th>
                   <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                    Estado
+                    {t("contratos.status")}
                   </th>
                   <th className={ADMIN_HUB_TABLE_HEAD_LAST_CELL} />
                 </tr>
@@ -608,7 +653,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                       colSpan={5}
                       className="px-6 py-8 text-center text-[14px] text-[#858585]"
                     >
-                      No hay nóminas registradas para este contrato.
+                      {t("contratos.emptyPayrolls")}
                     </td>
                   </tr>
                 ) : (
@@ -620,7 +665,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                         checked={selectedPayrollHistoryIds.has(row.id)}
                         onChange={() => togglePayrollHistoryOne(row.id)}
                         className={checkboxClass}
-                        aria-label={`Seleccionar ${row.periodo}`}
+                        aria-label={`${t("common.select")} ${row.periodo}`}
                       />
                     </td>
                     <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
@@ -656,7 +701,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
         <section className="rounded-[12px] border border-[#EFEFEF] bg-white px-5 py-6">
           <div className="mb-[15px] flex flex-wrap items-center justify-between gap-4">
             <h2 className="text-[18px] font-bold leading-[1.3] text-black">
-              Variable de la nómina
+              {t("contratos.payrollVariable")}
             </h2>
             <div className="flex items-center gap-3">
               <button
@@ -664,7 +709,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                 onClick={handleGoToPayrollVariables}
                 className="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
               >
-                Ir
+                {t("common.go")}
               </button>
               <button
                 type="button"
@@ -672,7 +717,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                 className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
               >
                 <Download size={20} />
-                Exportar
+                {t("common.export")}
               </button>
             </div>
           </div>
@@ -690,7 +735,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                       isActive ? "text-[#0097B2]" : "text-[#858585] hover:text-[#0097B2]"
                     }`}
                   >
-                    {tab.label}
+                    {t(VARIABLE_TAB_I18N[tab.key])}
                     {isActive ? (
                       <span className="h-0.5 w-full rounded-full bg-[#0097B2]" />
                     ) : null}
@@ -710,23 +755,23 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                       checked={allVariablesSelected}
                       onChange={toggleVariablesAll}
                       className={checkboxClass}
-                      aria-label="Seleccionar todas las variables de nómina"
+                      aria-label={t("common.selectAll")}
                     />
                   </th>
                   <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                    Periodo
+                    {t("nominas.period")}
                   </th>
                   <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                    Tipo
+                    {t("contratos.type")}
                   </th>
                   <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                    Impacto
+                    {t("contratos.impact")}
                   </th>
                   <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                    Descripción
+                    {t("pagos.description")}
                   </th>
                   <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                    Estado
+                    {t("contratos.status")}
                   </th>
                   <th className={ADMIN_HUB_TABLE_HEAD_LAST_CELL} />
                 </tr>
@@ -738,7 +783,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                       colSpan={7}
                       className="px-6 py-8 text-center text-[14px] text-[#858585]"
                     >
-                      No hay variables de nómina para este contrato.
+                      {t("contratos.emptyVariables")}
                     </td>
                   </tr>
                 ) : (
@@ -750,14 +795,14 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
                         checked={selectedVariableIds.has(variable.id)}
                         onChange={() => toggleVariableOne(variable.id)}
                         className={checkboxClass}
-                        aria-label={`Seleccionar ${variable.tipo} — ${variable.periodo}`}
+                        aria-label={`${t("common.select")} ${variable.tipo} — ${variable.periodo}`}
                       />
                     </td>
                     <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
                       {variable.periodo}
                     </td>
                     <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
-                      {variable.tipo}
+                      {t(`nominas.types.${variable.tipo}`)}
                     </td>
                     <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
                       {formatVariableImpact(variable.impacto)}
@@ -779,7 +824,7 @@ export default function ContractDetailContent({ detail }: ContractDetailContentP
 
         <ObjectHistorialTable
           entidadId={detailState.id}
-          title="Historial de cambios del contrato"
+          title={t("contratos.changeHistory")}
         />
       </div>
     </div>

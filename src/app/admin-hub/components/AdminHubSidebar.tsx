@@ -15,29 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
-
-const rolLabels: Record<string, string> = {
-  ADMIN: "Administrador",
-  ADMIN_RECLUTAMIENTO: "Admin Reclutamiento",
-  EMPLEADO_ADMIN: "Admin Empleados",
-};
-
-const navItems = [
-  { label: "Panel de control", href: "/admin-hub/dashboard", icon: LayoutDashboard },
-  { label: "Personas", href: "/admin-hub/personas", icon: Users },
-  { label: "Contratos", href: "/admin-hub/contratos", icon: ClipboardList },
-];
-
-const nominasSubItems = [
-  { label: "Todas", href: "/admin-hub/nominas" },
-  { label: "Variables de nómina", href: "/admin-hub/nominas/variables" },
-];
-
-const nominasRelatedItems = [
-  { label: "Pagos", href: "/admin-hub/pagos", icon: Dock },
-  { label: "Facturas emitidas", href: "/admin-hub/pagos/emitidas", icon: Dock },
-  { label: "Historial", href: "/admin-hub/historial", icon: Clock },
-];
+import { useAdminHubI18n } from "../i18n";
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/admin-hub/pagos") {
@@ -61,7 +39,31 @@ export default function AdminHubSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuthStore();
+  const { t } = useAdminHubI18n();
   const [nominasExpanded, setNominasExpanded] = useState(() => isNominasPath(pathname));
+
+  const rolLabels: Record<string, string> = {
+    ADMIN: t("roles.ADMIN"),
+    ADMIN_RECLUTAMIENTO: t("roles.ADMIN_RECLUTAMIENTO"),
+    EMPLEADO_ADMIN: t("roles.EMPLEADO_ADMIN"),
+  };
+
+  const navItems = [
+    { label: t("nav.dashboard"), href: "/admin-hub/dashboard", icon: LayoutDashboard },
+    { label: t("nav.personas"), href: "/admin-hub/personas", icon: Users },
+    { label: t("nav.contratos"), href: "/admin-hub/contratos", icon: ClipboardList },
+  ];
+
+  const nominasSubItems = [
+    { label: t("nav.nominasAll"), href: "/admin-hub/nominas" },
+    { label: t("nav.nominasVariables"), href: "/admin-hub/nominas/variables" },
+  ];
+
+  const nominasRelatedItems = [
+    { label: t("nav.pagos"), href: "/admin-hub/pagos", icon: Dock },
+    { label: t("nav.facturasEmitidas"), href: "/admin-hub/pagos/emitidas", icon: Dock },
+    { label: t("nav.historial"), href: "/admin-hub/historial", icon: Clock },
+  ];
 
   const isNominasActive = isNominasPath(pathname);
 
@@ -93,7 +95,7 @@ export default function AdminHubSidebar() {
       <div className="flex items-center justify-between bg-[#F8F8F8] rounded-[8px] pl-[14px] pr-[18px] pt-[12px] pb-[9px] mx-2 mt-3 mb-1 min-h-[66px]">
         <div className="flex flex-col gap-[4px]">
           <p className="text-[14px] font-semibold text-black leading-[1.3]">
-            {rolLabels[user?.rol ?? ""] ?? "Administrador"}
+            {rolLabels[user?.rol ?? ""] ?? t("roles.fallback")}
           </p>
           <p className="text-[14px] text-[#525252] leading-[1.1] tracking-[0.28px]">
             {user?.nombre}
@@ -135,7 +137,7 @@ export default function AdminHubSidebar() {
             }`}
           >
             <Receipt size={20} className="shrink-0" />
-            <span className="flex-1 text-left tracking-[0.28px]">Nóminas</span>
+            <span className="flex-1 text-left tracking-[0.28px]">{t("nav.nominas")}</span>
             <ChevronDown
               size={18}
               className={`shrink-0 text-[#707070] transition-transform ${
@@ -202,7 +204,7 @@ export default function AdminHubSidebar() {
           }`}
         >
           <Settings size={20} className="shrink-0" />
-          <span className="tracking-[0.28px]">Configuración</span>
+          <span className="tracking-[0.28px]">{t("nav.configuracion")}</span>
         </Link>
       </div>
     </aside>

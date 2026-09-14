@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import AdminHubTableShell, {
   ADMIN_HUB_TABLE_ROW,
 } from "../../components/AdminHubTableShell";
+import { useAdminHubI18n } from "../../i18n";
 import { getHistorial } from "../actions/historial.actions";
 import type { HistorialItem, HistorialModulo } from "../types/historial.types";
-import { HISTORIAL_ACCION_LABEL } from "../types/historial.types";
 import { formatHistorialCambios } from "../utils/format-historial-cambios";
+import { translateHistorialAction } from "../utils/historial-labels";
 
 interface ObjectHistorialTableProps {
   entidadId: string;
@@ -18,26 +19,28 @@ interface ObjectHistorialTableProps {
   variant?: "card" | "plain";
 }
 
-function formatDateTime(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return new Intl.DateTimeFormat("es-CO", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
 export default function ObjectHistorialTable({
   entidadId,
   entidadTipo,
   modulo,
-  title = "Historial de cambios",
+  title,
   limit = 20,
   variant = "card",
 }: ObjectHistorialTableProps) {
+  const { t, dateLocale } = useAdminHubI18n();
   const [rows, setRows] = useState<HistorialItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const heading = title ?? t("historial.title");
+
+  function formatDateTime(iso: string): string {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return iso;
+    return new Intl.DateTimeFormat(dateLocale, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(date);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +60,7 @@ export default function ObjectHistorialTable({
 
       if (!response.success || !response.data) {
         setRows([]);
-        setError(response.message || "No se pudo cargar el historial");
+        setError(t("historial.loadError"));
         setLoading(false);
         return;
       }
@@ -70,22 +73,22 @@ export default function ObjectHistorialTable({
     return () => {
       cancelled = true;
     };
-  }, [entidadId, entidadTipo, modulo, limit]);
+  }, [entidadId, entidadTipo, modulo, limit, t]);
 
   const cellClass = "px-3 py-4 text-[14px] tracking-[0.28px] text-[#858585]";
 
   const body = (
     <>
       {variant === "plain" && (
-        <h3 className="mb-3 px-6 text-[14px] font-bold text-[#343434]">{title}</h3>
+        <h3 className="mb-3 px-6 text-[14px] font-bold text-[#343434]">{heading}</h3>
       )}
       {loading ? (
-        <p className="px-6 pb-4 text-[14px] text-[#858585]">Cargando historial…</p>
+        <p className="px-6 pb-4 text-[14px] text-[#858585]">{t("historial.loading")}</p>
       ) : error ? (
         <p className="px-6 pb-4 text-[14px] text-[#E33434]">{error}</p>
       ) : rows.length === 0 ? (
         <p className="px-6 pb-4 text-[14px] text-[#858585]">
-          No hay cambios registrados para este registro.
+          {t("historial.empty")}
         </p>
       ) : (
         <AdminHubTableShell variant="nested">
@@ -93,19 +96,19 @@ export default function ObjectHistorialTable({
             <thead>
               <tr className="border-b border-[#EFEFEF]">
                 <th className="px-3 py-4 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                  Fecha
+                  {t("historial.date")}
                 </th>
                 <th className="px-3 py-4 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                  Usuario
+                  {t("historial.user")}
                 </th>
                 <th className="px-3 py-4 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                  Acción
+                  {t("historial.action")}
                 </th>
                 <th className="px-3 py-4 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                  Campo
+                  {t("historial.field")}
                 </th>
                 <th className="px-3 py-4 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                  Detalle
+                  {t("historial.detail")}
                 </th>
               </tr>
             </thead>
@@ -119,7 +122,7 @@ export default function ObjectHistorialTable({
                     {row.usuario?.nombre || "Sistema"}
                   </td>
                   <td className={cellClass}>
-                    {HISTORIAL_ACCION_LABEL[row.accion] ?? row.accion}
+                    {translateHistorialAction(row.accion, t)}
                   </td>
                   <td className={`${cellClass} whitespace-normal`}>
                     {formatHistorialCambios(row.cambios)}
@@ -143,7 +146,7 @@ export default function ObjectHistorialTable({
   return (
     <section className="rounded-[12px] border border-[#EFEFEF] bg-white px-[30px] py-[33px]">
       <h2 className="mb-[23px] text-[18px] font-bold leading-[1.3] text-black">
-        {title}
+        {heading}
       </h2>
       {body}
     </section>

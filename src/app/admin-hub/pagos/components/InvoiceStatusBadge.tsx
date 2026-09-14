@@ -1,8 +1,11 @@
+"use client";
+
 import type { InvoiceStatus } from "../types/invoice.types";
 import type {
   InvoiceLineItemStatus,
   InvoicePayrollStatus,
 } from "../data/mock-invoice-details";
+import { useAdminHubI18n } from "../../i18n";
 
 export type InvoiceBadgeStatus =
   | InvoiceStatus
@@ -31,6 +34,8 @@ export default function InvoiceStatusBadge({
   status,
   enlarged = false,
 }: InvoiceStatusBadgeProps) {
+  const { t } = useAdminHubI18n();
+  const translated = t(`status.invoice.${status}`);
   return (
     <span
       className={`inline-flex items-center justify-center font-semibold leading-[1.2] ${statusStyles[status]} ${
@@ -39,7 +44,7 @@ export default function InvoiceStatusBadge({
           : "h-[22px] rounded-[10px] px-[6px] py-[5px] text-[10px]"
       }`}
     >
-      {status}
+      {translated.startsWith("status.") ? status : translated}
     </span>
   );
 }

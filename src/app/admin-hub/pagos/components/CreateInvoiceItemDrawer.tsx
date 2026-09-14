@@ -13,6 +13,7 @@ import {
 } from "../actions/pagos.actions";
 import { displayPeriodToApiPeriod } from "../actions/pagos.utils";
 import type { InvoicePayrollEntry } from "../types/invoice-detail.types";
+import { useAdminHubI18n } from "../../i18n";
 import CreateAdditionalItemForm, {
   type CreateAdditionalFormData,
   isAdditionalFormComplete,
@@ -28,11 +29,26 @@ export type MovementType = "customer-charges" | "customer-credits" | "adicionale
 
 type DrawerStep = "select-type" | "form";
 
-const MOVEMENT_OPTIONS: { id: MovementType; label: string }[] = [
-  { id: "customer-charges", label: "Cargos al cliente" },
-  { id: "customer-credits", label: "Créditos al cliente" },
-  { id: "adicionales", label: "Adicionales" },
-];
+const MOVEMENT_TYPE_KEYS: Record<MovementType, string> = {
+  "customer-charges": "pagos.sections.customerCharges",
+  "customer-credits": "pagos.sections.customerCredits",
+  adicionales: "pagos.sections.additional",
+};
+
+const ITEM_TYPE_KEYS: Record<string, string> = {
+  "team-building": "pagos.itemTypes.teamBuilding",
+  nomina: "pagos.itemTypes.payroll",
+  bono: "pagos.itemTypes.bonus",
+  tarifa: "pagos.itemTypes.fee",
+  deduccion: "pagos.itemTypes.deduction",
+  correccion: "pagos.itemTypes.correction",
+  equipamiento: "pagos.itemTypes.equipment",
+  capacitacion: "pagos.itemTypes.training",
+  renuncia: "pagos.itemTypes.resignation",
+  "deduccion-dias": "pagos.itemTypes.dayDeduction",
+  ausencia: "pagos.itemTypes.absence",
+  ajuste: "pagos.itemTypes.manualAdjust",
+};
 
 const EMPTY_FORM: CreateItemFormData = {
   tipo: "",
@@ -44,19 +60,6 @@ const EMPTY_ADDITIONAL_FORM: CreateAdditionalFormData = {
   contratista: "",
   descripcion: "",
   monto: "",
-};
-
-const TYPE_LABELS: Record<string, string> = {
-  "team-building": "Team Building",
-  nomina: "Nómina",
-  bono: "Bono",
-  tarifa: "Tarifa",
-  deduccion: "Deducción",
-  correccion: "Corrección",
-  equipamiento: "Equipamiento",
-  capacitacion: "Capacitación",
-  viaje: "Viaje",
-  overtime: "Overtime",
 };
 
 interface CreateInvoiceItemDrawerProps {
@@ -82,6 +85,7 @@ export default function CreateInvoiceItemDrawer({
   onAdditionalFeeCreated,
   onChargeCreated,
 }: CreateInvoiceItemDrawerProps) {
+  const { t, dateLocale } = useAdminHubI18n();
   const [step, setStep] = useState<DrawerStep>("select-type");
   const [selectedType, setSelectedType] = useState<MovementType | null>(null);
   const [formData, setFormData] = useState<CreateItemFormData>(EMPTY_FORM);
@@ -89,6 +93,15 @@ export default function CreateInvoiceItemDrawer({
     useState<CreateAdditionalFormData>(EMPTY_ADDITIONAL_FORM);
   const [isCreating, setIsCreating] = useState(false);
   const addNotification = useNotificationStore((state) => state.addNotification);
+
+  const movementOptions = useMemo(
+    () =>
+      (Object.keys(MOVEMENT_TYPE_KEYS) as MovementType[]).map((id) => ({
+        id,
+        label: t(MOVEMENT_TYPE_KEYS[id]),
+      })),
+    [t],
+  );
 
   const { contractorOptions, contractorPositionMap } = useMemo(() => {
     const positionMap = new Map<string, string>();
@@ -124,7 +137,20 @@ export default function CreateInvoiceItemDrawer({
   }
 
   function formatTipoLabel(tipo: string): string {
-    return TYPE_LABELS[tipo] ?? tipo.charAt(0).toUpperCase() + tipo.slice(1);
+    const key = ITEM_TYPE_KEYS[tipo];
+    if (key) return t(key);
+    if (tipo === "overtime") return t("nominas.types.Overtime");
+    return tipo.charAt(0).toUpperCase() + tipo.slice(1);
+  }
+
+  function formatItemDate(): string {
+    return new Date()
+      .toLocaleDateString(dateLocale, {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+      .replace(/\//g, ".");
   }
 
   function buildLineItem(
@@ -143,13 +169,7 @@ export default function CreateInvoiceItemDrawer({
 
     return {
       id: `new-${Date.now()}`,
-      date: new Date()
-        .toLocaleDateString("es-ES", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        })
-        .replace(/\//g, "."),
+      date: formatItemDate(),
       type: formatTipoLabel(tipo),
       contractor,
       description,
@@ -170,13 +190,7 @@ export default function CreateInvoiceItemDrawer({
 
       const newFee: InvoiceAdditionalFee = {
         id: `new-${Date.now()}`,
-        date: new Date()
-          .toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })
-          .replace(/\//g, "."),
+        date: formatItemDate(),
         contractor: additionalFormData.contratista,
         position:
           contractorPositionMap.get(additionalFormData.contratista) ?? "—",
@@ -218,14 +232,14 @@ export default function CreateInvoiceItemDrawer({
         });
 
         if (result.success) {
-          addNotification("Cargo creado exitosamente", "success");
+          addNotification(t("pagos.toasts.chargeCreated"), "success");
           onChargeCreated?.();
           onClose();
         } else {
-          addNotification(result.message || "Error al crear el cargo", "error");
+          addNotification(result.message || t("pagos.toasts.chargeCreateError"), "error");
         }
       } catch (error) {
-        addNotification("Error inesperado al crear el cargo", "error");
+        addNotification(t("pagos.toasts.chargeCreateUnexpected"), "error");
       } finally {
         setIsCreating(false);
       }
@@ -259,14 +273,14 @@ export default function CreateInvoiceItemDrawer({
         });
 
         if (result.success) {
-          addNotification("Crédito creado exitosamente", "success");
+          addNotification(t("pagos.toasts.creditCreated"), "success");
           onChargeCreated?.();
           onClose();
         } else {
-          addNotification(result.message || "Error al crear el crédito", "error");
+          addNotification(result.message || t("pagos.toasts.creditCreateError"), "error");
         }
       } catch (error) {
-        addNotification("Error inesperado al crear el crédito", "error");
+        addNotification(t("pagos.toasts.creditCreateUnexpected"), "error");
       } finally {
         setIsCreating(false);
       }
@@ -278,17 +292,17 @@ export default function CreateInvoiceItemDrawer({
     <AdminHubSideDrawer
       open={open}
       onClose={onClose}
-      title="Crear ítem"
+      title={t("pagos.createItem")}
       titleId="create-item-title"
       footer={
         <AdminHubDrawerFooter
           onCancel={onClose}
           primaryLabel={
             step === "select-type"
-              ? "Siguiente"
+              ? t("nominas.next")
               : isCreating
-              ? "Creando..."
-              : "Crear movimiento"
+              ? t("pagos.creating")
+              : t("pagos.createMovement")
           }
           onPrimary={step === "select-type" ? handleNext : handleCreate}
           primaryDisabled={
@@ -299,8 +313,8 @@ export default function CreateInvoiceItemDrawer({
     >
       {step === "select-type" ? (
         <AdminHubTypeSelectStep
-          title="Seleccionar tipo de movimiento"
-          options={MOVEMENT_OPTIONS}
+          title={t("pagos.selectMovementType")}
+          options={movementOptions}
           selectedId={selectedType}
           onSelect={setSelectedType}
         />

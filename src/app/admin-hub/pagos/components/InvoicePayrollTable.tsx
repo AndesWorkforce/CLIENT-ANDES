@@ -8,6 +8,7 @@ import type { InvoicePayrollEntry } from "../data/mock-invoice-details";
 import { formatClientPrice } from "../../nominas/data/mock-contractors";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 import InvoiceTableTotalRow from "./InvoiceTableTotalRow";
+import { useAdminHubI18n } from "../../i18n";
 
 const HOURS_FORMATTER = new Intl.NumberFormat("es-AR", {
   minimumFractionDigits: 0,
@@ -19,6 +20,7 @@ const HOURS_FORMATTER = new Intl.NumberFormat("es-AR", {
  * no un monto mensual. Mostramos los tres valores para que la factura sea auditable.
  */
 function PayrollClientPriceCell({ entry }: { entry: InvoicePayrollEntry }) {
+  const { t } = useAdminHubI18n();
   if (!entry.esHourly) {
     return <>{formatClientPrice(entry.clientPrice)}</>;
   }
@@ -28,7 +30,7 @@ function PayrollClientPriceCell({ entry }: { entry: InvoicePayrollEntry }) {
       <div className="flex flex-col gap-0.5">
         <span>{formatClientPrice(0)}</span>
         <span className="text-[12px] leading-[1.3] text-[#C87A00]">
-          Faltan horas del periodo
+          {t("pagos.missingPeriodHours")}
         </span>
       </div>
     );
@@ -66,6 +68,7 @@ export default function InvoicePayrollTable({
   onApproveSelected,
   isBusy = false,
 }: InvoicePayrollTableProps) {
+  const { t } = useAdminHubI18n();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
@@ -154,7 +157,7 @@ export default function InvoicePayrollTable({
       {onApproveSelected && seleccionadasPendientes.length > 0 && (
         <div className="flex items-center justify-between gap-3 border-b border-[#EFEFEF] bg-[#F5FAFB] px-6 py-3">
           <span className="text-[13px] text-[#525252]">
-            {seleccionadasPendientes.length} nómina(s) seleccionada(s)
+            {t("pagos.selectedPayrolls", { count: seleccionadasPendientes.length })}
           </span>
           <button
             type="button"
@@ -166,7 +169,7 @@ export default function InvoicePayrollTable({
             }
             className="inline-flex h-8 items-center rounded-[8px] bg-[#0097B2] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Aprobar seleccionadas
+            {t("pagos.approveSelected")}
           </button>
         </div>
       )}
@@ -179,24 +182,24 @@ export default function InvoicePayrollTable({
                 checked={allSelected}
                 onChange={toggleAll}
                 className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                aria-label="Seleccionar todas las nóminas"
+                aria-label={t("nominas.selectNamed", { name: t("nominas.title") })}
               />
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Nombre
+              {t("nominas.name")}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Puesto
+              {t("personas.position")}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Fecha de inicio de contrato
+              {t("personas.startDate")}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              {hasHourly ? "Precio del cliente / desglose" : "Precio del cliente"}
+              {hasHourly ? t("pagos.clientPriceBreakdown") : t("pagos.clientPrice")}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
               <span className="inline-flex items-center gap-1">
-                Estado
+                {t("nominas.status")}
                 <ChevronDown size={18} />
               </span>
             </th>
@@ -215,7 +218,7 @@ export default function InvoicePayrollTable({
                   checked={selectedIds.has(entry.id)}
                   onChange={() => toggleOne(entry.id)}
                   className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                  aria-label={`Seleccionar ${entry.contractorName}`}
+                  aria-label={t("nominas.selectNamed", { name: entry.contractorName })}
                 />
               </td>
               <td className={cellClass}>{entry.contractorName}</td>
@@ -234,7 +237,7 @@ export default function InvoicePayrollTable({
                   ref={(el) => {
                     menuButtonRefs.current[entry.id] = el;
                   }}
-                  aria-label="Más opciones"
+                  aria-label={t("common.moreOptions")}
                   aria-expanded={openMenuId === entry.id}
                   onClick={() => toggleRowMenu(entry.id)}
                   className={`rounded p-1 transition-colors ${
@@ -280,7 +283,7 @@ export default function InvoicePayrollTable({
                 }}
                 className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] transition-colors hover:bg-[#F8F8F8] disabled:opacity-50"
               >
-                Aprobar
+                {t("common.approve")}
               </button>
             )}
             {entradaDelMenu.status !== "Rechazada" && onReject && (
@@ -294,7 +297,7 @@ export default function InvoicePayrollTable({
                 }}
                 className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#B02A37] transition-colors hover:bg-[#FDF2F3] disabled:opacity-50"
               >
-                Rechazar
+                {t("common.reject")}
               </button>
             )}
           </div>,

@@ -31,6 +31,7 @@ import type { PayrollInvoiceStatus, PayrollProofStatus } from "../data/payroll-d
 import NominasTable from "./NominasTable";
 import AdminHubConfirmModal from "./AdminHubConfirmModal";
 import { useNotificationStore } from "@/store/notifications.store";
+import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 350;
@@ -42,29 +43,23 @@ const ACTION_BTN_SECONDARY = `${ACTION_BTN_BASE} border border-[#0097B2] text-[#
 const ACTION_BTN_DISABLED = `${ACTION_BTN_BASE} cursor-not-allowed border border-[#C8C8C8] bg-white text-[#C8C8C8]`;
 
 
-const STATUS_FILTER_OPTIONS: { value: PayrollVariableStatus; label: string }[] = [
-  { value: "Pendiente", label: "Pendiente" },
-  { value: "Aprobado", label: "Aprobado" },
-  { value: "Rechazado", label: "Rechazado" },
-  { value: "Emitido", label: "Emitido" },
+const STATUS_FILTER_VALUES: PayrollVariableStatus[] = [
+  "Pendiente",
+  "Aprobado",
+  "Rechazado",
+  "Emitido",
 ];
 
-const INVOICE_FILTER_OPTIONS: {
-  value: Exclude<PayrollInvoiceStatus, null>;
-  label: string;
-}[] = [
-  { value: "Generado", label: "Generado" },
-  { value: "Pendiente", label: "Pendiente" },
-  { value: "Faltan datos", label: "Faltan datos" },
+const INVOICE_FILTER_VALUES: Exclude<PayrollInvoiceStatus, null>[] = [
+  "Generado",
+  "Pendiente",
+  "Faltan datos",
 ];
 
-const PROOF_FILTER_OPTIONS: {
-  value: Exclude<PayrollProofStatus, null>;
-  label: string;
-}[] = [
-  { value: "Cargado", label: "Cargado" },
-  { value: "Pendiente", label: "Pendiente" },
-  { value: "Not req.", label: "Not req." },
+const PROOF_FILTER_VALUES: Exclude<PayrollProofStatus, null>[] = [
+  "Cargado",
+  "Pendiente",
+  "Not req.",
 ];
 
 function buildFilterOptions(values: string[]) {
@@ -75,8 +70,44 @@ function buildFilterOptions(values: string[]) {
 }
 
 export default function NominasPageContent() {
+  const { t } = useAdminHubI18n();
   const monthOptions = useMemo(() => buildNominaMonthOptions(), []);
   const currentMonthOption = useMemo(() => getCurrentNominaMonthOption(), []);
+  const statusFilterOptions = useMemo(
+    () =>
+      STATUS_FILTER_VALUES.map((value) => ({
+        value,
+        label: t(`status.payroll.${value}`),
+      })),
+    [t],
+  );
+  const invoiceFilterOptions = useMemo(
+    () =>
+      INVOICE_FILTER_VALUES.map((value) => ({
+        value,
+        label: t(`status.invoicePayroll.${value}`),
+      })),
+    [t],
+  );
+  const proofFilterOptions = useMemo(
+    () =>
+      PROOF_FILTER_VALUES.map((value) => ({
+        value,
+        label:
+          value === "Not req."
+            ? t("status.proof.notRequired")
+            : t(`status.proof.${value}`),
+      })),
+    [t],
+  );
+  const monthSelectOptions = useMemo(
+    () =>
+      monthOptions.map((month) => ({
+        value: month,
+        label: formatAdminHubPeriod(nominaMonthOptionToAnioMes(month), t),
+      })),
+    [monthOptions, t],
+  );
 
   const [selectedMonth, setSelectedMonth] = useState(currentMonthOption);
   const [rows, setRows] = useState<PayrollRow[]>([]);
@@ -144,7 +175,7 @@ export default function NominasPageContent() {
   const loadNominas = useCallback(async () => {
     if (!isValidAnioMes(periodoApi)) {
       setRows([]);
-      setError("El período seleccionado no es válido.");
+      setError(t("nominas.invalidPeriod"));
       setLoading(false);
       return;
     }
@@ -173,7 +204,7 @@ export default function NominasPageContent() {
         hasPreviousPage: false,
         hasNextPage: false,
       }));
-      setError(response.message || "No se pudieron cargar las nóminas");
+      setError(response.message || t("nominas.loadError"));
       setLoading(false);
       return;
     }
@@ -192,6 +223,7 @@ export default function NominasPageContent() {
     statusFilter,
     invoiceFilter,
     proofFilter,
+    t,
   ]);
 
   useEffect(() => {
@@ -228,7 +260,7 @@ export default function NominasPageContent() {
     const nominasSeleccionadas = rows.filter((row) => selectedIds.has(row.id));
 
     if (nominasSeleccionadas.length === 0) {
-      errors.push("Por favor selecciona al menos una nómina para aprobar.");
+      errors.push(t("nominas.selectAtLeastOne"));
       return errors;
     }
 
@@ -237,10 +269,14 @@ export default function NominasPageContent() {
     );
     if (nominasFueraDeMes.length > 0) {
       errors.push(
-        `Las siguientes nóminas no pertenecen al mes seleccionado (${selectedMonth}):`,
+        t("nominas.wrongMonth", {
+          month: formatAdminHubPeriod(periodoApi, t),
+        }),
       );
       nominasFueraDeMes.forEach((row) => {
-        errors.push(`  • ${row.contractorName} (${row.client}) - Período: ${row.period}`);
+        errors.push(
+          `  • ${row.contractorName} (${row.client}) - ${t("nominas.periodColon")} ${formatAdminHubPeriod(row.periodoAnioMes, t)}`,
+        );
       });
     }
 
@@ -248,7 +284,7 @@ export default function NominasPageContent() {
       (row) => row.status === "Emitido",
     );
     if (nominasYaEmitidas.length > 0) {
-      errors.push("Las siguientes nóminas ya fueron emitidas y no se pueden aprobar:");
+      errors.push(t("nominas.alreadyEmitted"));
       nominasYaEmitidas.forEach((row) => {
         errors.push(`  • ${row.contractorName} (${row.client})`);
       });
@@ -270,7 +306,7 @@ export default function NominasPageContent() {
 
   function handleEmitirNominas() {
     addNotification(
-      "La emisión masiva de nóminas estará disponible próximamente.",
+      t("nominas.bulkEmitSoon"),
       "info",
     );
   }
@@ -305,7 +341,7 @@ export default function NominasPageContent() {
         setShowConfirmModal(false);
         setValidationErrors([]);
         addNotification(
-          result.message || "Nóminas aprobadas correctamente",
+          result.message || t("nominas.approvedSuccess"),
           "success",
           "compact",
         );
@@ -321,13 +357,13 @@ export default function NominasPageContent() {
   return (
     <div className="flex flex-col gap-6">
       <AdminHubBreadcrumbs />
-      <h1 className="text-[32px] font-bold text-black leading-[1.3]">Nóminas</h1>
+      <h1 className="text-[32px] font-bold text-black leading-[1.3]">{t("nominas.title")}</h1>
 
       <div className="flex flex-wrap items-center justify-between gap-[7px]">
         <AdminHubSelect
           value={selectedMonth}
           onChange={handleMonthChange}
-          options={monthOptions.map((month) => ({ value: month, label: month }))}
+          options={monthSelectOptions}
           variant="filter"
         />
         {hasSelectedRows ? (
@@ -335,12 +371,12 @@ export default function NominasPageContent() {
             <button
               type="button"
               disabled
-              title="Funcionalidad desactivada"
+              title={t("nominas.featureDisabled")}
               aria-disabled="true"
               className={ACTION_BTN_DISABLED}
             >
               <Download size={24} aria-hidden />
-              Exportar
+              {t("common.export")}
             </button>
             <button
               type="button"
@@ -348,7 +384,7 @@ export default function NominasPageContent() {
               className={ACTION_BTN_SECONDARY}
             >
               <CircleCheck size={24} aria-hidden />
-              Aprobar ({selectedIds.size})
+              {t("nominas.approveN", { count: selectedIds.size })}
             </button>
             <button
               type="button"
@@ -356,7 +392,7 @@ export default function NominasPageContent() {
               className={ACTION_BTN_PRIMARY}
             >
               <FileText size={24} aria-hidden />
-              Emitir nóminas ({selectedIds.size})
+              {t("nominas.emitN", { count: selectedIds.size })}
             </button>
           </div>
         ) : null}
@@ -376,7 +412,7 @@ export default function NominasPageContent() {
                 : "border-[#C8C8C8] text-[#858585] hover:border-[#0097B2] hover:text-[#0097B2]"
             }`}
           >
-            Filtros
+            {t("common.filters")}
             <Filter size={18} />
           </button>
         </div>
@@ -384,8 +420,8 @@ export default function NominasPageContent() {
         {filtersOpen && (
           <div className={ADMIN_HUB_FILTERS_ROW_CLASS}>
             <InvoiceFilterSelect
-              label="Filtrar por Cliente"
-              placeholder="Cliente"
+              label={t("nominas.filterClient")}
+              placeholder={t("nominas.client")}
               value={clientFilter}
               onChange={(value) => {
                 setClientFilter(value);
@@ -394,34 +430,34 @@ export default function NominasPageContent() {
               options={clientFilterOptions}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Estado"
-              placeholder="Pendiente"
+              label={t("nominas.filterStatus")}
+              placeholder={t("status.payroll.Pendiente")}
               value={statusFilter}
               onChange={(value) => {
                 setStatusFilter(value);
                 setPage(1);
               }}
-              options={STATUS_FILTER_OPTIONS}
+              options={statusFilterOptions}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Invoice"
-              placeholder="Invoice"
+              label={t("nominas.filterInvoice")}
+              placeholder={t("nominas.invoice")}
               value={invoiceFilter}
               onChange={(value) => {
                 setInvoiceFilter(value);
                 setPage(1);
               }}
-              options={INVOICE_FILTER_OPTIONS}
+              options={invoiceFilterOptions}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Proof"
-              placeholder="Proof"
+              label={t("nominas.filterProof")}
+              placeholder={t("nominas.proof")}
               value={proofFilter}
               onChange={(value) => {
                 setProofFilter(value);
                 setPage(1);
               }}
-              options={PROOF_FILTER_OPTIONS}
+              options={proofFilterOptions}
             />
             <button
               type="button"
@@ -433,7 +469,7 @@ export default function NominasPageContent() {
                   : "cursor-default text-[#C8C8C8]"
               }`}
             >
-              Limpiar filtros
+              {t("common.clearFilters")}
             </button>
           </div>
         )}
@@ -452,8 +488,8 @@ export default function NominasPageContent() {
       ) : rows.length === 0 ? (
         <div className="rounded-[12px] border border-[#EFEFEF] bg-white px-6 py-12 text-center text-[14px] text-[#858585]">
           {hasActiveFilters || debouncedSearch
-            ? "No hay nóminas que coincidan con los filtros aplicados."
-            : "No hay nóminas para el período seleccionado."}
+            ? t("nominas.emptyFiltered")
+            : t("nominas.emptyPeriod")}
         </div>
       ) : (
         <NominasTable
@@ -466,8 +502,11 @@ export default function NominasPageContent() {
       {!loading && pagination.totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="text-[14px] text-[#858585]">
-            Mostrando página {pagination.page} de {pagination.totalPages} (
-            {pagination.total} nóminas)
+            {t("nominas.showingPageCount", {
+              page: pagination.page,
+              total: pagination.totalPages,
+              count: pagination.total,
+            })}
           </p>
 
           <div className="inline-flex overflow-hidden rounded-[8px] border border-[#EFEFEF]">
@@ -476,7 +515,7 @@ export default function NominasPageContent() {
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               disabled={!pagination.hasPreviousPage}
               className="flex items-center justify-center px-3 py-2 text-[#0097B2] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Página anterior"
+              aria-label={t("common.previousPage")}
             >
               <ChevronLeft size={18} />
             </button>
@@ -503,7 +542,7 @@ export default function NominasPageContent() {
               }
               disabled={!pagination.hasNextPage}
               className="flex items-center justify-center px-3 py-2 text-[#0097B2] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Página siguiente"
+              aria-label={t("common.nextPage")}
             >
               <ChevronRight size={18} />
             </button>
@@ -514,9 +553,11 @@ export default function NominasPageContent() {
       {showConfirmModal && (
         <AdminHubConfirmModal
           open
-          title="Confirmar aprobación de nóminas"
-          cancelLabel="Cancelar"
-          confirmLabel={isApproving ? "Aprobando..." : "Confirmar aprobación"}
+          title={t("nominas.confirmApprovalTitle")}
+          cancelLabel={t("common.cancel")}
+          confirmLabel={
+            isApproving ? t("nominas.confirming") : t("nominas.confirmApproval")
+          }
           confirmLoading={isApproving}
           onClose={() => setShowConfirmModal(false)}
           onConfirm={() => void handleConfirmAprobacion()}
@@ -524,25 +565,27 @@ export default function NominasPageContent() {
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">
-                <span className="text-[14px] font-semibold text-[#525252]">Mes:</span>
-                <span className="text-[14px] text-[#343434]">{selectedMonth}</span>
+                <span className="text-[14px] font-semibold text-[#525252]">
+                  {t("nominas.month")}
+                </span>
+                <span className="text-[14px] text-[#343434]">
+                  {formatAdminHubPeriod(periodoApi, t)}
+                </span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">
                 <span className="text-[14px] font-semibold text-[#525252]">
-                  Registros seleccionados:
+                  {t("nominas.selectedRecords")}
                 </span>
                 <span className="text-[14px] text-[#343434]">{selectedIds.size}</span>
               </div>
             </div>
             <div className="bg-[#DFFAFF] rounded-[8px] px-4 py-3">
               <p className="text-[14px] text-[#007A8C] leading-relaxed">
-                Se aprobarán las variables pendientes de cada nómina y luego la nómina,
-                siempre que no quede ninguna variable en estado Pendiente (Rechazado
-                permitido).
+                {t("nominas.approvalHint")}
               </p>
             </div>
             <p className="text-[14px] text-[#858585] leading-relaxed">
-              ¿Deseas continuar con la aprobación?
+              {t("nominas.continueApprovalQuestion")}
             </p>
           </div>
         </AdminHubConfirmModal>
@@ -562,19 +605,19 @@ export default function NominasPageContent() {
                 }`}
               >
                 {validationErrors.length === 0
-                  ? "✓ Nóminas aprobadas"
-                  : "⚠ Errores al aprobar"}
+                  ? t("nominas.approvedCheck")
+                  : t("nominas.approvalErrorsTitle")}
               </h2>
             </div>
             <div className="px-6 py-6">
               {validationErrors.length === 0 ? (
                 <p className="text-[14px] text-[#343434] leading-relaxed">
-                  Las nóminas fueron aprobadas correctamente y su estado se actualizó.
+                  {t("nominas.approvalSuccessBody")}
                 </p>
               ) : (
                 <div className="space-y-3">
                   <p className="text-[14px] text-[#721C24] font-semibold">
-                    No se pudo completar la aprobación de todas las nóminas:
+                    {t("nominas.approvalPartialError")}
                   </p>
                   <div className="bg-[#FFF5F5] rounded-[8px] px-4 py-3">
                     <ul className="text-[13px] text-[#343434] space-y-1">
@@ -597,7 +640,7 @@ export default function NominasPageContent() {
                 }}
                 className="px-5 py-2 rounded-[8px] bg-[#0097B2] text-white text-[14px] font-semibold hover:bg-[#008099] transition-colors"
               >
-                Entendido
+                {t("nominas.understood")}
               </button>
             </div>
           </div>

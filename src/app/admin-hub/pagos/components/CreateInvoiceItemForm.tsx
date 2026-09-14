@@ -2,6 +2,7 @@
 
 import type { MovementType } from "./CreateInvoiceItemDrawer";
 import AdminHubFormField from "../../components/AdminHubFormField";
+import { useAdminHubI18n } from "../../i18n";
 import {
   INVOICE_ITEM_CURRENCY,
   isCreateItemFormComplete,
@@ -20,26 +21,29 @@ interface CreateInvoiceItemFormProps {
   onChange: (data: CreateItemFormData) => void;
 }
 
-const CHARGE_TYPES = [
-  { value: "team-building", label: "Team Building" },
-  { value: "nomina", label: "Nomina" },
-  { value: "bono", label: "Bono" },
-  { value: "tarifa", label: "Tarifa" },
-];
+const CHARGE_TYPE_VALUES = [
+  { value: "team-building", labelKey: "pagos.itemTypes.teamBuilding" },
+  { value: "nomina", labelKey: "pagos.itemTypes.payroll" },
+  { value: "bono", labelKey: "pagos.itemTypes.bonus" },
+  { value: "tarifa", labelKey: "pagos.itemTypes.fee" },
+] as const;
 
-const CREDIT_TYPES = [
-  { value: "renuncia", label: "Renuncia" },
-  { value: "deduccion-dias", label: "Deducción días libres" },
-  { value: "ausencia", label: "Ausencia" },
-  { value: "ajuste", label: "Ajuste manual" },
-];
+const CREDIT_TYPE_VALUES = [
+  { value: "renuncia", labelKey: "pagos.itemTypes.resignation" },
+  { value: "deduccion-dias", labelKey: "pagos.itemTypes.dayDeduction" },
+  { value: "ausencia", labelKey: "pagos.itemTypes.absence" },
+  { value: "ajuste", labelKey: "pagos.itemTypes.manualAdjust" },
+] as const;
 
 export default function CreateInvoiceItemForm({
   movementType,
   formData,
   onChange,
 }: CreateInvoiceItemFormProps) {
-  const tipoOptions = movementType === "customer-charges" ? CHARGE_TYPES : CREDIT_TYPES;
+  const { t } = useAdminHubI18n();
+  const tipoOptions = (
+    movementType === "customer-charges" ? CHARGE_TYPE_VALUES : CREDIT_TYPE_VALUES
+  ).map((option) => ({ value: option.value, label: t(option.labelKey) }));
 
   function updateField<K extends keyof CreateItemFormData>(key: K, value: CreateItemFormData[K]) {
     onChange({ ...formData, [key]: value });
@@ -48,30 +52,30 @@ export default function CreateInvoiceItemForm({
   return (
     <div className="w-full max-w-[636px] rounded-[12px] border border-[#EFEFEF] bg-white p-[30px]">
       <div className="flex flex-col gap-[10px]">
-        <h3 className="text-[18px] font-bold leading-[1.3] text-black">Información General</h3>
+        <h3 className="text-[18px] font-bold leading-[1.3] text-black">{t("personas.generalInfo")}</h3>
 
         <AdminHubFormField
           type="select"
-          label="Tipo"
+          label={t("nominas.type")}
           value={formData.tipo}
           onChange={(v) => updateField("tipo", v)}
           options={tipoOptions}
-          placeholder="Seleccionar tipo"
+          placeholder={t("pagos.selectType")}
         />
 
         <AdminHubFormField
           type="input"
-          label="Descripción"
+          label={t("pagos.description")}
           value={formData.descripcion}
           onChange={(v) => updateField("descripcion", v)}
-          placeholder="Descripción del ítem"
+          placeholder={t("pagos.itemDescriptionPlaceholder")}
         />
 
         <div className="flex flex-col gap-[10px] sm:flex-row">
           <div className="min-w-0 flex-1 sm:max-w-[350px]">
             <AdminHubFormField
               type="input"
-              label="Monto"
+              label={t("nominas.amount")}
               value={formData.monto}
               onChange={(v) => updateField("monto", v)}
               placeholder="$0"
@@ -80,7 +84,7 @@ export default function CreateInvoiceItemForm({
           <div className="w-full sm:w-[222px] shrink-0">
             <AdminHubFormField
               type="input"
-              label="Moneda"
+              label={t("personas.currency")}
               value={INVOICE_ITEM_CURRENCY}
               onChange={() => undefined}
               readOnly

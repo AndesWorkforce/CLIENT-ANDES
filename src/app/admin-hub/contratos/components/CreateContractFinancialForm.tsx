@@ -1,6 +1,7 @@
 "use client";
 
 import AdminHubFormField from "../../components/AdminHubFormField";
+import { useAdminHubI18n } from "../../i18n";
 import {
   BANK_OPTIONS,
   BILLING_COUNTRY_OPTIONS,
@@ -20,6 +21,7 @@ export default function CreateContractFinancialForm({
   formData,
   onChange,
 }: CreateContractFinancialFormProps) {
+  const { t } = useAdminHubI18n();
   const showArqTag = formData.metodoPago === ARQ_APP_PAYMENT_METHOD;
 
   function patch(partial: Partial<CreateContractFormData>) {
@@ -33,11 +35,19 @@ export default function CreateContractFinancialForm({
     });
   }
 
+  const paymentOptions = PAYMENT_METHOD_OPTIONS.map((option) => ({
+    ...option,
+    label:
+      option.value === "Transferencia bancaria"
+        ? t("paymentMethod.bankTransfer")
+        : option.label,
+  }));
+
   return (
-    <ContractFormSection title="Información Financiera">
+    <ContractFormSection title={t("personas.financialInfo")}>
       <AdminHubFormField
         type="select"
-        label="País de Facturación"
+        label={t("personas.billingCountry")}
         value={formData.paisFacturacion}
         onChange={(paisFacturacion) => patch({ paisFacturacion })}
         options={BILLING_COUNTRY_OPTIONS}
@@ -45,16 +55,16 @@ export default function CreateContractFinancialForm({
       />
       <AdminHubFormField
         type="select"
-        label="Metódo de pago"
+        label={t("personas.paymentMethod")}
         value={formData.metodoPago}
         onChange={handlePaymentMethodChange}
-        options={PAYMENT_METHOD_OPTIONS}
-        placeholder="Transferencia bancaria"
+        options={paymentOptions}
+        placeholder={t("paymentMethod.bankTransfer")}
       />
       {showArqTag ? (
         <AdminHubFormField
           type="input"
-          label="ARQ Tag"
+          label={t("personas.dollarTag")}
           required={false}
           value={formData.arqTag}
           onChange={(arqTag) => patch({ arqTag })}
@@ -63,7 +73,7 @@ export default function CreateContractFinancialForm({
       ) : null}
       <AdminHubFormField
         type="select"
-        label="Banco Personal"
+        label={t("personas.personalBank")}
         required={false}
         value={formData.bancoPersonal}
         onChange={(bancoPersonal) => patch({ bancoPersonal })}
@@ -72,7 +82,7 @@ export default function CreateContractFinancialForm({
       />
       <AdminHubFormField
         type="input"
-        label="Numero de Cuenta Bancaria personal"
+        label={t("personas.personalAccountNumber")}
         required={false}
         value={formData.numeroCuentaPersonal}
         onChange={(numeroCuentaPersonal) => patch({ numeroCuentaPersonal })}
@@ -80,7 +90,7 @@ export default function CreateContractFinancialForm({
       />
       <AdminHubFormField
         type="select"
-        label="Nombre de Banco de Facturación"
+        label={t("personas.billingBankName")}
         required={false}
         value={formData.bancoFacturacion}
         onChange={(bancoFacturacion) => patch({ bancoFacturacion })}
@@ -89,7 +99,7 @@ export default function CreateContractFinancialForm({
       />
       <AdminHubFormField
         type="input"
-        label="Numero de Banco de Facturación"
+        label={t("personas.billingBankNumber")}
         required={false}
         value={formData.numeroBancoFacturacion}
         onChange={(numeroBancoFacturacion) => patch({ numeroBancoFacturacion })}

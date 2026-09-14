@@ -12,6 +12,7 @@ import AdminHubTableShell, {
 } from "../../components/AdminHubTableShell";
 import { formatMoney, type PayrollRow } from "../data/payroll-data";
 import { payrollRowToDetailPath } from "../utils/payroll-navigation";
+import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
 import PayrollInvoiceBadge from "./PayrollInvoiceBadge";
 import PayrollProofBadge from "./PayrollProofBadge";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
@@ -40,6 +41,7 @@ const PROOF_SORT_ORDER: Record<string, number> = {
 };
 
 export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }: NominasTableProps) {
+  const { t } = useAdminHubI18n();
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -202,34 +204,34 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
                 checked={allSelected}
                 onChange={toggleAll}
                 className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                aria-label="Seleccionar todas"
+                aria-label={t("common.selectAll")}
               />
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Contratista
+              {t("nominas.contractor")}
             </th>
             <th className="max-w-[28ch] px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Puesto
+              {t("nominas.position")}
             </th>
             <th
               className={`px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252] ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}
             >
-              Cliente
+              {t("nominas.client")}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              Período
+              {t("nominas.period")}
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              <SortableHeader label="Invoice" sortField="invoice" />
+              <SortableHeader label={t("nominas.invoice")} sortField="invoice" />
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              <SortableHeader label="Proofs" sortField="proof" />
+              <SortableHeader label={t("nominas.proofs")} sortField="proof" />
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              <SortableHeader label="Monto total" sortField="totalAmount" />
+              <SortableHeader label={t("nominas.totalAmount")} sortField="totalAmount" />
             </th>
             <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-              <SortableHeader label="Estado" sortField="status" />
+              <SortableHeader label={t("nominas.status")} sortField="status" />
             </th>
             <th className={ADMIN_HUB_TABLE_HEAD_LAST_CELL} />
           </tr>
@@ -243,7 +245,7 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
                   checked={selectedIds.has(row.id)}
                   onChange={() => toggleOne(row.id)}
                   className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                  aria-label={`Seleccionar ${row.contractorName}`}
+                  aria-label={t("nominas.selectNamed", { name: row.contractorName })}
                 />
               </td>
               <td className={cellClass}>{row.contractorName}</td>
@@ -253,7 +255,9 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
               <td className={`${cellClass} ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}>
                 {row.client}
               </td>
-              <td className={cellClass}>{row.period}</td>
+              <td className={cellClass}>
+                {formatAdminHubPeriod(row.periodoAnioMes, t)}
+              </td>
               <td className={cellClass}>
                 <PayrollInvoiceBadge status={row.invoice} />
               </td>
@@ -271,7 +275,7 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
                       menuButtonRefs.current[row.id] = el;
                     }}
                     type="button"
-                    aria-label="Más opciones"
+                    aria-label={t("common.moreOptions")}
                     aria-expanded={openMenuId === row.id}
                     aria-haspopup="menu"
                     onClick={() => toggleRowMenu(row.id)}
@@ -307,7 +311,7 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
               onClick={closeMenu}
               className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] hover:bg-[#F8F8F8] transition-colors cursor-pointer"
             >
-              Ver detalle
+              {t("nominas.viewDetail")}
             </Link>
             <button
               type="button"
@@ -315,7 +319,7 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
               onClick={closeMenu}
               className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] hover:bg-[#F8F8F8] transition-colors cursor-pointer"
             >
-              Editar
+              {t("common.edit")}
             </button>
           </div>,
           document.body

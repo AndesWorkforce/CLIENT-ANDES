@@ -10,7 +10,9 @@ import AdminHubTableShell, {
   ADMIN_HUB_TABLE_ROW,
 } from "../../components/AdminHubTableShell";
 import { ensureInvoiceSnapshot } from "../actions/pagos.actions";
+import { displayPeriodToApiPeriod } from "../actions/pagos.utils";
 import type { Invoice } from "../types/invoice.types";
+import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 
 interface InvoicesTableProps {
@@ -22,10 +24,19 @@ interface InvoicesTableProps {
 export default function InvoicesTable({
   invoices,
   displayPeriod,
-  emptyMessage = "No hay facturas para el periodo seleccionado.",
+  emptyMessage,
 }: InvoicesTableProps) {
+  const { t } = useAdminHubI18n();
   const router = useRouter();
   const addNotification = useNotificationStore((state) => state.addNotification);
+  const resolvedEmptyMessage = emptyMessage ?? t("pagos.empty");
+  const periodLabel = useMemo(() => {
+    try {
+      return formatAdminHubPeriod(displayPeriodToApiPeriod(displayPeriod), t);
+    } catch {
+      return formatAdminHubPeriod(displayPeriod, t);
+    }
+  }, [displayPeriod, t]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortByAmount, setSortByAmount] = useState<"asc" | "desc" | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -58,7 +69,7 @@ export default function InvoicesTable({
 
     if (!result.success || !result.data?.id) {
       addNotification(
-        result.message ?? "No se pudo abrir la factura del cliente",
+        result.message ?? t("pagos.openInvoiceError"),
         "error",
       );
       return;
@@ -122,7 +133,7 @@ export default function InvoicesTable({
     <AdminHubTableShell>
       {displayedInvoices.length === 0 ? (
         <div className="flex min-h-[240px] items-center justify-center bg-white px-6 py-12">
-          <p className="text-[14px] text-[#858585]">{emptyMessage}</p>
+          <p className="text-[14px] text-[#858585]">{resolvedEmptyMessage}</p>
         </div>
       ) : (
         <table className="w-full min-w-[900px] border-collapse bg-white">
@@ -134,17 +145,17 @@ export default function InvoicesTable({
                   checked={allSelected}
                   onChange={toggleAll}
                   className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                  aria-label="Seleccionar todas"
+                  aria-label={t("common.selectAll")}
                 />
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                ID Cliente
+                {t("pagos.clientId")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Cliente
+                {t("nominas.client")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Periodo
+                {t("nominas.period")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 <button
@@ -152,7 +163,7 @@ export default function InvoicesTable({
                   onClick={toggleAmountSort}
                   className="inline-flex items-center gap-1 hover:text-[#0097B2]"
                 >
-                  Monto total
+                  {t("nominas.totalAmount")}
                   <ChevronDown
                     size={18}
                     className={`transition-transform ${sortByAmount === "asc" ? "rotate-180" : ""}`}
@@ -160,7 +171,7 @@ export default function InvoicesTable({
                 </button>
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Estado
+                {t("nominas.status")}
               </th>
               <th className={ADMIN_HUB_TABLE_HEAD_LAST_CELL} />
             </tr>
@@ -178,7 +189,7 @@ export default function InvoicesTable({
                     checked={selectedIds.has(invoice.id)}
                     onChange={() => toggleOne(invoice.id)}
                     className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                    aria-label={`Seleccionar ${invoice.client}`}
+                    aria-label={t("nominas.selectNamed", { name: invoice.client })}
                   />
                 </td>
                 <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
@@ -188,7 +199,7 @@ export default function InvoicesTable({
                   {invoice.client}
                 </td>
                 <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
-                  {displayPeriod}
+                  {periodLabel}
                 </td>
                 <td className="px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]">
                   {invoice.totalAmount}
@@ -200,7 +211,7 @@ export default function InvoicesTable({
                   <div className="relative inline-block" data-invoice-row-menu>
                     <button
                       type="button"
-                      aria-label="Más opciones"
+                      aria-label={t("common.moreOptions")}
                       aria-expanded={openMenuId === invoice.id}
                       aria-haspopup="menu"
                       disabled={openingInvoiceId === invoice.id}
@@ -227,8 +238,8 @@ export default function InvoicesTable({
                           className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] hover:bg-[#F8F8F8] transition-colors cursor-pointer disabled:opacity-50"
                         >
                           {openingInvoiceId === invoice.id
-                            ? "Abriendo..."
-                            : "Ver Factura"}
+                            ? t("pagos.opening")
+                            : t("pagos.viewInvoice")}
                         </button>
                       </div>
                     )}

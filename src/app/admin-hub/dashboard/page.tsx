@@ -2,15 +2,17 @@
 
 import AdminHubBreadcrumbs from "../components/AdminHubBreadcrumbs";
 import { useAuthStore } from "@/store/auth.store";
+import { useAdminHubI18n } from "../i18n";
 
 export default function AdminHubDashboardPage() {
   const { user } = useAuthStore();
+  const { t } = useAdminHubI18n();
 
   return (
     <div className="flex flex-col gap-6">
       <AdminHubBreadcrumbs />
       <h1 className="text-[32px] font-bold text-[#343434] leading-[1.3]">
-        Hola, {user?.nombre ?? "Administrador"}!
+        {t("dashboard.hello", { name: user?.nombre ?? t("roles.fallback") })}
       </h1>
     </div>
   );

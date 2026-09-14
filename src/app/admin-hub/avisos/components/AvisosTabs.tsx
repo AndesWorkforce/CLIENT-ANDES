@@ -1,6 +1,7 @@
 "use client";
 
 import type { AvisoTab } from "../types/avisos.types";
+import { useAdminHubI18n } from "../../i18n";
 
 interface AvisosTabsProps {
   activeTab: AvisoTab;
@@ -8,13 +9,15 @@ interface AvisosTabsProps {
   onChange: (tab: AvisoTab) => void;
 }
 
-const TABS: { id: AvisoTab; label: string }[] = [
-  { id: "todos", label: "Todos" },
-  { id: "no-leidas", label: "No leídas" },
-  { id: "leidas", label: "Leídas" },
+const TABS: { id: AvisoTab; labelKey: string }[] = [
+  { id: "todos", labelKey: "avisos.tabs.all" },
+  { id: "no-leidas", labelKey: "avisos.tabs.unread" },
+  { id: "leidas", labelKey: "avisos.tabs.read" },
 ];
 
 export default function AvisosTabs({ activeTab, counts, onChange }: AvisosTabsProps) {
+  const { t } = useAdminHubI18n();
+
   return (
     <div className="border-b border-[#EFEFEF]">
       <div className="flex flex-wrap gap-[38px]">
@@ -30,7 +33,7 @@ export default function AvisosTabs({ activeTab, counts, onChange }: AvisosTabsPr
               }`}
             >
               <span className="flex h-[18px] items-center gap-[3px] text-[14px] font-medium leading-[1.2]">
-                {tab.label}
+                {t(tab.labelKey)}
                 <span
                   className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-[6px] py-[2px] text-[12px] font-semibold leading-[1.3] ${
                     isActive ? "bg-[#1A8FA0] text-white" : "bg-[#C8C8C8] text-[#707070]"

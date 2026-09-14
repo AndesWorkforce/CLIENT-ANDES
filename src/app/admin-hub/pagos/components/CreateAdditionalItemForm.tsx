@@ -1,6 +1,7 @@
 "use client";
 
 import AdminHubFormField from "../../components/AdminHubFormField";
+import { useAdminHubI18n } from "../../i18n";
 
 export const ADDITIONAL_FEE_TYPE = "Additional Fee";
 
@@ -25,6 +26,7 @@ export default function CreateAdditionalItemForm({
   onChange,
   contractorOptions,
 }: CreateAdditionalItemFormProps) {
+  const { t } = useAdminHubI18n();
   function updateField<K extends keyof CreateAdditionalFormData>(
     key: K,
     value: CreateAdditionalFormData[K]
@@ -36,34 +38,34 @@ export default function CreateAdditionalItemForm({
     <div className="w-full max-w-[636px] rounded-[8px] border border-[#EFEFEF] bg-white p-[30px]">
       <div className="flex flex-col gap-[10px]">
         <h3 className="text-[18px] font-bold leading-[1.3] text-black">
-          Información General
+          {t("personas.generalInfo")}
         </h3>
 
         <div className="rounded-[8px] border border-[#EFEFEF] bg-[#F8F8F8] px-4 py-3">
-          <p className="text-[12px] font-medium text-[#525252]">Tipo</p>
+          <p className="text-[12px] font-medium text-[#525252]">{t("nominas.type")}</p>
           <p className="text-[14px] text-[#343434]">{ADDITIONAL_FEE_TYPE}</p>
         </div>
 
         <AdminHubFormField
           type="select"
-          label="Contratista"
+          label={t("nominas.contractor")}
           value={formData.contratista}
           onChange={(v) => updateField("contratista", v)}
           options={contractorOptions}
-          placeholder="Seleccionar contratista"
+          placeholder={t("nominas.selectContractor")}
         />
 
         <AdminHubFormField
           type="input"
-          label="Descripción"
+          label={t("pagos.description")}
           value={formData.descripcion}
           onChange={(v) => updateField("descripcion", v)}
-          placeholder="Nuevo Puesto"
+          placeholder={t("personas.position")}
         />
 
         <AdminHubFormField
           type="input"
-          label="Monto"
+          label={t("nominas.amount")}
           value={formData.monto}
           onChange={(v) => updateField("monto", v)}
           placeholder="$350"

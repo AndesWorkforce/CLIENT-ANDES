@@ -2,6 +2,7 @@
 
 import AdminHubDatePicker from "../../components/AdminHubDatePicker";
 import AdminHubFormField from "../../components/AdminHubFormField";
+import { useAdminHubI18n } from "../../i18n";
 import { NATIONALITY_OPTIONS } from "../data/mock-contract-address";
 import type { CreateContractFormData } from "../data/contract-creation-types";
 import ContractFormSection from "./ContractFormSection";
@@ -15,22 +16,23 @@ export default function CreateContractGeneralInfoForm({
   formData,
   onChange,
 }: CreateContractGeneralInfoFormProps) {
+  const { t } = useAdminHubI18n();
   function patch(partial: Partial<CreateContractFormData>) {
     onChange({ ...formData, ...partial });
   }
 
   return (
-    <ContractFormSection title="Información General">
+    <ContractFormSection title={t("personas.generalInfo")}>
       <AdminHubFormField
         type="input"
-        label="Nombre de Contratista"
+        label={t("contratos.contractorName")}
         value={formData.nombreContratista}
         onChange={(nombreContratista) => patch({ nombreContratista })}
         placeholder="Juan Perez"
       />
       <AdminHubFormField
         type="input"
-        label="Email Personal"
+        label={t("personas.personalEmail")}
         value={formData.emailPersonal}
         onChange={(emailPersonal) => patch({ emailPersonal })}
         placeholder="Jperez@gmail.com"
@@ -38,7 +40,7 @@ export default function CreateContractGeneralInfoForm({
       />
       <AdminHubFormField
         type="input"
-        label="Email Laboral"
+        label={t("personas.workEmail")}
         value={formData.emailLaboral}
         onChange={(emailLaboral) => patch({ emailLaboral })}
         placeholder="Jperez@teamandes.com"
@@ -46,7 +48,7 @@ export default function CreateContractGeneralInfoForm({
       />
       <AdminHubFormField
         type="input"
-        label="Teléfono"
+        label={t("personas.phone")}
         value={formData.telefono}
         onChange={(telefono) => patch({ telefono })}
         placeholder="+54 011 452 1452"
@@ -54,13 +56,13 @@ export default function CreateContractGeneralInfoForm({
       />
       <AdminHubFormField
         type="input"
-        label="N° Documento"
+        label={t("personas.documentNumber")}
         value={formData.documento}
         onChange={(documento) => patch({ documento })}
         placeholder="38.335.339"
       />
       <AdminHubDatePicker
-        label="Fecha de Nacimiento"
+        label={t("personas.birthDate")}
         required
         value={formData.fechaNacimiento}
         onChange={(fechaNacimiento) => patch({ fechaNacimiento })}
@@ -69,7 +71,7 @@ export default function CreateContractGeneralInfoForm({
       />
       <AdminHubFormField
         type="select"
-        label="Nacionalidad"
+        label={t("personas.nationality")}
         value={formData.nacionalidad}
         onChange={(nacionalidad) => patch({ nacionalidad })}
         options={NATIONALITY_OPTIONS}

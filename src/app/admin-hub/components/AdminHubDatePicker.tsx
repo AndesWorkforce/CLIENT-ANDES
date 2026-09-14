@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useAdminHubI18n } from "../i18n";
 function formatTriggerDate(isoDate: string): string {
   if (!isoDate) return "";
   const [y, m, d] = isoDate.split("-");
@@ -10,7 +11,7 @@ function formatTriggerDate(isoDate: string): string {
   return `${d}.${m}.${y.slice(-2)}`;
 }
 
-const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
+const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
 interface AdminHubDatePickerProps {
   label: string;
@@ -55,9 +56,9 @@ function capitalizeMonthLabel(label: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-function getMonthLabel(date: Date): string {
+function getMonthLabel(date: Date, dateLocale: string): string {
   return capitalizeMonthLabel(
-    date.toLocaleDateString("es-ES", { month: "long", year: "numeric" })
+    date.toLocaleDateString(dateLocale, { month: "long", year: "numeric" })
   );
 }
 
@@ -112,19 +113,22 @@ export default function AdminHubDatePicker({
   label,
   value,
   onChange,
-  placeholder = "Fecha",
+  placeholder,
   required = true,
   disabled = false,
   viewOnly = false,
   minDate,
   maxDate,
-  confirmLabel = "Aplicar",
+  confirmLabel,
   variant = "form",
   className = "",
   labelBackground,
   onOpen,
   forceClose = false,
 }: AdminHubDatePickerProps) {
+  const { t, dateLocale } = useAdminHubI18n();
+  const resolvedPlaceholder = placeholder ?? t("dates.date");
+  const resolvedConfirmLabel = confirmLabel ?? t("common.apply");
   const id = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -294,18 +298,18 @@ export default function AdminHubDatePicker({
                 type="button"
                 onClick={() => changeMonth(-1)}
                 className="rounded p-0.5 text-[#525252] transition-colors hover:text-[#0097B2]"
-                aria-label="Mes anterior"
+                aria-label={t("dates.previousMonth")}
               >
                 <ChevronLeft size={18} />
               </button>
               <p className="min-w-0 flex-1 truncate text-center text-[14px] font-semibold leading-[1.3] text-black">
-                {getMonthLabel(viewMonth)}
+                {getMonthLabel(viewMonth, dateLocale)}
               </p>
               <button
                 type="button"
                 onClick={() => changeMonth(1)}
                 className="rounded p-0.5 text-[#525252] transition-colors hover:text-[#0097B2]"
-                aria-label="Mes siguiente"
+                aria-label={t("dates.nextMonth")}
               >
                 <ChevronRight size={18} />
               </button>
@@ -313,12 +317,12 @@ export default function AdminHubDatePicker({
 
             <div className="w-full">
               <div className="mb-1.5 grid grid-cols-7 gap-0.5">
-                {WEEKDAY_LABELS.map((weekday) => (
+                {WEEKDAY_KEYS.map((weekday) => (
                   <span
                     key={weekday}
                     className="text-center text-[11px] font-semibold leading-[1.3] text-[#707070]"
                   >
-                    {weekday}
+                    {t(`dates.weekdaysShort.${weekday}`)}
                   </span>
                 ))}
               </div>
@@ -359,7 +363,7 @@ export default function AdminHubDatePicker({
                   onClick={handleCancel}
                   className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-[8px] border border-[#0097B2] px-3 text-[12px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#F5FAFB]"
                 >
-                  Cancelar
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="button"
@@ -367,7 +371,7 @@ export default function AdminHubDatePicker({
                   disabled={!draftDate}
                   className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-[8px] bg-[#0097B2] px-3 text-[12px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {confirmLabel}
+                  {resolvedConfirmLabel}
                 </button>
               </div>
             </div>
@@ -410,7 +414,7 @@ export default function AdminHubDatePicker({
               : "cursor-pointer"
         } ${isOpen && !disabled && !viewOnly ? "ring-1 ring-[#0097B2]" : ""}`}
       >
-        {displayValue || placeholder}
+        {displayValue || resolvedPlaceholder}
       </button>
       {panel}
     </div>

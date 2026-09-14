@@ -12,6 +12,7 @@ export interface AvisoNotification {
   actionLabel: string;
   actionUrl: string;
   tiempoRelativo: string;
+  creadoEn?: string;
   leida: boolean;
   grupo: AvisoGroup;
 }

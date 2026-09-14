@@ -17,9 +17,12 @@ export function holidayFechaIso(holiday: PayrollHolidayOption, year = new Date()
   return `${year}-${String(holiday.mes).padStart(2, "0")}-${String(holiday.dia).padStart(2, "0")}`;
 }
 
-export function formatHolidayLabel(holiday: PayrollHolidayOption): string {
+export function formatHolidayLabel(
+  holiday: PayrollHolidayOption,
+  locale = "es-ES",
+): string {
   const iso = holidayFechaIso(holiday);
-  const datePart = new Date(`${iso}T12:00:00`).toLocaleDateString("es-ES", {
+  const datePart = new Date(`${iso}T12:00:00`).toLocaleDateString(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

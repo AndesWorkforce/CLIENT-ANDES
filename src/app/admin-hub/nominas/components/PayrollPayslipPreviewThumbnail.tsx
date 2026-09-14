@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { PayrollDetail } from "../types/nomina-detail.types";
 import PayrollPayslipPreview from "./PayrollPayslipPreview";
+import { useAdminHubI18n } from "../../i18n";
 
 const PREVIEW_SCALE = 0.38;
 const PREVIEW_BASE_WIDTH = 1000;
@@ -16,6 +17,7 @@ export default function PayrollPayslipPreviewThumbnail({
   detail,
   onClick,
 }: PayrollPayslipPreviewThumbnailProps) {
+  const { t } = useAdminHubI18n();
   const contentRef = useRef<HTMLDivElement>(null);
   const [scaledHeight, setScaledHeight] = useState<number | null>(null);
 
@@ -40,7 +42,7 @@ export default function PayrollPayslipPreviewThumbnail({
     <button
       type="button"
       onClick={onClick}
-      aria-label="Abrir previsualización del desprendible de pago"
+      aria-label={t("nominas.openPayslipPreview")}
       className="group relative w-full shrink-0 cursor-zoom-in overflow-hidden rounded-[8px] border border-[#EFEFEF] bg-[#f8f8f8] text-left transition-colors hover:border-[#0097B2] hover:bg-[#f5fafb]"
       style={scaledHeight ? { height: scaledHeight } : undefined}
     >
@@ -58,7 +60,7 @@ export default function PayrollPayslipPreviewThumbnail({
 
       <div className="pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-t from-white/80 via-transparent to-transparent pb-2 opacity-0 transition-opacity group-hover:opacity-100">
         <span className="rounded-[6px] bg-[#0097B2] px-3 py-1 text-[12px] font-medium text-white">
-          Clic para ampliar
+          {t("nominas.clickToEnlarge")}
         </span>
       </div>
     </button>

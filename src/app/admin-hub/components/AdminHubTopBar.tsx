@@ -7,9 +7,11 @@ import useOutsideClick from "@/hooks/useOutsideClick";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Link from "next/link";
 import { getUnreadAvisosCount } from "../avisos/actions/avisos.actions";
+import { AdminHubLanguageSwitcher, useAdminHubI18n } from "../i18n";
 
 export default function AdminHubTopBar() {
   const { user, logout } = useAuthStore();
+  const { t } = useAdminHubI18n();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [unreadAvisosCount, setUnreadAvisosCount] = useState(0);
@@ -41,12 +43,13 @@ export default function AdminHubTopBar() {
   return (
     <header className="flex h-[60px] shrink-0 items-center justify-end border-b border-[#EFEFEF] bg-white px-6">
       <div className="flex items-center gap-4">
+        <AdminHubLanguageSwitcher />
         <Link
           href="/admin-hub/avisos"
           aria-label={
             unreadAvisosCount > 0
-              ? `Notificaciones, ${unreadAvisosCount} sin leer`
-              : "Notificaciones"
+              ? t("topbar.notificationsUnread", { count: unreadAvisosCount })
+              : t("topbar.notifications")
           }
           className="relative inline-flex text-[#525252] transition-colors hover:text-[#0097B2]"
         >
@@ -70,7 +73,7 @@ export default function AdminHubTopBar() {
               <span className="text-[14px] font-semibold text-[#343434]">
                 {user?.nombre} {user?.apellido}
               </span>
-              <span className="text-[12px] text-[#707070]">Administrador</span>
+              <span className="text-[12px] text-[#707070]">{t("roles.fallback")}</span>
             </div>
             <ChevronDown size={14} className="text-[#707070]" />
           </button>
@@ -91,7 +94,7 @@ export default function AdminHubTopBar() {
                     onClick={() => setShowUserMenu(false)}
                   >
                     <Settings size={16} className="mr-2 text-[#0097B2]" />
-                    Super Admin Panel
+                    {t("topbar.superAdminPanel")}
                   </Link>
                   <hr className="my-1 border-gray-200" />
                 </>
@@ -103,7 +106,7 @@ export default function AdminHubTopBar() {
                 onClick={() => setShowUserMenu(false)}
               >
                 <LayoutDashboard size={16} className="mr-2 text-[#0097B2]" />
-                Offers Management
+                {t("topbar.offersManagement")}
               </Link>
 
               <hr className="my-1 border-gray-200" />
@@ -113,7 +116,7 @@ export default function AdminHubTopBar() {
                 onClick={() => setShowUserMenu(false)}
               >
                 <LayoutDashboard size={16} className="mr-2 text-[#0097B2]" />
-                Admin Hub
+                {t("topbar.adminHub")}
               </Link>
 
               <hr className="my-1 border-gray-200" />
@@ -123,7 +126,7 @@ export default function AdminHubTopBar() {
                 onClick={() => setShowUserMenu(false)}
               >
                 <User size={16} className="mr-2 text-[#0097B2]" />
-                My Account!
+                {t("topbar.myAccount")}
               </Link>
               <hr className="my-1 border-gray-200" />
 
@@ -135,7 +138,7 @@ export default function AdminHubTopBar() {
                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
               >
                 <LogOut size={16} className="mr-2 text-[#0097B2]" />
-                Logout
+                {t("topbar.logout")}
               </button>
             </div>
           )}

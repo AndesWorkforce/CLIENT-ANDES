@@ -3,26 +3,9 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { CircleAlert, X } from "lucide-react";
+import { useAdminHubI18n } from "../../i18n";
 
 export type PayrollEmitModalVariant = "cannot-emit" | "confirm-emit";
-
-const MODAL_CONTENT: Record<
-  PayrollEmitModalVariant,
-  { title: string; description: string; primaryLabel: string }
-> = {
-  "cannot-emit": {
-    title: "No es posible emitir la nómina",
-    description:
-      "Todas las variables deben estar aprobadas antes de emitir la nómina.",
-    primaryLabel: "Volver al detalle",
-  },
-  "confirm-emit": {
-    title: "Emitir Nómina",
-    description:
-      "Una vez emitida, la nómina quedará registrada y no podrá modificarse.",
-    primaryLabel: "Emitir",
-  },
-};
 
 interface PayrollEmitModalProps {
   open: boolean;
@@ -39,7 +22,19 @@ export default function PayrollEmitModal({
   onPrimaryAction,
   isLoading = false,
 }: PayrollEmitModalProps) {
-  const content = MODAL_CONTENT[variant];
+  const { t } = useAdminHubI18n();
+  const content =
+    variant === "cannot-emit"
+      ? {
+          title: t("nominas.cannotEmitTitle"),
+          description: t("nominas.cannotEmitDescription"),
+          primaryLabel: t("nominas.backToDetail"),
+        }
+      : {
+          title: t("nominas.emitPayroll"),
+          description: t("nominas.emitConfirmDescription"),
+          primaryLabel: t("nominas.emit"),
+        };
 
   useEffect(() => {
     if (!open) return;
@@ -68,7 +63,7 @@ export default function PayrollEmitModal({
     >
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={t("common.close")}
         className="absolute inset-0 bg-black/40"
         onClick={onClose}
       />
@@ -83,7 +78,7 @@ export default function PayrollEmitModal({
               <button
                 type="button"
                 onClick={onClose}
-                aria-label="Cerrar"
+                aria-label={t("common.close")}
                 className="text-[#707070] transition-colors hover:text-[#343434]"
               >
                 <X size={18} strokeWidth={1.75} />
@@ -110,7 +105,7 @@ export default function PayrollEmitModal({
               disabled={isLoading}
               className="inline-flex h-11 w-[133px] shrink-0 items-center justify-center rounded-[8px] border border-[#C8C8C8] bg-white px-[22px] text-[14px] leading-5 text-[#707070] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
             <button
               type="button"
@@ -118,7 +113,7 @@ export default function PayrollEmitModal({
               disabled={isLoading}
               className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] leading-5 text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isLoading ? "Emitiendo..." : content.primaryLabel}
+              {isLoading ? t("nominas.emitting") : content.primaryLabel}
             </button>
           </div>
         </div>
