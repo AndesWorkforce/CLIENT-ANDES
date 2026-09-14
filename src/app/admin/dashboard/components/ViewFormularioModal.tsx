@@ -6,6 +6,8 @@ interface ViewFormularioModalProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datosFormulario: Record<string, any>;
   name: string;
+  // Oculta las respuestas de contacto (WhatsApp / Gmail) para usuarios EMPRESA
+  hideContactInfo?: boolean;
 }
 
 export default function ViewFormularioModal({
@@ -13,6 +15,7 @@ export default function ViewFormularioModal({
   onClose,
   datosFormulario,
   name,
+  hideContactInfo = false,
 }: ViewFormularioModalProps) {
   if (!isOpen) return null;
 
@@ -43,7 +46,7 @@ export default function ViewFormularioModal({
   const Q_WIRED = "Do you use a wired internet connection?";
 
   // Lista de preguntas mostrando el label para UI y usando la clave canónica para leer datos
-  const ordenPreguntas: Array<{
+  const todasLasPreguntas: Array<{
     label: string;
     key: string;
     fallbackKey?: string;
@@ -74,6 +77,13 @@ export default function ViewFormularioModal({
     { label: Q_PROVIDER_URL, key: Q_PROVIDER_URL },
     { label: Q_WIRED, key: Q_WIRED },
   ];
+
+  // Para usuarios EMPRESA se ocultan las respuestas de contacto directo
+  // (WhatsApp / Gmail) para evitar que contacten al candidato sin pasar por Andes.
+  const preguntasContacto = new Set([Q_WHATSAPP, Q_GMAIL]);
+  const ordenPreguntas = hideContactInfo
+    ? todasLasPreguntas.filter((p) => !preguntasContacto.has(p.key))
+    : todasLasPreguntas;
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#08252A33]">

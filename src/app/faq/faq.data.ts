@@ -235,7 +235,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
             type: "list",
             items: [
               "Team Leader, Karen Meadows – KMeadows@wernerhoffman.com",
-              "María Salinas – msalinas@teamandes.com",
+              "Manuel Salinas – msalinas@teamandes.com",
             ],
           },
         ],
@@ -254,10 +254,6 @@ export const FAQ_SECTIONS: FaqSection[] = [
           {
             type: "paragraph",
             text: "You must report it immediately to any of our communication channels.",
-          },
-          {
-            type: "note",
-            text: "Remember that you have 12 PTO days in 2026, they are deducted in the month you take them, and 6 days are reimbursed in June and 6 in December. If you take all 12 PTO days before December 31, 2026, you will receive an additional 3 paid days in December, for a total of 9 days that month.",
           },
         ],
       },
