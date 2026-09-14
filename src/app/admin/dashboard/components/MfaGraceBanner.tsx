@@ -23,6 +23,9 @@ export default function MfaGraceBanner() {
 
     try {
       const result = await getMfaStatusAction();
+      if (result.success && result.data?.enforcementEnabled === false) {
+        return;
+      }
       if (result.success && !result.data?.mfaEnabled) {
         const createdAt = result.data?.gracePeriodStart || new Date().toISOString();
         const start = new Date(createdAt);
