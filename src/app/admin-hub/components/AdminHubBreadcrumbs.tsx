@@ -3,89 +3,95 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
-
-const breadcrumbLabels: Record<string, string> = {
-  "admin-hub": "Administrador",
-  dashboard: "Panel de Control",
-  personas: "Personas",
-  contratos: "Contratos",
-  nominas: "Nóminas",
-  pagos: "Pagos",
-  facturas: "Factura",
-  historial: "Historial",
-  configuracion: "Configuración",
-  variables: "Variables de nóminas",
-  avisos: "Avisos",
-};
+import { useAdminHubI18n, type AdminHubTranslate } from "../i18n";
 
 export interface AdminHubBreadcrumbItem {
   label: string;
   href?: string;
 }
 
-export function getAdminHubBreadcrumbItems(pathname: string): AdminHubBreadcrumbItem[] {
+export function getAdminHubBreadcrumbItems(
+  pathname: string,
+  t: AdminHubTranslate,
+): AdminHubBreadcrumbItem[] {
   if (/^\/admin-hub\/nominas\/variables\/[^/]+$/.test(pathname)) {
     return [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Nóminas", href: "/admin-hub/nominas" },
-      { label: "Variables de nóminas", href: "/admin-hub/nominas/variables" },
-      { label: "Detalle de variable" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.nominas"), href: "/admin-hub/nominas" },
+      { label: t("breadcrumbs.nominasVariables"), href: "/admin-hub/nominas/variables" },
+      { label: t("breadcrumbs.variableDetail") },
     ];
   }
 
   if (pathname.startsWith("/admin-hub/nominas/variables")) {
     return [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Nóminas", href: "/admin-hub/nominas" },
-      { label: "Variables de nóminas" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.nominas"), href: "/admin-hub/nominas" },
+      { label: t("breadcrumbs.nominasVariables") },
     ];
   }
 
   if (pathname === "/admin-hub/nominas" || pathname === "/admin-hub/nominas/todas") {
     return [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Nóminas" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.nominas") },
     ];
   }
 
   if (/^\/admin-hub\/personas\/[^/]+$/.test(pathname)) {
     return [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Personas", href: "/admin-hub/personas" },
-      { label: "Contratista" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.personas"), href: "/admin-hub/personas" },
+      { label: t("breadcrumbs.contratista") },
     ];
   }
 
   if (/^\/admin-hub\/contratos\/[^/]+$/.test(pathname)) {
     return [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Contratos", href: "/admin-hub/contratos" },
-      { label: "Detalle de contrato" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.contratos"), href: "/admin-hub/contratos" },
+      { label: t("breadcrumbs.contractDetail") },
     ];
   }
 
   if (/^\/admin-hub\/nominas\/[^/]+$/.test(pathname) && pathname !== "/admin-hub/nominas/variables") {
     return [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Nóminas", href: "/admin-hub/nominas" },
-      { label: "Detalle de nómina" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.nominas"), href: "/admin-hub/nominas" },
+      { label: t("breadcrumbs.payrollDetail") },
     ];
   }
 
   if (/^\/admin-hub\/pagos\/facturas\/[^/]+$/.test(pathname)) {
     return [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Pagos", href: "/admin-hub/pagos" },
-      { label: "Factura" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.pagos"), href: "/admin-hub/pagos" },
+      { label: t("breadcrumbs.factura") },
     ];
   }
 
   if (pathname === "/admin-hub/pagos") {
     return [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Pagos" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.pagos") },
     ];
   }
+
+  const breadcrumbLabels: Record<string, string> = {
+    "admin-hub": t("breadcrumbs.admin"),
+    dashboard: t("breadcrumbs.dashboard"),
+    personas: t("breadcrumbs.personas"),
+    contratos: t("breadcrumbs.contratos"),
+    nominas: t("breadcrumbs.nominas"),
+    pagos: t("breadcrumbs.pagos"),
+    facturas: t("breadcrumbs.factura"),
+    historial: t("breadcrumbs.historial"),
+    configuracion: t("breadcrumbs.configuracion"),
+    variables: t("breadcrumbs.nominasVariables"),
+    avisos: t("breadcrumbs.avisos"),
+    emitidas: t("breadcrumbs.emitidas"),
+    "dias-festivos": t("breadcrumbs.holidays"),
+  };
 
   const segments = pathname.split("/").filter(Boolean);
   if (segments[0] !== "admin-hub") return [];
@@ -95,7 +101,7 @@ export function getAdminHubBreadcrumbItems(pathname: string): AdminHubBreadcrumb
     .filter((seg) => !seg.startsWith("inv-") && !/^\d+$/.test(seg) && seg !== "facturas");
 
   const items: AdminHubBreadcrumbItem[] = [
-    { label: "Administrador", href: "/admin-hub/dashboard" },
+    { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
   ];
 
   sectionSegments.forEach((seg, index) => {
@@ -113,8 +119,8 @@ export function getAdminHubBreadcrumbItems(pathname: string): AdminHubBreadcrumb
 }
 
 /** @deprecated Usar getAdminHubBreadcrumbItems */
-export function getAdminHubBreadcrumbs(pathname: string): string[] {
-  return getAdminHubBreadcrumbItems(pathname).map((item) => item.label);
+export function getAdminHubBreadcrumbs(pathname: string, t: AdminHubTranslate): string[] {
+  return getAdminHubBreadcrumbItems(pathname, t).map((item) => item.label);
 }
 
 interface AdminHubBreadcrumbsProps {
@@ -124,7 +130,8 @@ interface AdminHubBreadcrumbsProps {
 
 export default function AdminHubBreadcrumbs({ items, className = "" }: AdminHubBreadcrumbsProps) {
   const pathname = usePathname();
-  const crumbs = items ?? getAdminHubBreadcrumbItems(pathname);
+  const { t } = useAdminHubI18n();
+  const crumbs = items ?? getAdminHubBreadcrumbItems(pathname, t);
 
   if (crumbs.length === 0) return null;
 

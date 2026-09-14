@@ -185,6 +185,7 @@ function mapBackendAlertaToUI(alerta: BackendAlerta): AvisoNotification {
     actionLabel,
     actionUrl,
     tiempoRelativo,
+    creadoEn: alerta.creadoEn,
     leida,
     grupo,
   };

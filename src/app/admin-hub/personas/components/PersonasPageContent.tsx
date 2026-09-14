@@ -24,6 +24,7 @@ import {
 } from "../actions/personas.actions";
 import { personaToDetailPath } from "../utils/persona-detail.utils";
 import type { PersonaStatus } from "../types/persona-detail.types";
+import { useAdminHubI18n } from "../../i18n";
 import PersonaStatusBadge from "./PersonaStatusBadge";
 
 const PAGE_SIZE = 20;
@@ -36,10 +37,7 @@ function buildFilterOptions(values: string[]) {
   }));
 }
 
-const STATUS_FILTER_OPTIONS: { value: PersonaStatus; label: string }[] = [
-  { value: "Activo", label: "Activo" },
-  { value: "Inactivo", label: "Inactivo" },
-];
+const STATUS_FILTER_VALUES: PersonaStatus[] = ["Activo", "Inactivo"];
 
 function collectFilterOptions(contractors: PersonaListItem[]) {
   return {
@@ -76,6 +74,7 @@ function mergeFilterOptions(
 }
 
 export default function PersonasPageContent() {
+  const { t } = useAdminHubI18n();
   const [contractors, setContractors] = useState<PersonaListItem[]>([]);
   const [pagination, setPagination] = useState<PersonasPagination>({
     total: 0,
@@ -147,7 +146,7 @@ export default function PersonasPageContent() {
         hasPreviousPage: false,
         hasNextPage: false,
       }));
-      setError(response.message || "No se pudieron cargar los contratistas");
+      setError(response.message || t("personas.loadError"));
       setLoading(false);
       return;
     }
@@ -167,6 +166,7 @@ export default function PersonasPageContent() {
     clientFilter,
     positionFilter,
     statusFilter,
+    t,
   ]);
 
   useEffect(() => {
@@ -224,6 +224,15 @@ export default function PersonasPageContent() {
     });
   }
 
+  const statusFilterOptions = useMemo(
+    () =>
+      STATUS_FILTER_VALUES.map((value) => ({
+        value,
+        label: t(`status.persona.${value}`),
+      })),
+    [t],
+  );
+
   const visiblePages = useMemo(() => {
     const total = pagination.totalPages;
     if (total <= 1) return [];
@@ -247,7 +256,7 @@ export default function PersonasPageContent() {
     <div className="flex flex-col gap-6">
       <AdminHubBreadcrumbs />
 
-      <h1 className="text-[32px] font-bold text-black leading-[1.3]">Personas</h1>
+      <h1 className="text-[32px] font-bold text-black leading-[1.3]">{t("personas.title")}</h1>
 
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -263,7 +272,7 @@ export default function PersonasPageContent() {
                 : "border-[#C8C8C8] text-[#858585] hover:border-[#0097B2] hover:text-[#0097B2]"
             }`}
           >
-            Filtros
+            {t("common.filters")}
             <Filter size={18} />
           </button>
         </div>
@@ -271,8 +280,8 @@ export default function PersonasPageContent() {
         {filtersOpen && (
           <div className={ADMIN_HUB_FILTERS_ROW_CLASS}>
             <InvoiceFilterSelect
-              label="Filtrar por País"
-              placeholder="País"
+              label={t("personas.filterCountry")}
+              placeholder={t("personas.country")}
               value={countryFilter}
               onChange={(value) => {
                 setCountryFilter(value);
@@ -281,8 +290,8 @@ export default function PersonasPageContent() {
               options={filterOptions.countries}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Cliente"
-              placeholder="Cliente"
+              label={t("personas.filterClient")}
+              placeholder={t("personas.client")}
               value={clientFilter}
               onChange={(value) => {
                 setClientFilter(value);
@@ -291,8 +300,8 @@ export default function PersonasPageContent() {
               options={filterOptions.clients}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Puesto"
-              placeholder="Puesto"
+              label={t("personas.filterPosition")}
+              placeholder={t("personas.position")}
               value={positionFilter}
               onChange={(value) => {
                 setPositionFilter(value);
@@ -301,14 +310,14 @@ export default function PersonasPageContent() {
               options={filterOptions.positions}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Estado"
-              placeholder="Estado"
+              label={t("personas.filterStatus")}
+              placeholder={t("personas.status")}
               value={statusFilter}
               onChange={(value) => {
                 setStatusFilter(value);
                 setPage(1);
               }}
-              options={STATUS_FILTER_OPTIONS}
+              options={statusFilterOptions}
             />
             <button
               type="button"
@@ -320,7 +329,7 @@ export default function PersonasPageContent() {
                   : "cursor-default text-[#C8C8C8]"
               }`}
             >
-              Limpiar filtros
+              {t("common.clearFilters")}
             </button>
           </div>
         )}
@@ -347,16 +356,16 @@ export default function PersonasPageContent() {
                     checked={allSelected}
                     onChange={toggleAll}
                     className={checkboxClass}
-                    aria-label="Seleccionar todos"
+                    aria-label={t("common.selectAll")}
                   />
                 </th>
                 <th className="py-5 pl-3 pr-3 text-left text-[14px] font-bold leading-[1.3] text-[#525252]">
-                  Contratista
+                  {t("personas.contractor")}
                 </th>
-                <th className={headClass}>País</th>
-                <th className={headClass}>Cliente</th>
-                <th className={headClass}>Puesto</th>
-                <th className={headClass}>Estado</th>
+                <th className={headClass}>{t("personas.country")}</th>
+                <th className={headClass}>{t("personas.client")}</th>
+                <th className={headClass}>{t("personas.position")}</th>
+                <th className={headClass}>{t("personas.status")}</th>
                 <th className={ADMIN_HUB_TABLE_HEAD_LAST_CELL} />
               </tr>
             </thead>
@@ -367,7 +376,7 @@ export default function PersonasPageContent() {
                     colSpan={7}
                     className="px-6 py-12 text-center text-[14px] text-[#858585]"
                   >
-                    No se encontraron contratistas con los criterios seleccionados.
+                    {t("personas.empty")}
                   </td>
                 </tr>
               ) : (
@@ -382,7 +391,7 @@ export default function PersonasPageContent() {
                           checked={selectedIds.has(contractor.id)}
                           onChange={() => toggleOne(contractor.id)}
                           className={checkboxClass}
-                          aria-label={`Seleccionar ${contractor.name}`}
+                          aria-label={`${t("common.select")} ${contractor.name}`}
                         />
                       </td>
                       <td
@@ -392,12 +401,12 @@ export default function PersonasPageContent() {
                         {contractor.name}
                       </td>
                       <td className={cellClass}>{contractor.countryName}</td>
-                      <td className={cellClass}>{primaryContract?.client ?? "—"}</td>
+                      <td className={cellClass}>{primaryContract?.client ?? t("common.dash")}</td>
                       <td
                         className={`max-w-[200px] truncate ${cellClass}`}
                         title={primaryContract?.position ?? undefined}
                       >
-                        {primaryContract?.position ?? "—"}
+                        {primaryContract?.position ?? t("common.dash")}
                       </td>
                       <td className="whitespace-nowrap px-3 py-3">
                         <PersonaStatusBadge status={contractor.status} />
@@ -406,7 +415,7 @@ export default function PersonasPageContent() {
                         <div className="relative inline-block" data-persona-row-menu>
                           <button
                             type="button"
-                            aria-label="Más opciones"
+                            aria-label={t("common.moreOptions")}
                             aria-expanded={openMenuId === contractor.id}
                             aria-haspopup="menu"
                             onClick={() =>
@@ -434,7 +443,7 @@ export default function PersonasPageContent() {
                                 onClick={() => setOpenMenuId(null)}
                                 className="flex w-full items-center px-4 py-2 text-left text-[14px] text-[#343434] transition-colors hover:bg-[#F8F8F8]"
                               >
-                                Ver Perfil
+                                {t("common.viewProfile")}
                               </Link>
                             </div>
                           )}
@@ -452,8 +461,10 @@ export default function PersonasPageContent() {
       {!loading && pagination.totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="text-[14px] text-[#858585]">
-            Mostrando página {pagination.page} de {pagination.totalPages} (
-            {pagination.total} contratistas)
+            {t("common.showingPage", {
+              page: pagination.page,
+              total: pagination.totalPages,
+            })}
           </p>
 
           <div className="inline-flex overflow-hidden rounded-[8px] border border-[#EFEFEF]">
@@ -462,7 +473,7 @@ export default function PersonasPageContent() {
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               disabled={!pagination.hasPreviousPage}
               className="flex items-center justify-center px-3 py-2 text-[#0097B2] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Página anterior"
+              aria-label={t("common.previousPage")}
             >
               <ChevronLeft size={18} />
             </button>
@@ -489,7 +500,7 @@ export default function PersonasPageContent() {
               }
               disabled={!pagination.hasNextPage}
               className="flex items-center justify-center px-3 py-2 text-[#0097B2] transition-colors hover:bg-[#F8F8F8] disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Página siguiente"
+              aria-label={t("common.nextPage")}
             >
               <ChevronRight size={18} />
             </button>

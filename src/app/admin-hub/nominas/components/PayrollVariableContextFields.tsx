@@ -14,6 +14,7 @@ import { usePayrollHolidaysByCountry } from "../hooks/usePayrollHolidaysByCountr
 import IncomeVariableAmountField from "./IncomeVariableAmountField";
 import PayrollPeriodField from "./PayrollPeriodField";
 import type { CreatePayrollVariableFormData } from "./payroll-variable-form-types";
+import { useAdminHubI18n } from "../../i18n";
 
 export type ContextFieldsVariant =
   | "overtime"
@@ -32,6 +33,7 @@ export default function PayrollVariableContextFields({
   formData,
   onChange,
 }: PayrollVariableContextFieldsProps) {
+  const { t, dateLocale } = useAdminHubI18n();
   const {
     contractorOptions,
     getContractsForContractor,
@@ -56,7 +58,7 @@ export default function PayrollVariableContextFields({
 
   const holidayOptions = holidays.map((h) => ({
     value: h.id,
-    label: formatHolidayLabel(h),
+    label: formatHolidayLabel(h, dateLocale),
   }));
 
   function patch(partial: Partial<CreatePayrollVariableFormData>) {
@@ -108,22 +110,22 @@ export default function PayrollVariableContextFields({
     contract?.paisFacturacionCodigo?.trim() || contract?.paisCodigo?.trim() || null;
 
   const holidayPlaceholder = !holidayCountryCode
-    ? "Seleccione un contratista"
+    ? t("nominas.selectContractor")
     : holidaysLoading
-      ? "Cargando feriados..."
+      ? t("nominas.loadingHolidays")
       : holidayOptions.length > 0
-        ? "Buscar feriado"
-        : `Sin feriados para ${holidayCountryCode}`;
+        ? t("nominas.searchHoliday")
+        : t("nominas.noHolidaysFor", { country: holidayCountryCode });
 
   return (
     <>
       <AdminHubFormField
         type="select"
-        label="Contratista"
+        label={t("nominas.contractor")}
         value={formData.contractorId}
         onChange={handleContractorChange}
         options={contractorOptions}
-        placeholder={loading ? "Cargando..." : "Buscar por nombre"}
+        placeholder={loading ? t("common.loading") : t("nominas.searchByName")}
         readOnly={loading}
         searchable
       />
@@ -132,11 +134,11 @@ export default function PayrollVariableContextFields({
         <div className="w-full sm:w-[222px] shrink-0">
           <AdminHubFormField
             type="select"
-            label="ID Contrato"
+            label={t("personas.contractId")}
             value={formData.contractId}
             onChange={handleContractChange}
             options={contractOptions}
-            placeholder="Buscar contrato"
+            placeholder={t("nominas.searchContract")}
             readOnly={!formData.contractorId || loading}
             searchable
           />
@@ -144,10 +146,10 @@ export default function PayrollVariableContextFields({
         <div className="min-w-0 flex-1">
           <AdminHubFormField
             type="input"
-            label="Puesto"
+            label={t("nominas.position")}
             value={contract?.puestoTrabajo ?? ""}
             onChange={() => undefined}
-            placeholder="Rol"
+            placeholder={t("nominas.role")}
             readOnly
           />
         </div>
@@ -155,10 +157,10 @@ export default function PayrollVariableContextFields({
 
       <AdminHubFormField
         type="input"
-        label="Cliente"
+        label={t("nominas.client")}
         value={contract?.empresaNombre ?? ""}
         onChange={() => undefined}
-        placeholder="Empresa"
+        placeholder={t("nominas.company")}
         readOnly
       />
 
@@ -166,18 +168,24 @@ export default function PayrollVariableContextFields({
         <>
           <AdminHubFormField
             type="select"
-            label="Tipo"
+            label={t("nominas.type")}
             value={formData.deductionTipo}
             onChange={handleDeductionTipoChange}
-            options={[...DEDUCTION_TYPE_OPTIONS]}
-            placeholder="Ausencia"
+            options={DEDUCTION_TYPE_OPTIONS.map((option) => ({
+              value: option.value,
+              label:
+                option.value === "Ausencia"
+                  ? t("nominas.absence")
+                  : t("nominas.other"),
+            }))}
+            placeholder={t("nominas.absence")}
           />
 
           {isDeductionAusencia && (
             <div className="flex flex-col gap-[10px] sm:flex-row">
               <div className="min-w-0 flex-1">
                 <AdminHubDatePicker
-                  label="Desde"
+                  label={t("dates.from")}
                   value={formData.desde}
                   onChange={(desde) => {
                     const next: Partial<CreatePayrollVariableFormData> = { desde };
@@ -186,13 +194,13 @@ export default function PayrollVariableContextFields({
                     }
                     patch(next);
                   }}
-                  placeholder="Fecha"
+                  placeholder={t("dates.date")}
                   maxDate={todayIso}
                 />
               </div>
               <div className="min-w-0 flex-1">
                 <AdminHubDatePicker
-                  label="Hasta"
+                  label={t("dates.to")}
                   value={formData.hasta}
                   onChange={(hasta) => {
                     const next: Partial<CreatePayrollVariableFormData> = { hasta };
@@ -201,7 +209,7 @@ export default function PayrollVariableContextFields({
                     }
                     patch(next);
                   }}
-                  placeholder="Fecha si corresponde"
+                  placeholder={t("nominas.dateIfApplicable")}
                   required={false}
                   minDate={formData.desde || undefined}
                 />
@@ -212,10 +220,10 @@ export default function PayrollVariableContextFields({
           {isDeductionOther && (
             <AdminHubFormField
               type="input"
-              label="Monto"
+              label={t("nominas.amount")}
               value={formData.montoContexto}
               onChange={(v) => patch({ montoContexto: sanitizeDeductionMontoInput(v) })}
-              placeholder="Monto"
+              placeholder={t("nominas.amount")}
               inputMode="numeric"
             />
           )}
@@ -224,7 +232,7 @@ export default function PayrollVariableContextFields({
 
       {showOvertimeFecha && (
         <AdminHubDatePicker
-          label="Fecha"
+          label={t("dates.date")}
           value={formData.desde}
           onChange={(desde) => patch({ desde })}
           placeholder="03.03.2026"
@@ -244,7 +252,7 @@ export default function PayrollVariableContextFields({
       {showHoliday && (
         <AdminHubFormField
           type="select"
-          label="Día feriado"
+          label={t("nominas.holidayDay")}
           value={formData.holidayId}
           onChange={handleHolidayChange}
           options={holidayOptions}

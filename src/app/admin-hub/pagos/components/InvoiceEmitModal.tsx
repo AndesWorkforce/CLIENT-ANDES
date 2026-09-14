@@ -1,28 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { CircleAlert, X } from "lucide-react";
+import { useAdminHubI18n } from "../../i18n";
 
 export type InvoiceEmitModalVariant = "cannot-emit" | "confirm-emit";
-
-const MODAL_CONTENT: Record<
-  InvoiceEmitModalVariant,
-  { title: string; description: string; primaryLabel: string }
-> = {
-  "cannot-emit": {
-    title: "No es posible emitir la factura",
-    description:
-      "Todos los cargos y ajustes deben estar aprobados antes de emitir la factura.",
-    primaryLabel: "Volver al invoice",
-  },
-  "confirm-emit": {
-    title: "Emitir Factura",
-    description:
-      "Una vez emitida, la factura quedará registrada y no podrá modificarse.",
-    primaryLabel: "Emitir",
-  },
-};
 
 interface InvoiceEmitModalProps {
   open: boolean;
@@ -39,7 +22,21 @@ export default function InvoiceEmitModal({
   onPrimaryAction,
   isLoading = false,
 }: InvoiceEmitModalProps) {
-  const content = MODAL_CONTENT[variant];
+  const { t } = useAdminHubI18n();
+  const content = useMemo(() => {
+    if (variant === "cannot-emit") {
+      return {
+        title: t("pagos.emitBlocked"),
+        description: t("pagos.emitChargesPending"),
+        primaryLabel: t("pagos.backToInvoice"),
+      };
+    }
+    return {
+      title: t("pagos.emitInvoice"),
+      description: t("pagos.emitConfirm"),
+      primaryLabel: t("common.emit"),
+    };
+  }, [t, variant]);
 
   useEffect(() => {
     if (!open) return;
@@ -68,7 +65,7 @@ export default function InvoiceEmitModal({
     >
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={t("common.close")}
         className="absolute inset-0 bg-black/40"
         onClick={onClose}
       />
@@ -83,7 +80,7 @@ export default function InvoiceEmitModal({
               <button
                 type="button"
                 onClick={onClose}
-                aria-label="Cerrar"
+                aria-label={t("common.close")}
                 className="text-[#707070] transition-colors hover:text-[#343434]"
               >
                 <X size={18} strokeWidth={1.75} />
@@ -110,7 +107,7 @@ export default function InvoiceEmitModal({
               disabled={isLoading}
               className="inline-flex h-11 w-[133px] shrink-0 items-center justify-center rounded-[8px] border border-[#C8C8C8] bg-white px-[22px] text-[14px] leading-5 text-[#707070] transition-colors hover:bg-[#F8F8F8] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
             <button
               type="button"
@@ -118,7 +115,7 @@ export default function InvoiceEmitModal({
               disabled={isLoading}
               className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] leading-5 text-white transition-colors hover:bg-[#008099] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Procesando..." : content.primaryLabel}
+              {isLoading ? t("pagos.processing") : content.primaryLabel}
             </button>
           </div>
         </div>

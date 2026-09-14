@@ -3,6 +3,11 @@
 import { AlertTriangle, X } from "lucide-react";
 import { useEffect } from "react";
 import type { PayrollVariable } from "../data/mock-payroll-variables";
+import {
+  displayPeriodToAnioMes,
+  isValidAnioMes,
+} from "../data/payroll-data";
+import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
 
 interface DeletePayrollVariableModalProps {
   variable: PayrollVariable | null;
@@ -17,6 +22,7 @@ export default function DeletePayrollVariableModal({
   onClose,
   onConfirm,
 }: DeletePayrollVariableModalProps) {
+  const { t } = useAdminHubI18n();
   useEffect(() => {
     if (!open) return;
 
@@ -29,6 +35,11 @@ export default function DeletePayrollVariableModal({
   }, [open, onClose]);
 
   if (!open || !variable) return null;
+
+  const periodAnioMes = displayPeriodToAnioMes(variable.period);
+  const periodLabel = isValidAnioMes(periodAnioMes)
+    ? formatAdminHubPeriod(periodAnioMes, t)
+    : variable.period;
 
   return (
     <div
@@ -43,7 +54,7 @@ export default function DeletePayrollVariableModal({
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 rounded-full p-1 text-[#858585] transition-colors hover:bg-[#F8F8F8] hover:text-[#343434]"
-          aria-label="Cerrar"
+          aria-label={t("common.close")}
         >
           <X size={20} />
         </button>
@@ -55,10 +66,10 @@ export default function DeletePayrollVariableModal({
             </div>
             <div className="flex flex-col gap-2">
               <h2 className="text-[20px] font-bold leading-[1.3] text-black">
-                Eliminar variable de nómina
+                {t("nominas.deleteVariableTitle")}
               </h2>
               <p className="text-[14px] leading-[1.5] text-[#858585]">
-                Esta acción no se puede deshacer. La variable será eliminada permanentemente.
+                {t("nominas.deleteIrreversible")}
               </p>
             </div>
           </div>
@@ -66,16 +77,18 @@ export default function DeletePayrollVariableModal({
           <div className="rounded-[8px] border border-[#EFEFEF] bg-[#F8F8F8] p-4">
             <div className="flex flex-col gap-3">
               <div>
-                <div className="text-[12px] font-medium text-[#858585]">Contratista</div>
+                <div className="text-[12px] font-medium text-[#858585]">{t("nominas.contractor")}</div>
                 <div className="text-[14px] font-medium text-black">{variable.contractor}</div>
               </div>
               <div>
-                <div className="text-[12px] font-medium text-[#858585]">Periodo de nómina</div>
-                <div className="text-[14px] font-medium text-black">{variable.period}</div>
+                <div className="text-[12px] font-medium text-[#858585]">{t("nominas.payrollPeriod")}</div>
+                <div className="text-[14px] font-medium text-black">{periodLabel}</div>
               </div>
               <div>
-                <div className="text-[12px] font-medium text-[#858585]">Tipo</div>
-                <div className="text-[14px] font-medium text-black">{variable.type}</div>
+                <div className="text-[12px] font-medium text-[#858585]">{t("nominas.type")}</div>
+                <div className="text-[14px] font-medium text-black">
+                  {t(`nominas.types.${variable.type}`)}
+                </div>
               </div>
             </div>
           </div>
@@ -84,8 +97,7 @@ export default function DeletePayrollVariableModal({
             <div className="flex gap-3">
               <AlertTriangle size={18} className="mt-0.5 shrink-0 text-[#E33434]" />
               <div className="text-[14px] leading-[1.5] text-[#E33434]">
-                <strong>Advertencia:</strong> Esta eliminación afectará los cálculos de la nómina
-                y puede impactar los pagos y la facturación del periodo seleccionado.
+                <strong>{t("nominas.deleteWarning")}</strong> {t("nominas.deleteWarningBody")}
               </div>
             </div>
           </div>
@@ -96,14 +108,14 @@ export default function DeletePayrollVariableModal({
               onClick={onClose}
               className="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#C8C8C8] px-6 text-[14px] font-medium text-[#343434] transition-colors hover:bg-[#F8F8F8]"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
             <button
               type="button"
               onClick={onConfirm}
               className="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#E33434] px-6 text-[14px] font-medium text-white transition-colors hover:bg-[#C62828]"
             >
-              Eliminar variable
+              {t("nominas.deleteVariable")}
             </button>
           </div>
         </div>

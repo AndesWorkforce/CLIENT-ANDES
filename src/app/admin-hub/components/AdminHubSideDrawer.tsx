@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useAdminHubI18n } from "../i18n";
 
 interface AdminHubSideDrawerProps {
   open: boolean;
@@ -25,6 +26,7 @@ export default function AdminHubSideDrawer({
   children,
   footer,
 }: AdminHubSideDrawerProps) {
+  const { t } = useAdminHubI18n();
   useEffect(() => {
     if (!open) return;
 
@@ -52,7 +54,7 @@ export default function AdminHubSideDrawer({
     >
       <button
         type="button"
-        aria-label="Cerrar panel"
+        aria-label={t("common.closePanel")}
         className="absolute inset-0 bg-black/40"
         onClick={onClose}
       />
@@ -63,7 +65,7 @@ export default function AdminHubSideDrawer({
             <button
               type="button"
               onClick={onClose}
-              aria-label="Cerrar"
+              aria-label={t("common.close")}
               className="text-[#707070] hover:text-[#343434] transition-colors"
             >
               <X size={21} strokeWidth={1.75} />

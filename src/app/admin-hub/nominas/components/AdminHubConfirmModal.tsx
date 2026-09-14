@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CircleAlert, X } from "lucide-react";
+import { useAdminHubI18n } from "../../i18n";
 
 interface AdminHubConfirmModalProps {
   open: boolean;
@@ -23,12 +24,14 @@ export default function AdminHubConfirmModal({
   open,
   title,
   children,
-  cancelLabel = "Cancelar",
+  cancelLabel,
   confirmLabel,
   confirmLoading = false,
   onClose,
   onConfirm,
 }: AdminHubConfirmModalProps) {
+  const { t } = useAdminHubI18n();
+  const resolvedCancelLabel = cancelLabel ?? t("common.cancel");
   useEffect(() => {
     if (!open) return;
 
@@ -56,7 +59,7 @@ export default function AdminHubConfirmModal({
     >
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={t("common.close")}
         className="absolute inset-0 bg-black/40"
         onClick={() => {
           if (!confirmLoading) onClose();
@@ -78,7 +81,7 @@ export default function AdminHubConfirmModal({
                 type="button"
                 onClick={onClose}
                 disabled={confirmLoading}
-                aria-label="Cerrar"
+                aria-label={t("common.close")}
                 className="text-[#707070] transition-colors hover:text-[#343434] disabled:opacity-50"
               >
                 <X size={18} strokeWidth={1.75} />
@@ -105,7 +108,7 @@ export default function AdminHubConfirmModal({
               disabled={confirmLoading}
               className="inline-flex h-11 w-[133px] shrink-0 items-center justify-center rounded-[8px] border border-[#C8C8C8] bg-white px-[22px] text-[14px] font-medium leading-[1.2] text-[#707070] transition-colors hover:bg-[#F8F8F8] disabled:opacity-50"
             >
-              {cancelLabel}
+              {resolvedCancelLabel}
             </button>
             <button
               type="button"

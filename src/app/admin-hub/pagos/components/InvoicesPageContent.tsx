@@ -15,6 +15,7 @@ import {
   buildNominaMonthOptions,
   getCurrentNominaMonthOption,
   monthOptionToPeriod,
+  nominaMonthOptionToAnioMes,
 } from "../../nominas/data/payroll-data";
 import {
   getFacturas,
@@ -22,25 +23,26 @@ import {
   type PagosCliente,
 } from "../actions/pagos.actions";
 import type { Invoice, InvoiceStatus } from "../types/invoice.types";
+import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
 import InvoiceFilterSelect from "./InvoiceFilterSelect";
 import InvoicesTable from "./InvoicesTable";
 
 const SEARCH_DEBOUNCE_MS = 350;
 
-const AMOUNT_FILTER_OPTIONS = [
-  { value: "0-10000", label: "Hasta $10.000" },
-  { value: "10000-15000", label: "$10.000 – $15.000" },
-  { value: "15000-20000", label: "$15.000 – $20.000" },
-  { value: "20000+", label: "Más de $20.000" },
-];
+const AMOUNT_FILTER_VALUES = [
+  { value: "0-10000", labelKey: "pagos.amountRanges.upTo10k" },
+  { value: "10000-15000", labelKey: "pagos.amountRanges.from10to15k" },
+  { value: "15000-20000", labelKey: "pagos.amountRanges.from15to20k" },
+  { value: "20000+", labelKey: "pagos.amountRanges.moreThan20k" },
+] as const;
 
-const STATUS_FILTER_OPTIONS: { value: InvoiceStatus; label: string }[] = [
-  { value: "Pendiente", label: "Sin factura" },
-  { value: "Borrador", label: "Borrador" },
-  { value: "Aprobada", label: "Aprobada" },
-  { value: "Emitida", label: "Emitida" },
-  { value: "Pagado", label: "Pagado" },
-  { value: "Anulada", label: "Anulada" },
+const STATUS_FILTER_VALUES: InvoiceStatus[] = [
+  "Pendiente",
+  "Borrador",
+  "Aprobada",
+  "Emitida",
+  "Pagado",
+  "Anulada",
 ];
 
 /**
@@ -81,8 +83,28 @@ export default function InvoicesPageContent({
   initialClients,
   initialError = null,
 }: InvoicesPageContentProps) {
+  const { t } = useAdminHubI18n();
   const monthOptions = useMemo(() => buildNominaMonthOptions(), []);
   const currentMonthOption = useMemo(() => getCurrentNominaMonthOption(), []);
+  const amountFilterOptions = useMemo(
+    () =>
+      AMOUNT_FILTER_VALUES.map((option) => ({
+        value: option.value,
+        label: t(option.labelKey),
+      })),
+    [t],
+  );
+  const statusFilterOptions = useMemo(
+    () =>
+      STATUS_FILTER_VALUES.map((value) => ({
+        value,
+        label:
+          value === "Pendiente"
+            ? t("status.invoice.Sin factura")
+            : t(`status.invoice.${value}`),
+      })),
+    [t],
+  );
   const [selectedMonth, setSelectedMonth] = useState(currentMonthOption);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -115,7 +137,7 @@ export default function InvoicesPageContent({
     });
 
     if (!result.success) {
-      setError(result.message ?? "Error al cargar clientes");
+      setError(result.message ?? t("pagos.loadClientsError"));
       setClients([]);
       setLoading(false);
       return;
@@ -123,7 +145,7 @@ export default function InvoicesPageContent({
 
     setClients(result.data ?? []);
     setLoading(false);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (skipNextSearchFetch.current) {
@@ -187,13 +209,16 @@ export default function InvoicesPageContent({
   return (
     <div className="flex flex-col gap-6">
       <AdminHubBreadcrumbs />
-      <h1 className="text-[32px] font-bold text-black leading-[1.3]">Invoices</h1>
+      <h1 className="text-[32px] font-bold text-black leading-[1.3]">{t("pagos.title")}</h1>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <AdminHubSelect
           value={selectedMonth}
           onChange={setSelectedMonth}
-          options={monthOptions.map((month) => ({ value: month, label: month }))}
+          options={monthOptions.map((month) => ({
+            value: month,
+            label: formatAdminHubPeriod(nominaMonthOptionToAnioMes(month), t),
+          }))}
           variant="filter"
         />
 
@@ -213,7 +238,7 @@ export default function InvoicesPageContent({
                 : "border-[#C8C8C8] text-[#858585] hover:border-[#0097B2] hover:text-[#0097B2]"
             }`}
           >
-            Filtros
+            {t("common.filters")}
             <Filter size={18} />
           </button>
         </div>
@@ -221,25 +246,25 @@ export default function InvoicesPageContent({
         {filtersOpen && (
           <div className={ADMIN_HUB_FILTERS_ROW_CLASS}>
             <InvoiceFilterSelect
-              label="Filtrar por Cliente"
-              placeholder="Cliente"
+              label={t("pagos.filterClient")}
+              placeholder={t("pagos.client")}
               value={clientFilter}
               onChange={setClientFilter}
               options={clientFilterOptions}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Monto"
-              placeholder="Monto"
+              label={t("pagos.filterAmount")}
+              placeholder={t("pagos.amount")}
               value={amountFilter}
               onChange={setAmountFilter}
-              options={AMOUNT_FILTER_OPTIONS}
+              options={amountFilterOptions}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Estado"
-              placeholder="Pendiente"
+              label={t("pagos.filterStatus")}
+              placeholder={t("status.invoice.Pendiente")}
               value={statusFilter}
               onChange={setStatusFilter}
-              options={STATUS_FILTER_OPTIONS}
+              options={statusFilterOptions}
             />
             <button
               type="button"
@@ -251,7 +276,7 @@ export default function InvoicesPageContent({
                   : "text-[#C8C8C8] cursor-default"
               }`}
             >
-              Limpiar filtros
+              {t("common.clearFilters")}
             </button>
           </div>
         )}
@@ -267,7 +292,7 @@ export default function InvoicesPageContent({
         <InvoicesTable
           invoices={invoices}
           displayPeriod={selectedPeriod}
-          emptyMessage="No hay clientes registrados."
+          emptyMessage={t("pagos.noClients")}
         />
       )}
     </div>

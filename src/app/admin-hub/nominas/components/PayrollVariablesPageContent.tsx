@@ -21,10 +21,12 @@ import {
   type PayrollVariable,
   type PayrollVariableCategory,
   type PayrollVariableStatus,
+  type PayrollVariableType,
 } from "../data/mock-payroll-variables";
 import CreatePayrollVariableDrawer from "./CreatePayrollVariableDrawer";
 import PayrollVariablesTable from "./PayrollVariablesTable";
 import AdminHubConfirmModal from "./AdminHubConfirmModal";
+import { useAdminHubI18n } from "../../i18n";
 
 function buildFilterOptions<T>(items: T[], getValue: (item: T) => string) {
   return Array.from(new Set(items.map(getValue))).map((value) => ({
@@ -62,15 +64,20 @@ function isDateInRange(dateStr: string, fromDate: string, toDate: string): boole
   return true;
 }
 
-const STATUS_FILTER_OPTIONS: { value: PayrollVariableStatus; label: string }[] = [
-  { value: "Pendiente", label: "Pendiente" },
-  { value: "Aprobado", label: "Aprobado" },
-  { value: "Rechazado", label: "Rechazado" },
-  { value: "Emitido", label: "Emitido" },
+const STATUS_FILTER_VALUES: PayrollVariableStatus[] = [
+  "Pendiente",
+  "Aprobado",
+  "Rechazado",
+  "Emitido",
 ];
 
-export const PAYROLL_VARIABLE_CREATED_TOAST =
-  "La variable fue creada correctamente.";
+const PAYROLL_VARIABLE_TAB_KEYS: Record<PayrollVariableCategory, string> = {
+  todos: "nominas.tabs.all",
+  overtimes: "nominas.tabs.overtimes",
+  holidays: "nominas.tabs.holidays",
+  deducciones: "nominas.tabs.deductions",
+  incomeVariables: "nominas.tabs.incomeVariables",
+};
 
 interface PayrollVariablesPageContentProps {
   initialSearchQuery?: string;
@@ -80,6 +87,15 @@ export default function PayrollVariablesPageContent({
   initialSearchQuery = "",
 }: PayrollVariablesPageContentProps) {
   const { addNotification } = useNotificationStore();
+  const { t } = useAdminHubI18n();
+  const statusFilterOptions = useMemo(
+    () =>
+      STATUS_FILTER_VALUES.map((value) => ({
+        value,
+        label: t(`status.payroll.${value}`),
+      })),
+    [t],
+  );
   const [variables, setVariables] = useState<PayrollVariable[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -105,13 +121,13 @@ export default function PayrollVariablesPageContent({
       categoria: activeTab,
     });
     if (!result.success) {
-      setLoadError(result.message || "Error al cargar variables");
+      setLoadError(result.message || t("nominas.variablesLoadError"));
       setVariables([]);
     } else {
       setVariables(result.data ?? []);
     }
     setLoading(false);
-  }, [activeTab, clientFilter, searchQuery]);
+  }, [activeTab, clientFilter, searchQuery, t]);
 
   useEffect(() => {
     void loadVariables();
@@ -158,27 +174,27 @@ export default function PayrollVariablesPageContent({
   async function handleApprove(itemId: string) {
     const result = await approveNominaVariable(itemId);
     if (!result.success) {
-      addNotification(result.message || "No se pudo aprobar la variable", "error");
+      addNotification(result.message || t("nominas.approveError"), "error");
       return;
     }
     await loadVariables();
-    addNotification("La variable fue aprobada.", "success", "compact");
+    addNotification(t("nominas.variableApproved"), "success", "compact");
   }
 
   async function handleReject(itemId: string) {
     const result = await rejectNominaVariable(itemId);
     if (!result.success) {
-      addNotification(result.message || "No se pudo rechazar la variable", "error");
+      addNotification(result.message || t("nominas.rejectError"), "error");
       return;
     }
     await loadVariables();
-    addNotification("La variable fue rechazada.", "success", "compact");
+    addNotification(t("nominas.variableRejected"), "success", "compact");
   }
 
   async function handleDelete(itemId: string) {
     const result = await deleteNominaVariable(itemId);
     if (!result.success) {
-      addNotification(result.message || "No se pudo eliminar la variable", "error");
+      addNotification(result.message || t("nominas.deleteError"), "error");
       return;
     }
     setSelectedIds((prev) => {
@@ -187,7 +203,7 @@ export default function PayrollVariablesPageContent({
       return next;
     });
     await loadVariables();
-    addNotification("La variable fue eliminada.", "success", "compact");
+    addNotification(t("nominas.variableDeleted"), "success", "compact");
   }
 
   async function handleBulkApproveConfirm() {
@@ -206,18 +222,24 @@ export default function PayrollVariablesPageContent({
 
       if (result.failed && result.failed > 0) {
         addNotification(
-          `${result.approved ?? 0} aprobada(s), ${result.failed} con error, ${skipped} omitida(s).`,
+          t("nominas.bulkApprovePartial", {
+            approved: result.approved ?? 0,
+            failed: result.failed,
+            skipped,
+          }),
           "warning",
         );
       } else if ((result.approved ?? 0) === 0 && skipped > 0) {
         addNotification(
-          `No había variables pendientes. ${skipped} omitida(s).`,
+          t("nominas.bulkApproveNonePending", { skipped }),
           "info",
           "compact",
         );
       } else {
         addNotification(
-          `${result.approved ?? 0} variable(s) aprobada(s)${skipped > 0 ? `, ${skipped} omitida(s)` : ""}.`,
+          `${t("nominas.bulkApproveSuccess", { approved: result.approved ?? 0 })}${
+            skipped > 0 ? t("nominas.bulkApproveSkippedSuffix", { skipped }) : ""
+          }.`,
           "success",
           "compact",
         );
@@ -240,7 +262,7 @@ export default function PayrollVariablesPageContent({
     setStatusFilter("");
     setFromDate("");
     setToDate("");
-    addNotification(PAYROLL_VARIABLE_CREATED_TOAST, "success", "compact");
+    addNotification(t("nominas.createdSuccess"), "success", "compact");
   }
 
   function clearFilters() {
@@ -255,7 +277,12 @@ export default function PayrollVariablesPageContent({
   const hasSelectedRows = selectedIds.size > 0;
 
   const clientFilterOptions = buildFilterOptions(variables, (item) => item.client);
-  const typeFilterOptions = buildFilterOptions(variables, (item) => item.type);
+  const typeFilterOptions = buildFilterOptions(variables, (item) => item.type).map(
+    (option) => ({
+      value: option.value,
+      label: t(`nominas.types.${option.value as PayrollVariableType}`),
+    }),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -263,7 +290,7 @@ export default function PayrollVariablesPageContent({
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-[32px] font-bold text-black leading-[1.3]">
-          Variable de nóminas
+          {t("nominas.variablesTitle")}
         </h1>
         <div className="flex flex-wrap items-center gap-3">
           {hasSelectedRows ? (
@@ -273,7 +300,7 @@ export default function PayrollVariablesPageContent({
               className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
             >
               <FileText size={24} aria-hidden />
-              Aprobar variables de Nómina ({selectedIds.size})
+              {t("nominas.approveVariablesN", { count: selectedIds.size })}
             </button>
           ) : null}
           <button
@@ -282,7 +309,7 @@ export default function PayrollVariablesPageContent({
             className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium text-white leading-5 hover:bg-[#008099] transition-colors"
           >
             <Plus size={20} />
-            Crear nuevo
+            {t("nominas.createNew")}
           </button>
         </div>
       </div>
@@ -300,7 +327,7 @@ export default function PayrollVariablesPageContent({
                   isActive ? "text-[#0097B2]" : "text-[#858585] hover:text-[#0097B2]"
                 }`}
               >
-                {tab.label}
+                {t(PAYROLL_VARIABLE_TAB_KEYS[tab.key])}
                 {isActive && (
                   <span className="h-0.5 w-full rounded-full bg-[#0097B2]" />
                 )}
@@ -324,7 +351,7 @@ export default function PayrollVariablesPageContent({
                 : "border-[#C8C8C8] text-[#858585] hover:border-[#0097B2] hover:text-[#0097B2]"
             }`}
           >
-            Filtros
+            {t("common.filters")}
             <Filter size={18} />
           </button>
         </div>
@@ -339,25 +366,25 @@ export default function PayrollVariablesPageContent({
               onToDateChange={setToDate}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Cliente"
-              placeholder="Cliente"
+              label={t("nominas.filterClient")}
+              placeholder={t("nominas.client")}
               value={clientFilter}
               onChange={setClientFilter}
               options={clientFilterOptions}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Tipo"
-              placeholder="Tipo"
+              label={t("nominas.filterType")}
+              placeholder={t("nominas.type")}
               value={typeFilter}
               onChange={setTypeFilter}
               options={typeFilterOptions}
             />
             <InvoiceFilterSelect
-              label="Filtrar por Estado"
-              placeholder="Pendiente"
+              label={t("nominas.filterStatus")}
+              placeholder={t("status.payroll.Pendiente")}
               value={statusFilter}
               onChange={setStatusFilter}
-              options={STATUS_FILTER_OPTIONS}
+              options={statusFilterOptions}
             />
             <button
               type="button"
@@ -369,7 +396,7 @@ export default function PayrollVariablesPageContent({
                   : "cursor-default text-[#C8C8C8]"
               }`}
             >
-              Limpiar filtros
+              {t("common.clearFilters")}
             </button>
           </div>
         )}
@@ -380,7 +407,11 @@ export default function PayrollVariablesPageContent({
       ) : null}
 
       {loading ? (
-        <p className="text-sm text-[#525252]">Cargando variables...</p>
+        <p className="text-sm text-[#525252]">{t("nominas.loadingVariables")}</p>
+      ) : filteredVariables.length === 0 ? (
+        <div className="rounded-[12px] border border-[#EFEFEF] bg-white px-6 py-12 text-center text-[14px] text-[#858585]">
+          {t("nominas.emptyVariables")}
+        </div>
       ) : (
         <PayrollVariablesTable
           variables={filteredVariables}
@@ -401,10 +432,10 @@ export default function PayrollVariablesPageContent({
       {showApproveConfirmModal && (
         <AdminHubConfirmModal
           open
-          title="Confirmar aprobación de variables"
-          cancelLabel="Cancelar"
+          title={t("nominas.confirmApprovalVariablesTitle")}
+          cancelLabel={t("common.cancel")}
           confirmLabel={
-            isBulkApproving ? "Aprobando..." : "Confirmar aprobación"
+            isBulkApproving ? t("nominas.confirming") : t("nominas.confirmApproval")
           }
           confirmLoading={isBulkApproving}
           onClose={() => setShowApproveConfirmModal(false)}
@@ -412,13 +443,11 @@ export default function PayrollVariablesPageContent({
         >
           <div className="space-y-4">
             <p className="text-[14px] text-[#525252] leading-relaxed">
-              Se aprobarán las variables seleccionadas que estén en estado{" "}
-              <strong>Pendiente</strong>. Las que ya estén Aprobadas, Rechazadas o
-              Emitidas se omitirán.
+              {t("nominas.confirmApprovePendingHint")}
             </p>
             <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">
               <span className="text-[14px] font-semibold text-[#525252]">
-                Seleccionadas:
+                {t("nominas.selected")}
               </span>
               <span className="text-[14px] text-[#343434]">{selectedIds.size}</span>
             </div>

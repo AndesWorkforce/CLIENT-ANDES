@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
+import { useAdminHubI18n, type AdminHubTranslate } from "../../i18n";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubDatePicker from "../../components/AdminHubDatePicker";
 import AdminHubFormField from "../../components/AdminHubFormField";
@@ -62,18 +63,56 @@ interface PersonaFormState {
   notes: string;
 }
 
-const YES_NO_OPTIONS = [
-  { value: "Si", label: "Si" },
-  { value: "No", label: "No" },
-];
+const PERSONA_VALIDATION_I18N_KEYS: Record<string, string> = {
+  "El email personal no tiene un formato válido.": "personas.invalidPersonalEmail",
+  "El email laboral no tiene un formato válido.": "personas.invalidWorkEmail",
+  "El salario debe ser un número válido mayor o igual a 0.": "personas.invalidSalary",
+};
 
-const STATUS_OPTIONS = [
-  { value: "Activo", label: "Activo" },
-  { value: "Inactivo", label: "Inactivo" },
-];
+const UNSPECIFIED_SENTINEL = "No especificado";
 
 function displayOptional(value: string | null): string {
-  return value ?? "No especificado";
+  return value ?? UNSPECIFIED_SENTINEL;
+}
+
+function optionalFieldValue(value: string, t: AdminHubTranslate): string {
+  if (!value || value === UNSPECIFIED_SENTINEL) {
+    return t("common.notSpecified");
+  }
+  return value;
+}
+
+function paymentMethodLabel(value: string, t: AdminHubTranslate): string {
+  if (value === "Dollar App") return t("paymentMethod.dollarApp");
+  if (value === "Transferencia Bancaria" || value === "Transferencia bancaria") {
+    return t("paymentMethod.bankTransfer");
+  }
+  if (value === "No Especifica") return t("paymentMethod.unspecified");
+  return value;
+}
+
+function contractTypeLabel(value: string, t: AdminHubTranslate): string {
+  if (value === "Plazo fijo") return t("contractType.fixedTerm");
+  if (value === "Indeterminado" || value === "Permanente") {
+    return t("contractType.indefinite");
+  }
+  if (value === "Full Time") return t("contractType.fullTime");
+  if (value === "Part Time") return t("contractType.partTime");
+  return value;
+}
+
+function bonusLabel(value: string, t: AdminHubTranslate): string {
+  if (value === "Media vez al mes de Diciembre") {
+    return t("bonus.HALF_MONTH_ONCE_DECEMBER");
+  }
+  if (value === "Un mes completo en Diciembre") {
+    return t("bonus.FULL_MONTH_ONCE_DECEMBER");
+  }
+  if (value === "Un mes en Junio y Diciembre") {
+    return t("bonus.FULL_MONTH_TWICE_JUNE_DECEMBER");
+  }
+  if (value === "Ninguno") return t("bonus.NONE");
+  return value;
 }
 
 function buildFormState(detail: PersonaDetail): PersonaFormState {
@@ -128,6 +167,7 @@ function getInitials(name: string): string {
 }
 
 export default function PersonaDetailContent({ detail }: PersonaDetailContentProps) {
+  const { t } = useAdminHubI18n();
   const router = useRouter();
   const { addNotification } = useNotificationStore();
   const [detailState, setDetailState] = useState(detail);
@@ -139,11 +179,27 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
 
   const breadcrumbItems = useMemo(
     () => [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Personas", href: "/admin-hub/personas" },
-      { label: "Contratista" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.personas"), href: "/admin-hub/personas" },
+      { label: t("breadcrumbs.contratista") },
     ],
-    []
+    [t],
+  );
+
+  const yesNoOptions = useMemo(
+    () => [
+      { value: "Si", label: t("common.yes") },
+      { value: "No", label: t("common.no") },
+    ],
+    [t],
+  );
+
+  const statusOptions = useMemo(
+    () => [
+      { value: "Activo", label: t("status.persona.Activo") },
+      { value: "Inactivo", label: t("status.persona.Inactivo") },
+    ],
+    [t],
   );
 
   function updateField<K extends keyof PersonaFormState>(key: K, value: PersonaFormState[K]) {
@@ -151,7 +207,7 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
   }
 
   function handleDownload() {
-    addNotification("La descarga del perfil estará disponible próximamente.", "info");
+    addNotification(t("personas.downloadSoon"), "info");
   }
 
   async function handleEditClick() {
@@ -162,7 +218,16 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
 
     const validationErrors = validatePersonaForm(form);
     if (validationErrors.length > 0) {
-      addNotification(validationErrors.join(" "), "error");
+      addNotification(
+        validationErrors
+          .map((error) =>
+            PERSONA_VALIDATION_I18N_KEYS[error]
+              ? t(PERSONA_VALIDATION_I18N_KEYS[error])
+              : error,
+          )
+          .join(" "),
+        "error",
+      );
       return;
     }
 
@@ -174,14 +239,14 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
       );
 
       if (!result.success || !result.data) {
-        addNotification(result.message || "No se pudieron guardar los cambios.", "error");
+        addNotification(result.message || t("personas.saveError"), "error");
         return;
       }
 
       setDetailState(result.data);
       setForm(buildFormState(result.data));
       setIsEditing(false);
-      addNotification("Cambios guardados correctamente.", "success");
+      addNotification(t("personas.saveSuccess"), "success");
     } finally {
       setIsSaving(false);
     }
@@ -192,7 +257,7 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
   }
 
   function handleCreateContract() {
-    addNotification("La creación de contrato estará disponible próximamente.", "info");
+    addNotification(t("personas.createContractSoon"), "info");
   }
 
   return (
@@ -224,7 +289,7 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
           disabled={isSaving}
           className="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#F5FAFB] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isSaving ? "Guardando..." : isEditing ? "Guardar" : "Editar"}
+          {isSaving ? t("common.saving") : isEditing ? t("common.save") : t("common.edit")}
         </button>
         <button
           type="button"
@@ -232,82 +297,82 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
           className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
         >
           <Download size={20} />
-          Descargar
+          {t("common.download")}
         </button>
       </div>
 
       <div className="rounded-[8px] bg-white p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
           <div className="flex min-w-0 flex-1 flex-col gap-6">
-            <PersonaFormSection title="Información General">
+            <PersonaFormSection title={t("personas.generalInfo")}>
               <AdminHubFormField
                 type="input"
-                label="Nombre de Contratista"
+                label={t("contratos.contractorName")}
                 value={form.name}
                 onChange={(value) => updateField("name", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Email Personal"
+                label={t("personas.personalEmail")}
                 value={form.personalEmail}
                 onChange={(value) => updateField("personalEmail", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Email Laboral"
+                label={t("personas.workEmail")}
                 value={form.workEmail}
                 onChange={(value) => updateField("workEmail", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Teléfono"
+                label={t("personas.phone")}
                 value={form.phone}
                 onChange={(value) => updateField("phone", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="N° Documento"
+                label={t("personas.documentNumber")}
                 value={form.documentNumber}
                 onChange={(value) => updateField("documentNumber", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubDatePicker
-                label="Fecha de Nacimiento"
+                label={t("personas.birthDate")}
                 value={form.birthDate}
                 onChange={(value) => updateField("birthDate", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Nacionalidad"
+                label={t("personas.nationality")}
                 value={form.nationality}
                 onChange={(value) => updateField("nationality", value)}
                 viewOnly={viewOnly}
               />
             </PersonaFormSection>
 
-            <PersonaFormSection title="Dirección de Residencia">
+            <PersonaFormSection title={t("personas.residence")}>
               <AdminHubFormField
                 type="input"
-                label="País"
+                label={t("personas.countryName")}
                 value={form.country}
                 onChange={(value) => updateField("country", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Estado"
+                label={t("personas.state")}
                 value={form.state}
                 onChange={(value) => updateField("state", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Ciudad"
+                label={t("personas.city")}
                 value={form.city}
                 onChange={(value) => updateField("city", value)}
                 viewOnly={viewOnly}
@@ -316,7 +381,7 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
                 <div className="min-w-0 flex-1">
                   <AdminHubFormField
                     type="input"
-                    label="Calle"
+                    label={t("personas.street")}
                     value={form.street}
                     onChange={(value) => updateField("street", value)}
                     viewOnly={viewOnly}
@@ -325,7 +390,7 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
                 <div className="w-full sm:w-[140px]">
                   <AdminHubFormField
                     type="input"
-                    label="Altura"
+                    label={t("personas.streetNumber")}
                     value={form.streetNumber}
                     onChange={(value) => updateField("streetNumber", value)}
                     viewOnly={viewOnly}
@@ -334,44 +399,46 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
               </div>
               <AdminHubFormField
                 type="input"
-                label="Código Postal"
+                label={t("personas.postalCode")}
                 value={form.postalCode}
                 onChange={(value) => updateField("postalCode", value)}
                 viewOnly={viewOnly}
               />
             </PersonaFormSection>
 
-            <PersonaFormSection title="Información Laboral">
+            <PersonaFormSection title={t("personas.laborInfo")}>
               <AdminHubFormField
                 type="input"
-                label="ID Contrato"
+                label={t("personas.contractId")}
                 value={form.contractCode}
                 onChange={(value) => updateField("contractCode", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Tipo de Contrato"
-                value={form.contractType}
+                label={t("personas.contractType")}
+                value={
+                  viewOnly ? contractTypeLabel(form.contractType, t) : form.contractType
+                }
                 onChange={(value) => updateField("contractType", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubDatePicker
-                label="Fecha de inicio del contrato"
+                label={t("personas.startDate")}
                 value={form.contractStartDate}
                 onChange={(value) => updateField("contractStartDate", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Posición"
+                label={t("personas.position")}
                 value={form.position}
                 onChange={(value) => updateField("position", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Cliente"
+                label={t("personas.client")}
                 value={form.client}
                 onChange={(value) => updateField("client", value)}
                 viewOnly={viewOnly}
@@ -380,7 +447,7 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
                 <div className="min-w-0 flex-1">
                   <AdminHubFormField
                     type="input"
-                    label="Salario"
+                    label={t("personas.salary")}
                     value={form.baseSalary}
                     onChange={(value) => updateField("baseSalary", value)}
                     viewOnly={viewOnly}
@@ -389,7 +456,7 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
                 <div className="w-full sm:w-[180px]">
                   <AdminHubFormField
                     type="input"
-                    label="Moneda"
+                    label={t("personas.currency")}
                     value={form.currency}
                     onChange={(value) => updateField("currency", value)}
                     viewOnly={viewOnly}
@@ -398,74 +465,78 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
               </div>
               <AdminHubFormField
                 type="input"
-                label="HR Rate Holidays"
+                label={t("personas.hrRateHolidays")}
                 value={form.hrRateHolidays}
                 onChange={(value) => updateField("hrRateHolidays", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Bonos"
-                value={form.bonusLabel}
+                label={t("personas.paidHolidays")}
+                value={viewOnly ? bonusLabel(form.bonusLabel, t) : form.bonusLabel}
                 onChange={(value) => updateField("bonusLabel", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="IPB Balance"
-                value={form.ipbBalance}
+                label={t("personas.ipbBalance")}
+                value={viewOnly ? bonusLabel(form.ipbBalance, t) : form.ipbBalance}
                 onChange={(value) => updateField("ipbBalance", value)}
                 viewOnly={viewOnly}
               />
             </PersonaFormSection>
 
-            <PersonaFormSection title="Información Financiera">
+            <PersonaFormSection title={t("personas.financialInfo")}>
               <AdminHubFormField
                 type="input"
-                label="País de Facturación"
+                label={t("personas.billingCountry")}
                 value={form.billingCountry}
                 onChange={(value) => updateField("billingCountry", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Método de pago"
-                value={form.paymentMethod}
+                label={t("personas.paymentMethod")}
+                value={
+                  viewOnly
+                    ? paymentMethodLabel(form.paymentMethod, t)
+                    : form.paymentMethod
+                }
                 onChange={(value) => updateField("paymentMethod", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Dollar Tag"
-                value={form.dollarTag}
+                label={t("personas.dollarTag")}
+                value={optionalFieldValue(form.dollarTag, t)}
                 onChange={(value) => updateField("dollarTag", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Banco Personal"
-                value={form.personalBank}
+                label={t("personas.personalBank")}
+                value={optionalFieldValue(form.personalBank, t)}
                 onChange={(value) => updateField("personalBank", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Numero de cuenta bancaria personal"
-                value={form.personalAccountNumber}
+                label={t("personas.personalAccountNumber")}
+                value={optionalFieldValue(form.personalAccountNumber, t)}
                 onChange={(value) => updateField("personalAccountNumber", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Nombre del Banco de Facturación"
-                value={form.billingBankName}
+                label={t("personas.billingBankName")}
+                value={optionalFieldValue(form.billingBankName, t)}
                 onChange={(value) => updateField("billingBankName", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubFormField
                 type="input"
-                label="Numero de Banco de Facturación"
-                value={form.billingAccountNumber}
+                label={t("personas.billingBankNumber")}
+                value={optionalFieldValue(form.billingAccountNumber, t)}
                 onChange={(value) => updateField("billingAccountNumber", value)}
                 viewOnly={viewOnly}
               />
@@ -473,33 +544,33 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
           </div>
 
           <div className="flex w-full shrink-0 flex-col gap-4 xl:w-[424px]">
-            <PersonaFormSection title="Estado del contratista">
+            <PersonaFormSection title={t("personas.contractorStatus")}>
               <AdminHubSelect
-                label="Estado"
+                label={t("personas.status")}
                 required
                 value={form.status}
                 onChange={(value) => updateField("status", value as PersonaStatus)}
-                options={STATUS_OPTIONS}
+                options={statusOptions}
                 variant="form"
                 viewOnly={viewOnly}
                 labelBackground="#FFFFFF"
               />
             </PersonaFormSection>
 
-            <PersonaFormSection title="Ingresos Adicionales">
+            <PersonaFormSection title={t("personas.additionalIncome")}>
               <AdminHubFormField
                 type="input"
-                label="¿Como nos conoció?"
+                label={t("personas.howDidYouMeetUs")}
                 value={form.howDidYouHear}
                 onChange={(value) => updateField("howDidYouHear", value)}
                 viewOnly={viewOnly}
               />
               <AdminHubSelect
-                label="¿Fue recomendado?"
+                label={t("personas.wasReferred")}
                 required
                 value={form.wasReferred}
                 onChange={(value) => updateField("wasReferred", value)}
-                options={YES_NO_OPTIONS}
+                options={yesNoOptions}
                 variant="form"
                 viewOnly={viewOnly}
                 labelBackground="#FFFFFF"
@@ -507,7 +578,7 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
               {form.referredBy || isEditing ? (
                 <AdminHubFormField
                   type="input"
-                  label="¿Por quién?"
+                  label={t("personas.referredBy")}
                   value={form.referredBy}
                   onChange={(value) => updateField("referredBy", value)}
                   viewOnly={viewOnly}
@@ -519,14 +590,14 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
                   htmlFor="persona-notes"
                   className="absolute left-3 top-0 z-10 bg-white px-1 text-[14px] leading-[1.3] tracking-[0.28px] text-[#525252]"
                 >
-                  Notas
+                  {t("personas.notes")}
                 </label>
                 <textarea
                   id="persona-notes"
                   value={form.notes}
                   onChange={(event) => updateField("notes", event.target.value)}
                   readOnly={viewOnly}
-                  placeholder="Añadir nota"
+                  placeholder={t("personas.addNote")}
                   rows={4}
                   className={`min-h-[100px] w-full resize-y rounded-[8px] border border-[#EFEFEF] bg-white px-4 py-3 text-[14px] leading-[1.3] tracking-[0.28px] text-[#525252] placeholder:text-[#C8C8C8] focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
                     viewOnly ? "cursor-default" : ""
@@ -542,14 +613,14 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
                   onClick={handleCancel}
                   className="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
                 >
-                  Cancelar
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="button"
                   onClick={handleCreateContract}
                   className="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
                 >
-                  Crear contrato
+                  {t("personas.createContract")}
                 </button>
               </div>
             </section>
@@ -560,7 +631,7 @@ export default function PersonaDetailContent({ detail }: PersonaDetailContentPro
       <ObjectHistorialTable
         entidadId={detailState.id}
         entidadTipo="Usuario"
-        title="Historial de cambios"
+        title={t("personas.changeHistory")}
       />
     </div>
   );

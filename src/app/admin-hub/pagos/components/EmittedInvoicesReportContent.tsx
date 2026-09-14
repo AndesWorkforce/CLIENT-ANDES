@@ -17,21 +17,18 @@ import {
   type ReporteFacturasEmitidas,
 } from "../actions/pagos.actions";
 import InvoiceFilterSelect from "./InvoiceFilterSelect";
+import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
 
-const MESES = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-];
-
-/** Últimos 24 meses como opciones de rango. */
-function buildPeriodoOptions(): { value: string; label: string }[] {
-  const options: { value: string; label: string }[] = [];
+/** Últimos 24 meses como opciones de rango. Values stay YYYY-MM. */
+function buildPeriodoValues(): string[] {
+  const options: string[] = [];
   const now = new Date();
 
   for (let i = 0; i < 24; i += 1) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-    options.push({ value, label: `${MESES[date.getMonth()]} ${date.getFullYear()}` });
+    options.push(
+      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
+    );
   }
   return options;
 }
@@ -43,21 +40,26 @@ function formatMoney(amount: number): string {
   })}`;
 }
 
-function formatFechaHora(iso: string | null): string {
-  if (!iso) return "—";
+function formatFechaHora(iso: string | null, dash: string): string {
+  if (!iso) return dash;
   const date = new Date(iso);
   const dd = String(date.getUTCDate()).padStart(2, "0");
   const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
   return `${dd}.${mm}.${date.getUTCFullYear()}`;
 }
 
-/** El período viaja como YYYY-MM; la UI de descarga lo espera como "Mes AAAA". */
-function periodoToDisplay(periodo: string): string {
+/** El período viaja como YYYY-MM; la descarga espera "Mes AAAA" en español. */
+function periodoToSpanishDisplay(periodo: string): string {
+  const MESES = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+  ];
   const [anio, mes] = periodo.split("-").map(Number);
   return `${MESES[mes - 1]} ${anio}`;
 }
 
 export default function EmittedInvoicesReportContent() {
+  const { t } = useAdminHubI18n();
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [report, setReport] = useState<ReporteFacturasEmitidas | null>(null);
@@ -65,7 +67,14 @@ export default function EmittedInvoicesReportContent() {
   const [error, setError] = useState<string | null>(null);
   const [descargando, setDescargando] = useState<string | null>(null);
 
-  const periodoOptions = useMemo(buildPeriodoOptions, []);
+  const periodoOptions = useMemo(
+    () =>
+      buildPeriodoValues().map((value) => ({
+        value,
+        label: formatAdminHubPeriod(value, t),
+      })),
+    [t],
+  );
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -78,12 +87,12 @@ export default function EmittedInvoicesReportContent() {
 
     if (!result.success || !result.data) {
       setReport(null);
-      setError(result.message ?? "Error al obtener el reporte");
+      setError(result.message ?? t("pagos.reportError"));
     } else {
       setReport(result.data);
     }
     setIsLoading(false);
-  }, [desde, hasta]);
+  }, [desde, hasta, t]);
 
   useEffect(() => {
     void load();
@@ -92,7 +101,7 @@ export default function EmittedInvoicesReportContent() {
   async function handleDownload(empresaId: string, periodo: string, numero: string) {
     setDescargando(numero);
     try {
-      const result = await downloadInvoicePdf(empresaId, periodoToDisplay(periodo));
+      const result = await downloadInvoicePdf(empresaId, periodoToSpanishDisplay(periodo));
       if (!result.success || !result.data) return;
 
       const bytes = Uint8Array.from(atob(result.data.base64), (c) =>
@@ -119,11 +128,11 @@ export default function EmittedInvoicesReportContent() {
 
   const breadcrumbItems = useMemo(
     () => [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Pagos", href: "/admin-hub/pagos" },
-      { label: "Facturas emitidas" },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.pagos"), href: "/admin-hub/pagos" },
+      { label: t("breadcrumbs.emitidas") },
     ],
-    [],
+    [t],
   );
 
   return (
@@ -132,25 +141,24 @@ export default function EmittedInvoicesReportContent() {
 
       <div className="flex flex-col gap-2">
         <h1 className="text-[32px] font-bold leading-[1.3] text-[#343434]">
-          Facturas emitidas
+          {t("pagos.emittedTitle")}
         </h1>
         <p className="text-[14px] leading-[1.3] text-[#707070]">
-          Registro oficial de facturas emitidas, con la traza de quién aprobó y
-          quién emitió cada documento.
+          {t("pagos.reportSubtitle")}
         </p>
       </div>
 
       <div className={ADMIN_HUB_FILTERS_ROW_CLASS}>
         <InvoiceFilterSelect
-          label="Desde"
-          placeholder="Desde"
+          label={t("dates.from")}
+          placeholder={t("dates.from")}
           value={desde}
           onChange={setDesde}
           options={periodoOptions}
         />
         <InvoiceFilterSelect
-          label="Hasta"
-          placeholder="Hasta"
+          label={t("dates.to")}
+          placeholder={t("dates.to")}
           value={hasta}
           onChange={setHasta}
           options={periodoOptions}
@@ -164,7 +172,7 @@ export default function EmittedInvoicesReportContent() {
             }}
             className={ADMIN_HUB_CLEAR_FILTERS_CLASS}
           >
-            Limpiar filtros
+            {t("common.clearFilters")}
           </button>
         )}
       </div>
@@ -177,14 +185,14 @@ export default function EmittedInvoicesReportContent() {
         </div>
       ) : !report || report.cantidad === 0 ? (
         <div className="rounded-[8px] border border-[#EFEFEF] bg-white px-5 py-8 text-center text-[14px] text-[#707070]">
-          No hay facturas emitidas en este rango.
+          {t("pagos.reportEmpty")}
         </div>
       ) : (
         <>
           <div className="flex flex-wrap gap-4">
             <div className="flex min-w-[180px] flex-1 flex-col gap-1 rounded-[8px] border border-[#EFEFEF] bg-white px-5 py-4">
               <span className="text-[12px] leading-[1.3] text-[#858585]">
-                Facturas emitidas
+                {t("pagos.emittedTitle")}
               </span>
               <span className="text-[22px] font-bold leading-[1.3] text-[#343434]">
                 {report.cantidad}
@@ -192,7 +200,7 @@ export default function EmittedInvoicesReportContent() {
             </div>
             <div className="flex min-w-[180px] flex-1 flex-col gap-1 rounded-[8px] border border-[#EFEFEF] bg-white px-5 py-4">
               <span className="text-[12px] leading-[1.3] text-[#858585]">
-                Total facturado
+                {t("pagos.totalBilled")}
               </span>
               <span className="text-[22px] font-bold leading-[1.3] text-[#343434]">
                 {formatMoney(report.totalFacturado)}
@@ -204,13 +212,13 @@ export default function EmittedInvoicesReportContent() {
             <table className="w-full min-w-[1000px] border-collapse bg-white">
               <thead>
                 <tr className="border-b border-[#EFEFEF]">
-                  <th className={`${headClass} rounded-tl-[12px]`}>N.º de factura</th>
-                  <th className={headClass}>Cliente</th>
-                  <th className={headClass}>Período</th>
-                  <th className={headClass}>Total</th>
-                  <th className={headClass}>Aprobada por</th>
-                  <th className={headClass}>Emitida por</th>
-                  <th className={headClass}>Emitida el</th>
+                  <th className={`${headClass} rounded-tl-[12px]`}>{t("pagos.invoiceNumber")}</th>
+                  <th className={headClass}>{t("nominas.client")}</th>
+                  <th className={headClass}>{t("nominas.period")}</th>
+                  <th className={headClass}>{t("pagos.total")}</th>
+                  <th className={headClass}>{t("pagos.approvedBy")}</th>
+                  <th className={headClass}>{t("pagos.issuedBy")}</th>
+                  <th className={headClass}>{t("pagos.issuedOn")}</th>
                   <th className={`${headClass} rounded-tr-[12px] w-[60px]`} />
                 </tr>
               </thead>
@@ -223,16 +231,16 @@ export default function EmittedInvoicesReportContent() {
                       </span>
                       {factura.estado === "PAGADA" && (
                         <span className="ml-2 rounded-full bg-[#E6F7EC] px-2 py-0.5 text-[11px] text-[#1F7A45]">
-                          Pagada
+                          {t("pagos.paid")}
                         </span>
                       )}
                     </td>
                     <td className={cellClass}>{factura.empresaNombre}</td>
-                    <td className={cellClass}>{periodoToDisplay(factura.periodo)}</td>
+                    <td className={cellClass}>{formatAdminHubPeriod(factura.periodo, t)}</td>
                     <td className={cellClass}>{formatMoney(factura.totalFacturar)}</td>
-                    <td className={cellClass}>{factura.aprobadoPor ?? "—"}</td>
-                    <td className={cellClass}>{factura.emitidaPor ?? "—"}</td>
-                    <td className={cellClass}>{formatFechaHora(factura.emitidaEn)}</td>
+                    <td className={cellClass}>{factura.aprobadoPor ?? t("common.dash")}</td>
+                    <td className={cellClass}>{factura.emitidaPor ?? t("common.dash")}</td>
+                    <td className={cellClass}>{formatFechaHora(factura.emitidaEn, t("common.dash"))}</td>
                     <td className="px-3 py-5 text-center">
                       <button
                         type="button"
@@ -244,7 +252,7 @@ export default function EmittedInvoicesReportContent() {
                           )
                         }
                         disabled={descargando === factura.numeroFactura}
-                        aria-label={`Descargar ${factura.numeroFactura}`}
+                        aria-label={t("nominas.downloadDoc", { doc: factura.numeroFactura })}
                         className="text-[#858585] transition-colors hover:text-[#0097B2] disabled:opacity-50"
                       >
                         <Download size={18} />

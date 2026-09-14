@@ -29,6 +29,7 @@ import PayrollVariableInfoRow from "./PayrollVariableInfoRow";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
 import DeletePayrollVariableModal from "./DeletePayrollVariableModal";
 import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
+import { useAdminHubI18n } from "../../i18n";
 
 interface PayrollVariableDetailContentProps {
   detail: PayrollVariableDetail;
@@ -37,6 +38,7 @@ interface PayrollVariableDetailContentProps {
 export default function PayrollVariableDetailContent({
   detail: initialDetail,
 }: PayrollVariableDetailContentProps) {
+  const { t } = useAdminHubI18n();
   const router = useRouter();
   const { addNotification } = useNotificationStore();
   const [detail, setDetail] = useState(initialDetail);
@@ -101,12 +103,12 @@ export default function PayrollVariableDetailContent({
 
   const breadcrumbItems = useMemo(
     () => [
-      { label: "Administrador", href: "/admin-hub/dashboard" },
-      { label: "Nóminas", href: "/admin-hub/nominas" },
-      { label: "Variables de nóminas", href: "/admin-hub/nominas/variables" },
-      { label: `Variable - ${detail.id}` },
+      { label: t("breadcrumbs.admin"), href: "/admin-hub/dashboard" },
+      { label: t("breadcrumbs.nominas"), href: "/admin-hub/nominas" },
+      { label: t("breadcrumbs.nominasVariables"), href: "/admin-hub/nominas/variables" },
+      { label: t("nominas.variableTitle", { id: detail.id }) },
     ],
-    [detail.id]
+    [detail.id, t]
   );
 
   // Monto mostrado: preferir el del API (fórmula backend). Al editar, recalcular en UI.
@@ -150,7 +152,7 @@ export default function PayrollVariableDetailContent({
         if (isEditingStatus) {
           // Guardar cambios
           setDetail({ ...detail, estado: statusEdit });
-          addNotification("El estado se actualizó localmente.", "success", "compact");
+          addNotification(t("nominas.statusUpdatedLocal"), "success", "compact");
         }
         setIsEditingStatus(!isEditingStatus);
         break;
@@ -166,7 +168,7 @@ export default function PayrollVariableDetailContent({
             incomeCategory: contextoEdit.incomeCategory,
             desde: contextoEdit.desde,
           });
-          addNotification("El contexto se actualizó localmente.", "success", "compact");
+          addNotification(t("nominas.contextUpdatedLocal"), "success", "compact");
         }
         setIsEditingContexto(!isEditingContexto);
         break;
@@ -174,12 +176,12 @@ export default function PayrollVariableDetailContent({
         if (isEditingBasePago) {
           // Validar que el monto no supere el sueldo base
           if (Math.abs(montoCalculado) > basePagoEdit.sueldoBase) {
-            addNotification("El monto de deducción no puede superar el sueldo base.", "error");
+            addNotification(t("nominas.cannotExceedBaseSalary"), "error");
             return;
           }
           // Guardar cambios
           setDetail({ ...detail, ...basePagoEdit, monto: montoCalculado });
-          addNotification("La base de pago se actualizó localmente.", "success", "compact");
+          addNotification(t("nominas.paymentBaseUpdatedLocal"), "success", "compact");
         }
         setIsEditingBasePago(!isEditingBasePago);
         break;
@@ -187,24 +189,24 @@ export default function PayrollVariableDetailContent({
         if (isEditingDetalles) {
           // Guardar cambios
           setDetail({ ...detail, descripcion: detallesEdit });
-          addNotification("Los detalles adicionales se actualizaron localmente.", "success", "compact");
+          addNotification(t("nominas.detailsUpdatedLocal"), "success", "compact");
         }
         setIsEditingDetalles(!isEditingDetalles);
         break;
       default:
-        addNotification(`La edición de ${section} estará disponible próximamente.`, "info");
+        addNotification(t("nominas.editComingSoon", { section }), "info");
     }
   }
 
   function handleExport() {
-    addNotification("La exportación de la variable estará disponible próximamente.", "info");
+    addNotification(t("nominas.exportComingSoon"), "info");
   }
 
   function handleDelete() {
     // No permitir eliminar si el estado es "Emitido"
     if (detail.estado === "Emitido") {
       addNotification(
-        "No se puede eliminar una variable con estado 'Emitido'.",
+        t("nominas.cannotDeleteEmitted"),
         "error"
       );
       return;
@@ -215,7 +217,7 @@ export default function PayrollVariableDetailContent({
 
   function confirmDelete() {
     removePayrollVariable(detail.id);
-    addNotification("La variable fue eliminada.", "success", "compact");
+    addNotification(t("nominas.variableDeleted"), "success", "compact");
     // Redirigir a la lista de variables después de eliminar
     router.push("/admin-hub/nominas/variables");
   }
@@ -252,10 +254,10 @@ export default function PayrollVariableDetailContent({
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-[32px] font-bold leading-[1.3] text-black">
-            Variable de nóminas
+            {t("nominas.variablesTitle")}
           </h1>
           <p className="text-[16px] leading-[1.3] text-[#858585]">
-            {detail.type}
+            {t(`nominas.types.${detail.type}`)}
           </p>
         </div>
         <div className="flex gap-4">
@@ -270,12 +272,12 @@ export default function PayrollVariableDetailContent({
             }`}
             title={
               detail.estado === "Emitido"
-                ? "No se puede eliminar una variable con estado 'Emitido'"
+                ? t("nominas.cannotDeleteEmitted")
                 : undefined
             }
           >
             <Trash2 size={20} />
-            Eliminar
+            {t("common.delete")}
           </button>
           <button
             type="button"
@@ -283,7 +285,7 @@ export default function PayrollVariableDetailContent({
             className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF]"
           >
             <Download size={20} />
-            Exportar
+            {t("common.export")}
           </button>
         </div>
       </div>
@@ -294,7 +296,7 @@ export default function PayrollVariableDetailContent({
           {/* Contexto */}
           <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-[18px] font-bold leading-[1.3] text-black">Contexto</h2>
+              <h2 className="text-[18px] font-bold leading-[1.3] text-black">{t("nominas.context")}</h2>
               {!isEditingContexto ? (
                 <button
                   type="button"
@@ -309,7 +311,7 @@ export default function PayrollVariableDetailContent({
                   onClick={() => handleEdit("contexto")}
                   className="text-[14px] font-medium text-[#0097B2] hover:underline"
                 >
-                  Guardar
+                  {t("common.save")}
                 </button>
               )}
             </div>
@@ -324,7 +326,7 @@ export default function PayrollVariableDetailContent({
                   <option value={detail.contratista}>{detail.contratista}</option>
                 </select>
                 <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                  Contratista*
+                  {t("nominas.contractor")}*
                 </label>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
               </div>
@@ -361,7 +363,7 @@ export default function PayrollVariableDetailContent({
                     </>
                   )}
                   <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                    ID Contrato*
+                    {t("personas.contractId")}*
                   </label>
                 </div>
 
@@ -375,7 +377,7 @@ export default function PayrollVariableDetailContent({
                     <option value={detail.puesto}>{detail.puesto}</option>
                   </select>
                   <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                    Puesto*
+                    {t("nominas.position")}*
                   </label>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                 </div>
@@ -403,7 +405,7 @@ export default function PayrollVariableDetailContent({
                   </>
                 )}
                 <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                  Cliente*
+                  {t("nominas.client")}*
                 </label>
               </div>
 
@@ -416,11 +418,11 @@ export default function PayrollVariableDetailContent({
                       onChange={(e) => setContextoEdit({ ...contextoEdit, type: e.target.value as any })}
                       className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
                     >
-                      <option value="Overtime">Overtime</option>
-                      <option value="Holiday">Holiday</option>
-                      <option value="Income Variable">Income Variable</option>
-                      <option value="Deducción">Deducción</option>
-                      <option value="Ausencia">Ausencia</option>
+                      <option value="Overtime">{t("nominas.types.Overtime")}</option>
+                      <option value="Holiday">{t("nominas.types.Holiday")}</option>
+                      <option value="Income Variable">{t("nominas.types.Income Variable")}</option>
+                      <option value="Deducción">{t("nominas.types.Deducción")}</option>
+                      <option value="Ausencia">{t("nominas.types.Ausencia")}</option>
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                   </>
@@ -431,13 +433,13 @@ export default function PayrollVariableDetailContent({
                       disabled
                       className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
                     >
-                      <option value={detail.type}>{detail.type}</option>
+                      <option value={detail.type}>{t(`nominas.types.${detail.type}`)}</option>
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                   </>
                 )}
                 <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                  Variable*
+                  {t("nominas.variable")}*
                 </label>
               </div>
 
@@ -453,8 +455,8 @@ export default function PayrollVariableDetailContent({
                             onChange={(e) => setContextoEdit({ ...contextoEdit, deductionTipo: e.target.value as any })}
                             className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
                           >
-                            <option value="Ausencia">Ausencia</option>
-                            <option value="Other">Other</option>
+                            <option value="Ausencia">{t("nominas.absence")}</option>
+                            <option value="Other">{t("nominas.other")}</option>
                           </select>
                           <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                         </>
@@ -466,11 +468,11 @@ export default function PayrollVariableDetailContent({
                             onChange={(e) => setContextoEdit({ ...contextoEdit, incomeCategory: e.target.value as any })}
                             className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
                           >
-                            <option value="Bonus">Bonus</option>
-                            <option value="Reimbursement">Reimbursement</option>
-                            <option value="Invoice Expense">Invoice Expense</option>
-                            <option value="Referral">Referral</option>
-                            <option value="Other">Other</option>
+                            <option value="Bonus">{t("nominas.incomeCategories.Bonus")}</option>
+                            <option value="Reimbursement">{t("nominas.incomeCategories.Reimbursement")}</option>
+                            <option value="Invoice Expense">{t("nominas.incomeCategories.Invoice Expense")}</option>
+                            <option value="Referral">{t("nominas.incomeCategories.Referral")}</option>
+                            <option value="Other">{t("nominas.incomeCategories.Other")}</option>
                           </select>
                           <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                         </>
@@ -484,14 +486,20 @@ export default function PayrollVariableDetailContent({
                         className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
                       >
                         <option value={detail.deductionTipo || detail.incomeCategory}>
-                          {detail.deductionTipo || detail.incomeCategory}
+                          {detail.deductionTipo
+                            ? detail.deductionTipo === "Ausencia"
+                              ? t("nominas.absence")
+                              : t("nominas.other")
+                            : detail.incomeCategory
+                              ? t(`nominas.incomeCategories.${detail.incomeCategory}`)
+                              : ""}
                         </option>
                       </select>
                       <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                     </>
                   )}
                   <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                    Tipo*
+                    {t("nominas.type")}*
                   </label>
                 </div>
               )}
@@ -518,7 +526,7 @@ export default function PayrollVariableDetailContent({
                   </>
                 )}
                 <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                  Fecha*
+                  {t("dates.date")}*
                 </label>
               </div>
             </div>
@@ -528,11 +536,11 @@ export default function PayrollVariableDetailContent({
           <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-[18px] font-bold leading-[1.3] text-black">
-                {detail.type === "Overtime" ? "Información de Overtime" :
-                 detail.type === "Holiday" ? "Información de Holiday" :
-                 detail.type === "Deducción" || detail.type === "Ausencia" ? "Información de Deducción" :
-                 detail.type === "Income Variable" ? "Detalles del Ingreso Variable" :
-                 "Base de pago"}
+                {detail.type === "Overtime" ? t("nominas.overtimeInfo") :
+                 detail.type === "Holiday" ? t("nominas.holidayInfo") :
+                 detail.type === "Deducción" || detail.type === "Ausencia" ? t("nominas.deductionInfo") :
+                 detail.type === "Income Variable" ? t("nominas.incomeVariableDetails") :
+                 t("nominas.paymentBase")}
               </h2>
               {!isEditingBasePago ? (
                 <button
@@ -548,7 +556,7 @@ export default function PayrollVariableDetailContent({
                   onClick={() => handleEdit("base-pago")}
                   className="text-[14px] font-medium text-[#0097B2] hover:underline"
                 >
-                  Guardar
+                  {t("common.save")}
                 </button>
               )}
             </div>
@@ -572,13 +580,16 @@ export default function PayrollVariableDetailContent({
                           disabled
                           className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
                         >
-                          <option value={detail.cantidad}>{detail.cantidad} hora{detail.cantidad !== 1 ? 's' : ''}</option>
+                          <option value={detail.cantidad}>
+                            {detail.cantidad}{" "}
+                            {detail.cantidad !== 1 ? t("nominas.hoursUnit") : t("nominas.hourUnit")}
+                          </option>
                         </select>
                         <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                       </>
                     )}
                     <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                      Horas Extras Trabajadas*
+                      {t("nominas.overtimeHoursWorked")}*
                     </label>
                   </div>
                   
@@ -603,7 +614,7 @@ export default function PayrollVariableDetailContent({
                       </>
                     )}
                     <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                      Sueldo Base Mensual*
+                      {t("nominas.monthlyBaseSalary")}*
                     </label>
                   </div>
                 </div>
@@ -623,13 +634,13 @@ export default function PayrollVariableDetailContent({
                         disabled
                         className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
                       >
-                        <option value={detail.duracion}>{detail.duracion} horas/día</option>
+                        <option value={detail.duracion}>{t("nominas.hoursPerDay", { count: detail.duracion })}</option>
                       </select>
                       <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                     </>
                   )}
                   <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                    Jornada Laboral Diaria*
+                    {t("nominas.dailyWorkday")}*
                   </label>
                 </div>
               </div>
@@ -639,9 +650,9 @@ export default function PayrollVariableDetailContent({
             {detail.type === "Holiday" && (
               <div className="flex flex-col gap-4">
                 <div className="relative">
-                  <label className="mb-1 block text-[12px] text-[#858585]">Tipo de Holiday</label>
+                  <label className="mb-1 block text-[12px] text-[#858585]">{t("nominas.holidayType")}</label>
                   <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
-                    <p className="text-[14px] text-[#525252]">Feriado Nacional - Día Pagado</p>
+                    <p className="text-[14px] text-[#525252]">{t("nominas.nationalHolidayPaid")}</p>
                   </div>
                 </div>
                 
@@ -661,13 +672,16 @@ export default function PayrollVariableDetailContent({
                           disabled
                           className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
                         >
-                          <option value={detail.cantidad}>{detail.cantidad} día{detail.cantidad !== 1 ? 's' : ''}</option>
+                          <option value={detail.cantidad}>
+                            {detail.cantidad}{" "}
+                            {detail.cantidad !== 1 ? t("nominas.daysUnit") : t("nominas.dayUnit")}
+                          </option>
                         </select>
                         <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                       </>
                     )}
                     <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                      Días de Holiday*
+                      {t("nominas.holidayDays")}*
                     </label>
                   </div>
                   
@@ -692,16 +706,16 @@ export default function PayrollVariableDetailContent({
                       </>
                     )}
                     <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                      Sueldo Base Mensual*
+                      {t("nominas.monthlyBaseSalary")}*
                     </label>
                   </div>
                 </div>
                 
                 <div className="relative">
-                  <label className="mb-1 block text-[12px] text-[#858585]">Lógica de Aplicación</label>
+                  <label className="mb-1 block text-[12px] text-[#858585]">{t("nominas.applicationLogic")}</label>
                   <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
                     <p className="text-[14px] text-[#525252]">
-                      Pago adicional por trabajo en día feriado. Se calcula como: (Sueldo Base / 20) × tarifa festivo del país
+                      {t("nominas.holidayCalc")}
                       {detail.monto
                         ? ` = $${Math.abs(detail.monto).toFixed(2)}`
                         : ""}
@@ -730,13 +744,16 @@ export default function PayrollVariableDetailContent({
                           disabled
                           className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
                         >
-                          <option value={detail.cantidad}>{detail.cantidad} día{detail.cantidad !== 1 ? 's' : ''}</option>
+                          <option value={detail.cantidad}>
+                            {detail.cantidad}{" "}
+                            {detail.cantidad !== 1 ? t("nominas.daysUnit") : t("nominas.dayUnit")}
+                          </option>
                         </select>
                         <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
                       </>
                     )}
                     <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                      {detail.type === "Ausencia" ? "Días de Ausencia*" : "Cantidad*"}
+                      {detail.type === "Ausencia" ? `${t("nominas.absenceDays")}*` : `${t("nominas.quantity")}*`}
                     </label>
                   </div>
                   
@@ -761,25 +778,36 @@ export default function PayrollVariableDetailContent({
                       </>
                     )}
                     <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                      Sueldo Base Mensual*
+                      {t("nominas.monthlyBaseSalary")}*
                     </label>
                   </div>
                 </div>
                 
                 <div className="relative">
-                  <label className="mb-1 block text-[12px] text-[#858585]">Tipo de Deducción</label>
+                  <label className="mb-1 block text-[12px] text-[#858585]">{t("nominas.deductionType")}</label>
                   <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
-                    <p className="text-[14px] text-[#525252]">{detail.deductionTipo || "Other"}</p>
+                    <p className="text-[14px] text-[#525252]">
+                      {detail.deductionTipo === "Ausencia"
+                        ? t("nominas.absence")
+                        : t("nominas.other")}
+                    </p>
                   </div>
                 </div>
                 
                 <div className="relative">
-                  <label className="mb-1 block text-[12px] text-[#858585]">Cálculo de Deducción</label>
+                  <label className="mb-1 block text-[12px] text-[#858585]">{t("nominas.deductionCalculation")}</label>
                   <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
                     <p className="text-[14px] text-[#525252]">
                       {detail.type === "Ausencia"
-                        ? `Se descuenta: (Sueldo Base / 20) × ${detail.cantidad} = $${Math.abs(montoCalculado).toFixed(2)}`
-                        : `Se descuenta: (Sueldo Base / ${detail.duracion}) × ${detail.cantidad} = $${Math.abs(montoCalculado).toFixed(2)}`}
+                        ? t("nominas.absenceCalc", {
+                            quantity: detail.cantidad,
+                            amount: Math.abs(montoCalculado).toFixed(2),
+                          })
+                        : t("nominas.deductionCalc", {
+                            duration: detail.duracion,
+                            quantity: detail.cantidad,
+                            amount: Math.abs(montoCalculado).toFixed(2),
+                          })}
                     </p>
                   </div>
                 </div>
@@ -791,14 +819,12 @@ export default function PayrollVariableDetailContent({
               <div className="flex flex-col gap-4">
                 {/* Categoría de Ingreso */}
                 <div className="relative">
-                  <label className="mb-1 block text-[12px] text-[#858585]">Categoría de Ingreso*</label>
+                  <label className="mb-1 block text-[12px] text-[#858585]">{t("nominas.incomeCategoryLabel")}*</label>
                   <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
                     <p className="text-[14px] font-medium text-[#525252]">
-                      {detail.incomeCategory === "Bonus" ? "Bono" :
-                       detail.incomeCategory === "Reimbursement" ? "Reembolso" :
-                       detail.incomeCategory === "Invoice Expense" ? "Gasto de Factura" :
-                       detail.incomeCategory === "Referral" ? "Referido" :
-                       "Otro"}
+                      {detail.incomeCategory
+                        ? t(`nominas.incomeCategories.${detail.incomeCategory}`)
+                        : t("nominas.incomeCategories.Other")}
                     </p>
                   </div>
                 </div>
@@ -818,7 +844,7 @@ export default function PayrollVariableDetailContent({
                         });
                       }}
                       className="h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
-                      placeholder="Ingrese el monto del ingreso variable"
+                      placeholder={t("nominas.incomeVariableAmountPlaceholder")}
                     />
                   ) : (
                     <>
@@ -833,7 +859,7 @@ export default function PayrollVariableDetailContent({
                     </>
                   )}
                   <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                    Monto del Ingreso Variable*
+                    {t("nominas.incomeVariableAmount")}*
                   </label>
                 </div>
               </div>
@@ -844,7 +870,9 @@ export default function PayrollVariableDetailContent({
           <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-[18px] font-bold leading-[1.3] text-black">
-                {detail.type === "Income Variable" ? "Descripción del Ingreso Variable" : "Descripción"}
+                {detail.type === "Income Variable"
+                  ? t("nominas.incomeVariableDescription")
+                  : t("nominas.description")}
               </h2>
               {!isEditingDetalles ? (
                 <button
@@ -860,7 +888,7 @@ export default function PayrollVariableDetailContent({
                   onClick={() => handleEdit("detalles")}
                   className="text-[14px] font-medium text-[#0097B2] hover:underline"
                 >
-                  Guardar
+                  {t("common.save")}
                 </button>
               )}
             </div>
@@ -871,13 +899,15 @@ export default function PayrollVariableDetailContent({
                   value={detallesEdit}
                   onChange={(e) => setDetallesEdit(e.target.value)}
                   rows={4}
-                  placeholder={detail.type === "Income Variable" 
-                    ? "Describe el motivo del ingreso variable (ej: Bono por desempeño Q1, Comisión por ventas marzo, etc.)" 
-                    : detail.type === "Overtime" 
-                    ? "Describe el motivo de las horas extras (ej: Problema técnico, Soporte urgente, etc.)"
-                    : detail.type === "Holiday"
-                    ? "Describe el holiday (ej: Feriado nacional, Día festivo, etc.)"
-                    : "Describe el motivo de esta variable"}
+                  placeholder={
+                    detail.type === "Income Variable"
+                      ? t("nominas.incomeDescPlaceholder")
+                      : detail.type === "Overtime"
+                      ? t("nominas.overtimeDescPlaceholder")
+                      : detail.type === "Holiday"
+                      ? t("nominas.holidayDescPlaceholder")
+                      : t("nominas.descriptionPlaceholder")
+                  }
                   className="w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none"
                 />
               ) : (
@@ -893,7 +923,7 @@ export default function PayrollVariableDetailContent({
                 </>
               )}
               <label className="absolute left-[13px] top-0 bg-white px-1 text-[12px] text-[#858585]">
-                Descripción*
+                {t("nominas.description")}*
               </label>
             </div>
           </div>
@@ -904,7 +934,7 @@ export default function PayrollVariableDetailContent({
           {/* Estado de la nómina */}
           <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-[18px] font-bold leading-[1.3] text-black">Estado de la nómina</h2>
+              <h2 className="text-[18px] font-bold leading-[1.3] text-black">{t("nominas.payrollStatus")}</h2>
               {!isEditingStatus ? (
                 <button
                   type="button"
@@ -919,7 +949,7 @@ export default function PayrollVariableDetailContent({
                   onClick={() => handleEdit("estado")}
                   className="text-[14px] font-medium text-[#0097B2] hover:underline"
                 >
-                  Guardar
+                  {t("common.save")}
                 </button>
               )}
             </div>
@@ -930,12 +960,12 @@ export default function PayrollVariableDetailContent({
                 disabled={!isEditingStatus}
                 className="h-[50px] w-full appearance-none rounded-[8px] border border-[#C8C8C8] bg-white px-4 pt-4 pb-2 text-[14px] text-[#525252] outline-none disabled:bg-white"
               >
-                <option value="Pendiente">Pendiente</option>
-                <option value="Aprobado">Aprobado</option>
-                <option value="Rechazado">Rechazado</option>
+                <option value="Pendiente">{t("status.payroll.Pendiente")}</option>
+                <option value="Aprobado">{t("status.payroll.Aprobado")}</option>
+                <option value="Rechazado">{t("status.payroll.Rechazado")}</option>
               </select>
               <label className="absolute left-[13px] top-0 bg-white px-1 text-[14px] text-[#525252]">
-                Estado*
+                {t("nominas.status")}*
               </label>
               <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#525252]" size={18} />
             </div>
@@ -943,11 +973,11 @@ export default function PayrollVariableDetailContent({
 
           {/* Registro de creación */}
           <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
-            <h2 className="mb-6 text-[18px] font-bold leading-[1.3] text-black">Registro de creación</h2>
+            <h2 className="mb-6 text-[18px] font-bold leading-[1.3] text-black">{t("nominas.creationRecord")}</h2>
             <div className="flex flex-col gap-4">
               {/* Creado por */}
               <div className="relative">
-                <label className="mb-1 block text-[12px] text-[#858585]">Creado por</label>
+                <label className="mb-1 block text-[12px] text-[#858585]">{t("nominas.createdBy")}</label>
                 <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
                   <p className="text-[14px] text-[#525252]">{detail.creadoPor}</p>
                 </div>
@@ -955,7 +985,7 @@ export default function PayrollVariableDetailContent({
 
               {/* Fecha de creación */}
               <div className="relative">
-                <label className="mb-1 block text-[12px] text-[#858585]">Fecha de creación</label>
+                <label className="mb-1 block text-[12px] text-[#858585]">{t("nominas.creationDate")}</label>
                 <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
                   <p className="text-[14px] text-[#525252]">{formatDateToUSA(detail.fechaCreacion)}</p>
                 </div>
@@ -965,9 +995,9 @@ export default function PayrollVariableDetailContent({
 
           {/* Impacto */}
           <div className="rounded-[12px] border border-[#EFEFEF] bg-white p-6">
-            <h2 className="mb-6 text-[18px] font-bold leading-[1.3] text-black">Impacto</h2>
+            <h2 className="mb-6 text-[18px] font-bold leading-[1.3] text-black">{t("nominas.impact")}</h2>
             <div className="relative">
-              <label className="mb-1 block text-[12px] text-[#858585]">Monto*</label>
+              <label className="mb-1 block text-[12px] text-[#858585]">{t("nominas.amount")}*</label>
               <div className="rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-3">
                 <p className="text-[14px] text-[#525252]">
                   {montoCalculado < 0 ? `-$${Math.abs(montoCalculado).toFixed(2)}` : `$${montoCalculado.toFixed(2)}`}
@@ -980,7 +1010,7 @@ export default function PayrollVariableDetailContent({
 
       <ObjectHistorialTable
         entidadId={detail.id}
-        title="Historial de cambios"
+        title={t("historial.title")}
       />
 
       <DeletePayrollVariableModal

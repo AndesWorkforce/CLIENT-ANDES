@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, Calendar } from "lucide-react";
 import AdminHubDatePicker from "./AdminHubDatePicker";
+import { useAdminHubI18n } from "../i18n";
 
 interface AdminHubDateRangePickerProps {
   fromDate: string;
@@ -27,11 +28,14 @@ export default function AdminHubDateRangePicker({
   toDate,
   onFromDateChange,
   onToDateChange,
-  fromLabel = "Desde",
-  toLabel = "Hasta",
+  fromLabel,
+  toLabel,
   className = "",
   variant = "default",
 }: AdminHubDateRangePickerProps) {
+  const { t } = useAdminHubI18n();
+  const resolvedFromLabel = fromLabel ?? t("dates.from");
+  const resolvedToLabel = toLabel ?? t("dates.to");
   const [validationError, setValidationError] = useState<string | null>(null);
   // Coordina que "Desde" y "Hasta" nunca estén desplegados al mismo tiempo.
   const [openField, setOpenField] = useState<"from" | "to" | null>(null);
@@ -49,18 +53,18 @@ export default function AdminHubDateRangePicker({
   useEffect(() => {
     if (fromDate && toDate) {
       if (fromDate > toDate) {
-        setValidationError("La fecha inicial no puede ser mayor que la fecha final");
+        setValidationError(t("dates.fromAfterTo"));
       } else if (toDate > todayIso) {
-        setValidationError("La fecha final no puede ser mayor que la fecha actual");
+        setValidationError(t("dates.toAfterToday"));
       } else {
         setValidationError(null);
       }
     } else if (toDate && toDate > todayIso) {
-      setValidationError("La fecha final no puede ser mayor que la fecha actual");
+      setValidationError(t("dates.toAfterToday"));
     } else {
       setValidationError(null);
     }
-  }, [fromDate, toDate, todayIso]);
+  }, [fromDate, toDate, todayIso, t]);
 
   const handleFromDateChange = (date: string) => {
     // Si ya hay una fecha final y la nueva fecha inicial es mayor, limpiar la fecha final
@@ -95,10 +99,10 @@ export default function AdminHubDateRangePicker({
       <div className={isFilterVariant ? filterFieldClass : "w-[min(180px,100%)]"}>
         <AdminHubDatePicker
           variant={isFilterVariant ? "filter" : "form"}
-          label={fromLabel}
+          label={resolvedFromLabel}
           value={fromDate}
           onChange={handleFromDateChange}
-          placeholder="dd.mm.aa"
+          placeholder={t("dates.placeholder")}
           required={false}
           maxDate={toDate || todayIso}
           onOpen={() => setOpenField("from")}
@@ -117,10 +121,10 @@ export default function AdminHubDateRangePicker({
       <div className={isFilterVariant ? filterFieldClass : "w-[min(180px,100%)]"}>
         <AdminHubDatePicker
           variant={isFilterVariant ? "filter" : "form"}
-          label={toLabel}
+          label={resolvedToLabel}
           value={toDate}
           onChange={handleToDateChange}
-          placeholder="dd.mm.aa"
+          placeholder={t("dates.placeholder")}
           required={false}
           minDate={fromDate || undefined}
           maxDate={todayIso}
@@ -150,7 +154,7 @@ export default function AdminHubDateRangePicker({
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex min-w-0 items-center gap-2 text-[14px] text-[#858585]">
           <Calendar size={18} className="shrink-0" />
-          <span className="font-medium whitespace-nowrap">Rango de fechas:</span>
+          <span className="font-medium whitespace-nowrap">{t("dates.rangeLabel")}</span>
         </div>
 
         <div className="flex min-w-0 flex-wrap items-end gap-2">{dateFields}</div>

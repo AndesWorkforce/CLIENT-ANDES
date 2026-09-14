@@ -1,12 +1,12 @@
 "use client";
 
 import AdminHubFormField from "../../components/AdminHubFormField";
+import { useAdminHubI18n, type AdminHubTranslate } from "../../i18n";
 import { NATIONALITY_OPTIONS } from "../data/mock-contract-address";
 import {
   BANK_OPTIONS,
   BILLING_COUNTRY_OPTIONS,
   CLIENT_OPTIONS,
-  DISCRETIONARY_BONUS_OPTIONS,
   getOptionLabel,
   HOW_DID_YOU_HEAR_OPTIONS,
   HR_RATE_HOLIDAYS_OPTIONS,
@@ -15,7 +15,6 @@ import {
   YES_NO_OPTIONS,
 } from "../data/mock-contract-form-options";
 import {
-  CONTRACT_TYPE_LABELS,
   type ContractCreationType,
   type CreateContractFormData,
 } from "../data/contract-creation-types";
@@ -54,149 +53,181 @@ function formatDateDisplay(isoDate: string): string {
   return isoDate;
 }
 
+function yesNoLabel(value: string, t: AdminHubTranslate): string {
+  if (value === "Si") return t("common.yes");
+  if (value === "No") return t("common.no");
+  return getOptionLabel(YES_NO_OPTIONS, value);
+}
+
+function paymentLabel(value: string, t: AdminHubTranslate): string {
+  if (value === "Transferencia bancaria" || value === "Transferencia Bancaria") {
+    return t("paymentMethod.bankTransfer");
+  }
+  if (value === "Dollar App") return t("paymentMethod.dollarApp");
+  return getOptionLabel(PAYMENT_METHOD_OPTIONS, value);
+}
+
+function contractTypeLabel(type: ContractCreationType, t: AdminHubTranslate): string {
+  return t(type === "full-time" ? "contractType.fullTime" : "contractType.partTime");
+}
+
 export default function CreateContractReviewStep({
   formData,
   selectedType,
 }: CreateContractReviewStepProps) {
-  const discretionaryBonusLabel = getOptionLabel(
-    DISCRETIONARY_BONUS_OPTIONS,
-    formData.discretionaryBonus
-  );
+  const { t } = useAdminHubI18n();
+  const discretionaryBonusLabel = formData.discretionaryBonus
+    ? t(`bonus.${formData.discretionaryBonus}`)
+    : t("common.dash");
+  const dash = t("common.dash");
 
   return (
     <div className="flex w-full max-w-[636px] flex-col gap-6">
       <h3 className="text-[22px] font-bold leading-[1.3] text-[#525252]">
-        Revisá la información antes de continuar
+        {t("contratos.reviewHint")}
       </h3>
 
-      <ContractFormSection title="Información General">
-        <ReviewField label="Nombre de Contratista" value={formData.nombreContratista} />
-        <ReviewField label="Email Personal" value={formData.emailPersonal} />
-        <ReviewField label="Email Laboral" value={formData.emailLaboral} />
-        <ReviewField label="Teléfono" value={formData.telefono} />
-        <ReviewField label="N° Documento" value={formData.documento} />
+      <ContractFormSection title={t("personas.generalInfo")}>
         <ReviewField
-          label="Fecha de Nacimiento"
+          label={t("contratos.contractorName")}
+          value={formData.nombreContratista}
+        />
+        <ReviewField label={t("personas.personalEmail")} value={formData.emailPersonal} />
+        <ReviewField label={t("personas.workEmail")} value={formData.emailLaboral} />
+        <ReviewField label={t("personas.phone")} value={formData.telefono} />
+        <ReviewField label={t("personas.documentNumber")} value={formData.documento} />
+        <ReviewField
+          label={t("personas.birthDate")}
           value={formatDateDisplay(formData.fechaNacimiento)}
         />
         <ReviewField
-          label="Nacionalidad"
+          label={t("personas.nationality")}
           value={getOptionLabel(NATIONALITY_OPTIONS, formData.nacionalidad)}
         />
       </ContractFormSection>
 
-      <ContractFormSection title="Dirección de Residencia">
+      <ContractFormSection title={t("personas.residence")}>
         <ReviewField
-          label="País de residencia"
+          label={t("personas.countryName")}
           value={getOptionLabel(BILLING_COUNTRY_OPTIONS, formData.paisResidencia)}
         />
-        <ReviewField label="Estado" value={formData.estado} />
-        <ReviewField label="Ciudad" value={formData.ciudad} />
+        <ReviewField label={t("personas.state")} value={formData.estado} />
+        <ReviewField label={t("personas.city")} value={formData.ciudad} />
         <div className="flex gap-4">
           <div className="min-w-0 flex-[3]">
-            <ReviewField label="Calle" value={formData.calle} />
+            <ReviewField label={t("personas.street")} value={formData.calle} />
           </div>
           <div className="min-w-0 flex-1">
-            <ReviewField label="Altura" value={formData.altura} />
+            <ReviewField label={t("personas.streetNumber")} value={formData.altura} />
           </div>
         </div>
-        <ReviewField label="Código Postal" value={formData.codigoPostal} />
+        <ReviewField label={t("personas.postalCode")} value={formData.codigoPostal} />
       </ContractFormSection>
 
-      <ContractFormSection title="Información Laboral">
-        <ReviewField label="Tipo de Contrato" value={CONTRACT_TYPE_LABELS[selectedType]} />
+      <ContractFormSection title={t("personas.laborInfo")}>
         <ReviewField
-          label="Fecha de inicio del contrato"
+          label={t("personas.contractType")}
+          value={contractTypeLabel(selectedType, t)}
+        />
+        <ReviewField
+          label={t("personas.startDate")}
           value={formatDateDisplay(formData.fechaInicioContrato)}
         />
         <ReviewField
-          label="Posición"
+          label={t("personas.position")}
           value={getOptionLabel(POSITION_OPTIONS, formData.posicion)}
         />
-        <ReviewField label="Cliente" value={getOptionLabel(CLIENT_OPTIONS, formData.cliente)} />
-        <ReviewField label="Salario" value={formData.salario} />
         <ReviewField
-          label="HR Rate Holidays"
+          label={t("personas.client")}
+          value={getOptionLabel(CLIENT_OPTIONS, formData.cliente)}
+        />
+        <ReviewField label={t("personas.salary")} value={formData.salario} />
+        <ReviewField
+          label={t("personas.hrRateHolidays")}
           value={getOptionLabel(HR_RATE_HOLIDAYS_OPTIONS, formData.hrRateHolidays)}
         />
         <ReviewField
-          label="Paid Holidays"
-          value={getOptionLabel(YES_NO_OPTIONS, formData.paidHolidays)}
+          label={t("personas.paidHolidays")}
+          value={yesNoLabel(formData.paidHolidays, t)}
         />
-        <ReviewField label="Discretionary Bonus" value={discretionaryBonusLabel} />
+        <ReviewField label={t("personas.ipbBalance")} value={discretionaryBonusLabel} />
         <ReviewField
-          label="IPB Bonus"
-          value={getOptionLabel(YES_NO_OPTIONS, formData.ipbBonus)}
+          label={t("personas.ipbBalance")}
+          value={yesNoLabel(formData.ipbBonus, t)}
         />
       </ContractFormSection>
 
-      <ContractFormSection title="Información Financiera">
+      <ContractFormSection title={t("personas.financialInfo")}>
         <ReviewField
-          label="País de Facturación"
+          label={t("personas.billingCountry")}
           value={getOptionLabel(BILLING_COUNTRY_OPTIONS, formData.paisFacturacion)}
         />
         <ReviewField
-          label="Metódo de pago"
-          value={getOptionLabel(PAYMENT_METHOD_OPTIONS, formData.metodoPago)}
+          label={t("personas.paymentMethod")}
+          value={paymentLabel(formData.metodoPago, t)}
         />
         {formData.metodoPago === "ARQ App" ? (
           <ReviewField
-            label="ARQ Tag"
-            value={formData.arqTag || "—"}
+            label={t("personas.dollarTag")}
+            value={formData.arqTag || dash}
             required={false}
           />
         ) : null}
         <ReviewField
-          label="Banco Personal"
+          label={t("personas.personalBank")}
           value={
             formData.bancoPersonal
               ? getOptionLabel(BANK_OPTIONS, formData.bancoPersonal)
-              : "—"
+              : dash
           }
           required={false}
         />
         <ReviewField
-          label="Numero de Cuenta Bancaria personal"
-          value={formData.numeroCuentaPersonal || "—"}
+          label={t("personas.personalAccountNumber")}
+          value={formData.numeroCuentaPersonal || dash}
           required={false}
         />
         <ReviewField
-          label="Nombre de Banco de Facturación"
+          label={t("personas.billingBankName")}
           value={
             formData.bancoFacturacion
               ? getOptionLabel(BANK_OPTIONS, formData.bancoFacturacion)
-              : "—"
+              : dash
           }
           required={false}
         />
         <ReviewField
-          label="Numero de Banco de Facturación"
-          value={formData.numeroBancoFacturacion || "—"}
+          label={t("personas.billingBankNumber")}
+          value={formData.numeroBancoFacturacion || dash}
           required={false}
         />
       </ContractFormSection>
 
-      <ContractFormSection title="Ingresos Adicionales">
+      <ContractFormSection title={t("personas.additionalIncome")}>
         <ReviewField
-          label="¿Como nos conoció?"
+          label={t("personas.howDidYouMeetUs")}
           value={getOptionLabel(HOW_DID_YOU_HEAR_OPTIONS, formData.comoNosConocio)}
         />
         <div className="flex gap-2.5">
           <div className="w-[222px] shrink-0">
             <ReviewField
-              label="¿Fue recomendado?"
-              value={getOptionLabel(YES_NO_OPTIONS, formData.fueRecomendado)}
+              label={t("personas.wasReferred")}
+              value={yesNoLabel(formData.fueRecomendado, t)}
             />
           </div>
           <div className="min-w-0 flex-1">
             <ReviewField
-              label="¿Por quién?"
-              value={formData.porQuien || "—"}
+              label={t("personas.referredBy")}
+              value={formData.porQuien || dash}
               required={false}
             />
           </div>
         </div>
-        <ReviewField label="Notas" value={formData.notas || "—"} required={false} />
+        <ReviewField
+          label={t("personas.notes")}
+          value={formData.notas || dash}
+          required={false}
+        />
       </ContractFormSection>
     </div>
   );

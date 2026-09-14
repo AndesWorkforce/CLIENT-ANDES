@@ -1,6 +1,7 @@
 "use client";
 
 import AdminHubFormField from "../../components/AdminHubFormField";
+import { useAdminHubI18n } from "../../i18n";
 import {
   getCityOptions,
   getStateOptions,
@@ -18,6 +19,7 @@ export default function CreateContractResidenceForm({
   formData,
   onChange,
 }: CreateContractResidenceFormProps) {
+  const { t } = useAdminHubI18n();
   const stateOptions = getStateOptions(formData.paisResidencia);
   const cityOptions = getCityOptions(formData.estado);
 
@@ -43,10 +45,10 @@ export default function CreateContractResidenceForm({
   }
 
   return (
-    <ContractFormSection title="Dirección de Residencia">
+    <ContractFormSection title={t("personas.residence")}>
       <AdminHubFormField
         type="select"
-        label="País de residencia"
+        label={t("personas.countryName")}
         value={formData.paisResidencia}
         onChange={handleCountryChange}
         options={RESIDENCE_COUNTRIES}
@@ -54,7 +56,7 @@ export default function CreateContractResidenceForm({
       />
       <AdminHubFormField
         type="select"
-        label="Estado"
+        label={t("personas.state")}
         value={formData.estado}
         onChange={handleStateChange}
         options={stateOptions}
@@ -62,7 +64,7 @@ export default function CreateContractResidenceForm({
       />
       <AdminHubFormField
         type="select"
-        label="Ciudad"
+        label={t("personas.city")}
         value={formData.ciudad}
         onChange={(ciudad) => patch({ ciudad })}
         options={cityOptions}
@@ -72,7 +74,7 @@ export default function CreateContractResidenceForm({
         <div className="min-w-0 flex-[3]">
           <AdminHubFormField
             type="input"
-            label="Calle"
+            label={t("personas.street")}
             value={formData.calle}
             onChange={(calle) => patch({ calle })}
             placeholder="Gorriti"
@@ -81,7 +83,7 @@ export default function CreateContractResidenceForm({
         <div className="min-w-0 flex-1">
           <AdminHubFormField
             type="input"
-            label="Altura"
+            label={t("personas.streetNumber")}
             value={formData.altura}
             onChange={(altura) => patch({ altura })}
             placeholder="1254"
@@ -90,7 +92,7 @@ export default function CreateContractResidenceForm({
       </div>
       <AdminHubFormField
         type="input"
-        label="Código Postal"
+        label={t("personas.postalCode")}
         value={formData.codigoPostal}
         onChange={(codigoPostal) => patch({ codigoPostal })}
         placeholder="7600"

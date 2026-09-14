@@ -7,6 +7,7 @@ import AdminHubTableShell, { ADMIN_HUB_TABLE_ROW } from "../../components/AdminH
 import type { InvoiceAdditionalFee } from "../data/mock-invoice-details";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 import InvoiceTableTotalRow from "./InvoiceTableTotalRow";
+import { useAdminHubI18n } from "../../i18n";
 
 const MENU_MIN_WIDTH = 148;
 
@@ -27,6 +28,7 @@ export default function InvoiceAdditionalFeesTable({
   onReject,
   onDelete,
 }: InvoiceAdditionalFeesTableProps) {
+  const { t } = useAdminHubI18n();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
@@ -134,32 +136,32 @@ export default function InvoiceAdditionalFeesTable({
                   checked={allSelected}
                   onChange={toggleAll}
                   className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                  aria-label="Seleccionar todos los adicionales"
+                  aria-label={t("nominas.selectNamed", { name: t("pagos.sections.additional") })}
                 />
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Fecha
+                {t("dates.date")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Contratista
+                {t("nominas.contractor")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Puesto
+                {t("personas.position")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Descripción
+                {t("pagos.description")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Monto
+                {t("nominas.amount")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 <span className="inline-flex items-center gap-1">
-                  Estado
+                {t("nominas.status")}
                   <ChevronDown size={18} />
                 </span>
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Creado por
+                {t("nominas.createdBy")}
               </th>
               <th className="w-[70px] px-3 py-5" />
             </tr>
@@ -176,7 +178,7 @@ export default function InvoiceAdditionalFeesTable({
                     checked={selectedIds.has(item.id)}
                     onChange={() => toggleOne(item.id)}
                     className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                    aria-label={`Seleccionar ${item.contractor}`}
+                    aria-label={t("nominas.selectNamed", { name: item.contractor })}
                   />
                 </td>
                 <td className={cellClass}>{item.date}</td>
@@ -195,7 +197,7 @@ export default function InvoiceAdditionalFeesTable({
                         menuButtonRefs.current[item.id] = el;
                       }}
                       type="button"
-                      aria-label="Más opciones"
+                      aria-label={t("common.moreOptions")}
                       aria-expanded={openMenuId === item.id}
                       aria-haspopup="menu"
                       onClick={() => toggleRowMenu(item.id)}
@@ -236,7 +238,7 @@ export default function InvoiceAdditionalFeesTable({
               }}
               className={menuItemClass}
             >
-              Aprobar
+              {t("common.approve")}
             </button>
             <button
               type="button"
@@ -247,7 +249,7 @@ export default function InvoiceAdditionalFeesTable({
               }}
               className={menuItemClass}
             >
-              Rechazar
+              {t("common.reject")}
             </button>
             <button
               type="button"
@@ -255,7 +257,7 @@ export default function InvoiceAdditionalFeesTable({
               onClick={closeMenu}
               className={`${menuItemClass} text-[#858585]`}
             >
-              Editar
+              {t("common.edit")}
             </button>
             <button
               type="button"
@@ -266,7 +268,7 @@ export default function InvoiceAdditionalFeesTable({
               }}
               className={`${menuItemClass} text-[#E33434] hover:bg-[#FFF5F5]`}
             >
-              Eliminar
+              {t("common.delete")}
             </button>
           </div>,
           document.body

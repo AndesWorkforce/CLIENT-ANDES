@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { InvoiceAdditionalFee } from "../data/mock-invoice-details";
 import { resolveAdditionalFeesApprovalStatus } from "../lib/invoice-approval-status";
+import { useAdminHubI18n } from "../../i18n";
 import InvoiceAdditionalFeesTable from "./InvoiceAdditionalFeesTable";
 import InvoiceCollapsibleSectionHeader from "./InvoiceCollapsibleSectionHeader";
 
@@ -23,13 +24,14 @@ export default function InvoiceAdditionalFeesSection({
   onRejectItem,
   onDeleteItem,
 }: InvoiceAdditionalFeesSectionProps) {
+  const { t } = useAdminHubI18n();
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const aggregateStatus = resolveAdditionalFeesApprovalStatus(items);
 
   return (
     <div className="w-full overflow-hidden rounded-[12px] border border-[#EFEFEF] bg-white">
       <InvoiceCollapsibleSectionHeader
-        title="Adicionales"
+        title={t("pagos.sections.additional")}
         isOpen={isOpen}
         onToggle={() => setIsOpen((prev) => !prev)}
         subtotal={subtotal}

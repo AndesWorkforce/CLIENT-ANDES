@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { ArrowRight, MoreVertical } from "lucide-react";
-import type { AvisoNotification } from "../types/avisos.types";
+import type { AvisoCategory, AvisoNotification } from "../types/avisos.types";
 import AvisoCategoryBadge from "./AvisoCategoryBadge";
+import { formatRelativeTime, useAdminHubI18n, type AdminHubTranslate } from "../../i18n";
 
 interface AvisoNotificationRowProps {
   aviso: AvisoNotification;
@@ -11,11 +12,30 @@ interface AvisoNotificationRowProps {
   isLast?: boolean;
 }
 
+function avisoActionLabel(
+  categoria: AvisoCategory,
+  t: AdminHubTranslate,
+): string {
+  switch (categoria) {
+    case "Nóminas":
+      return t("avisos.goToPayrolls");
+    case "Facturación":
+      return t("avisos.goToPayments");
+    default:
+      return t("avisos.viewDetail");
+  }
+}
+
 export default function AvisoNotificationRow({
   aviso,
   isFirst = false,
   isLast = false,
 }: AvisoNotificationRowProps) {
+  const { t } = useAdminHubI18n();
+  const relativeTime = aviso.creadoEn
+    ? formatRelativeTime(aviso.creadoEn, t)
+    : aviso.tiempoRelativo;
+
   return (
     <article
       className={`flex bg-white ${
@@ -53,7 +73,7 @@ export default function AvisoNotificationRow({
             href={aviso.actionUrl}
             className="inline-flex w-fit items-center gap-1 text-[12px] font-semibold leading-[1.3] text-[#0097B2] transition-colors hover:text-[#007A8F]"
           >
-            {aviso.actionLabel}
+            {avisoActionLabel(aviso.categoria, t)}
             <ArrowRight size={14} aria-hidden />
           </Link>
         </div>
@@ -65,7 +85,7 @@ export default function AvisoNotificationRow({
         }`}
       >
         <p className="whitespace-nowrap text-[14px] leading-[1.3] tracking-[0.28px] text-[#858585]">
-          {aviso.tiempoRelativo}
+          {relativeTime}
         </p>
       </div>
 
@@ -76,7 +96,7 @@ export default function AvisoNotificationRow({
       >
         <button
           type="button"
-          aria-label={`Opciones de ${aviso.titulo}`}
+          aria-label={t("common.moreOptions")}
           className="text-[#707070] transition-colors hover:text-[#0097B2]"
         >
           <MoreVertical size={18} />

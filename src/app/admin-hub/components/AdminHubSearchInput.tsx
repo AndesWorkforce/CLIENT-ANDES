@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 import { ADMIN_HUB_SEARCH_INPUT_CLASS } from "./admin-hub-filter-styles";
+import { useAdminHubI18n } from "../i18n";
 
 interface AdminHubSearchInputProps {
   value: string;
@@ -13,9 +14,11 @@ interface AdminHubSearchInputProps {
 export default function AdminHubSearchInput({
   value,
   onChange,
-  placeholder = "Buscar",
+  placeholder,
   className = "",
 }: AdminHubSearchInputProps) {
+  const { t } = useAdminHubI18n();
+  const resolvedPlaceholder = placeholder ?? t("common.search");
   return (
     <div className={`relative w-full max-w-[320px] ${className}`}>
       <Search
@@ -26,8 +29,8 @@ export default function AdminHubSearchInput({
         type="text"
         inputMode="search"
         autoComplete="off"
-        aria-label={placeholder}
-        placeholder={placeholder}
+        aria-label={resolvedPlaceholder}
+        placeholder={resolvedPlaceholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={ADMIN_HUB_SEARCH_INPUT_CLASS}

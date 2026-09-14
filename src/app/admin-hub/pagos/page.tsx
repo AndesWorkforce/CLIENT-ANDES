@@ -9,7 +9,7 @@ export default async function AdminHubPagosPage() {
       <InvoicesPageContent
         initialClients={result.data ?? []}
         initialError={
-          result.success ? null : (result.message ?? "Error al obtener clientes")
+          result.success ? null : (result.message ?? null)
         }
       />
     </div>

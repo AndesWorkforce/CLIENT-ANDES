@@ -16,6 +16,7 @@ import {
   type PayrollVariable,
 } from "../data/mock-payroll-variables";
 import { applyDateToSortable } from "../lib/payroll-apply-date";
+import { useAdminHubI18n } from "../../i18n";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
 import DeletePayrollVariableModal from "./DeletePayrollVariableModal";
 
@@ -41,6 +42,7 @@ export default function PayrollVariablesTable({
   onDelete,
 }: PayrollVariablesTableProps) {
   const router = useRouter();
+  const { t } = useAdminHubI18n();
   const { addNotification } = useNotificationStore();
   const [sortByDate, setSortByDate] = useState<"asc" | "desc" | null>(null);
   const [sortByAmount, setSortByAmount] = useState<"asc" | "desc" | null>(null);
@@ -220,7 +222,7 @@ export default function PayrollVariablesTable({
     if (variable.status === "Emitido") {
       closeMenu();
       addNotification(
-        "No se puede eliminar una variable con estado 'Emitido'.",
+        t("nominas.cannotDeleteEmitted"),
         "error"
       );
       return;
@@ -283,7 +285,7 @@ export default function PayrollVariablesTable({
                   checked={allSelected}
                   onChange={toggleAll}
                   className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                  aria-label="Seleccionar todas"
+                  aria-label={t("common.selectAll")}
                 />
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
@@ -292,7 +294,7 @@ export default function PayrollVariablesTable({
                   onClick={toggleDateSort}
                   className="inline-flex items-center gap-1 hover:text-[#0097B2]"
                 >
-                  Fecha creación
+                  {t("nominas.createdAt")}
                   <ChevronDown
                     size={18}
                     className={`transition-transform ${sortByDate === "asc" ? "rotate-180" : ""}`}
@@ -300,15 +302,15 @@ export default function PayrollVariablesTable({
                 </button>
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Contratista
+                {t("nominas.contractor")}
               </th>
               <th
                 className={`px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252] ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}
               >
-                Cliente
+                {t("nominas.client")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Tipo
+                {t("nominas.type")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 <button
@@ -316,7 +318,7 @@ export default function PayrollVariablesTable({
                   onClick={toggleAmountSort}
                   className="inline-flex items-center gap-1 hover:text-[#0097B2]"
                 >
-                  Monto
+                  {t("nominas.amount")}
                   <ChevronDown
                     size={18}
                     className={`transition-transform ${sortByAmount === "asc" ? "rotate-180" : ""}`}
@@ -329,7 +331,7 @@ export default function PayrollVariablesTable({
                   onClick={toggleStatusSort}
                   className="inline-flex items-center gap-1 hover:text-[#0097B2]"
                 >
-                  Estado
+                  {t("nominas.status")}
                   <ChevronDown
                     size={18}
                     className={`transition-transform ${sortByStatus === "asc" ? "rotate-180" : ""}`}
@@ -337,7 +339,7 @@ export default function PayrollVariablesTable({
                 </button>
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
-                Creado por
+                {t("nominas.createdBy")}
               </th>
               <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
                 <button
@@ -345,7 +347,7 @@ export default function PayrollVariablesTable({
                   onClick={toggleApplyDateSort}
                   className="inline-flex items-center gap-1 hover:text-[#0097B2]"
                 >
-                  Fecha a aplicar
+                  {t("nominas.applyDate")}
                   <ChevronDown
                     size={18}
                     className={`transition-transform ${sortByApplyDate === "asc" ? "rotate-180" : ""}`}
@@ -364,7 +366,7 @@ export default function PayrollVariablesTable({
                     checked={selectedIds.has(item.id)}
                     onChange={() => toggleOne(item.id)}
                     className="size-4 rounded border-[#EFEFEF] accent-[#0097B2]"
-                    aria-label={`Seleccionar ${item.contractor}`}
+                    aria-label={t("nominas.selectNamed", { name: item.contractor })}
                   />
                 </td>
                 <td className={`${compactCellClass} ${index === 0 ? "text-[#707070]" : ""}`}>
@@ -374,7 +376,7 @@ export default function PayrollVariablesTable({
                 <td className={`${compactCellClass} ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}>
                   {item.client}
                 </td>
-                <td className={compactCellClass}>{item.type}</td>
+                <td className={compactCellClass}>{t(`nominas.types.${item.type}`)}</td>
                 <td className={compactCellClass}>{formatPayrollAmount(item.amount)}</td>
                 <td className="px-3 py-6">
                   <PayrollVariableStatusBadge status={item.status} />
@@ -388,7 +390,7 @@ export default function PayrollVariablesTable({
                         menuButtonRefs.current[item.id] = el;
                       }}
                       type="button"
-                      aria-label="Más opciones"
+                      aria-label={t("common.moreOptions")}
                       aria-expanded={openMenuId === item.id}
                       aria-haspopup="menu"
                       onClick={() => toggleRowMenu(item.id)}
@@ -421,7 +423,7 @@ export default function PayrollVariablesTable({
               onClick={() => handleViewDetail(openMenuItem.id)}
               className={menuItemClass}
             >
-              Ver detalle
+              {t("nominas.viewDetail")}
             </button>
             <button
               type="button"
@@ -435,11 +437,13 @@ export default function PayrollVariablesTable({
               }`}
               title={
                 openMenuItem.status !== "Pendiente"
-                  ? `Solo se pueden aprobar variables en estado Pendiente (actual: ${openMenuItem.status})`
+                  ? t("nominas.cannotApproveNotPending", {
+                      status: t(`status.payroll.${openMenuItem.status}`),
+                    })
                   : undefined
               }
             >
-              Aprobar
+              {t("common.approve")}
             </button>
             <button
               type="button"
@@ -457,13 +461,13 @@ export default function PayrollVariablesTable({
               }`}
               title={
                 openMenuItem.status === "Emitido"
-                  ? "No se puede rechazar una variable con estado Emitido"
+                  ? t("nominas.cannotRejectEmitted")
                   : openMenuItem.status === "Rechazado"
-                    ? "La variable ya está rechazada"
+                    ? t("nominas.alreadyRejected")
                     : undefined
               }
             >
-              Rechazar
+              {t("common.reject")}
             </button>
             <button
               type="button"
@@ -471,7 +475,7 @@ export default function PayrollVariablesTable({
               onClick={() => handleEdit(openMenuItem.id)}
               className={menuItemClass}
             >
-              Editar
+              {t("common.edit")}
             </button>
             <button
               type="button"
@@ -485,11 +489,11 @@ export default function PayrollVariablesTable({
               }`}
               title={
                 openMenuItem.status === "Emitido"
-                  ? "No se puede eliminar una variable con estado 'Emitido'"
+                  ? t("nominas.cannotDeleteEmitted")
                   : undefined
               }
             >
-              Eliminar
+              {t("common.delete")}
             </button>
           </div>,
           document.body

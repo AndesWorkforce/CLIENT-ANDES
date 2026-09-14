@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useNotificationStore } from "@/store/notifications.store";
+import { useAdminHubI18n } from "../../i18n";
 import AdminHubDrawerFooter from "../../components/AdminHubDrawerFooter";
 import AdminHubDrawerProgress from "../../components/AdminHubDrawerProgress";
 import AdminHubSideDrawer from "../../components/AdminHubSideDrawer";
@@ -9,7 +10,6 @@ import AdminHubTypeSelectStep from "../../components/AdminHubTypeSelectStep";
 import {
   CONTRACT_CREATION_TOTAL_STEPS,
   CONTRACT_STEP_META,
-  CONTRACT_TYPE_LABELS,
   CONTRACT_TYPE_OPTIONS,
   emptyCreateContractForm,
   getNextStep,
@@ -26,12 +26,23 @@ import CreateContractLaborForm from "./CreateContractLaborForm";
 import CreateContractResidenceForm from "./CreateContractResidenceForm";
 import CreateContractReviewStep from "./CreateContractReviewStep";
 
+const STEP_LABEL_KEYS: Record<ContractCreationStep, string> = {
+  "select-type": "contratos.stepSelectType",
+  "general-info": "contratos.stepGeneral",
+  residence: "contratos.stepResidence",
+  "labor-info": "contratos.stepLabor",
+  "financial-info": "contratos.stepFinancial",
+  "additional-income": "contratos.stepAdditional",
+  review: "contratos.stepReview",
+};
+
 interface CreateContractDrawerProps {
   open: boolean;
   onClose: () => void;
 }
 
 export default function CreateContractDrawer({ open, onClose }: CreateContractDrawerProps) {
+  const { t } = useAdminHubI18n();
   const { addNotification } = useNotificationStore();
   const [step, setStep] = useState<ContractCreationStep>("select-type");
   const [selectedType, setSelectedType] = useState<ContractCreationType | null>(null);
@@ -76,7 +87,7 @@ export default function CreateContractDrawer({ open, onClose }: CreateContractDr
     }
 
     if (step === "review") {
-      addNotification("Contrato creado correctamente.", "success");
+      addNotification(t("contratos.createdSuccess"), "success");
       onClose();
       return;
     }
@@ -91,25 +102,33 @@ export default function CreateContractDrawer({ open, onClose }: CreateContractDr
     <AdminHubSideDrawer
       open={open}
       onClose={onClose}
-      title="Crear contrato"
-      subtitle={showTypeSubtitle ? CONTRACT_TYPE_LABELS[selectedType!] : undefined}
+      title={t("contratos.createTitle")}
+      subtitle={
+        showTypeSubtitle
+          ? t(
+              selectedType === "full-time"
+                ? "contractType.fullTime"
+                : "contractType.partTime",
+            )
+          : undefined
+      }
       titleId="create-contract-title"
       headerExtra={
         <div className="mt-4">
           <AdminHubDrawerProgress
             currentStep={stepMeta.stepNumber}
             totalSteps={CONTRACT_CREATION_TOTAL_STEPS}
-            stepLabel={stepMeta.label}
+            stepLabel={t(STEP_LABEL_KEYS[step])}
           />
         </div>
       }
       footer={
         <AdminHubDrawerFooter
           onCancel={handleSecondaryAction}
-          cancelLabel={step === "select-type" ? "Cancelar" : "Atrás"}
+          cancelLabel={step === "select-type" ? t("common.cancel") : t("common.back")}
           cancelVariant={step === "select-type" ? "cancel" : "back"}
           cancelActive={cancelActive}
-          primaryLabel={isReviewStep ? "Crear contrato" : "Siguiente"}
+          primaryLabel={isReviewStep ? t("contratos.createTitle") : t("common.go")}
           onPrimary={handleNext}
           primaryDisabled={!canGoNext}
         />
@@ -117,8 +136,15 @@ export default function CreateContractDrawer({ open, onClose }: CreateContractDr
     >
       {step === "select-type" && (
         <AdminHubTypeSelectStep
-          title="Seleccionar tipo de contrato"
-          options={CONTRACT_TYPE_OPTIONS}
+          title={t("contratos.selectType")}
+          options={CONTRACT_TYPE_OPTIONS.map((option) => ({
+            ...option,
+            label: t(
+              option.id === "full-time"
+                ? "contractType.fullTime"
+                : "contractType.partTime",
+            ),
+          }))}
           selectedId={selectedType}
           onSelect={setSelectedType}
         />

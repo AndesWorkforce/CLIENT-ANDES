@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Calendar,
   CalendarClock,
@@ -8,6 +10,7 @@ import {
   Phone,
 } from "lucide-react";
 import type { InvoiceDetail } from "../data/mock-invoice-details";
+import { useAdminHubI18n } from "../../i18n";
 import InvoiceInfoCard from "./InvoiceInfoCard";
 
 interface InvoiceClientInfoGridProps {
@@ -15,15 +18,17 @@ interface InvoiceClientInfoGridProps {
 }
 
 export default function InvoiceClientInfoGrid({ invoice }: InvoiceClientInfoGridProps) {
+  const { t } = useAdminHubI18n();
+
   return (
     <div className="grid w-full grid-cols-1 gap-x-[7px] gap-y-[11px] sm:grid-cols-2 xl:grid-cols-4">
-      <InvoiceInfoCard icon={Hash} label="ID de la empresa" value={invoice.clientId} />
-      <InvoiceInfoCard icon={Globe} label="País" value={invoice.country} />
-      <InvoiceInfoCard icon={Calendar} label="Fecha emisión" value={invoice.issueDate} />
-      <InvoiceInfoCard icon={CalendarClock} label="Fecha limite" value={invoice.dueDate} />
-      <InvoiceInfoCard icon={CircleUser} label="Nombre de contacto" value={invoice.contactName} />
-      <InvoiceInfoCard icon={Mail} label="Email de contacto" value={invoice.contactEmail} />
-      <InvoiceInfoCard icon={Phone} label="Teléfono de contacto" value={invoice.contactPhone} />
+      <InvoiceInfoCard icon={Hash} label={t("pagos.companyId")} value={invoice.clientId} />
+      <InvoiceInfoCard icon={Globe} label={t("pagos.country")} value={invoice.country} />
+      <InvoiceInfoCard icon={Calendar} label={t("pagos.issueDate")} value={invoice.issueDate} />
+      <InvoiceInfoCard icon={CalendarClock} label={t("pagos.dueDate")} value={invoice.dueDate} />
+      <InvoiceInfoCard icon={CircleUser} label={t("pagos.contactName")} value={invoice.contactName} />
+      <InvoiceInfoCard icon={Mail} label={t("pagos.contactEmail")} value={invoice.contactEmail} />
+      <InvoiceInfoCard icon={Phone} label={t("pagos.contactPhone")} value={invoice.contactPhone} />
     </div>
   );
 }

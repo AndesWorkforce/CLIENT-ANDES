@@ -1,5 +1,8 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { Pencil } from "lucide-react";
+import { useAdminHubI18n } from "../../i18n";
 
 interface ContractInfoCardProps {
   title: string;
@@ -16,6 +19,7 @@ export default function ContractInfoCard({
   isSaving = false,
   onEditClick,
 }: ContractInfoCardProps) {
+  const { t } = useAdminHubI18n();
   return (
     <section className="flex h-full flex-col gap-[33px] rounded-[12px] border border-[#EFEFEF] bg-white px-[30px] pb-6 pt-[30px]">
       <div className="flex items-center justify-between gap-4">
@@ -28,12 +32,12 @@ export default function ContractInfoCard({
               disabled={isSaving}
               className="inline-flex h-9 shrink-0 items-center justify-center rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#DFFAFF] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSaving ? "Guardando..." : "Guardar"}
+              {isSaving ? t("common.saving") : t("common.save")}
             </button>
           ) : (
             <button
               type="button"
-              aria-label={`Editar ${title}`}
+              aria-label={`${t("common.edit")} ${title}`}
               onClick={onEditClick}
               disabled={isSaving}
               className="inline-flex size-9 shrink-0 items-center justify-center rounded-[8px] text-[#858585] transition-colors hover:bg-[#F5FAFB] hover:text-[#0097B2] disabled:cursor-not-allowed disabled:opacity-60"

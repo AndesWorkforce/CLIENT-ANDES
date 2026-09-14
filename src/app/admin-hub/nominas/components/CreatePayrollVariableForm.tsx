@@ -6,6 +6,7 @@ import PayrollVariableFormSection from "./PayrollVariableFormSection";
 import OvertimeDetailFields from "./OvertimeDetailFields";
 import AdminHubFormField from "../../components/AdminHubFormField";
 import type { CreatePayrollVariableFormData } from "./payroll-variable-form-types";
+import { useAdminHubI18n } from "../../i18n";
 
 interface CreatePayrollVariableFormProps {
   variableType: PayrollVariableDrawerType;
@@ -24,6 +25,7 @@ export default function CreatePayrollVariableForm({
   formData,
   onChange,
 }: CreatePayrollVariableFormProps) {
+  const { t } = useAdminHubI18n();
   function patchDescription(descripcion: string) {
     onChange({ ...formData, descripcion });
   }
@@ -34,7 +36,7 @@ export default function CreatePayrollVariableForm({
 
   return (
     <div className="flex w-full max-w-[636px] flex-col gap-6">
-      <PayrollVariableFormSection title="Contexto">
+      <PayrollVariableFormSection title={t("nominas.context")}>
         <PayrollVariableContextFields
           variant={variableType}
           formData={formData}
@@ -43,7 +45,7 @@ export default function CreatePayrollVariableForm({
       </PayrollVariableFormSection>
 
       {variableType === "overtime" && (
-        <PayrollVariableFormSection title="Detalle">
+        <PayrollVariableFormSection title={t("nominas.detail")}>
           <OvertimeDetailFields
             unidad={formData.duracion}
             cantidad={formData.cantidad}
@@ -53,13 +55,13 @@ export default function CreatePayrollVariableForm({
         </PayrollVariableFormSection>
       )}
 
-      <PayrollVariableFormSection title="Ingresos Adicionales">
+      <PayrollVariableFormSection title={t("nominas.additionalIncome")}>
         <AdminHubFormField
           type="input"
-          label="Descripción"
+          label={t("nominas.description")}
           value={formData.descripcion}
           onChange={patchDescription}
-          placeholder="Justificación"
+          placeholder={t("nominas.justification")}
         />
       </PayrollVariableFormSection>
     </div>
