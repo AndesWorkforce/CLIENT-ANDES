@@ -1642,6 +1642,7 @@ export default function CandidateProfileModal({
         onClose={() => setIsFormularioModalOpen(false)}
         datosFormulario={profile.datosFormulario}
         name={`${profile.datosPersonales.nombre} ${profile.datosPersonales.apellido}`}
+        hideContactInfo={isCompanyUser}
       />
 
       {/* Modal de Experiencia */}
