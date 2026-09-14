@@ -46,11 +46,14 @@ export function ChatwootWidget({
     }
 
     let cancelled = false;
+    let readyHandled = false;
+    let timeoutId = 0;
 
     const fail = () => {
-      if (!cancelled) {
-        onUnavailableRef.current?.();
-      }
+      if (cancelled || readyHandled) return;
+      readyHandled = true;
+      window.clearTimeout(timeoutId);
+      onUnavailableRef.current?.();
     };
 
     const identifyUser = async () => {
@@ -65,16 +68,15 @@ export function ChatwootWidget({
       locale: "en",
       type: "standard",
       launcherTitle: "Chat with Andy",
-      enableFileUpload: true,
-      enableEmojiPicker: true,
+      enableFileUpload: false,
+      enableEmojiPicker: false,
       enableEndConversation: true,
     };
-
-    let readyHandled = false;
 
     const markReady = () => {
       if (readyHandled || cancelled) return;
       readyHandled = true;
+      window.clearTimeout(timeoutId);
 
       identifyUser().finally(() => {
         if (!cancelled) {
@@ -100,10 +102,9 @@ export function ChatwootWidget({
     script.async = true;
     script.defer = true;
 
-    const timeoutId = window.setTimeout(fail, 8000);
+    timeoutId = window.setTimeout(fail, 12000);
 
     script.onload = () => {
-      window.clearTimeout(timeoutId);
       if (cancelled) return;
 
       if (window.chatwootSDK) {
@@ -124,7 +125,6 @@ export function ChatwootWidget({
     };
 
     script.onerror = () => {
-      window.clearTimeout(timeoutId);
       fail();
     };
 
@@ -297,12 +297,9 @@ function ChatLauncher({
   const openAndySession = async (forceNew: boolean) => {
     const currentIdentity = identityRef.current;
     const identifierHash = await fetchChatwootIdentityHash(currentIdentity);
-    const startFresh =
-      forceNew ||
-      (!bootstrappedSessionRef.current &&
-        (autoOpen || currentIdentity.kind !== "contractor" || !agentTookOver));
+    ignoreClosedUntilRef.current = Date.now() + 2500;
 
-    if (startFresh) {
+    if (forceNew && bootstrappedSessionRef.current) {
       await startNewChatwootSession(currentIdentity, identifierHash);
     } else {
       await openChatwootWidget(currentIdentity, identifierHash);
@@ -322,7 +319,7 @@ function ChatLauncher({
     let cancelled = false;
 
     void (async () => {
-      await openAndySession(true);
+      await openAndySession(false);
       if (cancelled) return;
       pendingOpenRef.current = false;
     })();
@@ -353,6 +350,7 @@ function ChatLauncher({
     if (!sdkReady || isStartingSession) return;
 
     setIsStartingSession(true);
+    ignoreClosedUntilRef.current = Date.now() + 4000;
     try {
       const identifierHash = await syncIdentity();
       await startNewChatwootSession(identity, identifierHash);

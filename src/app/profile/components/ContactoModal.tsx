@@ -8,22 +8,24 @@ import { useProfileContext } from "../context/ProfileContext";
 import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notifications.store";
 import { updateProfilePersonal } from "../actions/profile.actions";
+import { ALL_COUNTRIES } from "@/lib/countries";
 
-interface Country {
-  name: {
-    common: string;
-    official: string;
-    nativeName?: Record<string, { official: string; common: string }>;
-  };
-  flags: {
-    png: string;
-    svg: string;
-    alt?: string;
-  };
-  cca2: string;
-  cca3: string;
-  capital: string[];
-  region: string;
+interface CountryOption {
+  code: string;
+  name: string;
+  flag: string;
+}
+
+function flagUrl(iso2: string): string {
+  return `https://flagcdn.com/w80/${iso2.toLowerCase()}.png`;
+}
+
+function getLocalCountryOptions(): CountryOption[] {
+  return ALL_COUNTRIES.map((country) => ({
+    code: country.code,
+    name: country.name,
+    flag: flagUrl(country.code),
+  }));
 }
 
 interface DatosPersonalesExtendidos {
@@ -68,37 +70,57 @@ export default function ContactoModal({
     (state) => state.addNotification
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [countries, setCountries] = useState<Country[]>([]);
+  const [countries, setCountries] = useState<CountryOption[]>(() =>
+    getLocalCountryOptions()
+  );
   const [loading, setLoading] = useState(false);
 
   const datosPersonales =
     profile.datosPersonales as unknown as DatosPersonalesExtendidos;
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const fetchCountries = async () => {
       setLoading(true);
       try {
+        // restcountries v3.1 está deprecado; usamos countriesnow + fallback local.
         const response = await fetch(
-          "https://restcountries.com/v3.1/all?fields=name,cca2,cca3,flags,capital,region"
+          "https://countriesnow.space/api/v0.1/countries/flag/images"
         );
         if (!response.ok) {
           throw new Error("Error fetching countries");
         }
-        const data = await response.json();
-        const sortedCountries = data.sort((a: Country, b: Country) =>
-          a.name.common.localeCompare(b.name.common)
-        );
+
+        const result = (await response.json()) as {
+          error?: boolean;
+          data?: Array<{ name: string; iso2: string; flag: string }>;
+        };
+
+        if (result.error || !Array.isArray(result.data)) {
+          throw new Error("Invalid countries response");
+        }
+
+        const sortedCountries = [...result.data]
+          .filter((country) => country.name && country.iso2)
+          .map((country) => ({
+            code: country.iso2,
+            name: country.name,
+            flag: country.flag || flagUrl(country.iso2),
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+
         setCountries(sortedCountries);
       } catch (error) {
-        console.error("Error fetching countries:", error);
-        addNotification("Error fetching countries", "error");
+        console.error("Error fetching countries, using local fallback:", error);
+        setCountries(getLocalCountryOptions());
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCountries();
-  }, [addNotification]);
+    void fetchCountries();
+  }, [isOpen]);
 
   const {
     register,
@@ -121,13 +143,11 @@ export default function ContactoModal({
 
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCountryName = e.target.value;
-    const country = countries.find(
-      (c) => c.name.common === selectedCountryName
-    );
+    const country = countries.find((c) => c.name === selectedCountryName);
 
     if (country) {
-      setValue("pais", country.name.common);
-      setValue("paisImagen", country.flags.png);
+      setValue("pais", country.name);
+      setValue("paisImagen", country.flag);
     } else {
       setValue("paisImagen", "");
     }
@@ -234,8 +254,8 @@ export default function ContactoModal({
                   >
                     <option value="">Select a country</option>
                     {countries.map((country) => (
-                      <option key={country.cca3} value={country.name.common}>
-                        {country.name.common}
+                      <option key={country.code} value={country.name}>
+                        {country.name}
                       </option>
                     ))}
                   </select>

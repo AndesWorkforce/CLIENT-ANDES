@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-function getVerifyApiUrl(): string {
-  const raw =
+function getApiUrl(): string {
+  const rawUrl =
     process.env.INTERNAL_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:5000/api/";
-  let url = raw.trim();
-  if (!url.endsWith("/")) url += "/";
+  let url = rawUrl.trim();
+  if (!url.endsWith("/")) url = `${url}/`;
   if (!url.toLowerCase().includes("/api/")) {
-    url = `${url}${url.endsWith("/") ? "" : "/"}api/`.replace(/([^:]\/)\/+/g, "$1");
+    url = `${url}api/`;
+    url = url.replace(/([^:]\/)\/+/g, "$1");
   }
   return url;
 }
@@ -41,10 +42,11 @@ export async function GET(request: Request) {
       );
     }
 
+    const apiUrl = getApiUrl();
     console.log("[Verify Route] ✅ Token encontrado, validando con backend...");
-    const apiUrl = getVerifyApiUrl();
     console.log("[Verify Route] 🌐 API_URL:", apiUrl);
 
+    // Llamar al backend para validar el token
     const response = await fetch(`${apiUrl}auth/verify`, {
       method: "GET",
       headers: {
@@ -59,7 +61,7 @@ export async function GET(request: Request) {
       response.statusText,
     );
 
-    if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
       console.log(
         "[Verify Route] ❌ Backend rechazó el token (status:",
         response.status,
@@ -68,6 +70,18 @@ export async function GET(request: Request) {
       return NextResponse.json(
         { valid: false, message: "Invalid or expired token" },
         { status: 401 },
+      );
+    }
+
+    if (!response.ok) {
+      console.warn(
+        "[Verify Route] ⚠️ Backend no disponible para validar token (status:",
+        response.status,
+        ")",
+      );
+      return NextResponse.json(
+        { valid: true, degraded: true, message: "Verification temporarily unavailable" },
+        { status: 200 },
       );
     }
 

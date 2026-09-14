@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getContracts,
   finalizarContrato,
@@ -28,6 +28,7 @@ import {
 import TableSkeleton from "../components/TableSkeleton";
 import CancelContractModal from "./components/CancelContractModal";
 import SendAnnexModal from "./components/SendAnnexModal";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 import AnnexesListModal from "./components/AnnexesListModal";
 import * as XLSX from "xlsx";
 
@@ -184,6 +185,9 @@ export default function ContractsPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const mfaNotifiedRef = useRef(false);
   const [selectedClient, setSelectedClient] = useState<string>("");
   // Rows per page control
   const [rowsPerPage, setRowsPerPage] = useState<number>(15);
@@ -212,31 +216,58 @@ export default function ContractsPage() {
       const response = await getContracts(
         currentPage,
         rowsPerPage,
-        searchQuery
+        debouncedSearch
       );
       if (response.success && response.data) {
+        setLoadError(null);
         setContracts(response.data.resultados);
         setTotalPages(response.totalPages || 1);
       } else {
         setContracts([]);
         setTotalPages(1);
+        const isMfa =
+          response.status === 403 ||
+          String(response.message || "")
+            .toLowerCase()
+            .includes("mfa");
+        setLoadError(
+          isMfa
+            ? "MFA verification required. Log out, sign in as Admin and complete the authenticator code."
+            : response.message || "Could not load contracts."
+        );
+        if (isMfa && !mfaNotifiedRef.current) {
+          mfaNotifiedRef.current = true;
+          addNotification(
+            "MFA verification required. Please log in again as Admin and complete 2FA.",
+            "error"
+          );
+        }
       }
     } catch (error) {
       console.error("Error fetching contracts:", error);
       setContracts([]);
       setTotalPages(1);
+      setLoadError("Could not load contracts.");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
     loadContracts();
-  }, [currentPage, searchQuery, rowsPerPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearch, rowsPerPage]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(1);
   };
 
   const handleClientFilterChange = (
@@ -664,7 +695,7 @@ export default function ContractsPage() {
   };
 
   const handleViewDocument = (documentUrl: string) => {
-    window.open(documentUrl, "_blank");
+    window.open(toAccessibleMediaUrl(documentUrl), "_blank");
   };
 
   const handleFinalizarContrato = async (procesoId: string) => {
@@ -1022,7 +1053,7 @@ export default function ContractsPage() {
   };
   console.log("[SORTED CONTRACTS]", sortedContracts);
   return (
-    <div className="w-full max-w-screen-2xl mx-auto mt-8 flex flex-col h-screen">
+    <div className="w-full max-w-[1440px] mx-auto mt-8 flex flex-col h-screen">
       {/* Search Input */}
       <div className="mb-6 px-4 flex flex-col md:flex-row gap-3 md:px-0 md:justify-between md:items-center">
         <div className="flex flex-col md:flex-row gap-3 flex-1">
@@ -1284,7 +1315,9 @@ export default function ContractsPage() {
                                   className="text-green-500"
                                 />
                                 <a
-                                  href={contract.contratoFinalUrl}
+                                  href={toAccessibleMediaUrl(
+                                    contract.contratoFinalUrl
+                                  )}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-[#0097B2] hover:underline text-sm font-medium"
@@ -1453,8 +1486,8 @@ export default function ContractsPage() {
                 </div>
               </>
             ) : (
-              <div className="h-full flex items-center justify-center text-gray-500">
-                No contracts found.
+              <div className="h-full flex items-center justify-center text-gray-500 px-4 text-center">
+                {loadError || "No contracts found."}
               </div>
             )}
           </div>
@@ -1634,7 +1667,9 @@ export default function ContractsPage() {
                         contract.signWellDownloadUrl ? (
                           <div className="flex items-center space-x-2">
                             <a
-                              href={contract.signWellDownloadUrl}
+                              href={toAccessibleMediaUrl(
+                                contract.signWellDownloadUrl
+                              )}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[#0097B2] hover:underline flex items-center text-sm font-medium"
@@ -1669,7 +1704,9 @@ export default function ContractsPage() {
                           >
                             <CheckCircle size={16} className="text-green-500" />
                             <a
-                              href={contract.contratoFinalUrl}
+                              href={toAccessibleMediaUrl(
+                                contract.contratoFinalUrl
+                              )}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[#0097B2] hover:underline text-xs font-medium"
@@ -1888,8 +1925,8 @@ export default function ContractsPage() {
               )}
             </>
           ) : (
-            <div className="text-center text-gray-500 mt-4">
-              No contracts found.
+            <div className="text-center text-gray-500 mt-4 px-4">
+              {loadError || "No contracts found."}
             </div>
           )}
         </div>

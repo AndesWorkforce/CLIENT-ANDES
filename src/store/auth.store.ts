@@ -16,6 +16,8 @@ export interface User {
   id: string;
   nombre: string;
   apellido: string;
+  /** Nombre para mostrar; si existe, la navbar lo prioriza sobre nombre + apellido */
+  alias?: string | null;
   correo: string;
   rol: string;
   token: string;

@@ -38,12 +38,84 @@ const IDENTIFY_SETTLE_MS = 500;
 const CHATWOOT_API_POLL_MS = 200;
 const CHATWOOT_IFRAME_ID = "chatwoot_live_chat_widget";
 const CHATWOOT_MESSAGES_HASH = "#/messages";
+const ANDY_SESSION_KEY = "andes_andy_session";
+
+interface AndyWidgetSession {
+  stableId: string;
+  identifier: string;
+  identifierHash?: string;
+}
+
+function readAndySession(stableId: string): AndyWidgetSession | null {
+  try {
+    const raw = window.sessionStorage.getItem(ANDY_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as AndyWidgetSession;
+    if (parsed?.stableId !== stableId || !parsed.identifier) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function storeAndySession(
+  stableId: string,
+  identifier: string,
+  identifierHash?: string,
+): void {
+  window.sessionStorage.setItem(
+    ANDY_SESSION_KEY,
+    JSON.stringify({ stableId, identifier, identifierHash }),
+  );
+}
+
+export function clearAndySession(): void {
+  try {
+    window.sessionStorage.removeItem(ANDY_SESSION_KEY);
+  } catch {
+    // sessionStorage may be unavailable
+  }
+}
 
 function getChatwootIframe(): HTMLIFrameElement | null {
   return document.getElementById(CHATWOOT_IFRAME_ID) as HTMLIFrameElement | null;
 }
 
-function clickStartConversationButton(iframe: HTMLIFrameElement): boolean {
+function widgetSrcWithoutConversation(src: string): string {
+  try {
+    const url = new URL(src, window.location.origin);
+    url.hash = "";
+    url.searchParams.delete("cw_conversation");
+    return url.toString();
+  } catch {
+    return src
+      .split("#")[0]
+      .replace(/([?&])cw_conversation=[^&]*/g, "")
+      .replace(/[?&]$/, "");
+  }
+}
+
+function waitForIframeLoad(
+  iframe: HTMLIFrameElement,
+  timeoutMs = 8000,
+): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      iframe.removeEventListener("load", done);
+      resolve();
+    };
+    iframe.addEventListener("load", done);
+    window.setTimeout(done, timeoutMs);
+  });
+}
+
+function clickStartConversationButton(
+  iframe: HTMLIFrameElement,
+  preferNew = false,
+): boolean {
   try {
     const doc = iframe.contentDocument;
     if (!doc) return false;
@@ -56,13 +128,13 @@ function clickStartConversationButton(iframe: HTMLIFrameElement): boolean {
       return true;
     }
 
+    const labels = preferNew
+      ? /start new conversation|new conversation|start conversation|start chatting/i
+      : /start conversation|continue conversation|start chatting/i;
+
     const clickable = Array.from(
       doc.querySelectorAll<HTMLElement>("button, a, [role='button']"),
-    ).find((el) =>
-      /start conversation|continue conversation|start chatting/i.test(
-        el.textContent ?? "",
-      ),
-    );
+    ).find((el) => labels.test(el.textContent ?? ""));
     if (clickable) {
       clickable.click();
       return true;
@@ -75,12 +147,16 @@ function clickStartConversationButton(iframe: HTMLIFrameElement): boolean {
 }
 
 /** Skip Chatwoot's home / Start Conversation screen and open the composer. */
-export function enterChatwootConversationView(): void {
+export function enterChatwootConversationView(preferNew = false): void {
   const iframe = getChatwootIframe();
   if (!iframe) return;
 
-  if (clickStartConversationButton(iframe)) {
+  if (clickStartConversationButton(iframe, preferNew)) {
     iframe.dataset.andesChatView = "messages";
+    return;
+  }
+
+  if (preferNew) {
     return;
   }
 
@@ -92,8 +168,10 @@ export function enterChatwootConversationView(): void {
   if (!currentSrc) return;
 
   iframe.dataset.andesChatView = "messages";
-  const [base] = currentSrc.split("#");
-  iframe.setAttribute("src", `${base}${CHATWOOT_MESSAGES_HASH}`);
+  iframe.setAttribute(
+    "src",
+    `${widgetSrcWithoutConversation(currentSrc)}${CHATWOOT_MESSAGES_HASH}`,
+  );
 }
 
 async function waitForChatwootIframe(
@@ -215,14 +293,18 @@ export function identifyChatwootUser(
       return;
     }
 
-    api.setUser(resolved.identifier, {
+    const session = readAndySession(resolved.identifier);
+    const widgetIdentifier = session?.identifier ?? resolved.identifier;
+    const hash = session?.identifierHash ?? identifierHash;
+
+    api.setUser(widgetIdentifier, {
       email: resolved.email,
       name: resolved.name,
       custom_attributes: {
         andes_user_id: resolved.identifier,
         andes_visitor_kind: resolved.kind,
       },
-      ...(identifierHash ? { identifier_hash: identifierHash } : {}),
+      ...(hash ? { identifier_hash: hash } : {}),
     });
 
     window.setTimeout(resolve, IDENTIFY_SETTLE_MS);
@@ -262,6 +344,37 @@ export function closeChatwootWidget(): void {
   getChatwootApi()?.toggle("close");
 }
 
+async function requestAndyRestart(
+  identity: ChatwootIdentity,
+): Promise<AndyWidgetSession | null> {
+  try {
+    const response = await fetch("/api/chatwoot/new-conversation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        identifier: identity.identifier,
+        email: identity.email,
+        name: identity.name,
+        kind: identity.kind,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    const data = payload?.data ?? payload;
+    if (!response.ok || !data?.identifier) {
+      return null;
+    }
+
+    return {
+      stableId: identity.identifier,
+      identifier: data.identifier,
+      identifierHash: data.identifierHash,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function startNewChatwootSession(
   identity: ChatwootIdentity | User,
   identifierHash?: string,
@@ -271,14 +384,31 @@ export async function startNewChatwootSession(
 
   const resolved: ChatwootIdentity =
     "kind" in identity ? identity : identityFromUser(identity);
-  const hash = identifierHash ?? (await fetchChatwootIdentityHash(resolved));
+
+  const fresh = await requestAndyRestart(resolved);
+  if (fresh) {
+    storeAndySession(fresh.stableId, fresh.identifier, fresh.identifierHash);
+  }
 
   api.reset();
-  getChatwootIframe()?.removeAttribute("data-andes-chat-view");
-  await new Promise((resolve) => window.setTimeout(resolve, 600));
-  await ensureChatwootIdentity(resolved, hash);
-  await openConversationComposer();
-  api.toggle("open");
-  window.setTimeout(enterChatwootConversationView, 300);
-  window.setTimeout(enterChatwootConversationView, 900);
+  const iframe = getChatwootIframe();
+  if (iframe) {
+    await waitForIframeLoad(iframe);
+  }
+  await new Promise((resolve) => window.setTimeout(resolve, 400));
+
+  const apiAfterReset = await waitForChatwootApi(8000);
+  if (!apiAfterReset) return;
+
+  await ensureChatwootIdentity(
+    resolved,
+    fresh?.identifierHash ?? identifierHash,
+  );
+  await new Promise((resolve) => window.setTimeout(resolve, 400));
+
+  apiAfterReset.toggle("open");
+  window.setTimeout(() => {
+    enterChatwootConversationView(true);
+    apiAfterReset.toggle("open");
+  }, 400);
 }

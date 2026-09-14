@@ -13,19 +13,21 @@ interface AssignJobNotificationProps {
 }
 
 export const AssignJobNotification = ({
-  candidateName,
+  candidateName: _candidateName,
   jobTitle,
 }: AssignJobNotificationProps) => {
   return (
     <Html>
       <Head />
-      <Preview>You’ve Been Assigned to a Job Opportunity</Preview>
+      <Preview>
+        Andes Workforce | Good News! You&apos;ve Been Assigned to {jobTitle}
+      </Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>
           <Text
             style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
-            Hello {candidateName},
+            Dear candidate,
           </Text>
 
           <Text
@@ -36,11 +38,8 @@ export const AssignJobNotification = ({
               lineHeight: "1.5",
             }}
           >
-            We are pleased to inform you that you have been assigned to the
-            following offer: <strong>{jobTitle}</strong>.
-            <br />
-            Our team will be in touch with you soon to discuss the next steps in
-            the selection process.
+            We would like to inform you that you have been assigned to the{" "}
+            <strong>{jobTitle}</strong> position.
           </Text>
 
           <Text
@@ -51,7 +50,26 @@ export const AssignJobNotification = ({
               lineHeight: "1.5",
             }}
           >
-            Warm regards,
+            At this stage, your profile will be reviewed by the client to
+            determine whether you will move forward to the interview stage.
+          </Text>
+
+          <Text
+            style={{
+              color: "#333",
+              fontSize: "16px",
+              margin: "0 0 20px 0",
+              lineHeight: "1.5",
+            }}
+          >
+            We appreciate your interest and will keep you updated on any next
+            steps.
+          </Text>
+
+          <Text
+            style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
+          >
+            Best regards,
           </Text>
 
           <img

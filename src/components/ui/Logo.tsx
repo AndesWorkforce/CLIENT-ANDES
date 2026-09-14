@@ -1,15 +1,22 @@
 import Image from "next/image";
 
-export default function Logo() {
+type LogoProps = {
+  variant?: "default" | "white";
+  className?: string;
+};
+
+export default function Logo({ variant = "default", className }: LogoProps) {
   return (
-    <div className="relative w-[120px] h-[40px]">
+    <div className={`relative w-[114px] h-[44px] ${className ?? ""}`}>
       <Image
         src="https://appwiseinnovations.dev/Andes/logo-andes.png"
         alt="Andes Workforce"
         fill
-        sizes="120px"
+        sizes="114px"
         priority
-        className="object-contain"
+        className={`object-contain object-left ${
+          variant === "white" ? "brightness-0 invert" : ""
+        }`}
       />
     </div>
   );

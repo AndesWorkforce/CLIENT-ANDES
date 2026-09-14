@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 // Note: We load pdf.js dynamically on the client to avoid SSR issues
 // (Promise.withResolvers in pdfjs-dist v4) and to configure the worker
 // with an HTTP URL instead of a local file path.
@@ -45,6 +46,7 @@ export default function PdfSignViewer({
     {}
   );
   const [fallback, setFallback] = useState(false);
+  const accessiblePdfUrl = toAccessibleMediaUrl(pdfUrl);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,7 +77,7 @@ export default function PdfSignViewer({
         // Also set a local worker path as a fallback (if disableWorker is ignored)
         pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
-        const pdf = await pdfjsLib.getDocument({ url: pdfUrl }).promise;
+        const pdf = await pdfjsLib.getDocument({ url: accessiblePdfUrl }).promise;
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const viewport = page.getViewport({ scale: 1.5 });
@@ -207,7 +209,7 @@ export default function PdfSignViewer({
       cancelled = true;
     };
   }, [
-    pdfUrl,
+    accessiblePdfUrl,
     JSON.stringify(fields),
     JSON.stringify(signedImages),
     JSON.stringify(typedTexts),
@@ -218,7 +220,7 @@ export default function PdfSignViewer({
     <div style={{ overflow: "auto" }}>
       {fallback ? (
         <iframe
-          src={pdfUrl}
+          src={accessiblePdfUrl}
           style={{ width: "100%", height: 800, border: "none" }}
           title="Documento PDF"
         />

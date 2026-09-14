@@ -12,6 +12,7 @@ import {
   IndependentContractorAgreementUsaPDF,
   InternationalProfessionalServicesAgreementPDF,
 } from "./templates";
+import VELSContractPDF from "./templates/VELSContractPDF";
 import { Applicant } from "../../../../types/applicant";
 import { useNotificationStore } from "@/store/notifications.store";
 import { DocumentProps } from "@react-pdf/renderer";
@@ -159,6 +160,9 @@ const PDFPreview: React.FC<{
         return (
           <InternationalProfessionalServicesAgreementPDF data={contractData} />
         );
+      }
+      if (selectedTemplate.id === "vels-contract") {
+        return <VELSContractPDF data={contractData} />;
       }
       // Ensure USA ICA renders the correct PDF in preview
       if (selectedTemplate.id === "ica-usa-english") {
@@ -321,10 +325,32 @@ export default function SignContractModal({
       ],
     });
 
+    workingTemplates.push({
+      id: "vels-contract",
+      name: "VELS Contract",
+      description:
+        "VELS Contract — simplified professional services summary with contractor details, scope, compensation, and start date.",
+      subject: "VELS Contract – {{nombreCompleto}}",
+      component: "VELSContractPDF",
+      category: "International",
+      variables: [
+        "nombreCompleto",
+        "cedula",
+        "nacionalidad",
+        "cityCountry",
+        "descripcionServicios",
+        "ofertaSalarial",
+        "montoEnLetrasUSD",
+        "fechaInicioLabores",
+        "fechaEjecucion",
+      ],
+    });
+
     // Mostrar únicamente el template internacional cuando el flag está activo
     if (SHOW_ONLY_INTERNATIONAL_PSA_TEMPLATE) {
       return workingTemplates.filter(
-        (t) => t.id === "psa-international-english"
+        (t) =>
+          t.id === "psa-international-english" || t.id === "vels-contract",
       );
     }
 
@@ -400,7 +426,13 @@ export default function SignContractModal({
 
   const [contractData, setContractData] = useState(() => ({
     // Datos básicos del empleado
-    nombreCompleto: `${applicant.nombre} ${applicant.apellido}`,
+    nombreCompleto: (() => {
+      const nc =
+        typeof applicant.nombreCompleto === "string"
+          ? applicant.nombreCompleto.trim()
+          : "";
+      return nc || `${applicant.nombre} ${applicant.apellido}`.trim();
+    })(),
     correoElectronico: applicant.correo,
     cedula: "",
     telefono: applicant.telefono || "",
@@ -469,7 +501,8 @@ export default function SignContractModal({
       setContractData((prev) => ({
         ...prev,
         descripcionServicios:
-          contractTemplates[0].id === "psa-international-english"
+          contractTemplates[0].id === "psa-international-english" ||
+          contractTemplates[0].id === "vels-contract"
             ? PSA_COL_DEFAULT_SERVICES
             : contractTemplates[0].description,
       }));
@@ -485,7 +518,8 @@ export default function SignContractModal({
         ...prev,
         descripcionServicios:
           template.id === "psa-col-english" ||
-          template.id === "psa-international-english"
+          template.id === "psa-international-english" ||
+          template.id === "vels-contract"
             ? PSA_COL_DEFAULT_SERVICES
             : template.description,
       }));
@@ -632,6 +666,8 @@ export default function SignContractModal({
           pdfDocument = (
             <InternationalProfessionalServicesAgreementPDF data={pdfData} />
           );
+        } else if (selectedTemplate.id === "vels-contract") {
+          pdfDocument = <VELSContractPDF data={pdfData} />;
         } else if (selectedTemplate.id === "ica-usa-english") {
           pdfDocument = <IndependentContractorAgreementUsaPDF data={pdfData} />;
         } else {
@@ -843,11 +879,18 @@ export default function SignContractModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-[90vh] flex flex-col">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-[1440px] h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800">
-            Send contract to {applicant.nombre} {applicant.apellido}
+            Send contract to{" "}
+            {(() => {
+              const nc =
+                typeof applicant.nombreCompleto === "string"
+                  ? applicant.nombreCompleto.trim()
+                  : "";
+              return nc || `${applicant.nombre} ${applicant.apellido}`.trim();
+            })()}
           </h2>
           <button
             onClick={onClose}
@@ -1144,12 +1187,15 @@ export default function SignContractModal({
                       </div>
                     )}
 
-                  {/* International PSA – specific fields */}
+                  {/* International PSA / VELS – shared agreement fields */}
                   {selectedTemplate &&
-                    selectedTemplate.id === "psa-international-english" && (
+                    (selectedTemplate.id === "psa-international-english" ||
+                      selectedTemplate.id === "vels-contract") && (
                       <div className="border-b border-[#0097B2] pb-3">
                         <h5 className="text-sm font-semibold text-gray-600 mb-2">
-                          Agreement Details (International PSA)
+                          {selectedTemplate.id === "vels-contract"
+                            ? "Agreement Details (VELS Contract)"
+                            : "Agreement Details (International PSA)"}
                         </h5>
                         {/* Clause One text comes from Position → Service Description */}
                         <div className="grid grid-cols-2 gap-2">

@@ -43,7 +43,12 @@ export async function getContracts(
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error("Error fetching contracts:", error);
+    const status = error?.response?.status;
+    const apiMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.meta?.message ||
+      error?.message;
+    console.error("Error fetching contracts:", status, apiMessage);
     return {
       success: false,
       data: {
@@ -51,6 +56,10 @@ export async function getContracts(
         total: 0,
       },
       totalPages: 1,
+      status,
+      message: Array.isArray(apiMessage)
+        ? apiMessage.join(", ")
+        : apiMessage || "Error fetching contracts",
     };
   }
 }

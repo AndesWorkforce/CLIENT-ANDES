@@ -5,14 +5,16 @@
 
 interface Window {
   /**
-   * Helper function for delayed navigation with Google Ads conversion tracking
+   * Helper function for delayed navigation with Google Ads conversion tracking.
+   * Fires a conversion event and then navigates to the given URL.
    * @param url - The URL to navigate to after the event is sent
+   * @param eventName - Optional custom event name (defaults to 'ads_conversion_Contact_1')
    * @returns false to prevent default link behavior
    */
-  gtagSendEvent?: (url: string) => boolean;
+  gtagSendEvent?: (url: string, eventName?: string) => boolean;
 
   /**
-   * Google Analytics gtag function
+   * Google Analytics / Google Ads gtag function
    */
   gtag?: (...args: any[]) => void;
 

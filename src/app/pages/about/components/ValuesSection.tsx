@@ -1,0 +1,84 @@
+"use client";
+
+import Image from "next/image";
+import { FadeIn } from "./Reveal";
+
+const values = [
+  {
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/Values+-+What+guides+us/Honesty+-+Values.webp",
+    title: "Honesty",
+    description: "We act with integrity and transparency in every interaction.",
+  },
+  {
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/Values+-+What+guides+us/Diversity+-+Values.webp",
+    title: "Diversity",
+    description:
+      "We value different perspectives and believe they make our teams stronger.",
+  },
+  {
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/Values+-+What+guides+us/Accountability.webp",
+    title: "Accountability",
+    description:
+      "We take ownership of our work and follow through on every commitment.",
+  },
+  {
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/Values+-+What+guides+us/Comunnication+-+Values.webp",
+    title: "Communication",
+    description:
+      "We communicate clearly, openly, and with purpose in everything we do.",
+  },
+  {
+    icon: "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/about_us_team/optimized/Gif/Values+-+What+guides+us/Respect+-+Values.webp",
+    title: "Respect",
+    description:
+      "We treat everyone with consideration, empathy, and professionalism.",
+  },
+];
+
+export default function ValuesSection() {
+  return (
+    <section className="w-full bg-white py-8 sm:py-24">
+      <div className="max-w-[1092px] mx-auto px-[18px] sm:px-6">
+        {/* Header */}
+        <FadeIn className="text-center mb-[22px] sm:mb-10">
+          <h2 className="text-[24px] sm:text-4xl md:text-[48px] font-bold text-[#343434] leading-[1.3]">
+            What <span className="text-[#0097b2]">guides</span> us
+          </h2>
+          <p className="mt-3 text-[14px] sm:text-lg md:text-[22px] font-medium text-[#525252] leading-[1.2]">
+            The principles that shape how we work, collaborate, and grow
+            together.
+          </p>
+        </FadeIn>
+
+        {/* Cards — horizontal scroll on mobile, grid on desktop */}
+        <div className="flex overflow-x-auto gap-[22px] py-3 md:grid md:grid-cols-3 lg:grid-cols-5 md:overflow-visible md:gap-6 lg:gap-8">
+          {values.map((value, index) => (
+            <FadeIn
+              key={value.title}
+              delay={0.5 + index * 0.24}
+              className="flex-shrink-0 w-[180px] origin-center md:flex-shrink md:w-auto"
+            >
+              <div className="flex h-full origin-center flex-col gap-3 rounded-[12px] bg-white px-[26px] py-[36px] shadow-[0px_4px_2px_rgba(167,162,162,0.25)] transition-transform duration-300 ease-out motion-safe:hover:scale-[1.03] hover:shadow-lg md:px-7 md:py-8">
+              <div className="relative w-[50px] h-[50px] md:w-[89px] md:h-[89px]">
+                <Image
+                  src={value.icon}
+                  alt={value.title}
+                  fill
+                  unoptimized
+                  className="object-cover"
+                />
+              </div>
+              <h3 className="text-[#0097b2] text-[18px] md:text-[20px] font-bold leading-[1.25]">
+                {value.title}
+              </h3>
+              <p className="text-black text-[12px] font-normal leading-[1.3] tracking-[0.24px]">
+                {value.description}
+              </p>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

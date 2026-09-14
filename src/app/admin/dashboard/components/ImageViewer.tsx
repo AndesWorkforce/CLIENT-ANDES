@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useState } from "react";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 interface ImageViewerProps {
   images: string[];
@@ -20,7 +21,7 @@ export default function ImageViewer({ images }: ImageViewerProps) {
             onClick={() => setSelectedImage(image)}
           >
             <img
-              src={image}
+              src={toAccessibleMediaUrl(image)}
               alt={`Imagen ${index + 1}`}
               className="w-full h-full object-cover"
             />
@@ -42,7 +43,7 @@ export default function ImageViewer({ images }: ImageViewerProps) {
               <X size={24} />
             </button>
             <img
-              src={selectedImage}
+              src={toAccessibleMediaUrl(selectedImage)}
               alt="Imagen ampliada"
               className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
             />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, Info } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
@@ -27,6 +28,7 @@ import { deleteAllSkills, updateUserSkills } from "./actions/skills-actions";
 import { useAuthStore } from "@/store/auth.store";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { removeVideoPresentation } from "./actions/video-actions";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 import { useNotificationStore } from "@/store/notifications.store";
 import { deletePCRequirementsImages } from "./actions/pc-requirements-actions";
 import { eliminarDatosFormulario } from "./actions/formulario.actions";
@@ -41,8 +43,14 @@ import ProfilePhotoModal from "./components/ProfilePhotoModal";
 import ProfesionModal from "./components/ProfesionModal";
 import BankInfoModal from "./components/BankInfoModal";
 import { aceptarPoliticaDatos } from "./actions/politica-actions";
+import AssessmentModal from "@/app/admin/dashboard/components/AssessmentModal";
+import {
+  removeBackgroundCheck,
+  saveBackgroundCheck,
+} from "./actions/identification-actions";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { profile } = useProfileContext();
   const { user } = useAuthStore();
   const addNotification = useNotificationStore(
@@ -94,10 +102,72 @@ export default function ProfilePage() {
   const [showIdentificationModal, setShowIdentificationModal] =
     useState<boolean>(false);
   const [showBankInfoModal, setShowBankInfoModal] = useState<boolean>(false);
+  const [showBackgroundCheckModal, setShowBackgroundCheckModal] =
+    useState<boolean>(false);
+  const [showDeleteBackgroundCheckModal, setShowDeleteBackgroundCheckModal] =
+    useState<boolean>(false);
   const [showProfilePhotoModal, setShowProfilePhotoModal] =
     useState<boolean>(false);
   const [showProfesionModal, setShowProfesionModal] =
     useState<boolean>(false);
+
+  const showBackgroundCheck = profile.gating?.showBackgroundCheck === true;
+  const backgroundCheckUrl = profile.backgroundCheckUrl ?? null;
+
+  const uploadBackgroundCheckPdf = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("pdf", file);
+    formData.append("folder", "pdf");
+
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+    const response = await fetch(`${apiBase}files/upload/pdf`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+
+    return response.text();
+  };
+
+  const handleBackgroundCheckUpload = async (file: File) => {
+    if (!user?.id) {
+      throw new Error("User not authenticated");
+    }
+
+    const pdfUrl = await uploadBackgroundCheckPdf(file);
+    const response = await saveBackgroundCheck(user.id, pdfUrl);
+
+    if (!response.success) {
+      throw new Error(
+        response.error || "Error saving background check URL"
+      );
+    }
+
+    router.refresh();
+  };
+
+  const handleBackgroundCheckRemove = async () => {
+    if (!user?.id) {
+      addNotification("User not authenticated", "error");
+      return;
+    }
+
+    const response = await removeBackgroundCheck(user.id);
+    if (!response.success) {
+      addNotification(
+        response.error || "Error removing background check",
+        "error"
+      );
+      return;
+    }
+
+    addNotification("Background check removed successfully", "success");
+    setShowDeleteBackgroundCheckModal(false);
+    router.refresh();
+  };
 
   // Helpers robustos para validar el estado del formulario (puede venir como string JSON, objeto o null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,7 +202,9 @@ export default function ProfilePage() {
   };
 
   // Lista estricta de preguntas requeridas del cuestionario (claves canónicas)
-  const Q_NAME = "What is your preferred first and last name?";
+  const Q_NAME =
+    "Enter your full name exactly as shown on your identification document";
+  const Q_NAME_LEGACY = "What is your preferred first and last name?";
   const Q_WHATSAPP = "What phone number do you use for WhatsApp?";
   const Q_CITY_COUNTRY = "In which city and country do you live?";
   const Q_GMAIL =
@@ -184,9 +256,12 @@ export default function ProfilePage() {
 
     // Validar preguntas estándar
     for (const key of REQUIRED_QUESTIONS) {
-      if (
-        !hasMeaningfulValue((formularioData as Record<string, unknown>)[key])
-      ) {
+      const raw =
+        key === Q_NAME
+          ? (formularioData as Record<string, unknown>)[Q_NAME] ??
+            (formularioData as Record<string, unknown>)[Q_NAME_LEGACY]
+          : (formularioData as Record<string, unknown>)[key];
+      if (!hasMeaningfulValue(raw)) {
         return false;
       }
     }
@@ -572,7 +647,7 @@ export default function ProfilePage() {
       </header>
 
       {isVisibleNotification && (
-        <div className="md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8 bg-green-50 p-4 my-4 rounded-lg">
+        <div className="md:block md:mx-auto md:max-w-[1440px] md:px-6 lg:px-8 bg-green-50 p-4 my-4 rounded-lg">
           <div className="flex items-center mb-1">
             <Info className="text-green-800 mr-2" size={18} />
             <h3 className="font-medium text-green-800 ">
@@ -593,7 +668,7 @@ export default function ProfilePage() {
 
       {/* Notificación para política de datos */}
       {!profile.aceptaPoliticaDatos && (
-        <div className="md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8 bg-yellow-50 p-4 my-4 rounded-lg border-l-4 border-yellow-400">
+        <div className="md:block md:mx-auto md:max-w-[1440px] md:px-6 lg:px-8 bg-yellow-50 p-4 my-4 rounded-lg border-l-4 border-yellow-400">
           <div className="flex items-center mb-2">
             <Info className="text-yellow-600 mr-2" size={18} />
             <h3 className="font-medium text-yellow-800">
@@ -769,13 +844,13 @@ export default function ProfilePage() {
               <div className="mt-2 text-sm text-gray-700 space-y-1">
                 {profile.bankInfo?.usaDollarApp ? (
                   <div>
-                    DollarApp: Yes
+                    ARQ App: Yes
                     {profile.bankInfo?.dollarTag
                       ? ` (${profile.bankInfo.dollarTag})`
                       : ""}
                   </div>
                 ) : (
-                  <div>DollarApp: No</div>
+                  <div>ARQ App: No</div>
                 )}
                 {profile.bankInfo?.bancoNombre && (
                   <div>
@@ -815,6 +890,52 @@ export default function ProfilePage() {
               >
                 {profile.bankInfo ? "Edit" : "Add"}
               </button>
+            </div>
+          </div>
+        )}
+
+        {showBackgroundCheck && (
+          <div
+            className="flex items-start justify-between p-4 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+            style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+          >
+            <div>
+              <span className="text-gray-800 font-medium">Background Check</span>
+              <div className="mt-2 text-sm text-gray-700">
+                {backgroundCheckUrl ? (
+                  <a
+                    href={backgroundCheckUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#0097B2] underline hover:text-[#007A8C]"
+                  >
+                    View Background Check PDF
+                  </a>
+                ) : (
+                  <span className="text-gray-500">
+                    No background check uploaded
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              {backgroundCheckUrl ? (
+                <>
+                  <Dump
+                    className="cursor-pointer"
+                    onClick={() => setShowDeleteBackgroundCheckModal(true)}
+                  />
+                  <Edit
+                    className="cursor-pointer"
+                    onClick={() => setShowBackgroundCheckModal(true)}
+                  />
+                </>
+              ) : (
+                <UploadFile
+                  className="cursor-pointer"
+                  onClick={() => setShowBackgroundCheckModal(true)}
+                />
+              )}
             </div>
           </div>
         )}
@@ -1408,7 +1529,7 @@ export default function ProfilePage() {
 
       {/* Desktop Information view */}
       {hasPendingCards && (
-        <div className="hidden md:block md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
+        <div className="hidden md:block md:mx-auto md:max-w-[1440px] md:px-6 lg:px-8">
           {!isVisibleNotification && (
             <div className="hidden md:flex md:items-center bg-blue-50 p-4 my-6 rounded-lg items-start space-x-3">
               <Info className="text-blue-500 shrink-0 mt-1" size={20} />
@@ -1751,7 +1872,7 @@ export default function ProfilePage() {
       )}
 
       {/* Desktop view */}
-      <div className="hidden md:block md:mt-8 md:mx-auto md:max-w-6xl md:px-6 lg:px-8">
+      <div className="hidden md:block md:mt-8 md:mx-auto md:max-w-[1440px] md:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-6 items-start mb-20">
           <div className="flex flex-col justify-between gap-4 h-full">
             <div
@@ -1861,7 +1982,7 @@ export default function ProfilePage() {
                 {profile.datosPersonales.fotoPerfil && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={profile.datosPersonales.fotoPerfil}
+                    src={toAccessibleMediaUrl(profile.datosPersonales.fotoPerfil)}
                     alt="Profile"
                     className="w-10 h-10 rounded-full object-cover border border-gray-200"
                   />
@@ -1918,13 +2039,13 @@ export default function ProfilePage() {
                   <div className="mt-2 text-sm text-gray-700 space-y-1">
                     {profile.bankInfo?.usaDollarApp ? (
                       <div>
-                        DollarApp: Yes
+                        ARQ App: Yes
                         {profile.bankInfo?.dollarTag
                           ? ` (${profile.bankInfo.dollarTag})`
                           : ""}
                       </div>
                     ) : (
-                      <div>DollarApp: No</div>
+                      <div>ARQ App: No</div>
                     )}
                     {profile.bankInfo?.bancoNombre && (
                       <div>
@@ -1966,6 +2087,54 @@ export default function ProfilePage() {
                   >
                     {profile.bankInfo ? "Edit" : "Add"}
                   </button>
+                </div>
+              </div>
+            )}
+
+            {showBackgroundCheck && (
+              <div
+                className="flex items-start justify-between p-6 bg-white border border-gray-100 rounded-xl mb-4 relative z-10"
+                style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+              >
+                <div>
+                  <span className="text-gray-800 font-medium">
+                    Background Check
+                  </span>
+                  <div className="mt-2 text-sm text-gray-700">
+                    {backgroundCheckUrl ? (
+                      <a
+                        href={backgroundCheckUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#0097B2] underline hover:text-[#007A8C]"
+                      >
+                        View Background Check PDF
+                      </a>
+                    ) : (
+                      <span className="text-gray-500">
+                        No background check uploaded
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  {backgroundCheckUrl ? (
+                    <>
+                      <Dump
+                        className="cursor-pointer"
+                        onClick={() => setShowDeleteBackgroundCheckModal(true)}
+                      />
+                      <Edit
+                        className="cursor-pointer"
+                        onClick={() => setShowBackgroundCheckModal(true)}
+                      />
+                    </>
+                  ) : (
+                    <UploadFile
+                      className="cursor-pointer"
+                      onClick={() => setShowBackgroundCheckModal(true)}
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -2180,7 +2349,9 @@ export default function ProfilePage() {
                     </h3>
                     <div className="text-white rounded-md">
                       <img
-                        src={`${profile.archivos.imagenRequerimientosPC}`}
+                        src={toAccessibleMediaUrl(
+                          profile.archivos.imagenRequerimientosPC,
+                        )}
                         alt="PC Specifications"
                         className="w-[50%] h-auto"
                       />
@@ -2195,7 +2366,9 @@ export default function ProfilePage() {
                     </h3>
                     <div className="text-white rounded-md">
                       <img
-                        src={`${profile.archivos.imagenTestVelocidad}`}
+                        src={toAccessibleMediaUrl(
+                          profile.archivos.imagenTestVelocidad,
+                        )}
                         alt="Internet Speed Test"
                         className="w-[50%] h-auto"
                       />
@@ -2460,6 +2633,23 @@ export default function ProfilePage() {
       <BankInfoModal
         isOpen={showBankInfoModal}
         onClose={() => setShowBankInfoModal(false)}
+      />
+
+      <AssessmentModal
+        isOpen={showBackgroundCheckModal}
+        onClose={() => setShowBackgroundCheckModal(false)}
+        onUpload={handleBackgroundCheckUpload}
+        title="Upload Background Check"
+        successMessage="Background check uploaded successfully"
+        errorMessage="Error uploading background check"
+      />
+
+      <ConfirmDeleteModal
+        isOpen={showDeleteBackgroundCheckModal}
+        onClose={() => setShowDeleteBackgroundCheckModal(false)}
+        onConfirm={handleBackgroundCheckRemove}
+        title="Delete Background Check"
+        message="Are you sure you want to remove the background check? This action cannot be undone."
       />
 
       <ContactoModal

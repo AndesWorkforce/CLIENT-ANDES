@@ -3,33 +3,29 @@ import {
   Container,
   Head,
   Html,
-  Link,
   Preview,
   Text,
 } from "@react-email/components";
 
 interface InterviewInvitationEmailProps {
   candidateName: string;
-  bookingLink: string;
+  jobTitle: string;
 }
 
-// Stage 2: Invite to Interview
 export const InterviewInvitationEmail = ({
-  candidateName,
-  bookingLink,
+  candidateName: _candidateName,
+  jobTitle,
 }: InterviewInvitationEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>
-        Scheduling a Call to Discuss Opportunities at Andes Workforce
-      </Preview>
+      <Preview>Next Step in Your Application</Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>
           <Text
             style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
-            Hi {candidateName},
+            Dear candidate,
           </Text>
 
           <Text
@@ -40,30 +36,53 @@ export const InterviewInvitationEmail = ({
               lineHeight: "1.5",
             }}
           >
-            Thank you for expressing interest in offering your services to Andes
-            Workforce! We&#39;ve had the chance to review your application for
-            remote positions, and we may have an opportunity that aligns with
-            your experience. We&#39;d like to schedule a brief call to discuss
-            your background further.
+            We&apos;re pleased to inform you that you have been selected to
+            move forward to the next stage of the process for the{" "}
+            <strong>{jobTitle}</strong> position.
+          </Text>
+
+          <Text
+            style={{
+              color: "#333",
+              fontSize: "16px",
+              margin: "0 0 20px 0",
+              lineHeight: "1.5",
+            }}
+          >
+            The next step will be an interview with the client. Our team will be
+            contacting you shortly with further details and instructions to
+            schedule your interview.
+          </Text>
+
+          <Text
+            style={{
+              color: "#333",
+              fontSize: "16px",
+              margin: "0 0 20px 0",
+              lineHeight: "1.5",
+            }}
+          >
+            Please note that the interview will be an important step in the
+            client&apos;s evaluation process.
+          </Text>
+
+          <Text
+            style={{
+              color: "#333",
+              fontSize: "16px",
+              margin: "0 0 20px 0",
+              lineHeight: "1.5",
+            }}
+          >
+            We appreciate your interest and look forward to supporting you
+            through the next steps.
           </Text>
 
           <Text
             style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
-            Please schedule your call using this link:
+            Best regards,
           </Text>
-
-          <Link
-            href={bookingLink}
-            style={{
-              color: "#0097B2",
-              display: "block",
-              marginBottom: "24px",
-              textDecoration: "underline",
-            }}
-          >
-            {bookingLink}
-          </Link>
 
           <img
             src="https://andes-workforce-s3.s3.us-east-2.amazonaws.com/clientes/firma_laura.jpeg"

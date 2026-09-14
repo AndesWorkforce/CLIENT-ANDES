@@ -1,14 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const S3 = "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/";
+const S3 = "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/home";
 
-const BG_IMAGE = `${S3}modern-equipped-computer-lab+(1)a.jpg`;
+const BG_IMAGE = `${S3}/Fondo+seccion+Our+Services.jpg`;
 
 const icons = {
-  legal: `${S3}b3d671d7a9f7c7b5e3e1f8370ac01f43ac7afd57.gif`,
-  data: `${S3}evolution.gif`,
-  business: `${S3}corporate-culture.gif`,
+  legal: `${S3}/Gif/Legal & Compliance.gif`,
+  data: `${S3}/Gif/Data & Administration.gif`,
+  business: `${S3}/Gif/Business+Operations.gif`,
 };
 
 type ServiceCard = {
@@ -90,7 +90,7 @@ export default function PersonnelTypes() {
           {services.map((service) => (
             <div
               key={service.title}
-              className="bg-white rounded-[20px] p-[30px] h-[300px] flex flex-col gap-[15px] shadow-[0px_4px_20px_rgba(0,0,0,0.08)] transition-transform duration-300 hover:scale-[1.03] cursor-default"
+              className="flex h-[300px] origin-center cursor-default flex-col gap-[15px] rounded-[20px] bg-white p-[30px] shadow-[0px_4px_20px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out motion-safe:hover:scale-[1.03] hover:shadow-lg"
             >
               <img
                 src={service.icon}

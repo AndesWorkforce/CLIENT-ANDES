@@ -12,7 +12,7 @@ import { useNotificationStore } from "@/store/notifications.store";
  * 2. Si el token expiró o es inválido, limpia el estado y desloguea al usuario
  * 3. Evita que los usuarios vean una UI "logueada" con un token expirado
  * 4. Escucha errores 401 globalmente para desloguear automáticamente
- * 5. Valida la sesión cada 5 segundos cuando el usuario está autenticado
+ * 5. Valida la sesión periódicamente (cada 2 min) cuando el usuario está autenticado
  */
 export function AuthValidator() {
   const { isAuthenticated, logout, setLoading } = useAuthStore();
@@ -84,7 +84,7 @@ export function AuthValidator() {
           response.statusText,
         );
 
-        if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
           // Token inválido o expirado
           console.warn(
             "[AuthValidator] ❌ Token inválido o expirado (status:",
@@ -95,6 +95,13 @@ export function AuthValidator() {
           // Esperar 2 segundos para que el usuario vea la notificación
           await new Promise((resolve) => setTimeout(resolve, 2000));
           await logout();
+        } else if (!response.ok) {
+          // Error de infraestructura/transitorio (ej. 5xx/timeout en backend)
+          console.warn(
+            "[AuthValidator] ⚠️ Validación no disponible temporalmente (status:",
+            response.status,
+            "), manteniendo sesión",
+          );
         } else {
           const data = await response.json();
           console.log(
@@ -116,15 +123,21 @@ export function AuthValidator() {
     validateSession();
   }, [isAuthenticated, logout, setLoading, pathname, addNotification]);
 
-  // Polling: Validar sesión cada 5 segundos cuando está autenticado
+  // Polling: Validar sesión periódicamente cuando está autenticado
+  // Intervalo alto: el Throttler Nest limita ~10 req/min y verify pasa por el BFF del servidor
   useEffect(() => {
-    // No hacer polling en rutas de autenticación
-    const authPaths = [
+    // No hacer polling en rutas de autenticación ni en firma pública (evita 429 durante esign)
+    const skipPollingPaths = [
       "/auth/login",
       "/auth/register",
       "/auth/forgot-password",
+      "/esign",
     ];
-    if (authPaths.some((path) => pathname.startsWith(path))) {
+    if (skipPollingPaths.some((path) => pathname.startsWith(path))) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       return;
     }
 
@@ -147,7 +160,7 @@ export function AuthValidator() {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
 
-        if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
           console.warn(
             "[AuthValidator] 🔄 Polling detectó token expirado, deslogueando...",
           );
@@ -159,6 +172,10 @@ export function AuthValidator() {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
           }
+        } else if (!response.ok) {
+          console.debug(
+            "[AuthValidator] 🔄 Polling - validación temporalmente no disponible, sesión mantenida",
+          );
         }
       } catch (error) {
         // Error de red silencioso, no desloguear
@@ -166,8 +183,8 @@ export function AuthValidator() {
       }
     };
 
-    // Iniciar polling cada 5 segundos
-    intervalRef.current = setInterval(validateSessionSilently, 5000);
+    // Cada 2 minutos (antes 5s → tormenta de 429)
+    intervalRef.current = setInterval(validateSessionSilently, 120_000);
 
     // Cleanup al desmontar
     return () => {

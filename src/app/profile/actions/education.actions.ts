@@ -3,18 +3,10 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { Education } from "@/app/types/education";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { getApiUrl } from "@/services/axios.server";
 
 export async function addEducation(userId: string, education: Education) {
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Error de configuración: URL de API no disponible",
-      };
-    }
-
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
@@ -25,7 +17,7 @@ export async function addEducation(userId: string, education: Education) {
       };
     }
 
-    const response = await fetch(`${API_URL}users/${userId}/education`, {
+    const response = await fetch(`${getApiUrl()}users/${userId}/education`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -71,13 +63,6 @@ export async function addEducation(userId: string, education: Education) {
 
 export async function deleteEducation(userId: string, educationId: string) {
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Error de configuración: URL de API no disponible",
-      };
-    }
-
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
@@ -89,7 +74,7 @@ export async function deleteEducation(userId: string, educationId: string) {
     }
 
     const response = await fetch(
-      `${API_URL}users/${userId}/education/${educationId}`,
+      `${getApiUrl()}users/${userId}/education/${educationId}`,
       {
         method: "DELETE",
         headers: {

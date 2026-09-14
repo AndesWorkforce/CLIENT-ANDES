@@ -34,6 +34,7 @@ import {
   updateBonusAndHolidays,
 } from "./actions/observations.actions";
 import { useNotificationStore } from "@/store/notifications.store";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 type UserContract = {
   id: string;
@@ -223,6 +224,16 @@ export default function PaymentsPage() {
       .replace(/\s+/g, " ")
       .trim();
 
+  const BONUS_TYPE_SORT_ORDER: Record<string, number> = {
+    NONE: 0,
+    HALF_MONTH_ONCE_DECEMBER: 1,
+    FULL_MONTH_ONCE_DECEMBER: 2,
+    FULL_MONTH_TWICE_JUNE_DECEMBER: 3,
+  };
+
+  const getBonusTypeSortRank = (type: string | null | undefined) =>
+    BONUS_TYPE_SORT_ORDER[type || "NONE"] ?? 99;
+
   const getAdminDiscretionaryBonusLabel = (
     type: string | null | undefined
   ): string => {
@@ -346,6 +357,18 @@ export default function PaymentsPage() {
       setSortDirection("asc");
     }
   };
+
+  const renderSortIndicator = (key: keyof UserContract) => (
+    <div className="flex flex-col text-xs text-gray-400">
+      {sortKey === key && sortDirection === "asc" ? (
+        <span className="text-blue-600">▲</span>
+      ) : sortKey === key && sortDirection === "desc" ? (
+        <span className="text-blue-600">▼</span>
+      ) : (
+        <span className="opacity-50">⇅</span>
+      )}
+    </div>
+  );
 
   const getPaymentStatusRank = (user: UserContract) => {
     const isColombia = String(user.country || "").toLowerCase() === "colombia";
@@ -562,6 +585,30 @@ export default function PaymentsPage() {
         const comparison = getPaymentStatusRank(a) - getPaymentStatusRank(b);
         return sortDirection === "asc" ? comparison : -comparison;
       }
+
+      if (sortKey === "discretionaryBonusType") {
+        const comparison =
+          getBonusTypeSortRank(a.discretionaryBonusType) -
+          getBonusTypeSortRank(b.discretionaryBonusType);
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
+
+      if (sortKey === "inboxMesActualId") {
+        const aHas = !!a.inboxMesActualId;
+        const bHas = !!b.inboxMesActualId;
+        if (aHas === bHas) return 0;
+        const comparison = aHas ? -1 : 1;
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
+
+      if (sortKey === "paidHolidays") {
+        const aVal = a.paidHolidays === true;
+        const bVal = b.paidHolidays === true;
+        if (aVal === bVal) return 0;
+        const comparison = aVal ? -1 : 1;
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
+
       const aValue = a[sortKey];
       const bValue = b[sortKey];
 
@@ -1254,11 +1301,11 @@ export default function PaymentsPage() {
   console.log("[USERS]", filteredUsers);
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] p-4">
-        <div className="max-w-7xl mx-auto">
+      <div className="flex flex-1 min-h-0 flex-col bg-[#F8FAFC] p-4">
+        <div className="container mx-auto flex flex-1 min-h-0 flex-col">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="flex-1 min-h-[200px] bg-gray-200 rounded"></div>
           </div>
         </div>
       </div>
@@ -1266,8 +1313,8 @@ export default function PaymentsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-4">
+      <div className="mb-4 flex shrink-0 items-center justify-between">
         <h1 id="payments-title" className="text-2xl font-bold">
           Monthly Payments
         </h1>
@@ -1312,7 +1359,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Filters */}
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="mb-4 flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div id="filter-country" className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-gray-600">Country:</span>
           <div className="inline-flex rounded-md overflow-hidden border border-gray-200">
@@ -1432,7 +1479,7 @@ export default function PaymentsPage() {
 
       {/* Success Message */}
       {showSuccessMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
+        <div className="mb-4 flex shrink-0 items-center rounded-lg border border-green-200 bg-green-50 p-4">
           <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
           <div className="text-green-800">{lastActionMessage}</div>
         </div>
@@ -1440,7 +1487,7 @@ export default function PaymentsPage() {
 
       {/* Selection Actions */}
       {selectedUsers.size > 0 && (
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-[#0097B2]">
+        <div className="mb-4 shrink-0 rounded-lg border border-[#0097B2] bg-white p-4 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-sm text-gray-600">
               {selectedUsers.size} user(s) selected for monthly payment
@@ -1467,10 +1514,11 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow-sm">
-        <table className="min-w-full">
-          <thead className="bg-gray-50 border-b">
+      {/* Table: scroll vertical + horizontal dentro del viewport */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg bg-white shadow-sm">
+        <div className="min-h-0 flex-1 overflow-auto custom-scrollbar">
+        <table className="w-full min-w-[1400px] border-collapse">
+          <thead className="sticky top-0 z-10 border-b bg-gray-50 shadow-sm">
             <tr>
               <th className="px-6 py-3 text-left">
                 <input
@@ -1598,14 +1646,59 @@ export default function PaymentsPage() {
                   </div>
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                <span id="col-invoices-header">Invoices</span>
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("inboxMesActualId")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSort("inboxMesActualId");
+                  }
+                }}
+                title="Ordenar por factura cargada o pendiente"
+              >
+                <div className="flex items-center space-x-1">
+                  <span id="col-invoices-header">Invoices</span>
+                  {renderSortIndicator("inboxMesActualId")}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                Discretionary Bonus
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("discretionaryBonusType")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSort("discretionaryBonusType");
+                  }
+                }}
+                title="Ordenar por tipo de bono discrecional"
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Discretionary Bonus</span>
+                  {renderSortIndicator("discretionaryBonusType")}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider">
-                Paid Holidays
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-[#17323A] uppercase tracking-wider cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                onClick={() => handleSort("paidHolidays")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSort("paidHolidays");
+                  }
+                }}
+                title="Ordenar por feriados pagados (Sí / No)"
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Paid Holidays</span>
+                  {renderSortIndicator("paidHolidays")}
+                </div>
               </th>
             </tr>
           </thead>
@@ -1914,6 +2007,7 @@ export default function PaymentsPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Action Logs */}
@@ -2089,7 +2183,7 @@ export default function PaymentsPage() {
                       </div>
                       <div className="space-y-2">
                         <a
-                          href={selectedDocument.imageUrl}
+                          href={toAccessibleMediaUrl(selectedDocument.imageUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -2139,7 +2233,7 @@ export default function PaymentsPage() {
                   /* Para imágenes */
                   <div className="flex justify-center">
                     <img
-                      src={selectedDocument.imageUrl}
+                      src={toAccessibleMediaUrl(selectedDocument.imageUrl)}
                       alt={`Document for ${selectedDocument.userName}`}
                       className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm border"
                       onError={(e) => {

@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Output standalone para imágenes Docker mucho más livianas
+  output: "standalone",
   experimental: {
     serverActions: {
       // Red de seguridad (Nginx front ya tiene 50M). Las subidas grandes van por axios al API.
@@ -20,21 +22,30 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "andes-workforce-s3.s3.us-east-2.amazonaws.com",
-        pathname: "/clientes/**",
+        hostname: "appwiseinnovations.dev",
+        pathname: "/r2-appwise/**",
       },
       {
         protocol: "https",
         hostname: "andes-workforce-s3.s3.us-east-2.amazonaws.com",
-        pathname: "/team/**",
+        pathname: "/**",
       },
       {
         protocol: "https",
-        hostname: "andes-workforce-s3.s3.us-east-2.amazonaws.com",
-        pathname: "/images/**",
+        hostname: "andes.api.andes-workforce.com",
+        pathname: "/api/files/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.s3.us-east-2.amazonaws.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.s3.amazonaws.com",
+        pathname: "/**",
       },
     ],
-    domains: ["appwiseinnovations.dev"],
   },
 };
 

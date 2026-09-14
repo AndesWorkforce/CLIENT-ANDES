@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notifications.store";
 import { saveIdentificationImages } from "../actions/identification-actions";
 import { useProfileContext } from "../context/ProfileContext";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 interface IdentificationModalProps {
   isOpen: boolean;
@@ -172,7 +173,7 @@ export default function IdentificationModal({
                   </h3>
                   <div className="aspect-[3/2] rounded-lg overflow-hidden border border-gray-200">
                     <img
-                      src={profile.archivos.fotoCedulaFrente}
+                      src={toAccessibleMediaUrl(profile.archivos.fotoCedulaFrente)}
                       alt="ID Front"
                       className="w-full h-full object-cover"
                     />
@@ -184,7 +185,7 @@ export default function IdentificationModal({
                   </h3>
                   <div className="aspect-[3/2] rounded-lg overflow-hidden border border-gray-200">
                     <img
-                      src={profile.archivos.fotoCedulaDorso}
+                      src={toAccessibleMediaUrl(profile.archivos.fotoCedulaDorso)}
                       alt="ID Back"
                       className="w-full h-full object-cover"
                     />

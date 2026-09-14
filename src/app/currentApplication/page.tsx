@@ -55,6 +55,7 @@ import {
 } from "./actions/invoices.actions";
 import { uploadMonthlyProofFromClient } from "@/lib/monthly-proof-upload.client";
 import PayslipsTab from "./components/PayslipsTab";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 export default function CurrentApplication() {
   const router = useRouter();
@@ -929,7 +930,7 @@ export default function CurrentApplication() {
   const SkeletonCurrentContract = () => (
     <div className="min-h-screen bg-gray-50 p-6">
       <SimpleHeader title="Current Contract" />
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-[1440px] mx-auto space-y-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-[#0097B2] p-4">
             <div className="h-5 w-48 bg-white/30 rounded animate-pulse" />
@@ -1224,9 +1225,12 @@ export default function CurrentApplication() {
           response.data.forEach((doc) => {
             // Solo cargar documentos que realmente existen en el frontend
             if (frontendDocIds.includes(doc.seccionDocumento)) {
-              initialReadState[doc.seccionDocumento] =
-                doc.completamenteLeido && doc.terminosAceptados;
-              initialReadingTime[doc.seccionDocumento] = doc.tiempoTotalLectura;
+              // /estado marca lectura con completamenteLeido; terminosAceptados es opcional
+              initialReadState[doc.seccionDocumento] = Boolean(
+                doc.completamenteLeido
+              );
+              initialReadingTime[doc.seccionDocumento] =
+                doc.tiempoTotalLectura ?? 0;
             }
           });
 
@@ -1721,7 +1725,7 @@ export default function CurrentApplication() {
           }
         `}</style>
         <SimpleHeader title="Current Contract" />
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-[1440px] mx-auto">
           {/* Contract Pending Notification */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="bg-[#0097B2] text-white p-4">
@@ -2147,7 +2151,7 @@ export default function CurrentApplication() {
         }
       `}</style>
       <SimpleHeader title="Current Contract" />
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-[1440px] mx-auto space-y-6">
         {/* Pending Annexes Notification */}
         {currentJob.pendingAnnexes && currentJob.pendingAnnexes.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
@@ -2384,7 +2388,7 @@ export default function CurrentApplication() {
                           </div>
                         </div>
                         <a
-                          href={currentJob.contratoFinalUrl}
+                          href={toAccessibleMediaUrl(currentJob.contratoFinalUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors"
@@ -2419,7 +2423,7 @@ export default function CurrentApplication() {
                               </div>
                             </div>
                             <a
-                              href={annex.viewUrl}
+                              href={toAccessibleMediaUrl(annex.viewUrl)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-2 px-3 py-2 bg-[#0097B2] text-white rounded-lg hover:bg-[#007B8E] transition-colors"
@@ -2845,7 +2849,10 @@ export default function CurrentApplication() {
                             <div className="col-span-6 md:col-span-2 flex justify-start md:justify-end gap-2">
                               <button
                                 onClick={() =>
-                                  window.open(proof.file, "_blank")
+                                  window.open(
+                                    toAccessibleMediaUrl(proof.file),
+                                    "_blank",
+                                  )
                                 }
                                 className="inline-flex items-center justify-center w-8 h-8 rounded border border-[#0097B2] text-[#0097B2] hover:bg-blue-50 cursor-pointer"
                                 title="View"

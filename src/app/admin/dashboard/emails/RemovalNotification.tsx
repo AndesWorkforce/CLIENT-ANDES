@@ -5,7 +5,6 @@ import {
   Html,
   Preview,
   Text,
-  Link,
 } from "@react-email/components";
 
 interface RemovalNotificationEmailProps {
@@ -13,21 +12,20 @@ interface RemovalNotificationEmailProps {
   offerName: string;
 }
 
-// Stage 6: Removal Notification
 export const RemovalNotificationEmail = ({
-  candidateName,
+  candidateName: _candidateName,
   offerName,
 }: RemovalNotificationEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Update on your application status</Preview>
+      <Preview>Andes Workforce | Update on Your Application</Preview>
       <Body style={{ margin: 0, padding: 0 }}>
         <Container style={{ padding: 0, margin: 0, width: "100%" }}>
           <Text
             style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
-            Hi {candidateName},
+            Dear candidate,
           </Text>
 
           <Text
@@ -38,9 +36,8 @@ export const RemovalNotificationEmail = ({
               lineHeight: "1.5",
             }}
           >
-            We wanted to inform you that you have been removed from the offer{" "}
-            <strong>{offerName}</strong>. This may be due to a lack of available
-            vacancies or other internal reasons.
+            Due to changes in the status of the opportunity, you have been
+            removed from the <strong>{offerName}</strong> process.
           </Text>
 
           <Text
@@ -51,14 +48,9 @@ export const RemovalNotificationEmail = ({
               lineHeight: "1.5",
             }}
           >
-            If you have any questions or concerns, please feel free to contact
-            us at:{" "}
-            <Link
-              href="mailto:info@teamandes.com"
-              style={{ color: "#0097B2", textDecoration: "underline" }}
-            >
-              info@teamandes.com
-            </Link>
+            Please note that this is not related to your profile or performance,
+            and it does not reflect a rejection. The position itself did not
+            move forward as expected.
           </Text>
 
           <Text
@@ -69,8 +61,9 @@ export const RemovalNotificationEmail = ({
               lineHeight: "1.5",
             }}
           >
-            Thank you for your interest, and we encourage you to stay connected
-            for future opportunities.
+            Your profile remains active in our system, and you will continue to
+            be considered for other current and future opportunities that align
+            with your experience and skills.
           </Text>
 
           <Text
@@ -80,6 +73,13 @@ export const RemovalNotificationEmail = ({
               margin: "0 0 20px 0",
               lineHeight: "1.5",
             }}
+          >
+            We appreciate your interest and will keep you in mind for upcoming
+            roles.
+          </Text>
+
+          <Text
+            style={{ color: "#333", fontSize: "16px", margin: "0 0 20px 0" }}
           >
             Best regards,
           </Text>

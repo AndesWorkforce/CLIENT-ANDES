@@ -1,6 +1,7 @@
-import HeaderDashboard from "./components/HeaderDashboard";
+import DashboardHeader from "@/app/components/DashboardHeader";
 import TabsNavigation from "./components/TabsNavigation";
 import NotificationsSidebar from "@/app/components/NotificationsSidebar";
+import MfaGraceBanner from "./components/MfaGraceBanner";
 
 export default function DashboardLayout({
   children,
@@ -9,8 +10,9 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex flex-col h-screen">
-      <HeaderDashboard />
+      <DashboardHeader variant="admin" />
       <TabsNavigation />
+      <MfaGraceBanner />
       {children}
       <NotificationsSidebar />
     </div>

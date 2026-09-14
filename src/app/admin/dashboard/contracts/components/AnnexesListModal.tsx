@@ -5,6 +5,7 @@ import { X, FileText, ExternalLink, Trash2, AlertTriangle } from "lucide-react";
 import { Anexo } from "../interfaces/contracts.interface";
 import { deleteContractAnnex } from "../actions/contracts.actions";
 import { useNotificationStore } from "@/store/notifications.store";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 interface AnnexesListModalProps {
   isOpen: boolean;
@@ -23,7 +24,9 @@ function getAnnexViewUrl(annex: Anexo): string | null {
     annex.archivoFirmadoUrl ||
     annex.archivoGeneradoUrl ||
     annex.archivoOrigenUrl;
-  return url && String(url).trim() ? String(url).trim() : null;
+  return url && String(url).trim()
+    ? toAccessibleMediaUrl(String(url).trim())
+    : null;
 }
 
 export default function AnnexesListModal({

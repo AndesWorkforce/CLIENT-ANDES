@@ -4,19 +4,40 @@ import { createServerAxios } from "@/services/axios.server";
 import { AxiosError } from "axios";
 import { sendAssignJobNotification } from "@/app/admin/dashboard/actions/sendEmail.actions";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+/**
+ * Devuelve datos básicos del usuario autenticado (incluye alias actualizado)
+ * para sincronizar la navbar con la BD sin esperar a un nuevo login.
+ */
+export async function getCurrentUserBasic() {
+  const axios = await createServerAxios();
+  try {
+    const response = await axios.get("users/me", {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
+
+    // El backend envuelve la respuesta con TransformResponseInterceptor en
+    // `{ data, meta }`, y el servicio internamente retorna `{ success, data: usuario }`.
+    // Por eso el usuario puede estar en varios niveles dependiendo de la versión.
+    const raw = response.data;
+    const inner = raw?.data ?? raw;
+    const usuario = inner?.data ?? inner;
+
+    return {
+      success: true,
+      data: usuario,
+    };
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    return { success: false, message: "Error fetching current user" };
+  }
+}
 
 export async function getOffers() {
   const axios = await createServerAxios();
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Configuration error: API URL not available",
-      };
-    }
-
-    const response = await axios.get(`${API_URL}offers/search`, {
+    const response = await axios.get("offers/search", {
       headers: {
         "Cache-Control": "no-store",
       },
@@ -41,7 +62,7 @@ export async function getOffers() {
 export async function applyToOffer(offerId: string) {
   const axios = await createServerAxios();
   try {
-    const response = await axios.post(`${API_URL}applications`, {
+    const response = await axios.post("applications", {
       propuestaId: offerId,
     });
     const data = await response.data;
@@ -50,8 +71,8 @@ export async function applyToOffer(offerId: string) {
     if (response.status === 201 || response.status === 200) {
       try {
         // Obtener información del usuario actual usando el nuevo endpoint
-        const userResponse = await axios.get(`${API_URL}users/me`);
-        const offersResponse = await axios.get(`${API_URL}offers/${offerId}`);
+        const userResponse = await axios.get("users/me");
+        const offersResponse = await axios.get(`offers/${offerId}`);
 
         if (userResponse.data && offersResponse.data) {
           const user = userResponse.data.data;
@@ -180,16 +201,9 @@ export async function getCurrentContract(userId: string) {
 export async function checkApplicationHistory(offerId: string) {
   const axios = await createServerAxios();
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Configuration error: API URL not available",
-      };
-    }
-
     console.log("🔍 Checking application history for offer:", offerId);
     const response = await axios.get(
-      `${API_URL}applications/check-status/${offerId}`,
+      `applications/check-status/${offerId}`,
       {
         headers: {
           "Cache-Control": "no-store",

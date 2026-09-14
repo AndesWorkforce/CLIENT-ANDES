@@ -93,6 +93,7 @@ export const contractTemplates: ContractTemplate[] = [
 export { default as ProfessionalServicesAgreementColPDF } from "./ProfessionalServicesAgreementColPDF";
 export { default as IndependentContractorAgreementUsaPDF } from "./IndependentContractorAgreementUsaPDF";
 export { default as InternationalProfessionalServicesAgreementPDF } from "./InternationalProfessionalServicesAgreementPDF";
+export { default as VELSContractPDF } from "./VELSContractPDF";
 
 // Definición de servicios disponibles con sus descripciones
 export const SERVICIOS_DISPONIBLES = {

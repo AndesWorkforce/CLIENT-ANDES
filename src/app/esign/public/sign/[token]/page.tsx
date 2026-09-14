@@ -6,6 +6,7 @@ import SignaturePad from "signature_pad";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import PdfSignViewer, { type PdfField } from "../components/PdfSignViewer";
+import { toAccessibleMediaUrl } from "@/lib/s3-media";
 
 type Field = {
   id: string;
@@ -80,7 +81,10 @@ function PublicSignClient() {
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       if (typeof window !== "undefined") {
-        localStorage.setItem("redirectAfterLogin", window.location.href);
+        localStorage.setItem(
+          "redirectAfterLogin",
+          `${window.location.pathname}${window.location.search}`
+        );
         router.push("/auth/login");
       }
     }
@@ -310,16 +314,22 @@ function PublicSignClient() {
         `/esign/public/sign/${encodeURIComponent(token)}`,
         payload
       );
-      // Refrescar payload para mostrar estado/archivo actualizado
-      const res = await axiosBase.get(
-        `/esign/public/sign/${encodeURIComponent(token)}`
-      );
-      setDoc(res.data.documento);
-      setRecipient(res.data.recipient);
-      setFields(res.data.fields || []);
-      setAlreadySigned(Boolean(res.data.alreadySigned));
-      setOverlays(res.data.signedOverlays || []);
+      // La firma ya quedó persistida: mostrar éxito aunque falle el refresh
+      setAlreadySigned(true);
       setJustSigned(true);
+
+      try {
+        const res = await axiosBase.get(
+          `/esign/public/sign/${encodeURIComponent(token)}`
+        );
+        setDoc(res.data.documento);
+        setRecipient(res.data.recipient);
+        setFields(res.data.fields || []);
+        setAlreadySigned(Boolean(res.data.alreadySigned));
+        setOverlays(res.data.signedOverlays || []);
+      } catch {
+        // Refresh opcional: no invalidar una firma ya exitosa
+      }
     } catch (e: any) {
       setError(e?.response?.data?.message || "Could not sign");
     }
@@ -362,7 +372,12 @@ function PublicSignClient() {
           <button
             onClick={() => {
               localStorage.removeItem("redirectAfterLogin");
-              router.push("/currentApplication");
+              const role = (recipient?.rol || "").toUpperCase();
+              if (role === "PROVEEDOR" || role === "EMPRESA") {
+                router.push("/admin/dashboard/contracts");
+              } else {
+                router.push("/currentApplication");
+              }
             }}
             className="w-full bg-[#0097B2] hover:bg-[#00869e] text-white font-medium px-4 py-3 rounded-lg transition-colors"
           >
@@ -406,7 +421,7 @@ function PublicSignClient() {
                     Final signed document:
                   </div>
                   <iframe
-                    src={doc.archivoFirmadoUrl}
+                    src={toAccessibleMediaUrl(doc.archivoFirmadoUrl)}
                     className="w-full h-[800px] border border-gray-200 rounded"
                   />
                 </div>

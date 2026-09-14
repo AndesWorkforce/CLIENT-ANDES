@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/";
+import { getApiUrl } from "@/services/axios.server";
 
 export async function POST(
   request: NextRequest,
@@ -36,8 +35,11 @@ export async function POST(
     uploadFormData.append("image", image);
     uploadFormData.append("folder", "images/profile");
 
-    const uploadResponse = await fetch(`${API_URL}files/upload/image/IMAGE`, {
+    const uploadResponse = await fetch(`${getApiUrl()}files/upload/image/IMAGE`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: uploadFormData,
     });
 
@@ -56,7 +58,7 @@ export async function POST(
     const publicUrl = await uploadResponse.text();
 
     // 2. Save the URL in the user's profile
-    const patchResponse = await fetch(`${API_URL}users/${id}/profile-images`, {
+    const patchResponse = await fetch(`${getApiUrl()}users/${id}/profile-images`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -113,7 +115,7 @@ export async function DELETE(
       );
     }
 
-    const patchResponse = await fetch(`${API_URL}users/${id}/profile-images`, {
+    const patchResponse = await fetch(`${getApiUrl()}users/${id}/profile-images`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

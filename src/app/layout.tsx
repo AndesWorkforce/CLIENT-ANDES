@@ -10,6 +10,7 @@ import Main from "./components/Main";
 import "react-quill/dist/quill.snow.css";
 import "quill/dist/quill.snow.css";
 import Script from "next/script";
+import { GA_MEASUREMENT_ID, GOOGLE_ADS_ID } from "@/lib/google-ads";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -95,32 +96,29 @@ export const metadata: Metadata = {
       "Andes Workforce connects businesses with skilled LATAM professionals through remote staffing, recruitment, and workforce management.",
     images: [
       {
-        url: "/logo.png",
-        width: 800,
-        height: 600,
+        url: "/icon-512.png",
+        width: 512,
+        height: 512,
         alt: "Andes Workforce Logo",
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Andes Workforce | HR Management",
     description:
       "Talent solutions across LATAM: remote staffing, recruitment, and workforce management.",
     creator: "@andesworkforce",
-    images: ["/logo.png"],
+    images: ["/icon-512.png"],
   },
   icons: {
     icon: [
-      { url: "/logo.png", type: "image/png" },
-      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48", type: "image/x-icon" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: "/logo.png",
-    apple: "/logo.png",
-    other: {
-      rel: "icon",
-      url: "/logo.png",
-    },
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
@@ -132,30 +130,33 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Google tag (gtag.js) */}
+        {/* Google tag (gtag.js) — GA4 + Google Ads */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-11VQNRYDS8"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID || GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"
         />
         <Script id="gtag-init" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);} 
+            function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-11VQNRYDS8');
+            gtag('config', '${GA_MEASUREMENT_ID}');
+            ${GOOGLE_ADS_ID ? `gtag('config', '${GOOGLE_ADS_ID}');` : ""}
           `}
         </Script>
 
         {/* Google tag (gtag.js) event - delayed navigation helper */}
+        {/* eventName defaults to 'ads_conversion_Contact_1' for backwards compatibility */}
         <Script id="gtag-conversion-helper" strategy="afterInteractive">
           {`
-            function gtagSendEvent(url) {
+            function gtagSendEvent(url, eventName) {
+              var evt = eventName || 'ads_conversion_Contact_1';
               var callback = function () {
                 if (typeof url === 'string') {
                   window.location = url;
                 }
               };
-              gtag('event', 'ads_conversion_Contact_1', {
+              gtag('event', evt, {
                 'event_callback': callback,
                 'event_timeout': 2000,
               });

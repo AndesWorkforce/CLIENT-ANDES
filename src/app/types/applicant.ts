@@ -46,6 +46,7 @@ export interface Applicant {
   id: string;
   nombre: string;
   apellido: string;
+  nombreCompleto?: string | null;
   correo: string;
   telefono?: string;
   pais?: string;

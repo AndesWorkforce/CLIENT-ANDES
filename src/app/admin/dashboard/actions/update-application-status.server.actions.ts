@@ -6,8 +6,6 @@ import {
   ApiResponse,
 } from "../types/application-status.types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 /**
  * Actualiza el estado de una postulación
  * @param postulacionId ID de la postulación
@@ -31,18 +29,17 @@ export async function updateApplicationStatus(
       notasInternas,
     });
 
-    const baseUrl = API_URL?.endsWith("/") ? API_URL : `${API_URL}/`;
-    const endpoint = `${baseUrl}admin/postulaciones/${postulacionId}/candidate/${candidatoId}/status`;
+    const path = `admin/postulaciones/${postulacionId}/candidate/${candidatoId}/status`;
 
     const requestData = {
       estadoPostulacion: nuevoEstado,
       ...(notasInternas && { notasInternas }),
     };
 
-    console.log("🚀 Enviando petición a:", endpoint);
+    console.log("🚀 Enviando petición a:", path);
     console.log("📦 Datos enviados:", requestData);
 
-    const response = await axios.patch(endpoint, requestData);
+    const response = await axios.patch(path, requestData);
 
     console.log("✅ Respuesta del servidor:", response.data);
 

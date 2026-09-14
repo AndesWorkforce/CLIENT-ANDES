@@ -2,18 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { getApiUrl } from "@/services/axios.server";
 
 export async function changeEmail(userId: string, formData: FormData) {
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Error de configuración: URL de API no disponible",
-      };
-    }
-
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
@@ -24,7 +16,7 @@ export async function changeEmail(userId: string, formData: FormData) {
       };
     }
 
-    const response = await fetch(`${API_URL}users/${userId}/change-email`, {
+    const response = await fetch(`${getApiUrl()}users/${userId}/change-email`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -73,13 +65,6 @@ export async function changeEmail(userId: string, formData: FormData) {
 
 export async function changePassword(userId: string, formData: FormData) {
   try {
-    if (!API_URL) {
-      return {
-        success: false,
-        message: "Error de configuración: URL de API no disponible",
-      };
-    }
-
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
@@ -90,7 +75,7 @@ export async function changePassword(userId: string, formData: FormData) {
       };
     }
 
-    const response = await fetch(`${API_URL}users/${userId}/change-password`, {
+    const response = await fetch(`${getApiUrl()}users/${userId}/change-password`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

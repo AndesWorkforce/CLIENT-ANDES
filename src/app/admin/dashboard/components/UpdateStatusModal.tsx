@@ -95,7 +95,8 @@ const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({
               // await sendInterviewInvitation(applicant.nombre, applicant.correo);
               await sendInterviewInvitation(
                 applicant.candidateName,
-                applicant.correo
+                applicant.correo,
+                applicant.titulo
               );
               break;
             case "SECOND_INTERVIEW_PENDING":

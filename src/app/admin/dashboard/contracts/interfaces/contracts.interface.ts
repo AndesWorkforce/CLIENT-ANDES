@@ -80,6 +80,7 @@ export interface ProcesoContratacion {
   correo: string;
   telefono?: string | null;
   residencia?: string | null;
+  documento?: string | null;
   puestoTrabajo: string;
   ofertaSalarial: number;
   monedaSalario: string;
@@ -151,4 +152,6 @@ export interface GetContractsResponse {
     total: number;
   };
   totalPages: number;
+  message?: string;
+  status?: number;
 }

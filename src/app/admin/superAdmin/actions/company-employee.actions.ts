@@ -142,6 +142,147 @@ export async function createNewUserForCompany(
 /**
  * Obtener lista de usuarios disponibles para asignar como empleados
  */
+export interface CompanyEmployee {
+  id: string;
+  usuario: {
+    id: string;
+    nombre: string;
+    apellido: string;
+    correo: string;
+    telefono?: string;
+    residencia?: string;
+    rol: string;
+    activo: boolean;
+  };
+  rol: string;
+  activo: boolean;
+}
+
+interface UpdateCompanyEmployeeData {
+  nombre: string;
+  apellido: string;
+  correo: string;
+  telefono?: string;
+  residencia?: string;
+}
+
+export async function getCompanyEmployees(empresaId: string): Promise<{
+  success: boolean;
+  message?: string;
+  data?: CompanyEmployee[];
+}> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.get(`usuarios/empleados/empresa/${empresaId}`);
+
+    if (response.status === 200) {
+      const employees = Array.isArray(response.data?.data)
+        ? response.data.data
+        : Array.isArray(response.data)
+          ? response.data
+          : [];
+
+      return {
+        success: true,
+        data: employees,
+      };
+    }
+
+    return {
+      success: false,
+      message: response.data?.message || "Error fetching company employees",
+    };
+  } catch (error: unknown) {
+    console.error("[getCompanyEmployees] Error:", error);
+
+    const errorResponse = error as {
+      response?: { data?: { message?: string } };
+    };
+
+    return {
+      success: false,
+      message:
+        errorResponse.response?.data?.message ||
+        "Error fetching company employees",
+    };
+  }
+}
+
+export async function updateCompanyEmployee(
+  usuarioId: string,
+  employeeData: UpdateCompanyEmployeeData
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.patch(`usuarios/${usuarioId}`, {
+      nombre: employeeData.nombre,
+      apellido: employeeData.apellido,
+      correo: employeeData.correo,
+      telefono: employeeData.telefono,
+      residencia: employeeData.residencia,
+    });
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Employee updated successfully",
+      };
+    }
+
+    return {
+      success: false,
+      message: response.data?.message || "Error updating employee",
+    };
+  } catch (error: unknown) {
+    console.error("[updateCompanyEmployee] Error:", error);
+
+    const errorResponse = error as {
+      response?: { data?: { message?: string } };
+    };
+
+    return {
+      success: false,
+      message:
+        errorResponse.response?.data?.message || "Error updating employee",
+    };
+  }
+}
+
+export async function deleteCompanyEmployee(
+  empleadoEmpresaId: string
+): Promise<ApiResponse> {
+  try {
+    const axios = await createServerAxios();
+    const response = await axios.delete(
+      `usuarios/empleados/empresa/${empleadoEmpresaId}/desactivar`
+    );
+
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: "Employee permanently removed from company",
+      };
+    }
+
+    return {
+      success: false,
+      message: response.data?.message || "Error deleting employee",
+    };
+  } catch (error: unknown) {
+    console.error("[deleteCompanyEmployee] Error:", error);
+
+    const errorResponse = error as {
+      response?: { data?: { message?: string } };
+    };
+
+    return {
+      success: false,
+      message:
+        errorResponse.response?.data?.message || "Error deleting employee",
+    };
+  }
+}
+
 export async function getAvailableUsers(): Promise<{
   success: boolean;
   message?: string;

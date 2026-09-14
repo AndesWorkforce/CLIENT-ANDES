@@ -63,11 +63,11 @@ export default function BonificationsPage() {
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-[#0070C0] text-white">
-                <th className="px-6 py-5 text-center font-bold border border-[#005999] w-[15%]">Bonus</th>
-                <th className="px-6 py-5 text-center font-bold border border-[#005999] w-[30%]">Description</th>
-                <th className="px-6 py-5 text-center font-bold border border-[#005999] w-[27%]">Eligibility Criteria</th>
-                <th className="px-6 py-5 text-center font-bold border border-[#005999] w-[28%]">Estimated Amount or Percentage</th>
+              <tr className="bg-[#0097B2] text-white">
+                <th className="px-6 py-5 text-center font-bold border border-[#008099] w-[15%]">Bonus</th>
+                <th className="px-6 py-5 text-center font-bold border border-[#008099] w-[30%]">Description</th>
+                <th className="px-6 py-5 text-center font-bold border border-[#008099] w-[27%]">Eligibility Criteria</th>
+                <th className="px-6 py-5 text-center font-bold border border-[#008099] w-[28%]">Estimated Amount or Percentage</th>
               </tr>
             </thead>
             <tbody>
@@ -76,12 +76,6 @@ export default function BonificationsPage() {
                 <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Bonus awarded to a contractor who successfully refers another contractor.</td>
                 <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">The referred contractor must remain with the company for at least 90 days.</td>
                 <td className="px-4 py-5 text-center text-gray-800">$100</td>
-              </tr>
-              <tr className="border-b border-gray-300">
-                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Individual Performance</td>
-                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Bonus awarded to a contractor for achieving individual or team goals, as contractually agreed. Paid in June and December.</td>
-                <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Achievement of goals or results agreed upon with the company.</td>
-                <td className="px-4 py-5 text-center text-gray-800">5% of the monthly payment, accumulated semiannually (e.g., for $1,000 &rarr; $50)</td>
               </tr>
               <tr className="border-b border-gray-300">
                 <td className="px-4 py-5 text-center text-gray-800 border-r border-gray-300">Discretionary Bonus</td>
@@ -144,7 +138,7 @@ export default function BonificationsPage() {
                   <tr className="bg-[#0097B2]">
                     <th 
                       colSpan={2} 
-                      className="px-6 py-4 text-center text-2xl font-bold text-black"
+                      className="px-6 py-4 text-center text-2xl font-bold text-white"
                     >
                       {user.pais} - Public Holidays {new Date().getFullYear()}
                     </th>

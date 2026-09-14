@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { AndiAvatar } from "./AndiAvatar";
 import { ChatLauncherButton } from "./ChatLauncherButton";
 import {
@@ -18,6 +18,7 @@ export function GuestChatForm({ onSubmit }: GuestChatFormProps) {
   const [email, setEmail] = useState("");
   const [kind, setKind] = useState<ChatVisitorKind | "">("");
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -32,12 +33,24 @@ export function GuestChatForm({ onSubmit }: GuestChatFormProps) {
     }
 
     setError(null);
+    setSubmitting(true);
     onSubmit({
       email: normalized,
       kind,
       identifier: buildGuestIdentifier(normalized, kind),
     });
   };
+
+  useEffect(() => {
+    if (!submitting) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setSubmitting(false);
+      setError("We could not open the chat. Please try again.");
+    }, 12000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [submitting]);
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
@@ -111,9 +124,10 @@ export function GuestChatForm({ onSubmit }: GuestChatFormProps) {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-[#0097B2] px-3 py-2 text-sm font-semibold text-white hover:bg-[#007f96]"
+            disabled={submitting}
+            className="w-full rounded-xl bg-[#0097B2] px-3 py-2 text-sm font-semibold text-white hover:bg-[#007f96] disabled:opacity-70"
           >
-            Continue to chat
+            {submitting ? "Opening chat..." : "Continue to chat"}
           </button>
         </form>
       )}

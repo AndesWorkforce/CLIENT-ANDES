@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { getApiUrl } from "@/services/axios.server";
 
 /**
  * Guarda los datos del formulario para un usuario específico
@@ -19,9 +20,7 @@ export async function guardarDatosFormulario(
       return { success: false, error: "No hay token de autenticación" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    // Endpoint correcto en el API Nest: /usuarios/:id/formulario (PATCH)
-    const apiUrl = `${baseUrl}usuarios/${userId}/formulario`;
+    const apiUrl = `${getApiUrl()}usuarios/${userId}/formulario`;
 
     if (!datosFormulario || typeof datosFormulario !== "object") {
       throw new Error("Formato de datos inválido");
@@ -29,7 +28,10 @@ export async function guardarDatosFormulario(
 
     // Capa defensiva: permitir solo las preguntas del cuestionario conocidas
     const ALLOWED_QUESTIONS = new Set<string>([
+      "Enter your full name exactly as shown on your identification document",
+      // Clave histórica (compatibilidad con respuestas ya guardadas)
       "What is your preferred first and last name?",
+      "Alias",
       "What phone number do you use for WhatsApp?",
       "In which city and country do you live?",
       "Have you been referred by someone?",
@@ -105,8 +107,7 @@ export async function eliminarDatosFormulario(userId: string) {
       return { success: false, error: "No hay token de autenticación" };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const apiUrl = `${baseUrl}users/${userId}/datos-formulario`;
+    const apiUrl = `${getApiUrl()}users/${userId}/datos-formulario`;
 
     const response = await fetch(apiUrl, {
       method: "DELETE",

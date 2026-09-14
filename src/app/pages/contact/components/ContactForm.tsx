@@ -1,32 +1,67 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Instagram, Facebook } from "lucide-react";
-
+import { Check } from "lucide-react";
+import { submitContactFormMicrosoft } from "../actions/microsoft-email-actions";
 import {
   contactFormSchema,
   type ContactFormValues,
 } from "../schema/contact-schema";
-// import { submitContactForm } from "../actions/contact-actions";
-import { submitContactFormMicrosoft } from "../actions/microsoft-email-actions";
+import { FadeIn, SlideIn } from "../../about/components/Reveal";
+import { trackContactFormConversion } from "@/lib/google-ads";
+
+const SUPPORT_TYPES = [
+  "Administrative Support",
+  "Customer Service",
+  "Legal Support",
+  "Data & Operations",
+  "Virtual Assistance",
+  "Other",
+] as const;
+
+const TEAM_SIZES = ["1", "2-5", "6-10", "+10"] as const;
+
+const inputClassName =
+  "mt-[9px] h-[50px] w-full rounded-[8px] border border-[#C8C8C8] bg-white px-4 text-[14px] leading-[1.3] tracking-[0.28px] text-[#343434] placeholder:text-[#525252] focus:border-[#0097B2] focus:outline-none";
+
+const labelClassName =
+  "absolute left-[13px] top-0 z-10 h-[15px] bg-white px-1 text-[14px] leading-[1.3] tracking-[0.28px] text-[#525252]";
+
+function FloatingField({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative w-full">
+      {children}
+      <label className={labelClassName}>{label}</label>
+      {error ? (
+        <p className="mt-1 text-xs text-red-500">{error}</p>
+      ) : null}
+    </div>
+  );
+}
 
 export default function ContactForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formResponse, setFormResponse] = useState<{
     success: boolean;
     message: string;
   } | null>(null);
-  const [countryCode, setCountryCode] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    control,
+    formState: { errors },
     reset,
-    setValue,
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
@@ -34,60 +69,39 @@ export default function ContactForm() {
       lastName: "",
       email: "",
       phone: "",
-      smsConsent: false,
-      service: undefined,
+      companyName: "",
+      supportTypes: [],
       message: "",
     },
-    mode: "onChange",
   });
-
-  // Cuando cambie cualquiera de los dos inputs, actualizar el valor en el formulario
-  useEffect(() => {
-    // Concatenar código de país y número
-    setValue("phone", `${countryCode}${phoneNumber}` || "", {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-  }, [countryCode, phoneNumber, setValue]);
-
-  const fieldLabels: Record<string, string> = {
-    firstName: "First Name",
-    lastName: "Last Name",
-    email: "Email",
-    phone: "Phone Number",
-    service: "Select a Service",
-    message: "Message",
-  };
-
-  const invalidFields = Object.keys(errors)
-    .filter((field) => field !== "smsConsent")
-    .map((field) => fieldLabels[field] ?? field);
 
   const onSubmit = async (data: ContactFormValues) => {
     setIsSubmitting(true);
     setFormResponse(null);
 
+    const composedMessage = [
+      data.message,
+      "",
+      `Company: ${data.companyName}`,
+      `Support types: ${data.supportTypes.join(", ")}`,
+      `Team size: ${data.teamSize}`,
+    ].join("\n");
+
     try {
-      // Asegurar que phone y smsConsent nunca sean undefined
-      const formData = {
-        ...data,
-        phone: data.phone || "",
-        smsConsent: !!data.smsConsent,
-      };
+      const response = await submitContactFormMicrosoft({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        smsConsent: false,
+        service: "talent",
+        message: composedMessage,
+      });
 
-      // const response = await submitContactForm(formData);
-      const response = await submitContactFormMicrosoft(formData);
       setFormResponse(response);
-
       if (response.success) {
-        // Track Google Ads conversion event
-        if (typeof window !== "undefined" && window.gtag) {
-          window.gtag("event", "ads_conversion_Contact_1", {});
-        }
-
         reset();
-        setCountryCode("");
-        setPhoneNumber("");
+        trackContactFormConversion();
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -101,352 +115,260 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="container mx-auto px-4 max-w-4xl">
-      {/* Sección de título */}
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-[#08252A] mb-2">
-          Get in Touch!
-        </h1>
-        <p className="text-[#08252A]">We are here for you! How can we help?</p>
-        <p className="text-sm text-[#B6B4B4] mt-2">
-          Fields marked with <span className="text-red-600">*</span> are
-          required.
-        </p>
-      </div>
-
-      {formResponse && (
-        <div
-          className={`p-4 mb-6 rounded ${
-            formResponse.success
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {formResponse.message}
-        </div>
-      )}
-
-      {/* Formulario de contacto */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6"
-      >
-        {/* Primera columna */}
-        <div>
-          <label
-            htmlFor="firstName"
-            className="block text-[#0097B2] font-medium mb-1"
+    <section
+      id="contact-form"
+      className="relative w-full bg-[rgba(236,249,252,0.12)]"
+    >
+      <div className="bg-[rgba(137,233,250,0.05)] py-16 sm:py-20">
+        <div className="container flex w-full flex-col items-start gap-12 px-[20px] md:px-[40px] lg:flex-row lg:gap-[66px]">
+          <SlideIn
+            from="left"
+            offset={80}
+            className="w-full shrink-0 lg:w-[552px]"
           >
-            First Name <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="text"
-            id="firstName"
-            required
-            aria-invalid={!!errors.firstName}
-            placeholder="Enter your first name"
-            className={`w-full px-3 py-2 border-b ${
-              errors.firstName ? "border-red-500" : "border-gray-300"
-            } focus:outline-none focus:border-b-2 focus:border-[#0097B2]`}
-            {...register("firstName")}
-          />
-          {errors.firstName && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.firstName.message}
-            </p>
-          )}
-        </div>
-
-        {/* Segunda columna */}
-        <div>
-          <label
-            htmlFor="lastName"
-            className="block text-[#0097B2] font-medium mb-1"
-          >
-            Last Name <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="text"
-            id="lastName"
-            required
-            aria-invalid={!!errors.lastName}
-            placeholder="Enter your last name"
-            className={`w-full px-3 py-2 border-b ${
-              errors.lastName ? "border-red-500" : "border-gray-300"
-            } focus:outline-none focus:border-b-2 focus:border-[#0097B2]`}
-            {...register("lastName")}
-          />
-          {errors.lastName && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.lastName.message}
-            </p>
-          )}
-        </div>
-
-        {/* Email */}
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-[#0097B2] font-medium mb-1"
-          >
-            Email <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            required
-            aria-invalid={!!errors.email}
-            placeholder="Enter your email"
-            className={`w-full px-3 py-2 border-b ${
-              errors.email ? "border-red-500" : "border-gray-300"
-            } focus:outline-none focus:border-b-2 focus:border-[#0097B2]`}
-            {...register("email")}
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-          )}
-        </div>
-
-        {/* Teléfono */}
-        <div>
-          <label
-            htmlFor="phone"
-            className="block text-[#0097B2] font-medium mb-1"
-          >
-            Phone Number <span className="text-[#B6B4B4]">(optional)</span>
-          </label>
-          <div className="flex">
-            <div className="shrink-0">
-              <input
-                type="text"
-                aria-invalid={!!errors.phone}
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                placeholder="+1"
-                className="w-14 px-3 py-2 border-b border-gray-300 mr-2 focus:outline-none focus:border-b-2 focus:border-[#0097B2]"
-              />
-            </div>
-            <input
-              type="tel"
-              id="phone"
-              aria-invalid={!!errors.phone}
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Example: 757 237 3612"
-              className={`grow px-3 py-2 border-b ${
-                errors.phone ? "border-red-500" : "border-gray-300"
-              } focus:outline-none focus:border-b-2 focus:border-[#0097B2]`}
-            />
-          </div>
-          <p className="mt-1 text-xs text-[#B6B4B4]">
-            US example: +1 757 237 3612
-          </p>
-          {errors.phone && (
-            <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
-          )}
-          <div className="mt-1">
-            <label className="inline-flex items-center text-sm text-gray-600">
-              <input
-                type="checkbox"
-                className="form-checkbox h-4 w-4 text-[#0097B2]"
-                {...register("smsConsent")}
-              />
-              <span className="ml-2 text-[#B6B4B4]">
-                Opt-in to receive sms messages (optional)
-              </span>
-            </label>
-          </div>
-        </div>
-
-        {/* Selección de servicio - abarca dos columnas en móvil */}
-        <div className="md:col-span-2">
-          <p className="block text-[#0097B2] font-medium mb-2">
-            Select a Service <span className="text-red-600">*</span>
-          </p>
-          <div className="space-y-2">
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                className="form-radio h-4 w-4 text-[#0097B2]"
-                value="talent"
-                {...register("service")}
-              />
-              <span className="ml-2 text-[#B6B4B4]">
-                I&apos;m looking for a talent/service
-              </span>
-            </label>
-            <div>
-              <label className="inline-flex items-center">
-                <input
-                  type="radio"
-                  className="form-radio h-4 w-4 text-[#0097B2]"
-                  value="job"
-                  {...register("service")}
-                />
-                <span className="ml-2 text-[#B6B4B4]">
-                  I&apos;m want to offer my services
-                </span>
-              </label>
-            </div>
-          </div>
-          {errors.service && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.service.message}
-            </p>
-          )}
-        </div>
-
-        {/* Contenedor para mensaje e información de contacto - dos columnas */}
-        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          {/* Columna izquierda: Mensaje, botón y texto legal */}
-          <div>
-            {/* Mensaje */}
-            <div>
-              <label
-                htmlFor="message"
-                className="block text-[#0097B2] font-medium mb-1"
-              >
-                Message <span className="text-red-600">*</span>
-              </label>
-              <textarea
-                id="message"
-                rows={6}
-                required
-                aria-invalid={!!errors.message}
-                placeholder="In a few words please explain your requirement"
-                className={`w-full px-3 py-2 border ${
-                  errors.message ? "border-red-500" : "border-gray-300"
-                } rounded focus:outline-none focus:ring-2 focus:ring-[#0097B2] focus:border-transparent`}
-                {...register("message")}
-              ></textarea>
-              {errors.message && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.message.message}
+            <div className="flex flex-col gap-[11px]">
+              <div className="flex flex-col gap-[22px]">
+                <div className="flex flex-col gap-[11px]">
+                  <p className="text-[14px] font-semibold leading-[1.3] text-[#0097b2]">
+                    CONTACT US
+                  </p>
+                  <h2 className="max-w-[400px] text-[32px] font-bold leading-[1.3] text-[#343434] sm:text-[52px]">
+                    Tell us what you need
+                  </h2>
+                </div>
+                <p className="text-[16px] font-medium leading-[1.5] text-[#343434] sm:text-[20px]">
+                  Share a few details about your business needs and our team
+                  will help you{" "}
+                  <span className="font-extrabold">find the right support</span>{" "}
+                  for your company.
                 </p>
-              )}
+              </div>
+              <p className="text-[16px] font-medium leading-[1.5] text-[#343434]">
+                *No commitment required. We&apos;ll review your request and get
+                in touch to better understand your needs and discuss possible
+                solutions.*
+              </p>
             </div>
+          </SlideIn>
 
-            {/* Botón de envío - mismo ancho que textarea */}
-            <div className="mt-4">
-              <button
-                type="submit"
-                disabled={isSubmitting || !isValid}
-                className={`w-full bg-[#0097B2] text-white py-3 rounded flex items-center justify-center shadow-sm hover:bg-opacity-90 transition-colors cursor-pointer ${
-                  isSubmitting || !isValid
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
+          <FadeIn className="w-full min-w-0 flex-1" delay={0.1}>
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex w-full flex-col rounded-[25px] bg-white p-6 shadow-[0px_4px_5px_rgba(209,209,209,0.25)] sm:p-12"
+              noValidate
+            >
+              <div className="flex flex-col gap-11">
+                <div className="flex flex-col gap-[22px]">
+                  {formResponse ? (
+                    <div
+                      className={`rounded-lg p-3 text-sm font-medium ${
+                        formResponse.success
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
                     >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <span className="mr-2 text-white">
-                      <svg
-                        width="22"
-                        height="22"
-                        viewBox="0 0 26 26"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M2 12.4211L24 2L13.5789 24L11.2632 14.7368L2 12.4211Z"
-                          stroke="white"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>{" "}
-                    Send Information
-                  </>
-                )}
-              </button>
-              {!isSubmitting && !isValid && (
-                <p className="mt-2 text-sm text-red-600">
-                  Complete all required fields (*) to enable Send Information
-                  {invalidFields.length > 0
-                    ? `: ${invalidFields.join(", ")}.`
-                    : "."}
-                </p>
-              )}
-            </div>
+                      {formResponse.message}
+                    </div>
+                  ) : null}
 
-            {/* Texto de consentimiento - mismo ancho que textarea */}
-            <div className="text-sm text-gray-500 mt-4">
-              <p className="mb-2">
-                By providing a telephone number and submitting the form you are
-                consenting to be contacted by SMS text message. Message & data
-                rates may apply. Reply STOP to opt out of further messaging.
-              </p>
-              <p>
-                No mobile information will be shared with third
-                parties/affiliates for marketing/promotional purposes. All other
-                categories exclude text messaging originator opt-in data and
-                consent; this information will not be shared with any third
-                parties.
-              </p>
-            </div>
-          </div>
+                  <FloatingField
+                    label="First name*"
+                    error={errors.firstName?.message}
+                  >
+                    <input
+                      type="text"
+                      autoComplete="given-name"
+                      placeholder="First name"
+                      {...register("firstName")}
+                      className={inputClassName}
+                    />
+                  </FloatingField>
 
-          {/* Columna derecha: Información de contacto */}
-          <div className="flex flex-col justify-start mt-7 md:mt-4 items-center md:items-start space-y-6 md:ml-10">
-            {/* Iconos de redes sociales */}
-            <div className="flex gap-3">
-              <a
-                href="https://www.instagram.com/andesworkforce/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#0097B2] text-white p-2 rounded-full hover:bg-opacity-90 transition-colors"
-              >
-                <Instagram size={24} />
-              </a>
-              <a
-                href="https://www.facebook.com/profile.php?id=61553675729226&mibextid=LQQJ4d"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#0097B2] text-white p-2 rounded-full hover:bg-opacity-90 transition-colors"
-              >
-                <Facebook size={24} />
-              </a>
-            </div>
+                  <FloatingField
+                    label="Last name*"
+                    error={errors.lastName?.message}
+                  >
+                    <input
+                      type="text"
+                      autoComplete="family-name"
+                      placeholder="Last name"
+                      {...register("lastName")}
+                      className={inputClassName}
+                    />
+                  </FloatingField>
 
-            {/* Información de contacto */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-[#08252A]">✉</span>
-                <p className="text-[#08252A]">info@andes-workforce.com</p>
+                  <FloatingField
+                    label="Work email*"
+                    error={errors.email?.message}
+                  >
+                    <input
+                      type="email"
+                      autoComplete="email"
+                      placeholder="name@company.com"
+                      {...register("email")}
+                      className={inputClassName}
+                    />
+                  </FloatingField>
+
+                  <FloatingField
+                    label="Phone number*"
+                    error={errors.phone?.message}
+                  >
+                    <input
+                      type="tel"
+                      autoComplete="tel"
+                      placeholder="+1 (555) 123-4567"
+                      {...register("phone")}
+                      className={inputClassName}
+                    />
+                  </FloatingField>
+
+                  <FloatingField
+                    label="Company name*"
+                    error={errors.companyName?.message}
+                  >
+                    <input
+                      type="text"
+                      autoComplete="organization"
+                      placeholder="Company name"
+                      {...register("companyName")}
+                      className={inputClassName}
+                    />
+                  </FloatingField>
+                </div>
+
+                <fieldset className="flex flex-col border-0 p-0">
+                  <legend className="float-none mb-[22px] w-full p-0 text-[20px] font-medium leading-[1.2] text-[#343434]">
+                    What type of support are you looking for? *
+                  </legend>
+                  <Controller
+                    name="supportTypes"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex flex-col gap-[11px]">
+                        {SUPPORT_TYPES.map((type) => {
+                          const checked = field.value.includes(type);
+                          return (
+                            <label
+                              key={type}
+                              className="flex cursor-pointer items-center gap-[11px] text-[16px] font-medium leading-[1.2] text-[#343434]"
+                            >
+                              <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={checked}
+                                onChange={() => {
+                                  field.onChange(
+                                    checked
+                                      ? field.value.filter(
+                                          (value) => value !== type,
+                                        )
+                                      : [...field.value, type],
+                                  );
+                                }}
+                              />
+                              <span
+                                className={`flex size-4 shrink-0 items-center justify-center rounded-[4px] ${
+                                  checked
+                                    ? "bg-[#0097b2]"
+                                    : "border border-[#EFEFEF] bg-white"
+                                }`}
+                                aria-hidden
+                              >
+                                {checked ? (
+                                  <Check
+                                    className="size-3 text-white"
+                                    strokeWidth={3}
+                                  />
+                                ) : null}
+                              </span>
+                              {type}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  />
+                  {errors.supportTypes ? (
+                    <p className="text-xs text-red-500">
+                      {errors.supportTypes.message}
+                    </p>
+                  ) : null}
+                </fieldset>
+
+                <fieldset className="flex flex-col border-0 p-0">
+                  <legend className="float-none mb-[22px] w-full p-0 text-[20px] font-medium leading-[1.2] text-[#343434]">
+                    How many team members are you looking to hire?
+                  </legend>
+                  <Controller
+                    name="teamSize"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex flex-col gap-[11px]">
+                        {TEAM_SIZES.map((size) => {
+                          const selected = field.value === size;
+                          return (
+                            <label
+                              key={size}
+                              className="flex cursor-pointer items-center gap-[11px] text-[16px] font-medium leading-[1.2] text-[#343434]"
+                            >
+                              <input
+                                type="radio"
+                                className="sr-only"
+                                value={size}
+                                checked={selected}
+                                onChange={() => field.onChange(size)}
+                              />
+                              <span
+                                className={`flex size-4 shrink-0 items-center justify-center rounded-full border ${
+                                  selected
+                                    ? "border-[#0097b2]"
+                                    : "border-[#C8C8C8]"
+                                }`}
+                                aria-hidden
+                              >
+                                {selected ? (
+                                  <span className="size-2 rounded-full bg-[#0097b2]" />
+                                ) : null}
+                              </span>
+                              {size}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  />
+                  {errors.teamSize ? (
+                    <p className="text-xs text-red-500">
+                      {errors.teamSize.message}
+                    </p>
+                  ) : null}
+                </fieldset>
+
+                <FloatingField
+                  label="Message*"
+                  error={errors.message?.message}
+                >
+                  <textarea
+                    rows={4}
+                    placeholder="Hello! My name is..."
+                    {...register("message")}
+                    className="mt-[9px] min-h-[100px] w-full resize-y rounded-[8px] border border-[#C8C8C8] bg-white px-4 py-[17px] text-[14px] leading-[1.3] tracking-[0.28px] text-[#343434] placeholder:text-[#343434] focus:border-[#0097B2] focus:outline-none"
+                  />
+                </FloatingField>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex h-[43px] w-fit items-center justify-center rounded-[20px] bg-[#0097B2] px-[25px] py-3 text-[16px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#007A8F] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmitting ? "Sending..." : "Let's Talk"}
+                </button>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[#08252A]">📞</span>
-                <p className="text-[#08252A]">+1 7572373612</p>
-              </div>
-            </div>
-          </div>
+            </form>
+          </FadeIn>
         </div>
-      </form>
-    </div>
+      </div>
+    </section>
   );
 }

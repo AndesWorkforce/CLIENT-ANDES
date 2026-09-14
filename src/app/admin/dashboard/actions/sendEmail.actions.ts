@@ -2,6 +2,7 @@
 
 import nodemailer from "nodemailer";
 import { InterviewInvitationEmail } from "../emails/InterviewInvitation";
+import { PreliminaryInterviewInvitation } from "../emails/PreliminaryInterviewInvitation";
 import { RejectPositionEmail } from "../emails/RejectPosition";
 import { render } from "@react-email/render";
 import { ContractJob } from "../emails/ContratJob";
@@ -49,17 +50,14 @@ const createTransporter = async () => {
 
 export const sendInterviewInvitation = async (
   candidateName: string,
-  candidateEmail: string
+  candidateEmail: string,
+  jobTitle: string
 ) => {
   try {
-    const bookingLink =
-      "https://outlook.office.com/book/AndesWorkforceInterview@teamandes.com/?ismsaljsauthenabled";
-
-    // Stage 2: Invite to Interview
     const emailHtml = await render(
       InterviewInvitationEmail({
         candidateName,
-        bookingLink,
+        jobTitle,
       })
     );
 
@@ -68,7 +66,7 @@ export const sendInterviewInvitation = async (
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
-      subject: "Scheduling a Call to Discuss Opportunities at Andes Workforce",
+      subject: "Next Step in Your Application",
       html: emailHtml,
     });
 
@@ -79,6 +77,37 @@ export const sendInterviewInvitation = async (
     };
   } catch (error) {
     console.error("Error sending email:", error);
+    return { success: false, error };
+  }
+};
+
+export const sendPreliminaryInterviewInvitationEmail = async (
+  candidateName: string,
+  candidateEmail: string
+) => {
+  try {
+    const emailHtml = await render(
+      PreliminaryInterviewInvitation({
+        candidateName,
+      })
+    );
+
+    const transporter = await createTransporter();
+
+    const info = await transporter.sendMail({
+      from: "Andes Workforce <no-reply@teamandes.com>",
+      to: [candidateEmail],
+      subject: "Andes Workforce | Schedule Your Preliminary Interview",
+      html: emailHtml,
+    });
+
+    return {
+      success: true,
+      message: "Preliminary interview invitation sent successfully",
+      data: info,
+    };
+  } catch (error) {
+    console.error("Error sending preliminary interview email:", error);
     return { success: false, error };
   }
 };
@@ -132,7 +161,7 @@ export const sendRejectionEmail = async (
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
-      subject: "Update on Your Application Status",
+      subject: "Andes Workforce | Update on Your Application",
       html: emailHtml,
     });
 
@@ -210,7 +239,7 @@ export const sendAssignJobNotification = async (
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
-      subject: "You have been assigned to a new job opportunity",
+      subject: `Andes Workforce | Good News! You've Been Assigned to ${jobTitle}`,
       html: emailHtml,
     });
 
@@ -345,7 +374,7 @@ export const sendRemovalNotification = async (
     const info = await transporter.sendMail({
       from: "Andes Workforce <no-reply@teamandes.com>",
       to: [candidateEmail],
-      subject: "Update on Your Application Status",
+      subject: "Andes Workforce | Update on Your Application",
       html: emailHtml,
     });
 

@@ -28,6 +28,7 @@ import { Education } from "@/app/types/education";
 import { Skill } from "@/app/types/skill";
 import { updateUserSkills } from "@/app/profile/actions/skills-actions";
 import { useNotificationStore } from "@/store/notifications.store";
+import { toAccessibleMediaUrl, toAccessibleVideoUrl } from "@/lib/s3-media";
 import { ProfileContextProvider } from "@/app/profile/context/ProfileContext";
 import { addEducation } from "@/app/profile/actions/education.actions";
 import ContactoModal from "@/app/profile/components/ContactoModal";
@@ -40,6 +41,8 @@ import AssessmentModal from "./AssessmentModal";
 import {
   saveAssessment,
   removeAssessment,
+  saveBackgroundCheck,
+  removeBackgroundCheck,
 } from "@/app/profile/actions/identification-actions";
 
 interface CandidateProfileModalProps {
@@ -274,8 +277,14 @@ export default function CandidateProfileModal({
   const canSeeAssessment = isAdminRole || isCompanyRole;
   const canUploadAssessment = isAdminRole;
   const assessmentUrl = profile?.assessmentUrl ?? null;
+  const backgroundCheckUrl = profile?.backgroundCheckUrl ?? null;
+  const showBackgroundCheck = profile?.gating?.showBackgroundCheck === true;
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [isBackgroundCheckModalOpen, setIsBackgroundCheckModalOpen] =
+    useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showBackgroundCheckDeleteConfirmModal, setShowBackgroundCheckDeleteConfirmModal] =
+    useState(false);
 
   const userId =
     profile && "id" in profile && profile.id ? profile.id : candidateId;
@@ -320,10 +329,55 @@ export default function CandidateProfileModal({
     }
   };
 
+  const handleBackgroundCheckUpload = async (file: File) => {
+    if (!userId || !file) return;
+
+    const pdfUrl = await uploadImage(file, "pdf");
+    const response = await saveBackgroundCheck(
+      userId as string,
+      pdfUrl as string
+    );
+
+    if (!response.success) {
+      throw new Error(
+        response.error || "Error al guardar la URL del background check"
+      );
+    }
+
+    setManualReload((prev) => prev + 1);
+  };
+
+  const handleBackgroundCheckRemove = async () => {
+    if (!userId) return;
+
+    try {
+      const response = await removeBackgroundCheck(userId as string);
+
+      if (!response.success) {
+        throw new Error(response.error || "Error al eliminar background check");
+      }
+
+      addNotification("Background check removed successfully", "success");
+      setManualReload((prev) => prev + 1);
+    } catch {
+      addNotification("Error removing background check", "error");
+    }
+  };
+
   if (!isOpen) return null;
 
   if (isLoading || !profile) {
-    return <ProfileModalSkeleton isOpen={isOpen} onClose={onClose} />;
+    return (
+      <ProfileModalSkeleton
+        isOpen={isOpen}
+        onClose={onClose}
+        errorCount={!isLoading && !profile ? Math.max(errorCount, 2) : errorCount}
+        onReload={() => {
+          hasLoadedRef.current = false;
+          setManualReload((prev) => prev + 1);
+        }}
+      />
+    );
   }
 
   // Función para obtener los campos faltantes (requeridos y opcionales)
@@ -1076,7 +1130,9 @@ export default function CandidateProfileModal({
                       <button
                         onClick={() =>
                           setSelectedImage(
-                            profile.archivos.videoPresentacion as string
+                            toAccessibleVideoUrl(
+                              profile.archivos.videoPresentacion as string,
+                            ),
                           )
                         }
                         className="text-[#0097B2] text-sm hover:underline flex items-center gap-1"
@@ -1097,10 +1153,14 @@ export default function CandidateProfileModal({
                     <div className="aspect-video bg-gray-100 rounded relative group">
                       <video
                         ref={setVideoRef}
-                        src={profile.archivos.videoPresentacion as string}
+                        src={toAccessibleVideoUrl(
+                          profile.archivos.videoPresentacion as string,
+                        )}
                         className="w-full h-full object-contain rounded"
                         onEnded={() => setIsVideoPlaying(false)}
                         controls={false}
+                        playsInline
+                        preload="metadata"
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
@@ -1162,10 +1222,12 @@ export default function CandidateProfileModal({
                           <div
                             key={index}
                             className="w-40 h-40 relative group cursor-pointer bg-gray-50 rounded-lg border border-gray-200"
-                            onClick={() => setSelectedImage(image as string)}
+                            onClick={() =>
+                              setSelectedImage(image as string)
+                            }
                           >
                             <img
-                              src={image as string}
+                              src={toAccessibleMediaUrl(image as string)}
                               alt={`PC Specification ${index + 1}`}
                               className="w-full h-full object-contain rounded-lg p-1"
                             />
@@ -1205,9 +1267,9 @@ export default function CandidateProfileModal({
                               }
                             >
                               <img
-                                src={
-                                  profile.archivos.fotoCedulaFrente as string
-                                }
+                                src={toAccessibleMediaUrl(
+                                  profile.archivos.fotoCedulaFrente as string,
+                                )}
                                 alt="ID Front"
                                 className="w-full h-full object-contain rounded-lg p-1"
                               />
@@ -1233,7 +1295,9 @@ export default function CandidateProfileModal({
                               }
                             >
                               <img
-                                src={profile.archivos.fotoCedulaDorso as string}
+                                src={toAccessibleMediaUrl(
+                                  profile.archivos.fotoCedulaDorso as string,
+                                )}
                                 alt="ID Back"
                                 className="w-full h-full object-contain rounded-lg p-1"
                               />
@@ -1296,7 +1360,7 @@ export default function CandidateProfileModal({
                       <a
                         href={
                           typeof assessmentUrl === "string" && assessmentUrl
-                            ? assessmentUrl
+                            ? toAccessibleMediaUrl(assessmentUrl)
                             : ""
                         }
                         target="_blank"
@@ -1339,6 +1403,105 @@ export default function CandidateProfileModal({
                             onClick={() => {
                               handleAssessmentRemove();
                               setShowDeleteConfirmModal(false);
+                            }}
+                            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Background Check */}
+              {showBackgroundCheck && canSeeAssessment && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden p-4 mb-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-medium text-gray-900">
+                      Background Check
+                    </h2>
+                    {canUploadAssessment && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setIsBackgroundCheckModalOpen(true)}
+                          className="p-2 text-[#0097B2] hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                          title={
+                            backgroundCheckUrl
+                              ? "Replace Background Check"
+                              : "Upload Background Check"
+                          }
+                        >
+                          <Edit size={16} />
+                        </button>
+                        {backgroundCheckUrl && (
+                          <button
+                            onClick={() =>
+                              setShowBackgroundCheckDeleteConfirmModal(true)
+                            }
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                            title="Remove Background Check"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2">
+                    {backgroundCheckUrl ? (
+                      <a
+                        href={
+                          typeof backgroundCheckUrl === "string" &&
+                          backgroundCheckUrl
+                            ? toAccessibleMediaUrl(backgroundCheckUrl)
+                            : ""
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#0097B2] underline hover:text-[#007A8C]"
+                      >
+                        View Background Check PDF
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">
+                        No background check uploaded
+                      </span>
+                    )}
+                  </div>
+                  <AssessmentModal
+                    isOpen={isBackgroundCheckModalOpen}
+                    onClose={() => setIsBackgroundCheckModalOpen(false)}
+                    onUpload={handleBackgroundCheckUpload}
+                    title="Upload Background Check"
+                    successMessage="Background check uploaded successfully"
+                    errorMessage="Error uploading background check"
+                  />
+
+                  {showBackgroundCheckDeleteConfirmModal && (
+                    <div className="fixed inset-0 bg-black/40 z-[70] flex items-center justify-center p-4">
+                      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                          Confirm remove background check
+                        </h3>
+                        <p className="text-gray-600 mb-6">
+                          Are you sure you want to remove the background check?
+                          This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() =>
+                              setShowBackgroundCheckDeleteConfirmModal(false)
+                            }
+                            className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleBackgroundCheckRemove();
+                              setShowBackgroundCheckDeleteConfirmModal(false);
                             }}
                             className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                           >
@@ -1479,6 +1642,7 @@ export default function CandidateProfileModal({
         onClose={() => setIsFormularioModalOpen(false)}
         datosFormulario={profile.datosFormulario}
         name={`${profile.datosPersonales.nombre} ${profile.datosPersonales.apellido}`}
+        hideContactInfo={isCompanyUser}
       />
 
       {/* Modal de Experiencia */}
@@ -1514,18 +1678,26 @@ export default function CandidateProfileModal({
           className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(0,0,0,0.8)]"
           onClick={() => setSelectedImage(null)}
         >
-          <div className="relative max-w-6xl max-h-[95vh] p-4 w-full h-full flex items-center justify-center">
-            {selectedImage === profile.archivos.videoPresentacion ? (
+          <div className="relative max-w-[1440px] max-h-[95vh] p-4 w-full h-full flex items-center justify-center">
+            {selectedImage.includes("/videos/") ||
+            selectedImage.includes("videoPresentacion") ||
+            (profile.archivos.videoPresentacion &&
+              (selectedImage === profile.archivos.videoPresentacion ||
+                selectedImage ===
+                  toAccessibleVideoUrl(
+                    profile.archivos.videoPresentacion as string,
+                  ))) ? (
               <video
-                src={selectedImage}
+                src={toAccessibleVideoUrl(selectedImage)}
                 className="max-w-full max-h-full object-contain"
                 controls
                 autoPlay
+                playsInline
                 onClick={(e) => e.stopPropagation()}
               />
             ) : (
               <img
-                src={selectedImage}
+                src={toAccessibleMediaUrl(selectedImage)}
                 alt="PC Specification"
                 className="max-w-full max-h-full object-contain"
                 onClick={(e) => e.stopPropagation()}

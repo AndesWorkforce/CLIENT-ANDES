@@ -1,6 +1,6 @@
 "use client";
 
-import { UserCog } from "lucide-react";
+import { UserCog, ShieldCheck, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -27,7 +27,7 @@ export default function TabsNavigationSuperAdmin() {
 
   return (
     <div className="bg-white border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 relative">
+      <div className="max-w-[1440px] mx-auto px-4 relative">
         {showLeftShadow && (
           <div className="absolute top-0 left-0 w-8 h-full z-10 bg-gradient-to-r from-white to-transparent pointer-events-none" />
         )}
@@ -314,6 +314,42 @@ export default function TabsNavigationSuperAdmin() {
             >
               <UserCog size={15} />
               Multiple functions
+            </Link>
+            <Link
+              href="/admin/superAdmin/mfa-security"
+              className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
+                pathname === "/admin/superAdmin/mfa-security"
+                  ? "bg-[#B6B4B4] text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <ShieldCheck
+                size={15}
+                color={
+                  pathname === "/admin/superAdmin/mfa-security"
+                    ? "#FFFFFF"
+                    : "#6D6D6D"
+                }
+              />
+              MFA Security
+            </Link>
+            <Link
+              href="/admin/superAdmin/password-reset"
+              className={`px-2 py-1 text-sm font-medium rounded-md flex items-center shadow-sm focus:outline-none gap-1 cursor-pointer ${
+                pathname === "/admin/superAdmin/password-reset"
+                  ? "bg-[#B6B4B4] text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <KeyRound
+                size={15}
+                color={
+                  pathname === "/admin/superAdmin/password-reset"
+                    ? "#FFFFFF"
+                    : "#6D6D6D"
+                }
+              />
+              Password reset
             </Link>
             <Link
               href="/admin/superAdmin/settings"

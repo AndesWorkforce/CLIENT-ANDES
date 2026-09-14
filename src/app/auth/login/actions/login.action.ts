@@ -69,9 +69,45 @@ export async function loginAction(values: LoginFormValues) {
 
       const data = response.data;
 
+      console.log("[loginAction] response.data:", JSON.stringify(data?.data ? { mfaRequired: data.data.mfaRequired, mfaSetupRequired: data.data.mfaSetupRequired, hasToken: !!data.data.accessToken } : "no data"));
+
+      // MFA bifurcation: admin roles may need MFA setup or verification
+      if (data?.data?.mfaRequired) {
+        return {
+          success: true,
+          mfaRequired: true,
+          challengeToken: data.data.challengeToken,
+          expiresIn: data.data.expiresIn,
+        };
+      }
+      if (data?.data?.mfaSetupRequired) {
+        return {
+          success: true,
+          mfaSetupRequired: true,
+          setupToken: data.data.setupToken,
+          expiresIn: data.data.expiresIn,
+        };
+      }
+
       // Si el inicio de sesión fue exitoso, establecer cookies
       if (data && data.data) {
         const userData = data.data.usuario || data.data;
+        const roles = Array.isArray(userData?.roles) ? userData.roles : [];
+        // Multi-rol sin elección: no crear sesión todavía. Si seteamos
+        // auth_token aquí, el middleware ve EMPLEADO_EMPRESA en /auth/login
+        // y manda al dashboard de empresa sin pasar por select-role ni MFA.
+        if (roles.length > 1 && !selectedRole) {
+          console.log(
+            "[loginAction] deferring session cookies until role selection",
+            { roles, activeRole: userData?.rol }
+          );
+          return {
+            success: true,
+            needsRoleSelection: true,
+            data: data.data,
+          };
+        }
+
         const token = data.data.accessToken || "default-token-placeholder";
         try {
           // Establecer cookie para el token (HTTP-only para seguridad)

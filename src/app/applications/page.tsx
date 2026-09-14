@@ -9,6 +9,11 @@ import {
   removeMyApplication,
 } from "@/app/applications/actions/applications.actions";
 import { confirmInterviewDate } from "@/app/admin/dashboard/actions/applicants.actions";
+import {
+  formatInterviewDateTimeLabel,
+  formatInterviewTime,
+  formatInterviewDateUS,
+} from "@/lib/interview-datetime";
 import SimpleHeader from "../components/SimpleHeader";
 import { useNotificationStore } from "@/store/notifications.store";
 
@@ -286,20 +291,14 @@ export default function ApplicationsPage() {
                       ].filter(Boolean) as string[];
                       const confirmed = app.fechaEntrevistaConfirmada;
                       if (confirmed) {
+                        const tz = app.zonaHorariaEntrevista || null;
                         return (
                           <div className="mt-2 text-[11px] text-green-700 border border-green-200 bg-green-50 rounded p-2 w-full">
                             <div className="font-medium text-green-600">
                               Interview Confirmed
                             </div>
-                            <div>
-                              {new Date(confirmed).toLocaleDateString()}
-                            </div>
-                            <div>
-                              {new Date(confirmed).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </div>
+                            <div>{formatInterviewDateUS(confirmed, tz)}</div>
+                            <div>{formatInterviewTime(confirmed, tz)}</div>
                           </div>
                         );
                       }
@@ -327,11 +326,11 @@ export default function ApplicationsPage() {
                               <option value="">Choose...</option>
                               {proposed.map((d, idx) => (
                                 <option key={idx} value={idx + 1}>
-                                  {idx + 1}. {new Date(d).toLocaleDateString()}{" "}
-                                  {new Date(d).toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
+                                  {idx + 1}.{" "}
+                                  {formatInterviewDateTimeLabel(
+                                    d,
+                                    app.zonaHorariaEntrevista
+                                  )}
                                 </option>
                               ))}
                             </select>

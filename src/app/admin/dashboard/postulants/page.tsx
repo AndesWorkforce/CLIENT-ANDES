@@ -25,7 +25,7 @@ import {
 import CandidateActionModal from "../components/CandidateActionModal";
 import SendEmailModal from "../components/SendEmailModal";
 import SignContractModal from "./components/SignContractModal";
-import { sendInterviewInvitation } from "../actions/sendEmail.actions";
+import { sendPreliminaryInterviewInvitationEmail } from "../actions/sendEmail.actions";
 import UpdateStatusModal from "../components/UpdateStatusModal";
 import { EstadoPostulacion } from "../types/application-status.types";
 
@@ -77,6 +77,20 @@ interface ExtendedCandidate extends CandidatoWithPostulationId {
     action: string;
     description: string;
   }[];
+}
+
+/** Nombre para UI: prioriza `nombreCompleto`; si no hay, mismo criterio que antes (nombre + apellido). */
+function getPostulantDisplayName(applicant: {
+  nombreCompleto?: string | null;
+  nombre?: string | null;
+  apellido?: string | null;
+}): string {
+  const nc =
+    typeof applicant.nombreCompleto === "string"
+      ? applicant.nombreCompleto.trim()
+      : "";
+  if (nc) return nc;
+  return [applicant.nombre, applicant.apellido].filter(Boolean).join(" ").trim();
 }
 
 export default function PostulantsPage() {
@@ -235,7 +249,8 @@ export default function PostulantsPage() {
       return { success: false, message: "Candidate not found" };
     }
 
-    const candidateName = candidate.nombre || "Candidate";
+    const candidateName =
+      getPostulantDisplayName(candidate) || candidate.nombre || "Candidate";
 
     try {
       // Actualización optimista del estado local
@@ -500,8 +515,9 @@ export default function PostulantsPage() {
           onClick={() =>
             handlePreliminaryInterview(
               applicant.id,
-              `${applicant.nombre} ${applicant.apellido}`,
+              getPostulantDisplayName(applicant),
               applicant.correo,
+              applicant.lastRelevantPostulacion?.titulo || "the position",
             )
           }
         >
@@ -517,7 +533,9 @@ export default function PostulantsPage() {
     const candidate = applicants.find((c) => c.id === selectedCandidateId);
     if (!candidate) return;
 
-    const candidateName = `${candidate.nombre} ${candidate.apellido}`;
+    const candidateName =
+      getPostulantDisplayName(candidate) ||
+      `${candidate.nombre} ${candidate.apellido}`;
 
     try {
       let response;
@@ -630,7 +648,7 @@ export default function PostulantsPage() {
       candidatoId: applicant.id,
       currentStatus: applicant.lastRelevantPostulacion
         .estado as EstadoPostulacion,
-      candidatoName: applicant.nombre || "Candidate",
+      candidatoName: getPostulantDisplayName(applicant) || "Candidate",
     });
     setIsUpdateStatusModalOpen(true);
   };
@@ -660,6 +678,7 @@ export default function PostulantsPage() {
     candidateId: string,
     candidateName: string,
     candidateEmail: string,
+    jobTitle: string,
   ) => {
     try {
       // Actualización optimista del estado local
@@ -680,7 +699,7 @@ export default function PostulantsPage() {
 
       if (dbResponse.success) {
         // Si se marcó exitosamente en DB, enviar el email
-        const emailResponse = await sendInterviewInvitation(
+        const emailResponse = await sendPreliminaryInterviewInvitationEmail(
           candidateName,
           candidateEmail,
         );
@@ -752,7 +771,7 @@ export default function PostulantsPage() {
         response.success ? (response.data?.resultados ?? []) : applicants;
 
       const exportRows = allApplicants.map((applicant) => ({
-        "Full Name": `${applicant.nombre} ${applicant.apellido}`,
+        "Full Name": getPostulantDisplayName(applicant),
         Email: applicant.correo || "",
         Phone: applicant.telefono || "",
         Country: applicant.pais || "",
@@ -782,7 +801,7 @@ export default function PostulantsPage() {
           <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
             <input
               type="text"
-              placeholder="Search by name or email"
+              placeholder="Search by full name, name or email"
               value={search}
               onChange={handleSearchChange}
               className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#0097B2]"
@@ -899,7 +918,7 @@ export default function PostulantsPage() {
                     <div className="px-4 py-3 flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <span className="text-lg font-medium">
-                          {`${applicant.nombre} ${applicant.apellido}`}
+                          {getPostulantDisplayName(applicant)}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
@@ -1245,7 +1264,7 @@ export default function PostulantsPage() {
                             <td className="py-4 px-4 text-gray-700 text-center align-middle">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium truncate max-w-[200px] inline-block">
-                                  {`${applicant.nombre} ${applicant.apellido}`}
+                                  {getPostulantDisplayName(applicant)}
                                 </span>
                                 <div className="flex items-center gap-1">
                                   {[1, 2, 3].map((starRating) => (
@@ -1316,8 +1335,10 @@ export default function PostulantsPage() {
                                   onClick={() =>
                                     handlePreliminaryInterview(
                                       applicant.id,
-                                      `${applicant.nombre} ${applicant.apellido}`,
+                                      getPostulantDisplayName(applicant),
                                       applicant.correo,
+                                      applicant.lastRelevantPostulacion?.titulo ||
+                                        "the position",
                                     )
                                   }
                                 >
@@ -1596,9 +1617,10 @@ export default function PostulantsPage() {
             applicants.find((a) => a.id === selectedCandidateId)
               ?.clasificacionGlobal
           }
-          candidateName={
-            applicants.find((a) => a.id === selectedCandidateId)?.nombre || ""
-          }
+          candidateName={(() => {
+            const a = applicants.find((x) => x.id === selectedCandidateId);
+            return a ? getPostulantDisplayName(a) : "";
+          })()}
           candidateEmail={
             applicants.find((a) => a.id === selectedCandidateId)?.correo || ""
           }
@@ -1610,11 +1632,10 @@ export default function PostulantsPage() {
           isOpen={isActionModalOpen}
           onClose={() => setIsActionModalOpen(false)}
           onConfirm={handleCandidateAction}
-          candidateName={`${
-            applicants.find((a) => a.id === selectedCandidateId)?.nombre || ""
-          } ${
-            applicants.find((a) => a.id === selectedCandidateId)?.apellido || ""
-          }`}
+          candidateName={(() => {
+            const a = applicants.find((x) => x.id === selectedCandidateId);
+            return a ? getPostulantDisplayName(a) : "";
+          })()}
           action={currentAction}
         />
       )}
