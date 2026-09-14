@@ -5,6 +5,10 @@ import {
   getClientReadableCookieOptions,
 } from "@/lib/auth-cookies";
 import { createServerAxios } from "@/services/axios.server";
+import {
+  getMfaLoginResponse,
+  unwrapBackendData,
+} from "@/lib/login-bff";
 
 const AUTH_COOKIE = "auth_token";
 const USER_INFO_COOKIE = "user_info";
@@ -60,61 +64,78 @@ export async function POST(request: Request) {
       }
     );
 
-    const data = response.data;
+    const payload = unwrapBackendData(response.data);
+    if (!payload) {
+      return NextResponse.json(
+        { success: false, error: "Invalid response from backend" },
+        { status: 400 }
+      );
+    }
 
-    // Si el inicio de sesión fue exitoso, establecer cookies
-    if (data && data.data) {
-      const userData = data.data.usuario || data.data;
-      const token = data.data.accessToken || "default-token-placeholder";
+    const mfaResponse = getMfaLoginResponse(payload);
+    if (mfaResponse) {
+      console.log("[API Login] MFA challenge, cookies not set");
+      return NextResponse.json(mfaResponse);
+    }
 
-      // Establecer cookie para el token (HTTP-only para seguridad)
-      cookieStore.set({
-        name: AUTH_COOKIE,
-        value: token,
-        ...getAuthCookieBaseOptions(),
-      });
-
-      // Resolver empresa activa
-      const resolvedCompanyId =
-        effectiveCompanyId ||
-        userData?.empresaId ||
-        userData?.empleadoEmpresa?.empresa?.id ||
-        (Array.isArray(userData?.companyOptions?.companies) &&
-        userData?.companyOptions?.companies?.length === 1
-          ? userData?.companyOptions?.companies[0]?.id
-          : null);
-
-      // Guardar info de usuario (no httpOnly para que Zustand la lea)
-      cookieStore.set({
-        name: USER_INFO_COOKIE,
-        value: JSON.stringify(userData),
-        ...getClientReadableCookieOptions(),
-      });
-
-      // Guardar empresa activa si se resolvió
-      if (resolvedCompanyId) {
-        cookieStore.set({
-          name: ACTIVE_COMPANY_COOKIE,
-          value: String(resolvedCompanyId),
-          ...getClientReadableCookieOptions(),
-        });
-      }
-
-      console.log("[API Login] ✅ Login exitoso, cookies establecidas");
-
+    const userData: any = payload.usuario || payload;
+    const roles = Array.isArray(userData?.roles) ? userData.roles : [];
+    if (roles.length > 1 && !selectedRole) {
+      console.log("[API Login] multi-role, deferring session cookies");
       return NextResponse.json({
         success: true,
-        data: {
-          usuario: userData,
-          accessToken: token,
-        },
+        needsRoleSelection: true,
+        data: payload,
       });
     }
 
-    return NextResponse.json(
-      { success: false, error: "Invalid response from backend" },
-      { status: 400 }
-    );
+    const token =
+      typeof payload.accessToken === "string" ? payload.accessToken : "";
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "Login succeeded without access token" },
+        { status: 400 }
+      );
+    }
+
+    cookieStore.set({
+      name: AUTH_COOKIE,
+      value: token,
+      ...getAuthCookieBaseOptions(),
+    });
+
+    const resolvedCompanyId =
+      effectiveCompanyId ||
+      userData?.empresaId ||
+      userData?.empleadoEmpresa?.empresa?.id ||
+      (Array.isArray(userData?.companyOptions?.companies) &&
+      userData?.companyOptions?.companies?.length === 1
+        ? userData?.companyOptions?.companies[0]?.id
+        : null);
+
+    cookieStore.set({
+      name: USER_INFO_COOKIE,
+      value: JSON.stringify(userData),
+      ...getClientReadableCookieOptions(),
+    });
+
+    if (resolvedCompanyId) {
+      cookieStore.set({
+        name: ACTIVE_COMPANY_COOKIE,
+        value: String(resolvedCompanyId),
+        ...getClientReadableCookieOptions(),
+      });
+    }
+
+    console.log("[API Login] ✅ Login exitoso, cookies establecidas");
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        usuario: userData,
+        accessToken: token,
+      },
+    });
   } catch (error: any) {
     console.error("[API Login] Error:", error.response?.data || error.message);
 

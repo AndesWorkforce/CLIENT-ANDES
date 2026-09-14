@@ -43,6 +43,22 @@ export const excludedRoutes = {
   ],
 };
 
+const HERO_OVERLAY_PREFIXES = [
+  "/pages/home",
+  "/pages/about",
+  "/pages/contact",
+  "/pages/services",
+  "/pages/offers",
+];
+
+/** Landing pages whose hero sits under a fixed transparent navbar (no top padding). */
+export function isHeroOverlayPath(pathname: string) {
+  if (pathname === "/") return true;
+  return HERO_OVERLAY_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
 export default function useRouteExclusion() {
   const pathname = usePathname();
 
@@ -56,5 +72,6 @@ export default function useRouteExclusion() {
     shouldExclude,
     isNavbarExcluded: shouldExclude("navbar"),
     isFooterExcluded: shouldExclude("footer"),
+    isHeroOverlayPage: isHeroOverlayPath(pathname),
   };
 }

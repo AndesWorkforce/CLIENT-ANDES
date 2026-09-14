@@ -97,7 +97,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, isAuthenticated, isLoading } = useAuthStore();
-  const { isNavbarExcluded } = useRouteExclusion();
+  const { isNavbarExcluded, isHeroOverlayPage } = useRouteExclusion();
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
   const [showItSupportModal, setShowItSupportModal] = useState<boolean>(false);
@@ -112,18 +112,6 @@ export default function Navbar() {
     pathname === "/" ||
     pathname === "/pages/home" ||
     pathname.startsWith("/pages/home/");
-  const overlayPrefixes = [
-    "/pages/home",
-    "/pages/about",
-    "/pages/contact",
-    "/pages/services",
-    "/pages/offers",
-  ];
-  const isHeroOverlayPage =
-    pathname === "/" ||
-    overlayPrefixes.some(
-      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-    );
   const isTransparentNav = isHeroOverlayPage && !isScrolled;
   /**
    * Alias leído en caliente desde `users/me`. Esto evita depender de la cookie

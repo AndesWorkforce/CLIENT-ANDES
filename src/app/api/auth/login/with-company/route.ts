@@ -5,6 +5,10 @@ import {
   getClientReadableCookieOptions,
 } from "@/lib/auth-cookies";
 import { createServerAxios } from "@/services/axios.server";
+import {
+  getMfaLoginResponse,
+  unwrapBackendData,
+} from "@/lib/login-bff";
 
 const AUTH_COOKIE = "auth_token";
 const USER_INFO_COOKIE = "user_info";
@@ -55,16 +59,29 @@ export async function POST(request: Request) {
       response.status
     );
 
-    const data = response.data?.data;
-    if (!data) {
+    const payload = unwrapBackendData(response.data);
+    if (!payload) {
       return NextResponse.json(
         { success: false, error: "Invalid login response" },
         { status: 500 }
       );
     }
 
+    const mfaResponse = getMfaLoginResponse(payload);
+    if (mfaResponse) {
+      return NextResponse.json(mfaResponse);
+    }
+
+    const token =
+      typeof payload.accessToken === "string" ? payload.accessToken : "";
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "Login succeeded without access token" },
+        { status: 400 }
+      );
+    }
+
     const cookieStore = await cookies();
-    const token = data.accessToken || "default-token-placeholder";
 
     // Token httpOnly
     cookieStore.set({
@@ -75,7 +92,7 @@ export async function POST(request: Request) {
 
     cookieStore.set({
       name: USER_INFO_COOKIE,
-      value: JSON.stringify(data.usuario || data),
+      value: JSON.stringify(payload.usuario || payload),
       ...getClientReadableCookieOptions(),
     });
 
@@ -87,7 +104,7 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data: payload });
     // disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     const msg =

@@ -108,7 +108,13 @@ export async function loginAction(values: LoginFormValues) {
           };
         }
 
-        const token = data.data.accessToken || "default-token-placeholder";
+        const token = data.data.accessToken;
+        if (!token) {
+          return {
+            success: false,
+            error: "Login succeeded without access token",
+          };
+        }
         try {
           // Establecer cookie para el token (HTTP-only para seguridad)
           const cookieStore = cookies();

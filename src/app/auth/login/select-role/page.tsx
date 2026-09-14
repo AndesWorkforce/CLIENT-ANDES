@@ -216,15 +216,22 @@ export default function SelectRolePage() {
       return;
     }
 
-    // MFA interception
-    if ((result as any).mfaRequired) {
-      setChallengeToken((result as any).challengeToken);
+    // MFA interception (top-level flags from BFF, or nested payload)
+    if ((result as any).mfaRequired || (result as any).data?.mfaRequired) {
+      setChallengeToken(
+        (result as any).challengeToken || (result as any).data?.challengeToken
+      );
       setMfaStep("verify");
       setSubmitting(false);
       return;
     }
-    if ((result as any).mfaSetupRequired) {
-      setSetupToken((result as any).setupToken);
+    if (
+      (result as any).mfaSetupRequired ||
+      (result as any).data?.mfaSetupRequired
+    ) {
+      setSetupToken(
+        (result as any).setupToken || (result as any).data?.setupToken
+      );
       setMfaStep("setup");
       setSubmitting(false);
       return;
@@ -602,6 +609,7 @@ export default function SelectRolePage() {
       setAuthenticated(true);
       setToken(data?.accessToken);
       sessionStorage.removeItem("andes_pending_login");
+      void persistAuthSession(data?.accessToken, usr);
 
       const activeRole = usr?.rol;
       if (activeRole === "ADMIN" || activeRole === "EMPLEADO_ADMIN" || activeRole === "ADMIN_RECLUTAMIENTO") {

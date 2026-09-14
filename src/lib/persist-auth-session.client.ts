@@ -6,7 +6,7 @@ export async function persistAuthSession(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   user: any,
 ) {
-  if (!token || !user) return;
+  if (!token || !user || token === "default-token-placeholder") return;
 
   setClientUserInfoCookie(user);
 

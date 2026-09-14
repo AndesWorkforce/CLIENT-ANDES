@@ -134,6 +134,7 @@ export default function LoginForm() {
       setUser(user);
       setAuthenticated(true);
       setToken(data?.accessToken);
+      void persistAuthSession(data?.accessToken, user);
 
       const activeRole = user?.rol;
       if (activeRole === "ADMIN" || activeRole === "EMPLEADO_ADMIN" || activeRole === "ADMIN_RECLUTAMIENTO") {
@@ -222,15 +223,23 @@ export default function LoginForm() {
         // Handle both Next.js API route response {success: true, data: {...}}
         // and direct backend response {data: {...}, meta: {...}}
         if (result.success || (result.data && (result.data.usuario || result.data.accessToken))) {
-          // MFA interception
-          if ((result as any).mfaRequired) {
-            setChallengeToken((result as any).challengeToken);
+          // MFA interception (top-level flags from BFF, or nested payload)
+          if ((result as any).mfaRequired || (result as any).data?.mfaRequired) {
+            setChallengeToken(
+              (result as any).challengeToken ||
+                (result as any).data?.challengeToken
+            );
             setLoginCorreo(data.correo);
             setMfaStep("verify");
             return;
           }
-          if ((result as any).mfaSetupRequired) {
-            setSetupToken((result as any).setupToken);
+          if (
+            (result as any).mfaSetupRequired ||
+            (result as any).data?.mfaSetupRequired
+          ) {
+            setSetupToken(
+              (result as any).setupToken || (result as any).data?.setupToken
+            );
             setLoginCorreo(data.correo);
             setMfaStep("setup");
             return;
@@ -256,18 +265,11 @@ export default function LoginForm() {
             !selectedWasProvided
           ) {
             try {
-              // Pre-cargar sesión local para que la vista de selección tenga contexto inmediatamente
               if (user) {
                 try {
-                  // Guardar en store
                   setUser(user);
-                  setAuthenticated(true);
                   if (result.data?.accessToken)
                     setToken(result.data?.accessToken);
-
-                  // Set session cookies server-side
-                  console.log("[Login Multi-Role] 🍪 Setting session cookies...");
-                  await persistAuthSession(result.data?.accessToken, user);
                 } catch (e) {
                   console.warn(
                     "[Login] could not prime local session before role selection",
