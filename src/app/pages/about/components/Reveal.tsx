@@ -30,6 +30,7 @@ type RevealProps = HTMLMotionProps<"div"> & {
 };
 
 const MotionPrefsContext = createContext({ staticOnMobile: false });
+const StaggerContext = createContext(false);
 
 /** Disables entrance motion below the Tailwind `md` breakpoint (768px). */
 export function StaticOnMobile({ children }: { children: ReactNode }) {
@@ -61,6 +62,40 @@ function useSkipMotion() {
   return Boolean(reduce || (staticOnMobile && isMobile));
 }
 
+/** Sequences child FadeIn/SlideIn so the next title waits for the one above. */
+export function Stagger({
+  children,
+  className,
+  stagger = 0.32,
+}: {
+  children: ReactNode;
+  className?: string;
+  stagger?: number;
+}) {
+  const skip = useSkipMotion();
+
+  return (
+    <StaggerContext.Provider value={true}>
+      <motion.div
+        className={className}
+        initial="hidden"
+        whileInView="visible"
+        viewport={aboutViewport}
+        variants={{
+          hidden: {},
+          visible: {
+            transition: skip
+              ? { staggerChildren: 0, delayChildren: 0 }
+              : { staggerChildren: stagger },
+          },
+        }}
+      >
+        {children}
+      </motion.div>
+    </StaggerContext.Provider>
+  );
+}
+
 export function FadeIn({
   children,
   className,
@@ -69,18 +104,37 @@ export function FadeIn({
   ...props
 }: RevealProps) {
   const skip = useSkipMotion();
+  const inStagger = useContext(StaggerContext);
+  const hidden = skip ? { opacity: 1 } : { opacity: 0 };
+  const visible = { opacity: 1 };
+  const transition = {
+    duration: skip ? 0 : duration,
+    delay: skip || inStagger ? 0 : delay,
+    ease: ABOUT_MOTION.ease,
+  };
+
+  if (inStagger) {
+    return (
+      <motion.div
+        className={className}
+        variants={{
+          hidden,
+          visible: { ...visible, transition },
+        }}
+        {...props}
+      >
+        {children}
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
       className={className}
-      initial={skip ? { opacity: 1 } : { opacity: 0 }}
-      whileInView={{ opacity: 1 }}
+      initial={hidden}
+      whileInView={visible}
       viewport={aboutViewport}
-      transition={{
-        duration: skip ? 0 : duration,
-        delay: skip ? 0 : delay,
-        ease: ABOUT_MOTION.ease,
-      }}
+      transition={transition}
       {...props}
     >
       {children}
@@ -97,7 +151,29 @@ export function SlideIn({
   offset = ABOUT_MOTION.slideOffset,
 }: RevealProps & { from: "left" | "right"; offset?: number }) {
   const skip = useSkipMotion();
+  const inStagger = useContext(StaggerContext);
   const x = from === "left" ? -offset : offset;
+  const hidden = skip ? { x: 0, opacity: 1 } : { x, opacity: 0 };
+  const visible = { x: 0, opacity: 1 };
+  const transition = {
+    duration: skip ? 0 : duration,
+    delay: skip || inStagger ? 0 : delay,
+    ease: ABOUT_MOTION.ease,
+  };
+
+  if (inStagger) {
+    return (
+      <motion.div
+        className={className}
+        variants={{
+          hidden,
+          visible: { ...visible, transition },
+        }}
+      >
+        {children}
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -109,14 +185,10 @@ export function SlideIn({
       <motion.div
         className="h-full w-full"
         variants={{
-          hidden: skip ? { x: 0 } : { x },
-          visible: { x: 0 },
+          hidden,
+          visible,
         }}
-        transition={{
-          duration: skip ? 0 : duration,
-          delay: skip ? 0 : delay,
-          ease: ABOUT_MOTION.ease,
-        }}
+        transition={transition}
       >
         {children}
       </motion.div>

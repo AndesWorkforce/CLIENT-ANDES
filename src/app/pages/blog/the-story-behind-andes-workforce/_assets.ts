@@ -1,7 +1,3 @@
-/**
- * Assets del artículo "The Story Behind Andes Workforce".
- * Pegar aquí las URLs reales de S3 cuando estén subidas.
- */
 const S3_STORY =
   "https://andes-workforce-s3.s3.us-east-2.amazonaws.com/images/page_andesworkforce/05.+Blog/2.+The+Story+Behind+Andes+Workforce";
 

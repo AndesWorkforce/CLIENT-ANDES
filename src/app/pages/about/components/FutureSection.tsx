@@ -1,6 +1,6 @@
 "use client";
 
-import { SlideIn } from "./Reveal";
+import { SlideIn, Stagger } from "./Reveal";
 
 export default function FutureSection() {
   return (
@@ -16,14 +16,14 @@ export default function FutureSection() {
         </div>
         </SlideIn>
 
-        <div className="flex-1 w-full">
-          <SlideIn from="right" delay={0.32}>
+        <Stagger className="flex-1 w-full">
+          <SlideIn from="right">
           <h2 className="text-[24px] sm:text-4xl md:text-[48px] font-bold text-[#343434] leading-[1.3]">
             The future we&apos;re{" "}
             <span className="text-[#0097b2]">building</span>
           </h2>
           </SlideIn>
-          <SlideIn from="right" delay={0.71}>
+          <SlideIn from="right">
           <p className="mt-[22px] sm:mt-[33px] text-[14px] sm:text-lg md:text-[20px] text-black leading-[1.5]">
             To become a{" "}
             <strong className="font-semibold">leading reference</strong> in the
@@ -36,7 +36,7 @@ export default function FutureSection() {
             benefit everyone involved.
           </p>
           </SlideIn>
-        </div>
+        </Stagger>
       </div>
     </section>
   );

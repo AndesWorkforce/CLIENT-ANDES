@@ -20,7 +20,7 @@ const comments = [
   },
 ];
 
-export default function StoryEngagementSection() {
+export default function EngagementSection() {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(47);
   const [draft, setDraft] = useState("");

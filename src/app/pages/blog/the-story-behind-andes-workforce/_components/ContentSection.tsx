@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import Image from "next/image";
-import QuoteBlock from "./QuoteBlock";
-import { storyAssets } from "../story-assets";
+import QuoteBlock from "../../_components/QuoteBlock";
+import { storyAssets } from "../_assets";
 
 function Body({ children }: { children: ReactNode }) {
   return (
@@ -13,7 +13,7 @@ function Body({ children }: { children: ReactNode }) {
   );
 }
 
-export default function StoryContentSection() {
+export default function ContentSection() {
   return (
     <section className="relative w-full bg-white pt-0 pb-[11px] md:pb-[44px]">
       <div className="max-w-[850px] mx-auto px-[18px] md:px-[44px]">

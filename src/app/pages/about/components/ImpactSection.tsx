@@ -1,19 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { SlideIn } from "./Reveal";
+import { SlideIn, Stagger } from "./Reveal";
 
 export default function ImpactSection() {
   return (
     <section className="w-full bg-white pt-12 sm:pt-[101px] pb-8 sm:pb-0 overflow-x-hidden">
       <div className="max-w-[1092px] mx-auto px-[18px] sm:px-6 flex flex-col lg:flex-row gap-[33px] lg:gap-[44px] items-center">
-        <div className="flex-1 w-full">
-          <SlideIn from="left" delay={0.42}>
+        <Stagger className="flex-1 w-full">
+          <SlideIn from="left">
           <h2 className="text-[24px] sm:text-4xl md:text-[48px] font-bold text-[#343434] leading-[1.3]">
             How we <span className="text-[#0097b2]">create impact</span>
           </h2>
           </SlideIn>
-          <SlideIn from="left" delay={0.8}>
+          <SlideIn from="left">
           <p className="mt-[22px] sm:mt-[33px] text-[14px] sm:text-lg md:text-[20px] text-black leading-[1.5]">
             To{" "}
             <strong className="font-semibold">
@@ -31,7 +31,7 @@ export default function ImpactSection() {
             </strong>
           </p>
           </SlideIn>
-        </div>
+        </Stagger>
 
         <SlideIn from="right" className="w-full lg:w-[528px] shrink-0">
         <div className="relative w-full aspect-[528/364] lg:w-[528px] lg:h-[364px] lg:aspect-auto overflow-hidden rounded-[16px]">

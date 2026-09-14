@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import { Clock, CalendarDays } from "lucide-react";
-import { storyAssets } from "../story-assets";
+import { storyAssets } from "../_assets";
 
-export default function StoryHeroSection() {
+export default function HeroSection() {
   return (
     <section className="relative w-full bg-white">
-      <div className="relative w-full h-[200px] md:h-[312px]">
+      <div className="relative h-[200px] w-full md:h-[312px]">
         <Image
           src={storyAssets.hero}
           alt="The Story Behind Andes Workforce"
