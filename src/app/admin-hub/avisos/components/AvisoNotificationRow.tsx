@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, MoreVertical } from "lucide-react";
 import type { AvisoCategory, AvisoNotification } from "../types/avisos.types";
 import AvisoCategoryBadge from "./AvisoCategoryBadge";
-import { formatRelativeTime, useAdminHubI18n, type AdminHubTranslate } from "../../i18n";
+import { formatRelativeTime, t, type AdminHubTranslate } from "../../i18n";
 
 interface AvisoNotificationRowProps {
   aviso: AvisoNotification;
@@ -31,9 +31,8 @@ export default function AvisoNotificationRow({
   isFirst = false,
   isLast = false,
 }: AvisoNotificationRowProps) {
-  const { t } = useAdminHubI18n();
   const relativeTime = aviso.creadoEn
-    ? formatRelativeTime(aviso.creadoEn, t)
+    ? formatRelativeTime(aviso.creadoEn)
     : aviso.tiempoRelativo;
 
   return (

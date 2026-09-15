@@ -7,7 +7,7 @@ import AdminHubTableShell, { ADMIN_HUB_TABLE_ROW } from "../../components/AdminH
 import type { InvoiceAdditionalFee } from "../data/mock-invoice-details";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 import InvoiceTableTotalRow from "./InvoiceTableTotalRow";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 const MENU_MIN_WIDTH = 148;
 
@@ -28,7 +28,6 @@ export default function InvoiceAdditionalFeesTable({
   onReject,
   onDelete,
 }: InvoiceAdditionalFeesTableProps) {
-  const { t } = useAdminHubI18n();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import AdminHubTableShell, {
   ADMIN_HUB_TABLE_ROW,
 } from "../../components/AdminHubTableShell";
-import { useAdminHubI18n } from "../../i18n";
+import { t, ADMIN_HUB_DATE_LOCALE } from "../../i18n";
 import { getHistorial } from "../actions/historial.actions";
 import type { HistorialItem, HistorialModulo } from "../types/historial.types";
 import { formatHistorialCambios } from "../utils/format-historial-cambios";
@@ -27,7 +27,7 @@ export default function ObjectHistorialTable({
   limit = 20,
   variant = "card",
 }: ObjectHistorialTableProps) {
-  const { t, dateLocale } = useAdminHubI18n();
+  const dateLocale = ADMIN_HUB_DATE_LOCALE;
   const [rows, setRows] = useState<HistorialItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

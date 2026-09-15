@@ -46,13 +46,13 @@ export const CONTRACT_STEP_META: Record<
   ContractCreationStep,
   { stepNumber: number; label: string }
 > = {
-  "select-type": { stepNumber: 1, label: "Tipo de contrato" },
-  "general-info": { stepNumber: 2, label: "Información General" },
-  residence: { stepNumber: 3, label: "Dirección de Residencia" },
-  "labor-info": { stepNumber: 4, label: "Información Laboral" },
-  "financial-info": { stepNumber: 5, label: "Información Financiera" },
-  "additional-income": { stepNumber: 6, label: "Ingresos adicionales" },
-  review: { stepNumber: 7, label: "Confirmación" },
+  "select-type": { stepNumber: 1, label: "Contract type" },
+  "general-info": { stepNumber: 2, label: "General information" },
+  residence: { stepNumber: 3, label: "Residence address" },
+  "labor-info": { stepNumber: 4, label: "Employment information" },
+  "financial-info": { stepNumber: 5, label: "Financial information" },
+  "additional-income": { stepNumber: 6, label: "Additional income" },
+  review: { stepNumber: 7, label: "Confirmation" },
 };
 
 export interface CreateContractFormData {

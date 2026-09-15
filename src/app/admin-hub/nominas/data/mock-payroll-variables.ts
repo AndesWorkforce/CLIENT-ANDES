@@ -49,10 +49,10 @@ export const PAYROLL_VARIABLE_TABS: {
   key: PayrollVariableCategory;
   label: string;
 }[] = [
-  { key: "todos", label: "Todos" },
+  { key: "todos", label: "All" },
   { key: "overtimes", label: "Overtimes" },
   { key: "holidays", label: "Holidays" },
-  { key: "deducciones", label: "Deducciones" },
+  { key: "deducciones", label: "Deductions" },
   { key: "incomeVariables", label: "Income Variables" },
 ];
 

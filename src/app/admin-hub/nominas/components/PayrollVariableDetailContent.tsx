@@ -29,7 +29,7 @@ import PayrollVariableInfoRow from "./PayrollVariableInfoRow";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
 import DeletePayrollVariableModal from "./DeletePayrollVariableModal";
 import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface PayrollVariableDetailContentProps {
   detail: PayrollVariableDetail;
@@ -38,7 +38,6 @@ interface PayrollVariableDetailContentProps {
 export default function PayrollVariableDetailContent({
   detail: initialDetail,
 }: PayrollVariableDetailContentProps) {
-  const { t } = useAdminHubI18n();
   const router = useRouter();
   const { addNotification } = useNotificationStore();
   const [detail, setDetail] = useState(initialDetail);

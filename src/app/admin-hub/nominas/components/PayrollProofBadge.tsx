@@ -1,7 +1,7 @@
 "use client";
 
 import type { PayrollProofStatus } from "../data/payroll-data";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 const badgeStyles: Record<"Cargado" | "Pendiente", string> = {
   Cargado: "bg-[#ECFDF3] text-[#027A48]",
@@ -13,7 +13,6 @@ interface PayrollProofBadgeProps {
 }
 
 export default function PayrollProofBadge({ status }: PayrollProofBadgeProps) {
-  const { t } = useAdminHubI18n();
   if (!status) return null;
 
   if (status === "Not req.") {

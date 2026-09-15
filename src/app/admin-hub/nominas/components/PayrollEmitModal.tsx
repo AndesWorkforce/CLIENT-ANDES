@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { CircleAlert, X } from "lucide-react";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 export type PayrollEmitModalVariant = "cannot-emit" | "confirm-emit";
 
@@ -22,7 +22,6 @@ export default function PayrollEmitModal({
   onPrimaryAction,
   isLoading = false,
 }: PayrollEmitModalProps) {
-  const { t } = useAdminHubI18n();
   const content =
     variant === "cannot-emit"
       ? {

@@ -2,11 +2,10 @@
 
 import AdminHubBreadcrumbs from "../components/AdminHubBreadcrumbs";
 import { useAuthStore } from "@/store/auth.store";
-import { useAdminHubI18n } from "../i18n";
+import { t } from "../i18n";
 
 export default function AdminHubDashboardPage() {
   const { user } = useAuthStore();
-  const { t } = useAdminHubI18n();
 
   return (
     <div className="flex flex-col gap-6">

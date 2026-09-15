@@ -7,11 +7,10 @@ import useOutsideClick from "@/hooks/useOutsideClick";
 import { logoutAction } from "@/app/auth/logout/actions/logout.action";
 import Link from "next/link";
 import { getUnreadAvisosCount } from "../avisos/actions/avisos.actions";
-import { AdminHubLanguageSwitcher, useAdminHubI18n } from "../i18n";
+import { t } from "../i18n";
 
 export default function AdminHubTopBar() {
   const { user, logout } = useAuthStore();
-  const { t } = useAdminHubI18n();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [unreadAvisosCount, setUnreadAvisosCount] = useState(0);
@@ -43,7 +42,6 @@ export default function AdminHubTopBar() {
   return (
     <header className="flex h-[60px] shrink-0 items-center justify-end border-b border-[#EFEFEF] bg-white px-6">
       <div className="flex items-center gap-4">
-        <AdminHubLanguageSwitcher />
         <Link
           href="/admin-hub/avisos"
           aria-label={

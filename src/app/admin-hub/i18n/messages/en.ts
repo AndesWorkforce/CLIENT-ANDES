@@ -1,13 +1,4 @@
-import type { es } from "./es";
-
-export const en: typeof es = {
-  language: {
-    es: "ES",
-    en: "EN",
-    switcherAria: "Select language",
-    spanish: "Spanish",
-    english: "English",
-  },
+export const en = {
   nav: {
     dashboard: "Control panel",
     personas: "People",

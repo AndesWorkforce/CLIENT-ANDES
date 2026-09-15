@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useNotificationStore } from "@/store/notifications.store";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import AdminHubDrawerFooter from "../../components/AdminHubDrawerFooter";
 import AdminHubDrawerProgress from "../../components/AdminHubDrawerProgress";
 import AdminHubSideDrawer from "../../components/AdminHubSideDrawer";
@@ -42,7 +42,6 @@ interface CreateContractDrawerProps {
 }
 
 export default function CreateContractDrawer({ open, onClose }: CreateContractDrawerProps) {
-  const { t } = useAdminHubI18n();
   const { addNotification } = useNotificationStore();
   const [step, setStep] = useState<ContractCreationStep>("select-type");
   const [selectedType, setSelectedType] = useState<ContractCreationType | null>(null);

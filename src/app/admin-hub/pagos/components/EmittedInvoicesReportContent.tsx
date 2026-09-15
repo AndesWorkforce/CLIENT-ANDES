@@ -17,7 +17,7 @@ import {
   type ReporteFacturasEmitidas,
 } from "../actions/pagos.actions";
 import InvoiceFilterSelect from "./InvoiceFilterSelect";
-import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
+import { formatAdminHubPeriod, t } from "../../i18n";
 
 /** Últimos 24 meses como opciones de rango. Values stay YYYY-MM. */
 function buildPeriodoValues(): string[] {
@@ -59,7 +59,6 @@ function periodoToSpanishDisplay(periodo: string): string {
 }
 
 export default function EmittedInvoicesReportContent() {
-  const { t } = useAdminHubI18n();
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [report, setReport] = useState<ReporteFacturasEmitidas | null>(null);
@@ -71,7 +70,7 @@ export default function EmittedInvoicesReportContent() {
     () =>
       buildPeriodoValues().map((value) => ({
         value,
-        label: formatAdminHubPeriod(value, t),
+        label: formatAdminHubPeriod(value),
       })),
     [t],
   );
@@ -236,7 +235,7 @@ export default function EmittedInvoicesReportContent() {
                       )}
                     </td>
                     <td className={cellClass}>{factura.empresaNombre}</td>
-                    <td className={cellClass}>{formatAdminHubPeriod(factura.periodo, t)}</td>
+                    <td className={cellClass}>{formatAdminHubPeriod(factura.periodo)}</td>
                     <td className={cellClass}>{formatMoney(factura.totalFacturar)}</td>
                     <td className={cellClass}>{factura.aprobadoPor ?? t("common.dash")}</td>
                     <td className={cellClass}>{factura.emitidaPor ?? t("common.dash")}</td>

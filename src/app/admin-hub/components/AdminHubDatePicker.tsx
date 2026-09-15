@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useAdminHubI18n } from "../i18n";
+import { t, ADMIN_HUB_DATE_LOCALE } from "../i18n";
+
 function formatTriggerDate(isoDate: string): string {
   if (!isoDate) return "";
   const [y, m, d] = isoDate.split("-");
@@ -126,7 +127,7 @@ export default function AdminHubDatePicker({
   onOpen,
   forceClose = false,
 }: AdminHubDatePickerProps) {
-  const { t, dateLocale } = useAdminHubI18n();
+  const dateLocale = ADMIN_HUB_DATE_LOCALE;
   const resolvedPlaceholder = placeholder ?? t("dates.date");
   const resolvedConfirmLabel = confirmLabel ?? t("common.apply");
   const id = useId();

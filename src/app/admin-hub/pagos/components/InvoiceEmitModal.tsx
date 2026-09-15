@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { CircleAlert, X } from "lucide-react";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 export type InvoiceEmitModalVariant = "cannot-emit" | "confirm-emit";
 
@@ -22,7 +22,6 @@ export default function InvoiceEmitModal({
   onPrimaryAction,
   isLoading = false,
 }: InvoiceEmitModalProps) {
-  const { t } = useAdminHubI18n();
   const content = useMemo(() => {
     if (variant === "cannot-emit") {
       return {

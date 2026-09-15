@@ -24,7 +24,7 @@ import {
 } from "../actions/personas.actions";
 import { personaToDetailPath } from "../utils/persona-detail.utils";
 import type { PersonaStatus } from "../types/persona-detail.types";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import PersonaStatusBadge from "./PersonaStatusBadge";
 
 const PAGE_SIZE = 20;
@@ -74,7 +74,6 @@ function mergeFilterOptions(
 }
 
 export default function PersonasPageContent() {
-  const { t } = useAdminHubI18n();
   const [contractors, setContractors] = useState<PersonaListItem[]>([]);
   const [pagination, setPagination] = useState<PersonasPagination>({
     total: 0,

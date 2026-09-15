@@ -3,7 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { useAdminHubI18n } from "../i18n";
+import { t } from "../i18n";
 
 interface AdminHubSideDrawerProps {
   open: boolean;
@@ -26,7 +26,6 @@ export default function AdminHubSideDrawer({
   children,
   footer,
 }: AdminHubSideDrawerProps) {
-  const { t } = useAdminHubI18n();
   useEffect(() => {
     if (!open) return;
 

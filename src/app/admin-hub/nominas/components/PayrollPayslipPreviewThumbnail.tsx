@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { PayrollDetail } from "../types/nomina-detail.types";
 import PayrollPayslipPreview from "./PayrollPayslipPreview";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 const PREVIEW_SCALE = 0.38;
 const PREVIEW_BASE_WIDTH = 1100;
@@ -17,7 +17,6 @@ export default function PayrollPayslipPreviewThumbnail({
   detail,
   onClick,
 }: PayrollPayslipPreviewThumbnailProps) {
-  const { t } = useAdminHubI18n();
   const contentRef = useRef<HTMLDivElement>(null);
   const [scaledHeight, setScaledHeight] = useState<number | null>(null);
 

@@ -2,7 +2,7 @@
 
 import { Pencil } from "lucide-react";
 import type { ReactNode } from "react";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface PayrollVariableInfoCardProps {
   title: string;
@@ -15,7 +15,6 @@ export default function PayrollVariableInfoCard({
   children,
   onEdit,
 }: PayrollVariableInfoCardProps) {
-  const { t } = useAdminHubI18n();
   return (
     <section className="rounded-[12px] border border-[#EFEFEF] bg-white px-[30px] py-[33px]">
       <div className="mb-[23px] flex items-center justify-between">

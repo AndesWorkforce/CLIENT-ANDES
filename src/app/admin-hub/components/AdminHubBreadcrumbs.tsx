@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useAdminHubI18n, type AdminHubTranslate } from "../i18n";
+import { t, type AdminHubTranslate } from "../i18n";
 
 export interface AdminHubBreadcrumbItem {
   label: string;
@@ -130,7 +130,6 @@ interface AdminHubBreadcrumbsProps {
 
 export default function AdminHubBreadcrumbs({ items, className = "" }: AdminHubBreadcrumbsProps) {
   const pathname = usePathname();
-  const { t } = useAdminHubI18n();
   const crumbs = items ?? getAdminHubBreadcrumbItems(pathname, t);
 
   if (crumbs.length === 0) return null;

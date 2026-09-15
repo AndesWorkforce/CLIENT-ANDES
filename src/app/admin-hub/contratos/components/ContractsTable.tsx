@@ -9,7 +9,7 @@ import AdminHubTableShell, {
   ADMIN_HUB_TABLE_HEAD_LAST_CELL,
   ADMIN_HUB_TABLE_ROW,
 } from "../../components/AdminHubTableShell";
-import { useAdminHubI18n, type AdminHubTranslate } from "../../i18n";
+import { t, type AdminHubTranslate } from "../../i18n";
 import type { ContratoListItem } from "../actions/contratos.actions";
 import { getContractStatusLabel, getPaisDisplay } from "../data/contract-display";
 import type { JornadaLaboral } from "../data/mock-contracts";
@@ -36,7 +36,6 @@ function paymentMethodLabel(value: string, t: AdminHubTranslate): string {
 }
 
 export default function ContractsTable({ contracts }: ContractsTableProps) {
-  const { t } = useAdminHubI18n();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 

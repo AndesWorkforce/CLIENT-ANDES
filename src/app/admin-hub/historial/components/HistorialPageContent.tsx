@@ -18,7 +18,7 @@ import {
 } from "../actions/historial.actions";
 import type { HistorialItem, HistorialModulo } from "../types/historial.types";
 import { HISTORIAL_MODULOS } from "../types/historial.types";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import { translateHistorialModule } from "../utils/historial-labels";
 import HistorialTable from "./HistorialTable";
 
@@ -26,7 +26,6 @@ const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 350;
 
 export default function HistorialPageContent() {
-  const { t } = useAdminHubI18n();
   const moduloOptions = HISTORIAL_MODULOS.map((value) => ({
     value,
     label: translateHistorialModule(value, t),

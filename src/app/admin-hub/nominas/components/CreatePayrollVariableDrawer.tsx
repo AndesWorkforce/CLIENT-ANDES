@@ -15,7 +15,7 @@ import CreatePayrollVariableForm, {
   isPayrollVariableFormComplete,
   type CreatePayrollVariableFormData,
 } from "./CreatePayrollVariableForm";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 type DrawerStep = "select-type" | "form";
 
@@ -38,7 +38,6 @@ export default function CreatePayrollVariableDrawer({
   onClose,
   onVariableCreated,
 }: CreatePayrollVariableDrawerProps) {
-  const { t } = useAdminHubI18n();
   const { addNotification } = useNotificationStore();
   const [step, setStep] = useState<DrawerStep>("select-type");
   const [selectedType, setSelectedType] = useState<PayrollVariableDrawerType | null>(null);

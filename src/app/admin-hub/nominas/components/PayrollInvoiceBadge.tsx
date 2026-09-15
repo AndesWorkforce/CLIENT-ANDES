@@ -1,7 +1,7 @@
 "use client";
 
 import type { PayrollInvoiceStatus } from "../data/payroll-data";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 const statusStyles: Record<Exclude<PayrollInvoiceStatus, null>, string> = {
   Generado: "bg-[#ECFDF3] text-[#027A48]",
@@ -14,7 +14,6 @@ interface PayrollInvoiceBadgeProps {
 }
 
 export default function PayrollInvoiceBadge({ status }: PayrollInvoiceBadgeProps) {
-  const { t } = useAdminHubI18n();
   if (!status) return null;
 
   return (

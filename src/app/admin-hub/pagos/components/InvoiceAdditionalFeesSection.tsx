@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { InvoiceAdditionalFee } from "../data/mock-invoice-details";
 import { resolveAdditionalFeesApprovalStatus } from "../lib/invoice-approval-status";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import InvoiceAdditionalFeesTable from "./InvoiceAdditionalFeesTable";
 import InvoiceCollapsibleSectionHeader from "./InvoiceCollapsibleSectionHeader";
 
@@ -24,7 +24,6 @@ export default function InvoiceAdditionalFeesSection({
   onRejectItem,
   onDeleteItem,
 }: InvoiceAdditionalFeesSectionProps) {
-  const { t } = useAdminHubI18n();
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const aggregateStatus = resolveAdditionalFeesApprovalStatus(items);
 

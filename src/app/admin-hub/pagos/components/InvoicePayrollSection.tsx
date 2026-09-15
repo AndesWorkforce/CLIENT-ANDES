@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { InvoicePayrollEntry } from "../data/mock-invoice-details";
 import { resolvePayrollApprovalStatus } from "../lib/invoice-approval-status";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import InvoiceCollapsibleSectionHeader from "./InvoiceCollapsibleSectionHeader";
 import InvoicePayrollTable from "./InvoicePayrollTable";
 
@@ -26,7 +26,6 @@ export default function InvoicePayrollSection({
   onApproveSelected,
   isBusy,
 }: InvoicePayrollSectionProps) {
-  const { t } = useAdminHubI18n();
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const aggregateStatus = resolvePayrollApprovalStatus(entries);

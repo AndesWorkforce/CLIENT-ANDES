@@ -44,25 +44,25 @@ export interface HistorialItem {
 }
 
 export const HISTORIAL_MODULO_LABEL: Record<HistorialModulo, string> = {
-  NOMINA: "Nómina",
-  FACTURA: "Factura",
+  NOMINA: "Payroll",
+  FACTURA: "Invoice",
   VARIABLE: "Variable",
-  CONTRATO: "Contrato",
-  PERSONA: "Persona",
-  DEDUCCION: "Deducción",
-  CUSTOMER_CHARGE: "Cargo al cliente",
-  CUSTOMER_CREDIT: "Crédito al cliente",
-  ALERTA: "Alerta",
-  PAIS: "País",
-  DIA_LIBRE: "Ausencia",
+  CONTRATO: "Contract",
+  PERSONA: "Person",
+  DEDUCCION: "Deduction",
+  CUSTOMER_CHARGE: "Customer charge",
+  CUSTOMER_CREDIT: "Customer credit",
+  ALERTA: "Alert",
+  PAIS: "Country",
+  DIA_LIBRE: "Absence",
 };
 
 export const HISTORIAL_ACCION_LABEL: Record<HistorialAccion, string> = {
-  CREAR: "Creación",
-  ACTUALIZAR: "Actualización",
-  APROBAR: "Aprobación",
-  RECHAZAR: "Rechazo",
-  EMITIR: "Emisión",
-  ANULAR: "Anulación",
-  ELIMINAR: "Eliminación",
+  CREAR: "Created",
+  ACTUALIZAR: "Updated",
+  APROBAR: "Approved",
+  RECHAZAR: "Rejected",
+  EMITIR: "Issued",
+  ANULAR: "Voided",
+  ELIMINAR: "Deleted",
 };

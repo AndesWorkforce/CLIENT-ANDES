@@ -19,7 +19,7 @@ export function holidayFechaIso(holiday: PayrollHolidayOption, year = new Date()
 
 export function formatHolidayLabel(
   holiday: PayrollHolidayOption,
-  locale = "es-ES",
+  locale = "en-US",
 ): string {
   const iso = holidayFechaIso(holiday);
   const datePart = new Date(`${iso}T12:00:00`).toLocaleDateString(locale, {

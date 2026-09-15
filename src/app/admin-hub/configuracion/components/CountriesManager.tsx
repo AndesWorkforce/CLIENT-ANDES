@@ -7,7 +7,7 @@ import { includesSearchText, normalizeSearchText } from "../../lib/search-text";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubTableShell, { ADMIN_HUB_TABLE_ROW } from "../../components/AdminHubTableShell";
 import AdminHubConfirmModal from "../../nominas/components/AdminHubConfirmModal";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import {
   createCountry,
   getCountries,
@@ -102,7 +102,6 @@ function formToInput(form: FormState): CountryConfigInput {
 }
 
 export default function CountriesManager() {
-  const { t } = useAdminHubI18n();
   const { addNotification } = useNotificationStore();
   const [countries, setCountries] = useState<CountryConfig[]>([]);
   const [loading, setLoading] = useState(true);

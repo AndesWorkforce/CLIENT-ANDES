@@ -12,7 +12,7 @@ import AdminHubTableShell, {
 } from "../../components/AdminHubTableShell";
 import { formatMoney, type PayrollRow } from "../data/payroll-data";
 import { payrollRowToDetailPath } from "../utils/payroll-navigation";
-import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
+import { formatAdminHubPeriod, t } from "../../i18n";
 import PayrollInvoiceBadge from "./PayrollInvoiceBadge";
 import PayrollProofBadge from "./PayrollProofBadge";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
@@ -41,7 +41,6 @@ const PROOF_SORT_ORDER: Record<string, number> = {
 };
 
 export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }: NominasTableProps) {
-  const { t } = useAdminHubI18n();
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -256,7 +255,7 @@ export default function NominasTable({ rows, selectedIds, onSelectedIdsChange }:
                 {row.client}
               </td>
               <td className={cellClass}>
-                {formatAdminHubPeriod(row.periodoAnioMes, t)}
+                {formatAdminHubPeriod(row.periodoAnioMes)}
               </td>
               <td className={cellClass}>
                 <PayrollInvoiceBadge status={row.invoice} />

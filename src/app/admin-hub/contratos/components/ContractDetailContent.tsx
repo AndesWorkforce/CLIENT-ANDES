@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
-import { useAdminHubI18n, type AdminHubTranslate } from "../../i18n";
+import { t, type AdminHubTranslate } from "../../i18n";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubDatePicker from "../../components/AdminHubDatePicker";
 import AdminHubFormField from "../../components/AdminHubFormField";
@@ -198,7 +198,6 @@ function buildSectionPayload(
 }
 
 export default function ContractDetailContent({ detail }: ContractDetailContentProps) {
-  const { t } = useAdminHubI18n();
   const router = useRouter();
   const { addNotification } = useNotificationStore();
   const [detailState, setDetailState] = useState(detail);

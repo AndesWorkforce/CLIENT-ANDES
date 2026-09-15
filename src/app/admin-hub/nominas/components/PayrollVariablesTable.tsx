@@ -16,7 +16,7 @@ import {
   type PayrollVariable,
 } from "../data/mock-payroll-variables";
 import { applyDateToSortable } from "../lib/payroll-apply-date";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
 import DeletePayrollVariableModal from "./DeletePayrollVariableModal";
 
@@ -42,7 +42,6 @@ export default function PayrollVariablesTable({
   onDelete,
 }: PayrollVariablesTableProps) {
   const router = useRouter();
-  const { t } = useAdminHubI18n();
   const { addNotification } = useNotificationStore();
   const [sortByDate, setSortByDate] = useState<"asc" | "desc" | null>(null);
   const [sortByAmount, setSortByAmount] = useState<"asc" | "desc" | null>(null);

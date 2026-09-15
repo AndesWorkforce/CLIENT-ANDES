@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, Calendar } from "lucide-react";
 import AdminHubDatePicker from "./AdminHubDatePicker";
-import { useAdminHubI18n } from "../i18n";
+import { t } from "../i18n";
 
 interface AdminHubDateRangePickerProps {
   fromDate: string;
@@ -33,7 +33,6 @@ export default function AdminHubDateRangePicker({
   className = "",
   variant = "default",
 }: AdminHubDateRangePickerProps) {
-  const { t } = useAdminHubI18n();
   const resolvedFromLabel = fromLabel ?? t("dates.from");
   const resolvedToLabel = toLabel ?? t("dates.to");
   const [validationError, setValidationError] = useState<string | null>(null);

@@ -6,7 +6,7 @@ import PayrollVariableFormSection from "./PayrollVariableFormSection";
 import OvertimeDetailFields from "./OvertimeDetailFields";
 import AdminHubFormField from "../../components/AdminHubFormField";
 import type { CreatePayrollVariableFormData } from "./payroll-variable-form-types";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface CreatePayrollVariableFormProps {
   variableType: PayrollVariableDrawerType;
@@ -25,7 +25,6 @@ export default function CreatePayrollVariableForm({
   formData,
   onChange,
 }: CreatePayrollVariableFormProps) {
-  const { t } = useAdminHubI18n();
   function patchDescription(descripcion: string) {
     onChange({ ...formData, descripcion });
   }

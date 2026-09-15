@@ -23,7 +23,7 @@ import {
   type PagosCliente,
 } from "../actions/pagos.actions";
 import type { Invoice, InvoiceStatus } from "../types/invoice.types";
-import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
+import { formatAdminHubPeriod, t } from "../../i18n";
 import InvoiceFilterSelect from "./InvoiceFilterSelect";
 import InvoicesTable from "./InvoicesTable";
 
@@ -68,7 +68,7 @@ function buildClientFilterOptions(clients: PagosCliente[]) {
   return clients
     .map((client) => client.nombre)
     .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b, "es"))
+    .sort((a, b) => a.localeCompare(b, "en"))
     .map((nombre) => ({ value: nombre, label: nombre }));
 }
 
@@ -81,7 +81,6 @@ export default function InvoicesPageContent({
   initialClients,
   initialError = null,
 }: InvoicesPageContentProps) {
-  const { t } = useAdminHubI18n();
   const monthOptions = useMemo(() => buildNominaMonthOptions(), []);
   const currentMonthOption = useMemo(() => getCurrentNominaMonthOption(), []);
   const amountFilterOptions = useMemo(
@@ -180,7 +179,7 @@ export default function InvoicesPageContent({
           onChange={setSelectedMonth}
           options={monthOptions.map((month) => ({
             value: month,
-            label: formatAdminHubPeriod(nominaMonthOptionToAnioMes(month), t),
+            label: formatAdminHubPeriod(nominaMonthOptionToAnioMes(month)),
           }))}
           variant="filter"
         />

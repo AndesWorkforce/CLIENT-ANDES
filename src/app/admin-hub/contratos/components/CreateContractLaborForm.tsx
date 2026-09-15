@@ -5,7 +5,7 @@ import { Info } from "lucide-react";
 import AdminHubDatePicker from "../../components/AdminHubDatePicker";
 import AdminHubFormField from "../../components/AdminHubFormField";
 import AdminHubSelect from "../../components/AdminHubSelect";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import {
   CLIENT_OPTIONS,
   DISCRETIONARY_BONUS_OPTIONS,
@@ -64,7 +64,6 @@ export default function CreateContractLaborForm({
   onChange,
   contractType,
 }: CreateContractLaborFormProps) {
-  const { t } = useAdminHubI18n();
   const isPartTime = contractType === "part-time";
 
   function patch(partial: Partial<CreateContractFormData>) {

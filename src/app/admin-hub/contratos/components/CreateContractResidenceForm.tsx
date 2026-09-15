@@ -1,7 +1,7 @@
 "use client";
 
 import AdminHubFormField from "../../components/AdminHubFormField";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import {
   getCityOptions,
   getStateOptions,
@@ -19,7 +19,6 @@ export default function CreateContractResidenceForm({
   formData,
   onChange,
 }: CreateContractResidenceFormProps) {
-  const { t } = useAdminHubI18n();
   const stateOptions = getStateOptions(formData.paisResidencia);
   const cityOptions = getCityOptions(formData.estado);
 

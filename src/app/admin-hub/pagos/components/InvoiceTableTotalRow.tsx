@@ -1,7 +1,7 @@
 "use client";
 
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface InvoiceTableTotalRowProps {
   /** Columnas vacías entre la etiqueta "Total" y el monto */
@@ -18,7 +18,6 @@ export default function InvoiceTableTotalRow({
   subtotal,
   subtotalIsNegative = false,
 }: InvoiceTableTotalRowProps) {
-  const { t } = useAdminHubI18n();
   return (
     <tr className="border-t border-[#EFEFEF]">
       <td className="px-6 py-6" />

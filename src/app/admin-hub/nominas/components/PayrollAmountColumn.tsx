@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface PayrollAmountColumnProps {
   title: string;
@@ -17,7 +17,6 @@ export default function PayrollAmountColumn({
   totalAmount,
   emptyLabel,
 }: PayrollAmountColumnProps) {
-  const { t } = useAdminHubI18n();
   const resolvedEmptyLabel = emptyLabel ?? t("nominas.emptyRecords");
   const fillerCount = Math.max(0, 3 - lines.length);
 

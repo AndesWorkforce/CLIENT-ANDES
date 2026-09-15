@@ -7,7 +7,7 @@ import { getAvisos } from "../actions/avisos.actions";
 import type { AvisoNotification, AvisoTab } from "../types/avisos.types";
 import AvisoGroupSection from "./AvisoGroupSection";
 import AvisosTabs from "./AvisosTabs";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 function filterByTab(avisos: AvisoNotification[], tab: AvisoTab): AvisoNotification[] {
   switch (tab) {
@@ -21,7 +21,6 @@ function filterByTab(avisos: AvisoNotification[], tab: AvisoTab): AvisoNotificat
 }
 
 export default function AvisosPageContent() {
-  const { t } = useAdminHubI18n();
   const [activeTab, setActiveTab] = useState<AvisoTab>("todos");
   const [avisos, setAvisos] = useState<AvisoNotification[]>([]);
   const [loading, setLoading] = useState(true);
