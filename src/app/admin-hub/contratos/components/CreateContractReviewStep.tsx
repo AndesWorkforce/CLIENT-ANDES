@@ -1,7 +1,7 @@
 "use client";
 
 import AdminHubFormField from "../../components/AdminHubFormField";
-import { useAdminHubI18n, type AdminHubTranslate } from "../../i18n";
+import { t, type AdminHubTranslate } from "../../i18n";
 import { NATIONALITY_OPTIONS } from "../data/mock-contract-address";
 import {
   BANK_OPTIONS,
@@ -75,7 +75,6 @@ export default function CreateContractReviewStep({
   formData,
   selectedType,
 }: CreateContractReviewStepProps) {
-  const { t } = useAdminHubI18n();
   const discretionaryBonusLabel = formData.discretionaryBonus
     ? t(`bonus.${formData.discretionaryBonus}`)
     : t("common.dash");

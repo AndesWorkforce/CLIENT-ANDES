@@ -2,7 +2,7 @@
 
 import AdminHubFormField from "../../components/AdminHubFormField";
 import { OVERTIME_UNIT_OPTIONS } from "./payroll-variable-form-types";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface OvertimeDetailFieldsProps {
   unidad: string;
@@ -17,7 +17,6 @@ export default function OvertimeDetailFields({
   onUnidadChange,
   onCantidadChange,
 }: OvertimeDetailFieldsProps) {
-  const { t } = useAdminHubI18n();
   return (
     <div className="flex flex-col gap-[10px] sm:flex-row">
       <div className="min-w-0 flex-1">

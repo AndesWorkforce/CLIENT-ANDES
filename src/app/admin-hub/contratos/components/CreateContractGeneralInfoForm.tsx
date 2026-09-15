@@ -2,7 +2,7 @@
 
 import AdminHubDatePicker from "../../components/AdminHubDatePicker";
 import AdminHubFormField from "../../components/AdminHubFormField";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import { NATIONALITY_OPTIONS } from "../data/mock-contract-address";
 import type { CreateContractFormData } from "../data/contract-creation-types";
 import ContractFormSection from "./ContractFormSection";
@@ -16,7 +16,6 @@ export default function CreateContractGeneralInfoForm({
   formData,
   onChange,
 }: CreateContractGeneralInfoFormProps) {
-  const { t } = useAdminHubI18n();
   function patch(partial: Partial<CreateContractFormData>) {
     onChange({ ...formData, ...partial });
   }

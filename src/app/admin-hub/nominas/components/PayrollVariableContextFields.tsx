@@ -14,7 +14,7 @@ import { usePayrollHolidaysByCountry } from "../hooks/usePayrollHolidaysByCountr
 import IncomeVariableAmountField from "./IncomeVariableAmountField";
 import PayrollPeriodField from "./PayrollPeriodField";
 import type { CreatePayrollVariableFormData } from "./payroll-variable-form-types";
-import { useAdminHubI18n } from "../../i18n";
+import { t, ADMIN_HUB_DATE_LOCALE } from "../../i18n";
 
 export type ContextFieldsVariant =
   | "overtime"
@@ -33,7 +33,7 @@ export default function PayrollVariableContextFields({
   formData,
   onChange,
 }: PayrollVariableContextFieldsProps) {
-  const { t, dateLocale } = useAdminHubI18n();
+  const dateLocale = ADMIN_HUB_DATE_LOCALE;
   const {
     contractorOptions,
     getContractsForContractor,

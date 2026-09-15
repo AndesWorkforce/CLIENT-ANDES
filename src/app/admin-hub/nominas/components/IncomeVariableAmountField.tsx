@@ -6,7 +6,7 @@ import {
   parseSignedAmountInput,
   sanitizeSignedAmountInput,
 } from "../lib/parse-signed-amount";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface IncomeVariableAmountFieldProps {
   category: string;
@@ -22,7 +22,6 @@ export default function IncomeVariableAmountField({
   onCategoryChange,
   onAmountChange,
 }: IncomeVariableAmountFieldProps) {
-  const { t } = useAdminHubI18n();
   return (
     <div className="flex flex-col gap-[10px] sm:flex-row">
       <div className="min-w-0 flex-1">

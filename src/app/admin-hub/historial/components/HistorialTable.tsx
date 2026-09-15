@@ -3,7 +3,7 @@
 import AdminHubTableShell, {
   ADMIN_HUB_TABLE_ROW,
 } from "../../components/AdminHubTableShell";
-import { useAdminHubI18n } from "../../i18n";
+import { t, ADMIN_HUB_DATE_LOCALE } from "../../i18n";
 import type { HistorialItem } from "../types/historial.types";
 import { formatHistorialCambios } from "../utils/format-historial-cambios";
 import {
@@ -16,7 +16,7 @@ interface HistorialTableProps {
 }
 
 export default function HistorialTable({ rows }: HistorialTableProps) {
-  const { t, dateLocale } = useAdminHubI18n();
+  const dateLocale = ADMIN_HUB_DATE_LOCALE;
   const cellClass = "px-3 py-5 text-[14px] tracking-[0.28px] text-[#858585]";
 
   function formatDateTime(iso: string): string {

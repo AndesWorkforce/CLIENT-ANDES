@@ -26,7 +26,7 @@ import {
 import CreatePayrollVariableDrawer from "./CreatePayrollVariableDrawer";
 import PayrollVariablesTable from "./PayrollVariablesTable";
 import AdminHubConfirmModal from "./AdminHubConfirmModal";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 function buildFilterOptions<T>(items: T[], getValue: (item: T) => string) {
   return Array.from(new Set(items.map(getValue))).map((value) => ({
@@ -87,7 +87,6 @@ export default function PayrollVariablesPageContent({
   initialSearchQuery = "",
 }: PayrollVariablesPageContentProps) {
   const { addNotification } = useNotificationStore();
-  const { t } = useAdminHubI18n();
   const statusFilterOptions = useMemo(
     () =>
       STATUS_FILTER_VALUES.map((value) => ({

@@ -1,7 +1,7 @@
 "use client";
 
 import AdminHubFormField from "../../components/AdminHubFormField";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import { HOW_DID_YOU_HEAR_OPTIONS, YES_NO_OPTIONS } from "../data/mock-contract-form-options";
 import type { CreateContractFormData } from "../data/contract-creation-types";
 import ContractFormSection from "./ContractFormSection";
@@ -15,7 +15,6 @@ export default function CreateContractAdditionalIncomeForm({
   formData,
   onChange,
 }: CreateContractAdditionalIncomeFormProps) {
-  const { t } = useAdminHubI18n();
   function patch(partial: Partial<CreateContractFormData>) {
     onChange({ ...formData, ...partial });
   }

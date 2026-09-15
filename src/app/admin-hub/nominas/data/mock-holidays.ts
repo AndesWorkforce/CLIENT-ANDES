@@ -496,7 +496,7 @@ export function getHolidaysByCountry(countryCode: string): MockHoliday[] {
 
 export function formatHolidayLabel(holiday: MockHoliday): string {
   const datePart = holiday.fecha
-    ? new Date(holiday.fecha + "T12:00:00").toLocaleDateString("es-ES", {
+    ? new Date(holiday.fecha + "T12:00:00").toLocaleDateString("en-US", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",

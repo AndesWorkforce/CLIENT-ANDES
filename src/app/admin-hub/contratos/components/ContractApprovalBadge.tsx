@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 type ContractApprovalStatus = "Pendiente" | "Aprobada";
 
@@ -14,7 +14,6 @@ interface ContractApprovalBadgeProps {
 }
 
 export default function ContractApprovalBadge({ status }: ContractApprovalBadgeProps) {
-  const { t } = useAdminHubI18n();
   return (
     <span
       className={`inline-flex items-center justify-center rounded-[12px] px-[9px] py-[5px] text-[12px] font-semibold leading-[1.3] ${statusStyles[status]}`}

@@ -7,7 +7,7 @@ import {
   displayPeriodToAnioMes,
   isValidAnioMes,
 } from "../data/payroll-data";
-import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
+import { formatAdminHubPeriod, t } from "../../i18n";
 
 interface DeletePayrollVariableModalProps {
   variable: PayrollVariable | null;
@@ -22,7 +22,6 @@ export default function DeletePayrollVariableModal({
   onClose,
   onConfirm,
 }: DeletePayrollVariableModalProps) {
-  const { t } = useAdminHubI18n();
   useEffect(() => {
     if (!open) return;
 
@@ -38,7 +37,7 @@ export default function DeletePayrollVariableModal({
 
   const periodAnioMes = displayPeriodToAnioMes(variable.period);
   const periodLabel = isValidAnioMes(periodAnioMes)
-    ? formatAdminHubPeriod(periodAnioMes, t)
+    ? formatAdminHubPeriod(periodAnioMes)
     : variable.period;
 
   return (

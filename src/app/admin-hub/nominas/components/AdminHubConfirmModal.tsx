@@ -3,7 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CircleAlert, X } from "lucide-react";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface AdminHubConfirmModalProps {
   open: boolean;
@@ -30,7 +30,6 @@ export default function AdminHubConfirmModal({
   onClose,
   onConfirm,
 }: AdminHubConfirmModalProps) {
-  const { t } = useAdminHubI18n();
   const resolvedCancelLabel = cancelLabel ?? t("common.cancel");
   useEffect(() => {
     if (!open) return;

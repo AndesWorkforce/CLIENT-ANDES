@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ChevronDown, CircleX } from "lucide-react";
 import useOutsideClick from "@/hooks/useOutsideClick";
-import { useAdminHubI18n } from "../i18n";
+import { t } from "../i18n";
 
 export interface AdminHubSelectOption {
   value: string;
@@ -55,7 +55,6 @@ export default function AdminHubSelect({
   clearable = false,
   searchable = false,
 }: AdminHubSelectProps) {
-  const { t } = useAdminHubI18n();
   const resolvedPlaceholder = placeholder ?? t("common.select");
   const generatedId = useId();
   const id = idProp ?? generatedId;

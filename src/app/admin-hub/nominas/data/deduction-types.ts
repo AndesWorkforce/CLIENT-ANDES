@@ -1,5 +1,5 @@
 export const DEDUCTION_TYPE_OPTIONS = [
-  { value: "Ausencia", label: "Ausencia" },
+  { value: "Ausencia", label: "Absence" },
   { value: "Other", label: "Other" },
 ] as const;
 

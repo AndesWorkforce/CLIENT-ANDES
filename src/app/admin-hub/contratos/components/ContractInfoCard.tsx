@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Pencil } from "lucide-react";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface ContractInfoCardProps {
   title: string;
@@ -19,7 +19,6 @@ export default function ContractInfoCard({
   isSaving = false,
   onEditClick,
 }: ContractInfoCardProps) {
-  const { t } = useAdminHubI18n();
   return (
     <section className="flex h-full flex-col gap-[33px] rounded-[12px] border border-[#EFEFEF] bg-white px-[30px] pb-6 pt-[30px]">
       <div className="flex items-center justify-between gap-4">

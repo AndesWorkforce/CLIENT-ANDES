@@ -1,7 +1,7 @@
 "use client";
 
 import type { AvisoTab } from "../types/avisos.types";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface AvisosTabsProps {
   activeTab: AvisoTab;
@@ -16,7 +16,6 @@ const TABS: { id: AvisoTab; labelKey: string }[] = [
 ];
 
 export default function AvisosTabs({ activeTab, counts, onChange }: AvisosTabsProps) {
-  const { t } = useAdminHubI18n();
 
   return (
     <div className="border-b border-[#EFEFEF]">

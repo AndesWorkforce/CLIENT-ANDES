@@ -41,7 +41,7 @@ import InvoicePayrollSection from "./InvoicePayrollSection";
 import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
 import AdminHubConfirmModal from "../../nominas/components/AdminHubConfirmModal";
 import { displayPeriodToApiPeriod } from "../actions/pagos.utils";
-import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
+import { formatAdminHubPeriod, t } from "../../i18n";
 
 type TabKey = "all" | "nomina" | "adicionales" | "customer-charges" | "customer-credits";
 
@@ -136,7 +136,6 @@ function recalculateGrandTotal(
 }
 
 export default function InvoiceDetailContent({ invoice: initialInvoice }: InvoiceDetailContentProps) {
-  const { t } = useAdminHubI18n();
   const { addNotification } = useNotificationStore();
   const router = useRouter();
   const [invoice, setInvoice] = useState<InvoiceDetail>(initialInvoice);
@@ -196,9 +195,9 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
 
   const periodLabel = useMemo(() => {
     try {
-      return formatAdminHubPeriod(displayPeriodToApiPeriod(invoice.period), t);
+      return formatAdminHubPeriod(displayPeriodToApiPeriod(invoice.period));
     } catch {
-      return formatAdminHubPeriod(invoice.period, t);
+      return formatAdminHubPeriod(invoice.period);
     }
   }, [invoice.period, t]);
 

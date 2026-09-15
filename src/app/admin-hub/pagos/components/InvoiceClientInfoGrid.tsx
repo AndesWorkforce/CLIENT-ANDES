@@ -10,7 +10,7 @@ import {
   Phone,
 } from "lucide-react";
 import type { InvoiceDetail } from "../data/mock-invoice-details";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import InvoiceInfoCard from "./InvoiceInfoCard";
 
 interface InvoiceClientInfoGridProps {
@@ -18,7 +18,6 @@ interface InvoiceClientInfoGridProps {
 }
 
 export default function InvoiceClientInfoGrid({ invoice }: InvoiceClientInfoGridProps) {
-  const { t } = useAdminHubI18n();
 
   return (
     <div className="grid w-full grid-cols-1 gap-x-[7px] gap-y-[11px] sm:grid-cols-2 xl:grid-cols-4">

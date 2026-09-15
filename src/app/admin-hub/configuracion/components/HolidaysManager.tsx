@@ -15,7 +15,7 @@ import {
 } from "../actions/holidays.actions";
 import { PlusIcon, Search, Calendar, Edit, Trash2, X, RefreshCw, Sparkles } from "lucide-react";
 import TableSkeleton from "../../dashboard/components/TableSkeleton";
-import { useAdminHubI18n } from "../../i18n";
+import { t, ADMIN_HUB_DATE_LOCALE } from "../../i18n";
 
 const COUNTRIES = [
   { name: "Colombia", code: "CO" },
@@ -31,7 +31,7 @@ const COUNTRIES = [
 ];
 
 export default function HolidaysManager() {
-  const { t, dateLocale } = useAdminHubI18n();
+  const dateLocale = ADMIN_HUB_DATE_LOCALE;
   const { addNotification } = useNotificationStore();
 
   function monthName(month: number): string {

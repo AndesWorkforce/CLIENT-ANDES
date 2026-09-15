@@ -2,7 +2,7 @@
 
 import type { MovementType } from "./CreateInvoiceItemDrawer";
 import AdminHubFormField from "../../components/AdminHubFormField";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import {
   INVOICE_ITEM_CURRENCY,
   isCreateItemFormComplete,
@@ -40,7 +40,6 @@ export default function CreateInvoiceItemForm({
   formData,
   onChange,
 }: CreateInvoiceItemFormProps) {
-  const { t } = useAdminHubI18n();
   const tipoOptions = (
     movementType === "customer-charges" ? CHARGE_TYPE_VALUES : CREDIT_TYPE_VALUES
   ).map((option) => ({ value: option.value, label: t(option.labelKey) }));

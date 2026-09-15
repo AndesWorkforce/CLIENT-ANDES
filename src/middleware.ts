@@ -1,10 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import {
-  ADMIN_HUB_LOCALE_COOKIE,
-  detectLocaleFromAcceptLanguage,
-  isAdminHubLocale,
-} from "./app/admin-hub/i18n/locales";
 
 const AUTH_COOKIE = "auth_token";
 const USER_INFO_COOKIE = "user_info";
@@ -283,26 +278,7 @@ export function middleware(request: NextRequest) {
     });
   }
 
-  return withAdminHubLocaleCookie(request, NextResponse.next());
-}
-
-function withAdminHubLocaleCookie(request: NextRequest, response: NextResponse) {
-  if (!request.nextUrl.pathname.startsWith("/admin-hub")) {
-    return response;
-  }
-
-  const existing = request.cookies.get(ADMIN_HUB_LOCALE_COOKIE)?.value;
-  if (isAdminHubLocale(existing)) {
-    return response;
-  }
-
-  const locale = detectLocaleFromAcceptLanguage();
-  response.cookies.set(ADMIN_HUB_LOCALE_COOKIE, locale, {
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-    sameSite: "lax",
-  });
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {

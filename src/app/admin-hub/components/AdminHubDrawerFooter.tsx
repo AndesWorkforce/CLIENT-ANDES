@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdminHubI18n } from "../i18n";
+import { t } from "../i18n";
 
 interface AdminHubDrawerFooterProps {
   onCancel: () => void;
@@ -22,7 +22,6 @@ export default function AdminHubDrawerFooter({
   cancelVariant = "cancel",
   cancelActive = false,
 }: AdminHubDrawerFooterProps) {
-  const { t } = useAdminHubI18n();
   const resolvedCancelLabel = cancelLabel ?? t("common.cancel");
   const cancelClass =
     cancelVariant === "back"

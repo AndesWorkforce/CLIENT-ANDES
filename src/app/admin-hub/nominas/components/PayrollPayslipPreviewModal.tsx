@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { PayrollDetail } from "../types/nomina-detail.types";
 import PayrollPayslipPreview from "./PayrollPayslipPreview";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface PayrollPayslipPreviewModalProps {
   open: boolean;
@@ -18,7 +18,6 @@ export default function PayrollPayslipPreviewModal({
   onClose,
   detail,
 }: PayrollPayslipPreviewModalProps) {
-  const { t } = useAdminHubI18n();
   useEffect(() => {
     if (!open) return;
 

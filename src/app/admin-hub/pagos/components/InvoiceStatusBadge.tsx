@@ -5,7 +5,7 @@ import type {
   InvoiceLineItemStatus,
   InvoicePayrollStatus,
 } from "../data/mock-invoice-details";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 export type InvoiceBadgeStatus =
   | InvoiceStatus
@@ -34,7 +34,6 @@ export default function InvoiceStatusBadge({
   status,
   enlarged = false,
 }: InvoiceStatusBadgeProps) {
-  const { t } = useAdminHubI18n();
   const translated = t(`status.invoice.${status}`);
   return (
     <span

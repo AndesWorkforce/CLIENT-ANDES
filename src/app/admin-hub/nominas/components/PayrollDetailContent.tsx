@@ -28,7 +28,7 @@ import PayrollDetailInfoRow from "./PayrollDetailInfoRow";
 import PayrollEmitModal, { type PayrollEmitModalVariant } from "./PayrollEmitModal";
 import PayrollPayslipPreviewModal from "./PayrollPayslipPreviewModal";
 import PayrollPayslipPreviewThumbnail from "./PayrollPayslipPreviewThumbnail";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 const STATUS_OPTIONS: { value: PayrollVariableStatus; label: string }[] = [
   { value: "Pendiente", label: "Pendiente" },
@@ -41,7 +41,6 @@ interface PayrollDetailContentProps {
 }
 
 export default function PayrollDetailContent({ detail: initialDetail }: PayrollDetailContentProps) {
-  const { t } = useAdminHubI18n();
   const router = useRouter();
   const { addNotification } = useNotificationStore();
   const [isPending, startTransition] = useTransition();

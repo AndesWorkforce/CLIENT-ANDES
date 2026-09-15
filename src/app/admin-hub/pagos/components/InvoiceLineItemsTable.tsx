@@ -7,7 +7,7 @@ import AdminHubTableShell, { ADMIN_HUB_TABLE_ROW } from "../../components/AdminH
 import type { InvoiceLineItem } from "../data/mock-invoice-details";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 import InvoiceTableTotalRow from "./InvoiceTableTotalRow";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import ObjectHistorialTable from "../../historial/components/ObjectHistorialTable";
 import type { HistorialModulo } from "../../historial/types/historial.types";
 
@@ -36,7 +36,6 @@ export default function InvoiceLineItemsTable({
   historialModulo,
   historialEntidadTipo,
 }: InvoiceLineItemsTableProps) {
-  const { t } = useAdminHubI18n();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);

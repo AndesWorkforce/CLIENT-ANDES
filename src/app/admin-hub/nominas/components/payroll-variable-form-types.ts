@@ -17,8 +17,8 @@ export interface CreatePayrollVariableFormData {
 }
 
 export const OVERTIME_UNIT_OPTIONS = [
-  { value: "horas", label: "Horas" },
-  { value: "minutos", label: "Minutos" },
+  { value: "horas", label: "Hours" },
+  { value: "minutos", label: "Minutes" },
 ];
 
 export const TYPE_SUBTITLES: Record<PayrollVariableDrawerType, string> = {

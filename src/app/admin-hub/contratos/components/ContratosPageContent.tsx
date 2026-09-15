@@ -11,7 +11,7 @@ import {
 import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import TableSkeleton from "../../dashboard/components/TableSkeleton";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import {
   getContratos,
   type ContratoListItem,
@@ -83,7 +83,6 @@ function mergeFilterOptions(
 }
 
 export default function ContratosPageContent() {
-  const { t } = useAdminHubI18n();
   const [contracts, setContracts] = useState<ContratoListItem[]>([]);
   const [pagination, setPagination] = useState<ContratosPagination>({
     total: 0,

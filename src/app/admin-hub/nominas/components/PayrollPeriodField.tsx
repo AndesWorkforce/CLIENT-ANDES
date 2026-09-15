@@ -1,7 +1,7 @@
 "use client";
 
 import AdminHubDatePicker from "../../components/AdminHubDatePicker";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface PayrollPeriodFieldProps {
   value: string;
@@ -9,7 +9,6 @@ interface PayrollPeriodFieldProps {
 }
 
 export default function PayrollPeriodField({ value, onChange }: PayrollPeriodFieldProps) {
-  const { t } = useAdminHubI18n();
   return (
     <AdminHubDatePicker
       label={t("nominas.period")}

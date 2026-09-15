@@ -31,7 +31,7 @@ import type { PayrollInvoiceStatus, PayrollProofStatus } from "../data/payroll-d
 import NominasTable from "./NominasTable";
 import AdminHubConfirmModal from "./AdminHubConfirmModal";
 import { useNotificationStore } from "@/store/notifications.store";
-import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
+import { formatAdminHubPeriod, t } from "../../i18n";
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 350;
@@ -70,7 +70,6 @@ function buildFilterOptions(values: string[]) {
 }
 
 export default function NominasPageContent() {
-  const { t } = useAdminHubI18n();
   const monthOptions = useMemo(() => buildNominaMonthOptions(), []);
   const currentMonthOption = useMemo(() => getCurrentNominaMonthOption(), []);
   const statusFilterOptions = useMemo(
@@ -104,7 +103,7 @@ export default function NominasPageContent() {
     () =>
       monthOptions.map((month) => ({
         value: month,
-        label: formatAdminHubPeriod(nominaMonthOptionToAnioMes(month), t),
+        label: formatAdminHubPeriod(nominaMonthOptionToAnioMes(month)),
       })),
     [monthOptions, t],
   );
@@ -270,12 +269,12 @@ export default function NominasPageContent() {
     if (nominasFueraDeMes.length > 0) {
       errors.push(
         t("nominas.wrongMonth", {
-          month: formatAdminHubPeriod(periodoApi, t),
+          month: formatAdminHubPeriod(periodoApi),
         }),
       );
       nominasFueraDeMes.forEach((row) => {
         errors.push(
-          `  • ${row.contractorName} (${row.client}) - ${t("nominas.periodColon")} ${formatAdminHubPeriod(row.periodoAnioMes, t)}`,
+          `  • ${row.contractorName} (${row.client}) - ${t("nominas.periodColon")} ${formatAdminHubPeriod(row.periodoAnioMes)}`,
         );
       });
     }
@@ -569,7 +568,7 @@ export default function NominasPageContent() {
                   {t("nominas.month")}
                 </span>
                 <span className="text-[14px] text-[#343434]">
-                  {formatAdminHubPeriod(periodoApi, t)}
+                  {formatAdminHubPeriod(periodoApi)}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-[#EFEFEF]">

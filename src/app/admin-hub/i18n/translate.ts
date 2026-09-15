@@ -1,5 +1,6 @@
 import { adminHubMessages } from "./messages";
-import { ADMIN_HUB_DEFAULT_LOCALE, type AdminHubLocale } from "./locales";
+
+export const ADMIN_HUB_DATE_LOCALE = "en-US";
 
 export type AdminHubTranslateParams = Record<string, string | number>;
 
@@ -31,22 +32,13 @@ function interpolate(template: string, params?: AdminHubTranslateParams): string
   );
 }
 
-export function translate(
-  locale: AdminHubLocale,
-  key: string,
-  params?: AdminHubTranslateParams,
-): string {
-  const localized =
-    getByPath(adminHubMessages[locale] as MessageNode, key) ??
-    (locale === ADMIN_HUB_DEFAULT_LOCALE
-      ? undefined
-      : getByPath(adminHubMessages[ADMIN_HUB_DEFAULT_LOCALE] as MessageNode, key));
-
+export const t: AdminHubTranslate = (key, params) => {
+  const localized = getByPath(adminHubMessages as MessageNode, key);
   if (!localized) return key;
   return interpolate(localized, params);
-}
+};
 
-export function formatAdminHubPeriod(periodo: string, t: AdminHubTranslate): string {
+export function formatAdminHubPeriod(periodo: string): string {
   const [year, monthStr] = periodo.split("-");
   const monthIndex = Number(monthStr) - 1;
   if (!year || Number.isNaN(monthIndex) || monthIndex < 0 || monthIndex > 11) {
@@ -55,7 +47,7 @@ export function formatAdminHubPeriod(periodo: string, t: AdminHubTranslate): str
   return `${t(`months.${monthIndex}`)} ${year}`;
 }
 
-export function formatRelativeTime(isoDate: string, t: AdminHubTranslate): string {
+export function formatRelativeTime(isoDate: string): string {
   const created = new Date(isoDate);
   if (Number.isNaN(created.getTime())) return isoDate;
 

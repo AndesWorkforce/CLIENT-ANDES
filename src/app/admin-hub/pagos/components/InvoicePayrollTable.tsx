@@ -8,9 +8,9 @@ import type { InvoicePayrollEntry } from "../data/mock-invoice-details";
 import { formatClientPrice } from "../../nominas/data/mock-contractors";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 import InvoiceTableTotalRow from "./InvoiceTableTotalRow";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
-const HOURS_FORMATTER = new Intl.NumberFormat("es-AR", {
+const HOURS_FORMATTER = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
@@ -20,7 +20,6 @@ const HOURS_FORMATTER = new Intl.NumberFormat("es-AR", {
  * no un monto mensual. Mostramos los tres valores para que la factura sea auditable.
  */
 function PayrollClientPriceCell({ entry }: { entry: InvoicePayrollEntry }) {
-  const { t } = useAdminHubI18n();
   if (!entry.esHourly) {
     return <>{formatClientPrice(entry.clientPrice)}</>;
   }
@@ -68,7 +67,6 @@ export default function InvoicePayrollTable({
   onApproveSelected,
   isBusy = false,
 }: InvoicePayrollTableProps) {
-  const { t } = useAdminHubI18n();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);

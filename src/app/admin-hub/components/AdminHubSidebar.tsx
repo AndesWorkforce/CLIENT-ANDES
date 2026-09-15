@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
-import { useAdminHubI18n } from "../i18n";
+import { t } from "../i18n";
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/admin-hub/pagos") {
@@ -39,7 +39,6 @@ export default function AdminHubSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuthStore();
-  const { t } = useAdminHubI18n();
   const [nominasExpanded, setNominasExpanded] = useState(() => isNominasPath(pathname));
 
   const rolLabels: Record<string, string> = {

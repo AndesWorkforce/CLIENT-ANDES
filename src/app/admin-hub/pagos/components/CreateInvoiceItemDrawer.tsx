@@ -13,7 +13,7 @@ import {
 } from "../actions/pagos.actions";
 import { displayPeriodToApiPeriod } from "../actions/pagos.utils";
 import type { InvoicePayrollEntry } from "../types/invoice-detail.types";
-import { useAdminHubI18n } from "../../i18n";
+import { t, ADMIN_HUB_DATE_LOCALE } from "../../i18n";
 import CreateAdditionalItemForm, {
   type CreateAdditionalFormData,
   isAdditionalFormComplete,
@@ -85,7 +85,7 @@ export default function CreateInvoiceItemDrawer({
   onAdditionalFeeCreated,
   onChargeCreated,
 }: CreateInvoiceItemDrawerProps) {
-  const { t, dateLocale } = useAdminHubI18n();
+  const dateLocale = ADMIN_HUB_DATE_LOCALE;
   const [step, setStep] = useState<DrawerStep>("select-type");
   const [selectedType, setSelectedType] = useState<MovementType | null>(null);
   const [formData, setFormData] = useState<CreateItemFormData>(EMPTY_FORM);

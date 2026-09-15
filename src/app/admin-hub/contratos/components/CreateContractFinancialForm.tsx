@@ -1,7 +1,7 @@
 "use client";
 
 import AdminHubFormField from "../../components/AdminHubFormField";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import {
   BANK_OPTIONS,
   BILLING_COUNTRY_OPTIONS,
@@ -21,7 +21,6 @@ export default function CreateContractFinancialForm({
   formData,
   onChange,
 }: CreateContractFinancialFormProps) {
-  const { t } = useAdminHubI18n();
   const showArqTag = formData.metodoPago === ARQ_APP_PAYMENT_METHOD;
 
   function patch(partial: Partial<CreateContractFormData>) {

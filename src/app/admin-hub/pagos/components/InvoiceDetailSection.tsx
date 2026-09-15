@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { InvoiceSection } from "../data/mock-invoice-details";
 import { resolveLineItemsApprovalStatus } from "../lib/invoice-approval-status";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 import InvoiceCollapsibleSectionHeader from "./InvoiceCollapsibleSectionHeader";
 import InvoiceLineItemsTable from "./InvoiceLineItemsTable";
 import type { HistorialModulo } from "../../historial/types/historial.types";
@@ -23,7 +23,6 @@ export default function InvoiceDetailSection({
   onRejectItem,
   onDeleteItem,
 }: InvoiceDetailSectionProps) {
-  const { t } = useAdminHubI18n();
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const aggregateStatus = resolveLineItemsApprovalStatus(section.items);

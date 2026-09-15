@@ -4,14 +4,13 @@ import { Bell } from "lucide-react";
 import Link from "next/link";
 import type { Aviso } from "../types/avisos.types";
 import AvisoStatusBadge from "./AvisoStatusBadge";
-import { useAdminHubI18n } from "../../i18n";
+import { t } from "../../i18n";
 
 interface AvisosCardProps {
   avisos: Aviso[];
 }
 
 export default function AvisosCard({ avisos }: AvisosCardProps) {
-  const { t } = useAdminHubI18n();
 
   if (avisos.length === 0) {
     return null;

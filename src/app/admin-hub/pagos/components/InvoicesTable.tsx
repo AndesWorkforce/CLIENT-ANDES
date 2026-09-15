@@ -12,7 +12,7 @@ import AdminHubTableShell, {
 import { ensureInvoiceSnapshot } from "../actions/pagos.actions";
 import { displayPeriodToApiPeriod } from "../actions/pagos.utils";
 import type { Invoice } from "../types/invoice.types";
-import { formatAdminHubPeriod, useAdminHubI18n } from "../../i18n";
+import { formatAdminHubPeriod, t } from "../../i18n";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 
 interface InvoicesTableProps {
@@ -26,15 +26,14 @@ export default function InvoicesTable({
   displayPeriod,
   emptyMessage,
 }: InvoicesTableProps) {
-  const { t } = useAdminHubI18n();
   const router = useRouter();
   const addNotification = useNotificationStore((state) => state.addNotification);
   const resolvedEmptyMessage = emptyMessage ?? t("pagos.empty");
   const periodLabel = useMemo(() => {
     try {
-      return formatAdminHubPeriod(displayPeriodToApiPeriod(displayPeriod), t);
+      return formatAdminHubPeriod(displayPeriodToApiPeriod(displayPeriod));
     } catch {
-      return formatAdminHubPeriod(displayPeriod, t);
+      return formatAdminHubPeriod(displayPeriod);
     }
   }, [displayPeriod, t]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
