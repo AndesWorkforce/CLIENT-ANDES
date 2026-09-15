@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useNotificationStore } from "@/store/notifications.store";
+import { includesSearchText, normalizeSearchText } from "../../lib/search-text";
 import {
   getHolidays,
   createHoliday,
@@ -89,12 +90,12 @@ export default function HolidaysManager() {
   }, []);
 
   const filteredHolidays = holidays.filter((holiday) => {
-    const searchLower = search.toLowerCase();
-    const matchesSearch = 
-      holiday.nombre.toLowerCase().includes(searchLower) ||
-      holiday.pais.toLowerCase().includes(searchLower) ||
-      holiday.dia.toString().includes(searchLower) ||
-      holiday.mes.toString().includes(searchLower);
+    const normalizedSearch = normalizeSearchText(search);
+    const matchesSearch =
+      includesSearchText(holiday.nombre, normalizedSearch) ||
+      includesSearchText(holiday.pais, normalizedSearch) ||
+      includesSearchText(holiday.dia, normalizedSearch) ||
+      includesSearchText(holiday.mes, normalizedSearch);
     
     const matchesCountry = selectedCountries.size === 0 || selectedCountries.has(holiday.pais);
     
