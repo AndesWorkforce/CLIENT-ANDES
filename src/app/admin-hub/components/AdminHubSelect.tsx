@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ChevronDown, CircleX } from "lucide-react";
 import useOutsideClick from "@/hooks/useOutsideClick";
+import { includesSearchText, normalizeSearchText } from "../lib/search-text";
 import { t } from "../i18n";
 
 export interface AdminHubSelectOption {
@@ -72,13 +73,13 @@ export default function AdminHubSelect({
     setSearchQuery(selectedOption?.label ?? "");
   }, [searchable, isOpen, selectedOption?.label]);
 
-  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const normalizedQuery = normalizeSearchText(searchQuery);
   const visibleOptions =
     searchable && normalizedQuery
       ? options.filter(
           (option) =>
-            option.label.toLowerCase().includes(normalizedQuery) ||
-            option.value.toLowerCase().includes(normalizedQuery),
+            includesSearchText(option.label, normalizedQuery) ||
+            includesSearchText(option.value, normalizedQuery),
         )
       : options;
 

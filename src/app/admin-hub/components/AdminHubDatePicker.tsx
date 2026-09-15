@@ -401,7 +401,7 @@ export default function AdminHubDatePicker({
         onClick={openPicker}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        className={`flex w-full items-center rounded-[8px] border bg-white text-left text-[14px] focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
+        className={`flex w-full items-center rounded-[8px] border bg-white text-left text-[14px] focus:outline-none ${
           isFilter
             ? `h-11 pl-[22px] pr-4 leading-none ${displayValue ? "text-[#525252]" : "text-[#C8C8C8]"} border-[#C8C8C8]`
             : `h-[50px] px-4 leading-[1.3] tracking-[0.28px] border-[#EFEFEF] ${

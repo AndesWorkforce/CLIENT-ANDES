@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Filter, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useNotificationStore } from "@/store/notifications.store";
+import { includesSearchText, normalizeSearchText } from "../../lib/search-text";
 import { formatClientPrice } from "../../nominas/data/mock-contractors";
 import {
   approveInvoice,
@@ -268,14 +269,14 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   );
 
   const filteredPayrollEntries = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+    const query = normalizeSearchText(searchQuery);
     let result = [...invoice.payrollEntries];
 
     if (query) {
       result = result.filter(
         (entry) =>
-          entry.contractorName.toLowerCase().includes(query) ||
-          entry.position.toLowerCase().includes(query)
+          includesSearchText(entry.contractorName, query) ||
+          includesSearchText(entry.position, query)
       );
     }
 
@@ -291,16 +292,16 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
   }, [invoice.payrollEntries, searchQuery, statusFilter, contractorFilter]);
 
   const filteredAdditionalFees = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+    const query = normalizeSearchText(searchQuery);
     let result = [...invoice.additionalFees];
 
     if (query) {
       result = result.filter(
         (fee) =>
-          fee.contractor.toLowerCase().includes(query) ||
-          fee.position.toLowerCase().includes(query) ||
-          fee.description.toLowerCase().includes(query) ||
-          fee.createdBy.toLowerCase().includes(query)
+          includesSearchText(fee.contractor, query) ||
+          includesSearchText(fee.position, query) ||
+          includesSearchText(fee.description, query) ||
+          includesSearchText(fee.createdBy, query)
       );
     }
 
@@ -335,7 +336,7 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         ? invoice.sections
         : invoice.sections.filter((s) => s.tabKey === activeTab);
 
-    const query = searchQuery.trim().toLowerCase();
+        const query = normalizeSearchText(searchQuery);
 
     return sections
       .map((section) => {
@@ -344,10 +345,10 @@ export default function InvoiceDetailContent({ invoice: initialInvoice }: Invoic
         if (query) {
           items = items.filter(
             (item) =>
-              item.type.toLowerCase().includes(query) ||
-              item.contractor.toLowerCase().includes(query) ||
-              item.description.toLowerCase().includes(query) ||
-              item.createdBy.toLowerCase().includes(query)
+              includesSearchText(item.type, query) ||
+              includesSearchText(item.contractor, query) ||
+              includesSearchText(item.description, query) ||
+              includesSearchText(item.createdBy, query)
           );
         }
 

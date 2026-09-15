@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Filter } from "lucide-react";
+import { includesSearchText, normalizeSearchText } from "../../lib/search-text";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
   ADMIN_HUB_CLEAR_FILTERS_CLASS,
@@ -19,15 +20,12 @@ import {
 } from "../../nominas/data/payroll-data";
 import {
   getFacturas,
-  getPagosClientes,
   type PagosCliente,
 } from "../actions/pagos.actions";
 import type { Invoice, InvoiceStatus } from "../types/invoice.types";
 import { formatAdminHubPeriod, t } from "../../i18n";
 import InvoiceFilterSelect from "./InvoiceFilterSelect";
 import InvoicesTable from "./InvoicesTable";
-
-const SEARCH_DEBOUNCE_MS = 350;
 
 const AMOUNT_FILTER_VALUES = [
   { value: "0-10000", labelKey: "pagos.amountRanges.upTo10k" },
@@ -106,53 +104,15 @@ export default function InvoicesPageContent({
   );
   const [selectedMonth, setSelectedMonth] = useState(currentMonthOption);
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [clientFilter, setClientFilter] = useState("");
   const [amountFilter, setAmountFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [clients, setClients] = useState<PagosCliente[]>(initialClients);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(initialError);
-  const skipNextSearchFetch = useRef(true);
+  const [clients] = useState<PagosCliente[]>(initialClients);
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(initialError);
 
   const selectedPeriod = monthOptionToPeriod(selectedMonth);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  const fetchClients = useCallback(async (search?: string) => {
-    setLoading(true);
-    setError(null);
-
-    const result = await getPagosClientes({
-      search: search || undefined,
-      limit: 500,
-    });
-
-    if (!result.success) {
-      setError(result.message ?? t("pagos.loadClientsError"));
-      setClients([]);
-      setLoading(false);
-      return;
-    }
-
-    setClients(result.data ?? []);
-    setLoading(false);
-  }, [t]);
-
-  useEffect(() => {
-    if (skipNextSearchFetch.current) {
-      skipNextSearchFetch.current = false;
-      return;
-    }
-    void fetchClients(debouncedSearch);
-  }, [debouncedSearch, fetchClients]);
 
   // Facturas reales del periodo, indexadas por empresa.
   const [facturasPorEmpresa, setFacturasPorEmpresa] = useState<
@@ -184,9 +144,12 @@ export default function InvoicesPageContent({
   );
 
   const invoices = useMemo(() => {
-    const filtered = clientFilter
-      ? clients.filter((client) => client.nombre === clientFilter)
-      : clients;
+    const normalizedSearch = normalizeSearchText(searchQuery);
+    const filtered = clients.filter(
+      (client) =>
+        (!clientFilter || client.nombre === clientFilter) &&
+        (!normalizedSearch || includesSearchText(client.nombre, normalizedSearch)),
+    );
 
     return filtered.map((client) =>
       mapClienteToInvoiceRow(
@@ -195,7 +158,7 @@ export default function InvoicesPageContent({
         facturasPorEmpresa.get(client.id),
       ),
     );
-  }, [clients, clientFilter, selectedPeriod, facturasPorEmpresa]);
+  }, [clients, clientFilter, searchQuery, selectedPeriod, facturasPorEmpresa]);
 
   function clearFilters() {
     setClientFilter("");

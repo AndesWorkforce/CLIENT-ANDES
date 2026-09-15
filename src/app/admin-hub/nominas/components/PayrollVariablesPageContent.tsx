@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FileText, Filter, Plus } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
+import { includesSearchText, normalizeSearchText } from "../../lib/search-text";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubDateRangePicker from "../../components/AdminHubDateRangePicker";
 import AdminHubSearchInput from "../../components/AdminHubSearchInput";
@@ -133,7 +134,7 @@ export default function PayrollVariablesPageContent({
   }, [loadVariables]);
 
   const filteredVariables = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+    const query = normalizeSearchText(searchQuery);
     let result = [...variables];
 
     if (activeTab !== "todos") {
@@ -143,11 +144,11 @@ export default function PayrollVariablesPageContent({
     if (query) {
       result = result.filter(
         (item) =>
-          item.contractor.toLowerCase().includes(query) ||
-          item.client.toLowerCase().includes(query) ||
-          item.description.toLowerCase().includes(query) ||
-          item.type.toLowerCase().includes(query) ||
-          item.createdBy.toLowerCase().includes(query)
+          includesSearchText(item.contractor, query) ||
+          includesSearchText(item.client, query) ||
+          includesSearchText(item.description, query) ||
+          includesSearchText(item.type, query) ||
+          includesSearchText(item.createdBy, query)
       );
     }
 
@@ -168,7 +169,16 @@ export default function PayrollVariablesPageContent({
     }
 
     return result;
-  }, [variables, typeFilter, statusFilter, fromDate, toDate]);
+  }, [
+    activeTab,
+    clientFilter,
+    fromDate,
+    searchQuery,
+    statusFilter,
+    toDate,
+    typeFilter,
+    variables,
+  ]);
 
   async function handleApprove(itemId: string) {
     const result = await approveNominaVariable(itemId);
