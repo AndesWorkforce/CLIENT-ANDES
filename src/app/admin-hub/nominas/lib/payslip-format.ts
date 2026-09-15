@@ -1,31 +1,40 @@
-import { findContract, findContractor } from "../data/mock-contractors";
-import type { PayrollDetail } from "../types/nomina-detail.types";
+import { findContractor } from "../data/mock-contractors";
+import type {
+  PayrollDetail,
+  PayrollDetailPaymentLine,
+} from "../types/nomina-detail.types";
+import type { PayrollVariable } from "../data/mock-payroll-variables";
 import { getPersonaProfile } from "../../personas/data/mock-persona-detail";
 
-const SPANISH_MONTHS: Record<string, number> = {
-  Enero: 0,
-  Febrero: 1,
-  Marzo: 2,
-  Abril: 3,
-  Mayo: 4,
-  Junio: 5,
-  Julio: 6,
-  Agosto: 7,
-  Septiembre: 8,
-  Octubre: 9,
-  Noviembre: 10,
-  Diciembre: 11,
-};
+export interface PayslipLineItem {
+  id: string;
+  label: string;
+  value: string;
+}
 
 export interface PayslipPreviewData {
-  startDate: string;
-  endDate: string;
   contractorName: string;
-  hiredSince: string;
   position: string;
+  hiredSince: string;
   email: string;
-  monthlyPayment: string;
-  nationalHolidayRate: string;
+  startDate: string;
+  monthlyBase: string;
+  holidayRate: string;
+  ptoBalance: string;
+  netPay: string;
+  grossPay: string;
+  totalEarnings: string;
+  totalDeductions: string;
+  totalDeductionsSigned: string;
+  generatedOn: string;
+  regularDaysLabel: string;
+  regularDaysValue: string;
+  holidaysValue: string;
+  bonusTotal: string;
+  bonusItems: PayslipLineItem[];
+  variablesTotal: string;
+  variableItems: PayslipLineItem[];
+  deductions: PayslipLineItem[];
 }
 
 export function formatPayslipMoney(amount: number): string {
@@ -35,57 +44,192 @@ export function formatPayslipMoney(amount: number): string {
   })}`;
 }
 
-function formatEnglishDate(date: Date): string {
+function formatShortEnglishDate(date: Date): string {
   return date.toLocaleDateString("en-US", {
-    month: "long",
+    month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-function periodToDateRange(period: string): { start: string; end: string } {
-  const [monthName, yearStr] = period.split(" ");
-  const year = Number(yearStr);
-  const monthIndex = SPANISH_MONTHS[monthName];
+function parseFlexibleDate(value: string): Date | null {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "—") return null;
 
-  if (Number.isNaN(year) || monthIndex === undefined) {
-    return { start: "—", end: "—" };
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(trimmed);
+  if (iso) {
+    const date = new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
-  const start = new Date(year, monthIndex, 1);
-  const end = new Date(year, monthIndex + 1, 0);
+  const dotted = trimmed.split(".");
+  if (dotted.length === 3) {
+    const [day, month, rawYear] = dotted.map(Number);
+    if ([day, month, rawYear].some(Number.isNaN)) return null;
+    const year = rawYear < 100 ? 2000 + rawYear : rawYear;
+    const date = new Date(year, month - 1, day);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
 
+  const parsed = new Date(trimmed);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatFlexibleDate(value: string): string {
+  const date = parseFlexibleDate(value);
+  return date ? formatShortEnglishDate(date) : value;
+}
+
+function startDateFromDetail(detail: PayrollDetail): string {
+  if (/^\d{4}-(0[1-9]|1[0-2])$/.test(detail.periodoAnioMes)) {
+    const [year, month] = detail.periodoAnioMes.split("-").map(Number);
+    return formatShortEnglishDate(new Date(year, month - 1, 1));
+  }
+
+  return "—";
+}
+
+function parseLeadingQuantity(value: string): number | null {
+  const match = /^(\d+(?:\.\d+)?)/.exec(value.trim());
+  if (!match) return null;
+  const quantity = Number(match[1]);
+  return Number.isFinite(quantity) ? quantity : null;
+}
+
+function formatDayCount(count: number): string {
+  return `${count} ${count === 1 ? "day" : "days"}`;
+}
+
+function formatHoursCount(count: number): string {
+  return `${count} h`;
+}
+
+type EarningKind = "regular" | "holiday" | "bonus" | "variable";
+
+function isBonusText(value: string): boolean {
+  return /bonus/i.test(value);
+}
+
+function isHolidayText(value: string): boolean {
+  return /holiday|festivo/i.test(value);
+}
+
+function isRegularText(value: string): boolean {
+  return /d[ií]as regulares|horas trabajadas|regular days|hours worked/i.test(
+    value
+  );
+}
+
+function classifyEarningLine(line: PayrollDetailPaymentLine): EarningKind {
+  if (line.id === "regular-days" || isRegularText(line.label)) return "regular";
+  if (isBonusText(line.label)) return "bonus";
+  if (isHolidayText(line.label)) return "holiday";
+  return "variable";
+}
+
+function classifyVariable(variable: PayrollVariable): EarningKind | "deduction" {
+  if (variable.amount < 0) return "deduction";
+  if (variable.incomeCategory === "Bonus" || isBonusText(variable.type)) {
+    return "bonus";
+  }
+  if (variable.type === "Holiday" || variable.category === "holidays") {
+    return "holiday";
+  }
+  if (variable.amount > 0) return "variable";
+  return "variable";
+}
+
+function toLineItem(
+  line: PayrollDetailPaymentLine,
+  index: number
+): PayslipLineItem {
   return {
-    start: formatEnglishDate(start),
-    end: formatEnglishDate(end),
+    id: line.id ?? `${line.label}-${index}`,
+    label: line.label,
+    value: line.value,
   };
 }
 
-function contractDateToEnglish(date: string): string {
-  const parts = date.split(".");
-  if (parts.length !== 3) return date;
+function buildGroupedEarnings(detail: PayrollDetail): {
+  regularDaysLabel: string;
+  regularDaysValue: string;
+  holidaysValue: string;
+  bonusItems: PayslipLineItem[];
+  variableItems: PayslipLineItem[];
+} {
+  const regularLine =
+    detail.earnings.find((line) => classifyEarningLine(line) === "regular") ??
+    null;
+  const isHourly = Boolean(detail.esHourly);
+  const quantity = regularLine ? parseLeadingQuantity(regularLine.value) : null;
 
-  const [day, month, year] = parts.map(Number);
-  if ([day, month, year].some(Number.isNaN)) return date;
+  const holidayLines = detail.earnings.filter(
+    (line) => classifyEarningLine(line) === "holiday"
+  );
+  const bonusLines = detail.earnings.filter(
+    (line) => classifyEarningLine(line) === "bonus"
+  );
+  const variableLines = detail.earnings.filter(
+    (line) => classifyEarningLine(line) === "variable"
+  );
 
-  return formatEnglishDate(new Date(year, month - 1, day));
+  const holidayFromVariables = detail.variables.filter(
+    (variable) => classifyVariable(variable) === "holiday"
+  ).length;
+
+  const holidayCount = Math.max(holidayLines.length, holidayFromVariables);
+
+  return {
+    regularDaysLabel: isHourly ? "Hours worked" : "Regular Days",
+    regularDaysValue:
+      quantity == null
+        ? "—"
+        : isHourly
+          ? formatHoursCount(quantity)
+          : formatDayCount(quantity),
+    holidaysValue: formatDayCount(holidayCount),
+    bonusItems: bonusLines.map(toLineItem),
+    variableItems: variableLines.map(toLineItem),
+  };
+}
+
+function sumLineAmounts(lines: PayslipLineItem[]): number {
+  return lines.reduce((sum, line) => {
+    const match = /\$([\d,]+(?:\.\d+)?)/.exec(line.value);
+    if (!match) return sum;
+    const amount = Number(match[1].replace(/,/g, ""));
+    return sum + (Number.isFinite(amount) ? amount : 0);
+  }, 0);
 }
 
 export function buildPayslipPreviewData(detail: PayrollDetail): PayslipPreviewData {
-  const { start, end } = periodToDateRange(detail.period);
-  const contract = findContract(detail.contractorId, detail.contractId);
   const contractor = findContractor(detail.contractorId);
   const profile = contractor ? getPersonaProfile(contractor) : null;
-  const monthlyPayment = contract?.clientPrice ?? detail.baseSalary;
+  const grouped = buildGroupedEarnings(detail);
+  const bonusTotal = sumLineAmounts(grouped.bonusItems);
+  const variablesTotal = sumLineAmounts(grouped.variableItems);
+  const generatedDate = detail.desprendible?.emitidoEn
+    ? formatFlexibleDate(detail.desprendible.emitidoEn)
+    : formatShortEnglishDate(new Date());
 
   return {
-    startDate: start,
-    endDate: end,
     contractorName: detail.contractorName,
-    hiredSince: contractDateToEnglish(detail.contractStartDate),
     position: detail.position,
+    hiredSince: formatFlexibleDate(detail.contractStartDate),
     email: detail.contactEmail,
-    monthlyPayment: formatPayslipMoney(monthlyPayment),
-    nationalHolidayRate: (profile?.hrRateHolidays ?? 2).toFixed(1),
+    startDate: startDateFromDetail(detail),
+    monthlyBase: formatPayslipMoney(detail.baseSalary),
+    holidayRate: `${(profile?.hrRateHolidays ?? 2).toFixed(1)}×`,
+    ptoBalance: "—",
+    netPay: formatPayslipMoney(detail.totalAmount),
+    grossPay: formatPayslipMoney(detail.totalEarnings),
+    totalEarnings: formatPayslipMoney(detail.totalEarnings),
+    totalDeductions: formatPayslipMoney(detail.totalDeductions),
+    totalDeductionsSigned: `− ${formatPayslipMoney(detail.totalDeductions)}`,
+    generatedOn: generatedDate,
+    ...grouped,
+    bonusTotal: formatPayslipMoney(bonusTotal),
+    variablesTotal: formatPayslipMoney(variablesTotal),
+    deductions: detail.deductions.map(toLineItem),
   };
 }

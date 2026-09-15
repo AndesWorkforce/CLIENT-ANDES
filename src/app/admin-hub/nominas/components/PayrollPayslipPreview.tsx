@@ -1,250 +1,411 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, type ReactNode } from "react";
-import { formatMoney } from "../data/payroll-data";
-import type {
-  PayrollDetail,
-  PayrollDetailPaymentLine,
-} from "../types/nomina-detail.types";
-import { buildPayslipPreviewData } from "../lib/payslip-format";
+import { useMemo, useState, type ReactNode } from "react";
+import { ChevronRight } from "lucide-react";
+import type { PayrollDetail } from "../types/nomina-detail.types";
+import {
+  buildPayslipPreviewData,
+  type PayslipLineItem,
+} from "../lib/payslip-format";
 
 interface PayrollPayslipPreviewProps {
   detail: PayrollDetail;
+  interactive?: boolean;
 }
 
-const BORDER = "border-[#808080]";
-const LABEL_BG = "bg-[#d9d9d9]";
+const TEAL_GRADIENT =
+  "linear-gradient(172.85deg, #0097B2 3.67%, #0097B2 54.63%, #137486 96.33%)";
+const EMPTY_DEDUCTION_SLOTS = 4;
 
-function PayslipInlineField({
+function SidebarField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex w-full flex-col items-start">
+      <p className="flex h-6 items-center text-[9px] font-semibold uppercase leading-[13.5px] tracking-[0.8px] text-white/[0.38]">
+        {label}
+      </p>
+      <div className="pt-[2px] text-[12px] font-medium leading-[18px] text-white">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MetricCell({
   label,
   value,
-  labelWidth = "42%",
+  accent = false,
 }: {
   label: string;
   value: string;
-  labelWidth?: string;
+  accent?: boolean;
 }) {
   return (
-    <div className={`flex min-h-[32px] border ${BORDER}`}>
-      <div
-        className={`flex items-center ${LABEL_BG} px-2 py-1 text-[11px] leading-tight text-black`}
-        style={{ width: labelWidth }}
+    <div
+      className={`flex min-w-0 flex-1 flex-col items-center justify-center py-4 ${
+        accent ? "" : "border-r border-[#F8F8F8] bg-white"
+      }`}
+      style={accent ? { backgroundImage: TEAL_GRADIENT } : undefined}
+    >
+      <p
+        className={`text-[9px] font-bold uppercase leading-[13.5px] tracking-[1px] ${
+          accent ? "text-[#DFFAFF]" : "text-[#858585]"
+        }`}
       >
         {label}
-      </div>
-      <div
-        className={`flex flex-1 items-center border-l ${BORDER} bg-white px-2 py-1 text-[12px] leading-tight text-black`}
+      </p>
+      <p
+        className={`whitespace-nowrap pt-[2px] font-bold tracking-[-0.3px] ${
+          accent
+            ? "text-[20px] leading-[30px] text-white"
+            : "text-[16px] leading-6 text-black"
+        }`}
       >
         {value}
+      </p>
+    </div>
+  );
+}
+
+function ColumnHeader({
+  label,
+  barClassName,
+}: {
+  label: string;
+  barClassName: string;
+}) {
+  return (
+    <div className="flex items-center gap-[6px]">
+      <span className={`h-3 w-[2.5px] shrink-0 rounded-[2px] ${barClassName}`} />
+      <p className="text-[9.5px] font-bold uppercase leading-[14.25px] tracking-[1.4px] text-[#858585]">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function LineRow({
+  label,
+  value,
+  muted = false,
+  leading,
+}: {
+  label: string;
+  value?: string;
+  muted?: boolean;
+  leading?: ReactNode;
+}) {
+  const textClass = muted
+    ? "text-[#C8C8C8]"
+    : "text-[#525252]";
+
+  return (
+    <div className="flex w-full items-center justify-between border-b border-[#F8F8F8] py-2">
+      <div className="flex min-w-0 items-center gap-[7px]">
+        {leading}
+        <p className={`truncate text-[12px] font-normal leading-[18px] ${textClass}`}>
+          {label}
+        </p>
       </div>
+      {value ? (
+        <p
+          className={`shrink-0 text-[12px] font-semibold leading-[18px] ${
+            muted ? "text-[#C8C8C8]" : "text-black"
+          }`}
+        >
+          {value}
+        </p>
+      ) : null}
     </div>
   );
 }
 
-function PayslipStackedDateField({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="mb-[2px] pl-[1px] text-[11px] leading-tight text-black">{label}</p>
-      <div
-        className={`flex min-h-[32px] items-center border ${BORDER} bg-white px-2 py-1 text-[12px] leading-tight text-black`}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function LedgerLine({ children }: { children: ReactNode }) {
-  return (
-    <div className="min-h-[34px] shrink-0 border-b border-black px-2 py-[9px] text-[12px] leading-tight text-black">
-      {children}
-    </div>
-  );
-}
-
-function LedgerSpacerLine() {
-  return (
-    <div
-      className="min-h-[34px] shrink-0 border-b border-black"
+function ExpandableLine({
+  label,
+  value,
+  items,
+  interactive,
+  expanded,
+  onToggle,
+}: {
+  label: string;
+  value: string;
+  items: PayslipLineItem[];
+  interactive: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const muted = items.length === 0;
+  const canExpand = interactive && items.length > 0;
+  const chevron = (
+    <ChevronRight
+      size={14}
+      strokeWidth={2}
+      className={`size-[14px] shrink-0 transition-transform ${
+        expanded && canExpand ? "rotate-90" : ""
+      } ${muted ? "text-[#C8C8C8]" : "text-[#525252]"}`}
       aria-hidden="true"
     />
   );
-}
 
-function padPaymentLines(
-  lines: PayrollDetailPaymentLine[],
-  targetCount: number
-): (PayrollDetailPaymentLine | null)[] {
-  return [
-    ...lines,
-    ...Array.from({ length: Math.max(0, targetCount - lines.length) }, () => null),
-  ];
-}
-
-function PayslipLedgerTable({
-  title,
-  lines,
-  totalLabel,
-  totalAmount,
-  totalLabelClassName,
-}: {
-  title: string;
-  lines: (PayrollDetailPaymentLine | null)[];
-  totalLabel: string;
-  totalAmount: string;
-  totalLabelClassName: string;
-}) {
   return (
-    <div className={`flex h-full flex-col border ${BORDER} bg-white`}>
-      <div
-        className={`shrink-0 border-b ${BORDER} ${LABEL_BG} py-2 text-center text-[12px] font-bold tracking-wide text-black`}
-      >
-        {title}
-      </div>
-
-      <div className="flex min-h-0 flex-1 flex-col">
-        {lines.map((line, index) =>
-          line ? (
-            <LedgerLine key={line.id ?? `${line.label}-${index}`}>
-              {line.label}: {line.value}
-            </LedgerLine>
-          ) : (
-            <LedgerSpacerLine key={`spacer-${index}`} />
-          )
-        )}
-        <div className="min-h-0 flex-1" aria-hidden="true" />
-      </div>
-
-      <div className={`mt-auto flex shrink-0 border-t ${BORDER}`}>
-        <div
-          className={`flex flex-1 items-center px-2 py-2 text-[12px] font-bold text-black ${totalLabelClassName}`}
+    <div className="w-full">
+      {canExpand ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          className="flex w-full items-center justify-between border-b border-[#F8F8F8] py-2 text-left"
         >
-          {totalLabel}
-        </div>
-        <div
-          className={`flex w-[108px] items-center justify-end border-l ${BORDER} bg-white px-2 py-2 text-[12px] font-bold text-black`}
-        >
-          {totalAmount}
-        </div>
-      </div>
+          <span className="flex min-w-0 items-center gap-[7px]">
+            {chevron}
+            <span className="truncate text-[12px] font-normal leading-[18px] text-[#525252]">
+              {label}
+            </span>
+          </span>
+          <span className="shrink-0 text-[12px] font-semibold leading-[18px] text-black">
+            {value}
+          </span>
+        </button>
+      ) : (
+        <LineRow label={label} value={value} muted={muted} leading={chevron} />
+      )}
+
+      {canExpand && expanded
+        ? items.map((item) => (
+            <div key={item.id} className="pl-[21px]">
+              <LineRow label={item.label} value={item.value} />
+            </div>
+          ))
+        : null}
     </div>
   );
 }
 
-function TotalSummaryRow({
+function TotalBanner({
   label,
   value,
-  valueClassName = "bg-white",
+  variant,
 }: {
   label: string;
   value: string;
-  valueClassName?: string;
+  variant: "earnings" | "deductions";
 }) {
+  const isEarnings = variant === "earnings";
+
   return (
-    <div className={`flex min-h-[40px] border ${BORDER}`}>
-      <div
-        className={`flex w-[52%] items-center ${LABEL_BG} px-2 text-[11px] font-bold leading-tight text-black`}
+    <div
+      className={`mt-4 flex w-full shrink-0 items-center justify-between rounded-[8px] border px-3 py-2.5 ${
+        isEarnings
+          ? "border-[rgba(0,151,178,0.18)] bg-[#F0FAFE]"
+          : "border-[#FECACA] bg-[#FFF5F5]"
+      }`}
+    >
+      <p
+        className={`text-[10.5px] font-bold uppercase leading-[15.75px] tracking-[0.5px] ${
+          isEarnings ? "text-[#0097B2]" : "text-[#EF4444]"
+        }`}
       >
         {label}
-      </div>
-      <div
-        className={`flex flex-1 items-center justify-end border-l ${BORDER} px-2 text-[13px] font-bold leading-tight text-black ${valueClassName}`}
+      </p>
+      <p
+        className={`text-[15px] font-bold leading-[22.5px] ${
+          isEarnings ? "text-[#0F2A47]" : "text-[#991B1B]"
+        }`}
       >
         {value}
-      </div>
+      </p>
     </div>
   );
 }
 
-export default function PayrollPayslipPreview({ detail }: PayrollPayslipPreviewProps) {
+export default function PayrollPayslipPreview({
+  detail,
+  interactive = true,
+}: PayrollPayslipPreviewProps) {
   const payslip = useMemo(() => buildPayslipPreviewData(detail), [detail]);
+  const [expandedBonus, setExpandedBonus] = useState(false);
+  const [expandedVariables, setExpandedVariables] = useState(false);
 
-  const { paddedEarnings, paddedDeductions } = useMemo(() => {
-    const rowCount = Math.max(detail.earnings.length, detail.deductions.length, 1);
+  const deductionRows = useMemo(() => {
+    const emptyCount = Math.max(
+      0,
+      EMPTY_DEDUCTION_SLOTS - payslip.deductions.length
+    );
 
-    return {
-      paddedEarnings: padPaymentLines(detail.earnings, rowCount),
-      paddedDeductions: padPaymentLines(detail.deductions, rowCount),
-    };
-  }, [detail.deductions, detail.earnings]);
+    return [
+      ...payslip.deductions,
+      ...Array.from({ length: emptyCount }, (_, index) => ({
+        id: `empty-deduction-${index}`,
+        label: "—",
+        value: "",
+      })),
+    ];
+  }, [payslip.deductions]);
 
   return (
     <div className="w-full overflow-x-auto">
-      <div className="mx-auto min-w-[900px] max-w-[1000px] bg-white p-5 font-[Calibri,Arial,Helvetica,sans-serif]">
-        <div className="mb-4 flex items-start gap-6">
-          <div className="w-[34%] space-y-3">
-            <PayslipStackedDateField label="Start day:" value={payslip.startDate} />
-            <PayslipStackedDateField label="End Date:" value={payslip.endDate} />
-          </div>
-
-          <div className="flex-1" />
-
-          <div className="flex w-[30%] justify-end pt-1">
+      <div
+        className={`mx-auto flex w-[1100px] overflow-hidden rounded-2xl bg-white ${
+          interactive
+            ? "shadow-[0px_12px_48px_0px_rgba(15,42,71,0.16),0px_2px_6px_0px_rgba(0,0,0,0.06)]"
+            : ""
+        }`}
+      >
+        <aside
+          className="flex w-[270px] shrink-0 flex-col items-start p-8"
+          style={{ backgroundImage: TEAL_GRADIENT }}
+        >
+          <div className="relative h-[59px] w-[146px] shrink-0">
             <Image
               src="/logo-andes.png"
               alt="Andes Workforce"
-              width={220}
-              height={90}
-              className="h-[88px] w-auto object-contain"
+              width={146}
+              height={59}
+              className="h-[59px] w-[146px] object-contain object-left brightness-0 invert"
               priority
             />
           </div>
-        </div>
 
-        <div className="grid grid-cols-3 gap-x-5 gap-y-2">
-          <div className="space-y-2">
-            <PayslipInlineField label="Contractor Name:" value={payslip.contractorName} />
-            <PayslipInlineField label="Hired Since:" value={payslip.hiredSince} />
+          <div className="flex w-full flex-col items-start pt-7">
+            <p className="flex h-6 items-center text-[9.5px] font-semibold uppercase leading-[14.25px] tracking-[1px] text-white/40">
+              Contractor name
+            </p>
+            <h2 className="pt-1 text-[15px] font-bold leading-[20.25px] text-white">
+              {payslip.contractorName}
+            </h2>
           </div>
-          <div className="space-y-2">
-            <PayslipInlineField label="Position:" value={payslip.position} />
-            <PayslipInlineField label="e-mail:" value={payslip.email} />
+
+          <div className="flex w-full flex-col items-start gap-3.5 pt-5">
+            <SidebarField label="Position">{payslip.position}</SidebarField>
+            <SidebarField label="contracted since">
+              {payslip.hiredSince}
+            </SidebarField>
+            <SidebarField label="Email">
+              <span className="break-all">{payslip.email}</span>
+            </SidebarField>
           </div>
-          <div className="space-y-2">
-            <PayslipInlineField label="Monthly Payment:" value={payslip.monthlyPayment} />
-            <PayslipInlineField
-              label="National Holiday Rate:"
-              value={payslip.nationalHolidayRate}
-            />
+        </aside>
+
+        <div
+          className="h-auto w-[3px] shrink-0 bg-gradient-to-b from-[#0097B2] via-[#00BCD4] to-[#0097B2]"
+          aria-hidden="true"
+        />
+
+        <div className="flex min-w-0 flex-1 flex-col bg-white">
+          <div className="flex items-stretch border-b border-[#F8F8F8]">
+            <MetricCell label="Start date" value={payslip.startDate} />
+            <MetricCell label="Monthly Base" value={payslip.monthlyBase} />
+            <MetricCell label="Holiday Rate" value={payslip.holidayRate} />
+            <MetricCell label="PTO BALANCE" value={payslip.ptoBalance} />
+            <MetricCell label="Net Pay" value={payslip.netPay} accent />
           </div>
-        </div>
 
-        <div className="my-5 h-[16px] bg-[#7f7f7f]" />
+          <div className="flex min-h-[268px] items-stretch">
+            <section className="flex w-[309px] shrink-0 flex-col items-start border-r border-black px-6 py-5">
+              <ColumnHeader label="Earnings" barClassName="bg-[#0097B2]" />
+              <div className="flex w-full flex-1 flex-col pt-3">
+                <LineRow
+                  label={payslip.regularDaysLabel}
+                  value={payslip.regularDaysValue}
+                />
+                <LineRow label="Holidays" value={payslip.holidaysValue} />
+                <ExpandableLine
+                  label="Bonus"
+                  value={payslip.bonusTotal}
+                  items={payslip.bonusItems}
+                  interactive={interactive}
+                  expanded={expandedBonus}
+                  onToggle={() => setExpandedBonus((open) => !open)}
+                />
+                <ExpandableLine
+                  label="Variables"
+                  value={payslip.variablesTotal}
+                  items={payslip.variableItems}
+                  interactive={interactive}
+                  expanded={expandedVariables}
+                  onToggle={() => setExpandedVariables((open) => !open)}
+                />
+              </div>
+              <TotalBanner
+                label="Total Earnings"
+                value={payslip.totalEarnings}
+                variant="earnings"
+              />
+            </section>
 
-        <div className="grid grid-cols-3 items-stretch gap-5">
-          <PayslipLedgerTable
-            title="EARNINGS"
-            lines={paddedEarnings}
-            totalLabel="Total Earnings:"
-            totalAmount={formatMoney(detail.totalEarnings)}
-            totalLabelClassName="bg-[#bdd7ee]"
-          />
+            <section className="flex w-[309px] shrink-0 flex-col items-start border-r border-black px-6 py-5">
+              <ColumnHeader label="Deductions" barClassName="bg-[#F87171]" />
+              <div className="flex w-full flex-1 flex-col pt-3">
+                {deductionRows.map((row) => (
+                  <LineRow
+                    key={row.id}
+                    label={row.label}
+                    value={row.value || undefined}
+                    muted={!row.value}
+                  />
+                ))}
+              </div>
+              <TotalBanner
+                label="Total Deductions"
+                value={payslip.totalDeductions}
+                variant="deductions"
+              />
+            </section>
 
-          <PayslipLedgerTable
-            title="DEDUCTIONS"
-            lines={paddedDeductions}
-            totalLabel="Total Deductions:"
-            totalAmount={formatMoney(detail.totalDeductions)}
-            totalLabelClassName="bg-[#f8cbad]"
-          />
+            <section className="flex min-w-[200px] flex-1 flex-col items-start px-6 py-5">
+              <ColumnHeader label="Summary" barClassName="bg-[#0F2A47]" />
+              <div className="flex w-full flex-col gap-2 pt-3">
+                <div className="flex h-[45px] w-full items-center justify-between rounded-[8px] border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2.5">
+                  <p className="text-[10.5px] font-semibold uppercase leading-[15.75px] tracking-[0.4px] text-[#6B7280]">
+                    Gross Pay
+                  </p>
+                  <p className="text-[13px] font-bold leading-[19.5px] text-black">
+                    {payslip.grossPay}
+                  </p>
+                </div>
+                <div className="flex h-[45px] w-full items-center justify-between rounded-[8px] border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2.5">
+                  <p className="text-[10.5px] font-semibold uppercase leading-[15.75px] tracking-[0.4px] text-[#6B7280]">
+                    Deductions
+                  </p>
+                  <p className="text-[13px] font-bold leading-[19.5px] text-black">
+                    {payslip.totalDeductionsSigned}
+                  </p>
+                </div>
+              </div>
 
-          <div className="flex flex-col justify-center gap-5 py-2">
-            <TotalSummaryRow
-              label="TOTAL GROSS PAY:"
-              value={formatMoney(detail.totalEarnings)}
-              valueClassName="bg-[#bdd7ee]"
-            />
-            <TotalSummaryRow
-              label="TOTAL DEDUCTIONS:"
-              value={formatMoney(detail.totalDeductions)}
-              valueClassName="bg-[#d9d9d9]"
-            />
-            <TotalSummaryRow
-              label="TOTAL NET PAY:"
-              value={formatMoney(detail.totalAmount)}
-              valueClassName="bg-[#bdd7ee] text-[15px]"
-            />
+              <div
+                className="mt-auto flex w-full items-center justify-between rounded-[8px] p-3"
+                style={{ backgroundImage: TEAL_GRADIENT }}
+              >
+                <div className="flex flex-col items-start">
+                  <p className="text-[9px] font-bold uppercase leading-[13.5px] tracking-[1px] text-[#DFFAFF]">
+                    Net Pay
+                  </p>
+                  <p className="text-[9px] font-normal leading-[13.5px] text-[#DFFAFF]">
+                    Take-home
+                  </p>
+                </div>
+                <p className="text-[18px] font-bold leading-[27px] tracking-[-0.3px] text-white">
+                  {payslip.netPay}
+                </p>
+              </div>
+            </section>
+          </div>
+
+          <div className="flex items-center justify-between border-t border-[#F8F8F8] bg-[#FAFAFA] px-6 py-3">
+            <p className="text-[10px] leading-[15px] text-[#D1D5DB]">
+              Computer-generated document · valid without signature
+            </p>
+            <p className="text-[10px] font-medium leading-[15px] text-[#858585]">
+              Generated {payslip.generatedOn}
+            </p>
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ import PayrollPayslipPreview from "./PayrollPayslipPreview";
 import { useAdminHubI18n } from "../../i18n";
 
 const PREVIEW_SCALE = 0.38;
-const PREVIEW_BASE_WIDTH = 1000;
+const PREVIEW_BASE_WIDTH = 1100;
 
 interface PayrollPayslipPreviewThumbnailProps {
   detail: PayrollDetail;
@@ -55,7 +55,7 @@ export default function PayrollPayslipPreviewThumbnail({
           transformOrigin: "top center",
         }}
       >
-        <PayrollPayslipPreview detail={detail} />
+        <PayrollPayslipPreview detail={detail} interactive={false} />
       </div>
 
       <div className="pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-t from-white/80 via-transparent to-transparent pb-2 opacity-0 transition-opacity group-hover:opacity-100">

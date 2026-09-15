@@ -51,7 +51,7 @@ export default function PayrollPayslipPreviewModal({
         onClick={onClose}
       />
 
-      <div className="relative z-10 flex max-h-[calc(100vh-48px)] w-full max-w-[1040px] flex-col overflow-hidden rounded-[12px] bg-white shadow-[0px_4px_24px_rgba(0,0,0,0.16)]">
+      <div className="relative z-10 flex max-h-[calc(100vh-48px)] w-full max-w-[1160px] flex-col overflow-hidden rounded-[12px] bg-white shadow-[0px_4px_24px_rgba(0,0,0,0.16)]">
         <div className="flex shrink-0 items-center justify-between border-b border-[#EFEFEF] px-5 py-4">
           <h2
             id="payroll-preview-modal-title"
