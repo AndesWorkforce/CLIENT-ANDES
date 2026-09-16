@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
   ADMIN_HUB_CLEAR_FILTERS_CLASS,
@@ -13,9 +13,13 @@ import AdminHubTableShell, {
 import TableSkeleton from "../../dashboard/components/TableSkeleton";
 import {
   downloadInvoicePdf,
+  ensureInvoiceSnapshot,
+  getInvoiceDetail,
   getReporteFacturasEmitidas,
   type ReporteFacturasEmitidas,
 } from "../actions/pagos.actions";
+import type { InvoiceDetail } from "../types/invoice-detail.types";
+import ClientInvoicePreviewModal from "./ClientInvoicePreviewModal";
 import InvoiceFilterSelect from "./InvoiceFilterSelect";
 import { formatAdminHubPeriod, t } from "../../i18n";
 
@@ -65,6 +69,10 @@ export default function EmittedInvoicesReportContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [descargando, setDescargando] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewInvoice, setPreviewInvoice] = useState<InvoiceDetail | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   const periodoOptions = useMemo(
     () =>
@@ -96,6 +104,38 @@ export default function EmittedInvoicesReportContent() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  /**
+   * El reporte no trae el id del snapshot, solo empresa + periodo, así que hay
+   * que resolverlo antes de pedir el detalle que alimenta la vista previa.
+   */
+  async function handlePreview(empresaId: string, periodo: string) {
+    setPreviewOpen(true);
+    setPreviewInvoice(null);
+    setPreviewError(null);
+    setPreviewLoading(true);
+
+    try {
+      const snapshot = await ensureInvoiceSnapshot(
+        empresaId,
+        periodoToSpanishDisplay(periodo),
+      );
+      if (!snapshot.success || !snapshot.data) {
+        setPreviewError(snapshot.message ?? t("pagos.reportError"));
+        return;
+      }
+
+      const detail = await getInvoiceDetail(snapshot.data.id);
+      if (!detail.success || !detail.data) {
+        setPreviewError(detail.message ?? t("pagos.reportError"));
+        return;
+      }
+
+      setPreviewInvoice(detail.data);
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
 
   async function handleDownload(empresaId: string, periodo: string, numero: string) {
     setDescargando(numero);
@@ -240,22 +280,36 @@ export default function EmittedInvoicesReportContent() {
                     <td className={cellClass}>{factura.aprobadoPor ?? t("common.dash")}</td>
                     <td className={cellClass}>{factura.emitidaPor ?? t("common.dash")}</td>
                     <td className={cellClass}>{formatFechaHora(factura.emitidaEn, t("common.dash"))}</td>
-                    <td className="px-3 py-5 text-center">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleDownload(
-                            factura.empresaId,
-                            factura.periodo,
-                            factura.numeroFactura,
-                          )
-                        }
-                        disabled={descargando === factura.numeroFactura}
-                        aria-label={t("nominas.downloadDoc", { doc: factura.numeroFactura })}
-                        className="text-[#858585] transition-colors hover:text-[#0097B2] disabled:opacity-50"
-                      >
-                        <Download size={18} />
-                      </button>
+                    <td className="px-3 py-5">
+                      <div className="flex items-center justify-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handlePreview(factura.empresaId, factura.periodo)
+                          }
+                          aria-label={t("pagos.previewInvoice", {
+                            invoice: factura.numeroFactura,
+                          })}
+                          className="text-[#858585] transition-colors hover:text-[#0097B2]"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDownload(
+                              factura.empresaId,
+                              factura.periodo,
+                              factura.numeroFactura,
+                            )
+                          }
+                          disabled={descargando === factura.numeroFactura}
+                          aria-label={t("nominas.downloadDoc", { doc: factura.numeroFactura })}
+                          className="text-[#858585] transition-colors hover:text-[#0097B2] disabled:opacity-50"
+                        >
+                          <Download size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -264,6 +318,14 @@ export default function EmittedInvoicesReportContent() {
           </AdminHubTableShell>
         </>
       )}
+
+      <ClientInvoicePreviewModal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        invoice={previewInvoice}
+        isLoading={previewLoading}
+        error={previewError}
+      />
     </div>
   );
 }

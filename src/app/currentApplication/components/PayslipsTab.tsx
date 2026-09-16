@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, Download, FileText, RefreshCw } from "lucide-react";
+import PayslipDocument from "@/components/payslip/PayslipDocument";
+import { useAuthStore } from "@/store/auth.store";
 import {
   downloadMyPayslip,
   getMyPayslipDetail,
@@ -9,6 +11,7 @@ import {
   type MyPayslipDetail,
   type MyPayslipListItem,
 } from "../actions/payslips.actions";
+import { buildMyPayslipDocumentData } from "../lib/my-payslip-document";
 
 function formatEmitido(iso: string): string {
   const date = new Date(iso);
@@ -20,47 +23,6 @@ function formatEmitido(iso: string): string {
   });
 }
 
-function LedgerTable({
-  title,
-  lines,
-  total,
-  totalLabel,
-  accent,
-}: {
-  title: string;
-  lines: { label: string; value: string }[];
-  total: string;
-  totalLabel: string;
-  accent: string;
-}) {
-  return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-gray-200">
-      <div className={`px-3 py-2 text-xs font-semibold ${accent}`}>{title}</div>
-      <div className="flex flex-col divide-y divide-gray-100">
-        {lines.length === 0 ? (
-          <div className="px-3 py-3 text-xs text-gray-400">Sin registros</div>
-        ) : (
-          lines.map((line, index) => (
-            <div
-              key={`${line.label}-${index}`}
-              className="flex items-start justify-between gap-3 px-3 py-2"
-            >
-              <span className="text-xs text-gray-600">{line.label}</span>
-              <span className="whitespace-nowrap text-xs font-medium text-gray-900">
-                {line.value}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-      <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-3 py-2">
-        <span className="text-xs font-semibold text-gray-700">{totalLabel}</span>
-        <span className="text-xs font-bold text-gray-900">{total}</span>
-      </div>
-    </div>
-  );
-}
-
 export default function PayslipsTab() {
   const [payslips, setPayslips] = useState<MyPayslipListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,6 +32,14 @@ export default function PayslipsTab() {
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
+
+  /** El email no viaja en el desprendible: sale de la sesión del contratista. */
+  const email = useAuthStore((state) => state.user?.correo);
+
+  const documentData = useMemo(
+    () => (selected ? buildMyPayslipDocumentData(selected, email) : null),
+    [selected, email],
+  );
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -172,71 +142,31 @@ export default function PayslipsTab() {
           Volver a mis desprendibles
         </button>
 
-        <div className="rounded-lg border border-gray-200 bg-white">
-          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 p-4">
-            <div>
-              <h3 className="text-base font-semibold text-gray-900">
-                {selected.periodoDisplay}
-              </h3>
-              <p className="mt-0.5 text-xs text-gray-500">
-                {selected.startDate} – {selected.endDate}
-              </p>
-              <p className="mt-1 text-xs text-gray-400">
-                Documento {selected.numeroDocumento} · emitido el{" "}
-                {formatEmitido(selected.emitidoEn)}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void handleDownload(selected.periodo)}
-              disabled={downloading === selected.periodo}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#0097B2] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Download size={16} />
-              {downloading === selected.periodo ? "Descargando..." : "Descargar PDF"}
-            </button>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">
+              {selected.periodoDisplay}
+            </h3>
+            <p className="mt-0.5 text-xs text-gray-500">
+              {selected.startDate} – {selected.endDate}
+            </p>
+            <p className="mt-1 text-xs text-gray-400">
+              Documento {selected.numeroDocumento} · emitido el{" "}
+              {formatEmitido(selected.emitidoEn)}
+            </p>
           </div>
-
-          <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              ["Contratista", selected.contractorName],
-              ["Puesto", selected.position],
-              ["Cliente", selected.empresaNombre],
-              ["Pago mensual", selected.monthlyPayment],
-            ].map(([label, value]) => (
-              <div key={label} className="flex flex-col gap-0.5">
-                <span className="text-[11px] uppercase tracking-wide text-gray-400">
-                  {label}
-                </span>
-                <span className="text-sm text-gray-900">{value}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid gap-4 border-t border-gray-100 p-4 md:grid-cols-2">
-            <LedgerTable
-              title="INGRESOS"
-              lines={selected.earnings}
-              total={selected.totalEarnings}
-              totalLabel="Total ingresos"
-              accent="bg-[#DFFAFF] text-[#00637A]"
-            />
-            <LedgerTable
-              title="DEDUCCIONES"
-              lines={selected.deductions}
-              total={selected.totalDeductions}
-              totalLabel="Total deducciones"
-              accent="bg-[#FDECE2] text-[#9A4B12]"
-            />
-          </div>
-
-          <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-3">
-            <span className="text-sm font-semibold text-gray-700">Neto a pagar</span>
-            <span className="text-lg font-bold text-[#0097B2]">
-              {selected.totalNetPay}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={() => void handleDownload(selected.periodo)}
+            disabled={downloading === selected.periodo}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0097B2] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Download size={16} />
+            {downloading === selected.periodo ? "Descargando..." : "Descargar PDF"}
+          </button>
         </div>
+
+        {documentData ? <PayslipDocument data={documentData} /> : null}
 
         {detailError && (
           <p className="text-sm text-red-600">{detailError}</p>

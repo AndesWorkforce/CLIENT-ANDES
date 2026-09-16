@@ -658,6 +658,7 @@ export const en = {
       "Official register of issued invoices, including who approved and who issued each document.",
     totalBilled: "Total billed",
     invoiceNumber: "Invoice no.",
+    previewInvoice: "Preview {invoice}",
     approvedBy: "Approved by",
     issuedBy: "Issued by",
     issuedOn: "Issued on",
