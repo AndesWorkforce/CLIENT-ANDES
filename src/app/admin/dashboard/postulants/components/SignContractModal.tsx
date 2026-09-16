@@ -13,6 +13,7 @@ import {
   InternationalProfessionalServicesAgreementPDF,
 } from "./templates";
 import VELSContractPDF from "./templates/VELSContractPDF";
+import InternationalProfessionalServicesAgreementPartTimePDF from "./templates/InternationalProfessionalServicesAgreementPartTimePDF";
 import { Applicant } from "../../../../types/applicant";
 import { useNotificationStore } from "@/store/notifications.store";
 import { DocumentProps } from "@react-pdf/renderer";
@@ -159,6 +160,13 @@ const PDFPreview: React.FC<{
       if (selectedTemplate.id === "psa-international-english") {
         return (
           <InternationalProfessionalServicesAgreementPDF data={contractData} />
+        );
+      }
+      if (selectedTemplate.id === "psa-international-english-part-time") {
+        return (
+          <InternationalProfessionalServicesAgreementPartTimePDF
+            data={contractData}
+          />
         );
       }
       if (selectedTemplate.id === "vels-contract") {
@@ -325,6 +333,29 @@ export default function SignContractModal({
       ],
     });
 
+    // Variante part-time del PSA internacional: mismos campos, texto legal propio.
+    workingTemplates.push({
+      id: "psa-international-english-part-time",
+      name: "International Professional Services Agreement (Part Time)",
+      description:
+        "Part-time variant of the International Professional Services Agreement. Same editable fields; the contractor accrues no PTO, holidays or bonuses, and the fee is proportional to the agreed part-time schedule.",
+      subject:
+        "International Professional Services Agreement (Part Time) – {{nombreCompleto}}",
+      component: "InternationalProfessionalServicesAgreementPartTimePDF",
+      category: "International",
+      variables: [
+        "nombreCompleto",
+        "cedula",
+        "nacionalidad",
+        "cityCountry",
+        "descripcionServicios",
+        "ofertaSalarial",
+        "montoEnLetrasUSD",
+        "fechaInicioLabores",
+        "fechaEjecucion",
+      ],
+    });
+
     workingTemplates.push({
       id: "vels-contract",
       name: "VELS Contract",
@@ -350,7 +381,9 @@ export default function SignContractModal({
     if (SHOW_ONLY_INTERNATIONAL_PSA_TEMPLATE) {
       return workingTemplates.filter(
         (t) =>
-          t.id === "psa-international-english" || t.id === "vels-contract",
+          t.id === "psa-international-english" ||
+          t.id === "psa-international-english-part-time" ||
+          t.id === "vels-contract",
       );
     }
 
@@ -502,6 +535,7 @@ export default function SignContractModal({
         ...prev,
         descripcionServicios:
           contractTemplates[0].id === "psa-international-english" ||
+          contractTemplates[0].id === "psa-international-english-part-time" ||
           contractTemplates[0].id === "vels-contract"
             ? PSA_COL_DEFAULT_SERVICES
             : contractTemplates[0].description,
@@ -519,6 +553,7 @@ export default function SignContractModal({
         descripcionServicios:
           template.id === "psa-col-english" ||
           template.id === "psa-international-english" ||
+          template.id === "psa-international-english-part-time" ||
           template.id === "vels-contract"
             ? PSA_COL_DEFAULT_SERVICES
             : template.description,
@@ -665,6 +700,14 @@ export default function SignContractModal({
         } else if (selectedTemplate.id === "psa-international-english") {
           pdfDocument = (
             <InternationalProfessionalServicesAgreementPDF data={pdfData} />
+          );
+        } else if (
+          selectedTemplate.id === "psa-international-english-part-time"
+        ) {
+          pdfDocument = (
+            <InternationalProfessionalServicesAgreementPartTimePDF
+              data={pdfData}
+            />
           );
         } else if (selectedTemplate.id === "vels-contract") {
           pdfDocument = <VELSContractPDF data={pdfData} />;
@@ -1187,15 +1230,20 @@ export default function SignContractModal({
                       </div>
                     )}
 
-                  {/* International PSA / VELS – shared agreement fields */}
+                  {/* International PSA (full-time / part-time) / VELS – shared agreement fields */}
                   {selectedTemplate &&
                     (selectedTemplate.id === "psa-international-english" ||
+                      selectedTemplate.id ===
+                        "psa-international-english-part-time" ||
                       selectedTemplate.id === "vels-contract") && (
                       <div className="border-b border-[#0097B2] pb-3">
                         <h5 className="text-sm font-semibold text-gray-600 mb-2">
                           {selectedTemplate.id === "vels-contract"
                             ? "Agreement Details (VELS Contract)"
-                            : "Agreement Details (International PSA)"}
+                            : selectedTemplate.id ===
+                                "psa-international-english-part-time"
+                              ? "Agreement Details (International PSA – Part Time)"
+                              : "Agreement Details (International PSA)"}
                         </h5>
                         {/* Clause One text comes from Position → Service Description */}
                         <div className="grid grid-cols-2 gap-2">
