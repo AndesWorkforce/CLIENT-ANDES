@@ -40,6 +40,11 @@ export interface GetContratosParams {
   tipoJornada?: JornadaLaboral;
   estado?: ContractStatusLabel;
   metodoPago?: string;
+  /** Rangos en YYYY-MM-DD, inclusivos en ambos extremos. */
+  fechaInicioDesde?: string;
+  fechaInicioHasta?: string;
+  fechaFinDesde?: string;
+  fechaFinHasta?: string;
 }
 
 export interface GetContratosResult extends ApiResponse {
@@ -134,6 +139,14 @@ export async function getContratos(
         ...(params.tipoJornada ? { tipoJornada: params.tipoJornada } : {}),
         ...(params.estado ? { estado: params.estado } : {}),
         ...(params.metodoPago ? { metodoPago: params.metodoPago } : {}),
+        ...(params.fechaInicioDesde
+          ? { fechaInicioDesde: params.fechaInicioDesde }
+          : {}),
+        ...(params.fechaInicioHasta
+          ? { fechaInicioHasta: params.fechaInicioHasta }
+          : {}),
+        ...(params.fechaFinDesde ? { fechaFinDesde: params.fechaFinDesde } : {}),
+        ...(params.fechaFinHasta ? { fechaFinHasta: params.fechaFinHasta } : {}),
       },
       headers: {
         "Cache-Control": "no-store",

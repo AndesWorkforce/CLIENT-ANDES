@@ -1,3 +1,4 @@
+import { formatPtoDias } from "@/components/payslip/pto-format";
 import { findContractor } from "../data/mock-contractors";
 import type {
   PayrollDetail,
@@ -220,7 +221,10 @@ export function buildPayslipPreviewData(detail: PayrollDetail): PayslipPreviewDa
     startDate: startDateFromDetail(detail),
     monthlyBase: formatPayslipMoney(detail.baseSalary),
     holidayRate: `${(profile?.hrRateHolidays ?? 2).toFixed(1)}×`,
-    ptoBalance: "—",
+    ptoBalance:
+      detail.ptoDisponible === undefined
+        ? "—"
+        : formatPtoDias(detail.ptoDisponible),
     netPay: formatPayslipMoney(detail.totalAmount),
     grossPay: formatPayslipMoney(detail.totalEarnings),
     totalEarnings: formatPayslipMoney(detail.totalEarnings),

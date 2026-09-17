@@ -268,6 +268,13 @@ export default function PayrollVariablesTable({
     ? displayedVariables.find((item) => item.id === openMenuId)
     : null;
 
+  /**
+   * Encabezados en una sola línea: a 150% de zoom "Created on" y "Apply date"
+   * partían en dos renglones porque el chevron de orden les comía el ancho.
+   */
+  const headCellClass =
+    "whitespace-nowrap px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]";
+
   const cellClass =
     "px-3 py-6 text-[14px] tracking-[0.28px] text-[#858585]";
   const compactCellClass = `${cellClass} whitespace-nowrap`;
@@ -287,7 +294,7 @@ export default function PayrollVariablesTable({
                   aria-label={t("common.selectAll")}
                 />
               </th>
-              <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+              <th className={headCellClass}>
                 <button
                   type="button"
                   onClick={toggleDateSort}
@@ -295,23 +302,23 @@ export default function PayrollVariablesTable({
                 >
                   {t("nominas.createdAt")}
                   <ChevronDown
-                    size={18}
+                    size={16}
                     className={`transition-transform ${sortByDate === "asc" ? "rotate-180" : ""}`}
                   />
                 </button>
               </th>
-              <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+              <th className={headCellClass}>
                 {t("nominas.contractor")}
               </th>
               <th
-                className={`px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252] ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}
+                className={`${headCellClass} ${ADMIN_HUB_TABLE_CLIENT_COLUMN_CLASS}`}
               >
                 {t("nominas.client")}
               </th>
-              <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+              <th className={headCellClass}>
                 {t("nominas.type")}
               </th>
-              <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+              <th className={headCellClass}>
                 <button
                   type="button"
                   onClick={toggleAmountSort}
@@ -319,12 +326,12 @@ export default function PayrollVariablesTable({
                 >
                   {t("nominas.amount")}
                   <ChevronDown
-                    size={18}
+                    size={16}
                     className={`transition-transform ${sortByAmount === "asc" ? "rotate-180" : ""}`}
                   />
                 </button>
               </th>
-              <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+              <th className={headCellClass}>
                 <button
                   type="button"
                   onClick={toggleStatusSort}
@@ -332,15 +339,15 @@ export default function PayrollVariablesTable({
                 >
                   {t("nominas.status")}
                   <ChevronDown
-                    size={18}
+                    size={16}
                     className={`transition-transform ${sortByStatus === "asc" ? "rotate-180" : ""}`}
                   />
                 </button>
               </th>
-              <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+              <th className={headCellClass}>
                 {t("nominas.createdBy")}
               </th>
-              <th className="px-3 py-5 text-left text-[12px] font-bold leading-[18px] text-[#525252]">
+              <th className={headCellClass}>
                 <button
                   type="button"
                   onClick={toggleApplyDateSort}
@@ -348,7 +355,7 @@ export default function PayrollVariablesTable({
                 >
                   {t("nominas.applyDate")}
                   <ChevronDown
-                    size={18}
+                    size={16}
                     className={`transition-transform ${sortByApplyDate === "asc" ? "rotate-180" : ""}`}
                   />
                 </button>

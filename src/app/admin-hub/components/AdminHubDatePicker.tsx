@@ -370,7 +370,9 @@ export default function AdminHubDatePicker({
                   type="button"
                   onClick={handleApply}
                   disabled={!draftDate}
-                  className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-[8px] bg-[#0097B2] px-3 text-[12px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:opacity-50"
+                  /* Deshabilitado va en gris: con `opacity-50` sobre el teal
+                     quedaba celeste y se leía como un botón activo. */
+                  className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-[8px] bg-[#0097B2] px-3 text-[12px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099] disabled:cursor-not-allowed disabled:bg-[#EFEFEF] disabled:text-[#858585] disabled:hover:bg-[#EFEFEF]"
                 >
                   {resolvedConfirmLabel}
                 </button>

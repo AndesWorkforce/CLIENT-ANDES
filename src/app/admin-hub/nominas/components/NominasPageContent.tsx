@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, CircleCheck, Download, FileText, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleCheck, FileText, Filter } from "lucide-react";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import {
   ADMIN_HUB_CLEAR_FILTERS_CLASS,
@@ -40,8 +40,6 @@ const ACTION_BTN_BASE =
   "inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] px-[22px] text-[14px] font-medium leading-[1.2] transition-colors";
 const ACTION_BTN_PRIMARY = `${ACTION_BTN_BASE} bg-[#0097B2] text-white hover:bg-[#008099]`;
 const ACTION_BTN_SECONDARY = `${ACTION_BTN_BASE} border border-[#0097B2] text-[#0097B2] hover:bg-[#F5FAFB]`;
-const ACTION_BTN_DISABLED = `${ACTION_BTN_BASE} cursor-not-allowed border border-[#C8C8C8] bg-white text-[#C8C8C8]`;
-
 
 const STATUS_FILTER_VALUES: PayrollVariableStatus[] = [
   "Pendiente",
@@ -367,16 +365,6 @@ export default function NominasPageContent() {
         />
         {hasSelectedRows ? (
           <div className="flex flex-wrap items-center justify-end gap-[7px]">
-            <button
-              type="button"
-              disabled
-              title={t("nominas.featureDisabled")}
-              aria-disabled="true"
-              className={ACTION_BTN_DISABLED}
-            >
-              <Download size={24} aria-hidden />
-              {t("common.export")}
-            </button>
             <button
               type="button"
               onClick={handleAprobarNominas}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FileText, Filter, Plus } from "lucide-react";
+import { CircleCheck, Filter, Plus } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import { includesSearchText, normalizeSearchText } from "../../lib/search-text";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
@@ -306,10 +306,11 @@ export default function PayrollVariablesPageContent({
             <button
               type="button"
               onClick={() => setShowApproveConfirmModal(true)}
-              className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] bg-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-white transition-colors hover:bg-[#008099]"
+              /* Mismo estilo y texto que el botón Approve de /admin-hub/nominas. */
+              className="inline-flex h-9 items-center justify-center gap-2.5 rounded-[8px] border border-[#0097B2] px-[22px] text-[14px] font-medium leading-[1.2] text-[#0097B2] transition-colors hover:bg-[#F5FAFB]"
             >
-              <FileText size={24} aria-hidden />
-              {t("nominas.approveVariablesN", { count: selectedIds.size })}
+              <CircleCheck size={24} aria-hidden />
+              {t("nominas.approveN", { count: selectedIds.size })}
             </button>
           ) : null}
           <button

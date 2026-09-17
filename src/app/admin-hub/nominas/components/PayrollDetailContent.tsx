@@ -6,12 +6,14 @@ import { useRouter } from "next/navigation";
 import {
   BriefcaseBusiness,
   Calendar,
+  CalendarCheck,
   CircleUser,
   Clock3,
   Download,
   Globe,
   Mail,
 } from "lucide-react";
+import { formatPtoDias } from "@/components/payslip/pto-format";
 import { useNotificationStore } from "@/store/notifications.store";
 import AdminHubBreadcrumbs from "../../components/AdminHubBreadcrumbs";
 import AdminHubSelect from "../../components/AdminHubSelect";
@@ -334,6 +336,18 @@ export default function PayrollDetailContent({ detail: initialDetail }: PayrollD
                       value={t("jornada.HOURLY_TIME")}
                     />
                   )}
+                  {/* Mismo saldo que ve el contratista en su desprendible. */}
+                  <PayrollDetailInfoRow
+                    icon={CalendarCheck}
+                    label={t("nominas.ptoBalance")}
+                    value={
+                      detail.ptoDisponible === undefined
+                        ? t("common.dash")
+                        : `${formatPtoDias(detail.ptoDisponible)} · ${t(
+                            "nominas.ptoUsedThisMonth",
+                          )}: ${formatPtoDias(detail.ptoUsadoEsteMes ?? 0)}`
+                    }
+                  />
                 </div>
               </div>
             </section>

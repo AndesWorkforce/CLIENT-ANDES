@@ -15,6 +15,12 @@ interface AdminHubDateRangePickerProps {
   className?: string;
   /** Fila de filtros: sin encabezado, alineado con otros controles */
   variant?: "default" | "filter";
+  /**
+   * Permite elegir fechas futuras. Por defecto no, porque los usos originales
+   * acotan períodos ya ocurridos. Los filtros que miran fechas de finalización
+   * de contrato sí lo necesitan: esas fechas suelen estar en el futuro.
+   */
+  allowFuture?: boolean;
 }
 
 /**
@@ -32,6 +38,7 @@ export default function AdminHubDateRangePicker({
   toLabel,
   className = "",
   variant = "default",
+  allowFuture = false,
 }: AdminHubDateRangePickerProps) {
   const resolvedFromLabel = fromLabel ?? t("dates.from");
   const resolvedToLabel = toLabel ?? t("dates.to");
@@ -53,17 +60,17 @@ export default function AdminHubDateRangePicker({
     if (fromDate && toDate) {
       if (fromDate > toDate) {
         setValidationError(t("dates.fromAfterTo"));
-      } else if (toDate > todayIso) {
+      } else if (!allowFuture && toDate > todayIso) {
         setValidationError(t("dates.toAfterToday"));
       } else {
         setValidationError(null);
       }
-    } else if (toDate && toDate > todayIso) {
+    } else if (!allowFuture && toDate && toDate > todayIso) {
       setValidationError(t("dates.toAfterToday"));
     } else {
       setValidationError(null);
     }
-  }, [fromDate, toDate, todayIso, t]);
+  }, [fromDate, toDate, todayIso, allowFuture, t]);
 
   const handleFromDateChange = (date: string) => {
     // Si ya hay una fecha final y la nueva fecha inicial es mayor, limpiar la fecha final
@@ -71,7 +78,7 @@ export default function AdminHubDateRangePicker({
       onToDateChange("");
     }
     // Si la fecha inicial es mayor que hoy, no permitirla
-    if (date > todayIso) {
+    if (!allowFuture && date > todayIso) {
       return;
     }
     onFromDateChange(date);
@@ -79,7 +86,7 @@ export default function AdminHubDateRangePicker({
 
   const handleToDateChange = (date: string) => {
     // Si la fecha final es mayor que hoy, no permitirla
-    if (date > todayIso) {
+    if (!allowFuture && date > todayIso) {
       return;
     }
     // Si ya hay una fecha inicial y la nueva fecha final es menor, limpiar la fecha inicial
@@ -103,7 +110,7 @@ export default function AdminHubDateRangePicker({
           onChange={handleFromDateChange}
           placeholder={t("dates.placeholder")}
           required={false}
-          maxDate={toDate || todayIso}
+          maxDate={toDate || (allowFuture ? undefined : todayIso)}
           onOpen={() => setOpenField("from")}
           forceClose={openField === "to"}
         />
@@ -126,7 +133,7 @@ export default function AdminHubDateRangePicker({
           placeholder={t("dates.placeholder")}
           required={false}
           minDate={fromDate || undefined}
-          maxDate={todayIso}
+          maxDate={allowFuture ? undefined : todayIso}
           onOpen={() => setOpenField("to")}
           forceClose={openField === "from"}
         />

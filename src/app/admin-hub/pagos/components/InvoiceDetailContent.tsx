@@ -117,6 +117,17 @@ function buildFilterOptions(values: string[]) {
   }));
 }
 
+/**
+ * Recalcula el total mientras se editan líneas, para no esperar un refetch.
+ *
+ * Los créditos se SUMAN a propósito: el backend marca esa sección con
+ * `subtotalIsNegative`, la action la formatea con signo (`-$150.00`) y
+ * `parseAmount` lo preserva, así que el valor ya llega negativo. Restarlo acá
+ * haría que los créditos aumenten la factura.
+ *
+ * Debe coincidir con `calcularTotalFactura` del backend
+ * (`admin-hub/common/invoice-total.util.ts`), que es la fuente de verdad.
+ */
 function recalculateGrandTotal(
   payrollEntries: InvoicePayrollEntry[],
   additionalFees: InvoiceAdditionalFee[],

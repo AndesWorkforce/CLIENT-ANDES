@@ -12,6 +12,7 @@ import {
   type MyPayslipListItem,
 } from "../actions/payslips.actions";
 import { buildMyPayslipDocumentData } from "../lib/my-payslip-document";
+import PtoSummaryCard from "./PtoSummaryCard";
 
 function formatEmitido(iso: string): string {
   const date = new Date(iso);
@@ -165,6 +166,8 @@ export default function PayslipsTab() {
             {downloading === selected.periodo ? "Descargando..." : "Descargar PDF"}
           </button>
         </div>
+
+        <PtoSummaryCard detail={selected} />
 
         {documentData ? <PayslipDocument data={documentData} /> : null}
 

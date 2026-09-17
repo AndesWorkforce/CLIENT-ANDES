@@ -32,6 +32,12 @@ export interface MyPayslipDetail extends MyPayslipListItem {
   deductions: MyPayslipLine[];
   totalEarnings: string;
   totalDeductions: string;
+  /** Días de PTO devengados al cierre del período (1,25/mes desde junio, tope 15). */
+  ptoDevengado: number;
+  /** Días hábiles de PTO descontados en este período. */
+  ptoUsadoEsteMes: number;
+  /** Devengados menos usados. Puede ser negativo si se tomaron más días. */
+  ptoDisponible: number;
 }
 
 export interface GetMyPayslipsResult extends ApiResponse {

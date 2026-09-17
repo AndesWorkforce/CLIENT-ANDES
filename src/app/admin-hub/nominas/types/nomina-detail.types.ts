@@ -35,6 +35,12 @@ export interface PayrollDetail {
   variables: PayrollVariable[];
   nominaId?: string | null;
   desprendible: PayrollPayslipDocument | null;
+  /** Días de PTO devengados al cierre del período (1,25/mes desde junio, tope 15). */
+  ptoDevengado?: number;
+  /** Días hábiles de PTO descontados en este período. */
+  ptoUsadoEsteMes?: number;
+  /** Devengados menos usados. Puede ser negativo si se tomaron más días. */
+  ptoDisponible?: number;
 }
 
 /** Desprendible de pago emitido (HU1). null mientras la nómina no fue emitida. */
@@ -69,6 +75,9 @@ export interface NominaDetailApiResponse {
   totalDeductions: number;
   totalAmount: number;
   desprendible?: PayrollPayslipDocument | null;
+  ptoDevengado?: number;
+  ptoUsadoEsteMes?: number;
+  ptoDisponible?: number;
   variables: Array<{
     id: string;
     type: string;

@@ -263,6 +263,9 @@ function mapNominaDetailToPayrollDetail(detail: NominaDetailApiResponse): Payrol
     totalAmount: detail.totalAmount,
     nominaId: detail.nominaId ?? null,
     desprendible: detail.desprendible ?? null,
+    ptoDevengado: detail.ptoDevengado,
+    ptoUsadoEsteMes: detail.ptoUsadoEsteMes,
+    ptoDisponible: detail.ptoDisponible,
     variables: detail.variables.map((variable) => ({
       id: variable.id,
       date: "",

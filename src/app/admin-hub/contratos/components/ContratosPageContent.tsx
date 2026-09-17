@@ -10,6 +10,7 @@ import {
 } from "../../components/admin-hub-filter-styles";
 import AdminHubSearchInput from "../../components/AdminHubSearchInput";
 import TableSkeleton from "../../dashboard/components/TableSkeleton";
+import AdminHubDateRangePicker from "../../components/AdminHubDateRangePicker";
 import InvoiceFilterSelect from "../../pagos/components/InvoiceFilterSelect";
 import { t } from "../../i18n";
 import {
@@ -108,6 +109,10 @@ export default function ContratosPageContent() {
   const [contractTypeFilter, setContractTypeFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [startFrom, setStartFrom] = useState("");
+  const [startTo, setStartTo] = useState("");
+  const [endFrom, setEndFrom] = useState("");
+  const [endTo, setEndTo] = useState("");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -141,6 +146,10 @@ export default function ContratosPageContent() {
       tipoJornada: (contractTypeFilter as JornadaLaboral) || undefined,
       estado: (statusFilter as ContractStatusLabel) || undefined,
       metodoPago: paymentFilter || undefined,
+      fechaInicioDesde: startFrom || undefined,
+      fechaInicioHasta: startTo || undefined,
+      fechaFinDesde: endFrom || undefined,
+      fechaFinHasta: endTo || undefined,
     });
 
     if (!response.success || !response.data) {
@@ -174,6 +183,10 @@ export default function ContratosPageContent() {
     contractTypeFilter,
     paymentFilter,
     statusFilter,
+    startFrom,
+    startTo,
+    endFrom,
+    endTo,
     t,
   ]);
 
@@ -187,6 +200,10 @@ export default function ContratosPageContent() {
     setContractTypeFilter("");
     setPaymentFilter("");
     setStatusFilter("");
+    setStartFrom("");
+    setStartTo("");
+    setEndFrom("");
+    setEndTo("");
     setPage(1);
   }
 
@@ -195,7 +212,11 @@ export default function ContratosPageContent() {
       countryFilter ||
       contractTypeFilter ||
       paymentFilter ||
-      statusFilter,
+      statusFilter ||
+      startFrom ||
+      startTo ||
+      endFrom ||
+      endTo,
   );
 
   const statusFilterOptions = useMemo(
@@ -318,6 +339,39 @@ export default function ContratosPageContent() {
                 setPage(1);
               }}
               options={statusFilterOptions}
+            />
+            <AdminHubDateRangePicker
+              variant="filter"
+              fromLabel={t("contratos.filterStartFrom")}
+              toLabel={t("contratos.filterStartTo")}
+              fromDate={startFrom}
+              toDate={startTo}
+              onFromDateChange={(value) => {
+                setStartFrom(value);
+                setPage(1);
+              }}
+              onToDateChange={(value) => {
+                setStartTo(value);
+                setPage(1);
+              }}
+            />
+            {/* Las fechas de finalización suelen ser futuras, así que este rango
+                no se topa en el día de hoy. */}
+            <AdminHubDateRangePicker
+              variant="filter"
+              allowFuture
+              fromLabel={t("contratos.filterEndFrom")}
+              toLabel={t("contratos.filterEndTo")}
+              fromDate={endFrom}
+              toDate={endTo}
+              onFromDateChange={(value) => {
+                setEndFrom(value);
+                setPage(1);
+              }}
+              onToDateChange={(value) => {
+                setEndTo(value);
+                setPage(1);
+              }}
             />
             <button
               type="button"

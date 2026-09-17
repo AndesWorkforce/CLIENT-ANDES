@@ -2,6 +2,7 @@ import type {
   PayslipDocumentData,
   PayslipLineItem,
 } from "@/components/payslip/PayslipDocument";
+import { formatPtoDias } from "@/components/payslip/pto-format";
 import type { MyPayslipDetail, MyPayslipLine } from "../actions/payslips.actions";
 
 function toLineItems(lines: MyPayslipLine[], prefix: string): PayslipLineItem[] {
@@ -27,9 +28,9 @@ function formatGeneratedOn(iso: string): string {
 /**
  * Adapta el desprendible propio del contratista al documento compartido.
  *
- * `payslips/me/:periodo` no expone todavía fecha de contratación, holiday rate
- * ni saldo de PTO, así que esos campos quedan sin valor y el documento los
- * muestra como "—". El email no viaja en el payload: lo aporta el auth store.
+ * `payslips/me/:periodo` no expone todavía fecha de contratación ni holiday
+ * rate, así que esos campos quedan sin valor y el documento los muestra como
+ * "—". El email no viaja en el payload: lo aporta el auth store.
  */
 export function buildMyPayslipDocumentData(
   detail: MyPayslipDetail,
@@ -41,6 +42,7 @@ export function buildMyPayslipDocumentData(
     email,
     startDate: detail.startDate,
     monthlyBase: detail.monthlyPayment,
+    ptoBalance: formatPtoDias(detail.ptoDisponible),
     netPay: detail.totalNetPay,
     grossPay: detail.totalEarnings,
     totalEarnings: detail.totalEarnings,

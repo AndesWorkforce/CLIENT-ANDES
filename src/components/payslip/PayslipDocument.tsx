@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 
 /**
@@ -56,7 +56,6 @@ interface PayslipDocumentProps {
 
 const TEAL_GRADIENT =
   "linear-gradient(172.85deg, #0097B2 3.67%, #0097B2 54.63%, #137486 96.33%)";
-const EMPTY_DEDUCTION_SLOTS = 6;
 /** Separador entre columnas y filas: gris muy claro, como en el diseño. */
 const HAIRLINE = "#EFEFEF";
 const DASH = "—";
@@ -274,22 +273,6 @@ export default function PayslipDocument({
 }: PayslipDocumentProps) {
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
 
-  const deductionRows = useMemo(() => {
-    const emptyCount = Math.max(
-      0,
-      EMPTY_DEDUCTION_SLOTS - data.deductions.length
-    );
-
-    return [
-      ...data.deductions,
-      ...Array.from({ length: emptyCount }, (_, index) => ({
-        id: `empty-deduction-${index}`,
-        label: DASH,
-        value: "",
-      })),
-    ];
-  }, [data.deductions]);
-
   return (
     <div className="w-full overflow-x-auto">
       <div
@@ -383,14 +366,17 @@ export default function PayslipDocument({
             <section className="flex w-[309px] shrink-0 flex-col items-start border-r border-[#EFEFEF] px-6 py-5">
               <ColumnHeader label="Deductions" barClassName="bg-[#F87171]" />
               <div className="flex w-full flex-1 flex-col pt-3">
-                {deductionRows.map((row) => (
-                  <LineRow
-                    key={row.id}
-                    label={row.label}
-                    value={row.value || undefined}
-                    muted={!row.value}
-                  />
-                ))}
+                {data.deductions.length > 0 ? (
+                  data.deductions.map((row) => (
+                    <LineRow key={row.id} label={row.label} value={row.value} />
+                  ))
+                ) : (
+                  /* Sin deducciones no se rellena con filas "—": esos renglones
+                     vacíos se leían como líneas del desprendible. */
+                  <p className="text-[13px] font-normal leading-[19px] text-[#C8C8C8]">
+                    No deductions this period
+                  </p>
+                )}
               </div>
               <TotalBanner
                 label="Total Deductions"
