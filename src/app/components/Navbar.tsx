@@ -105,7 +105,7 @@ export default function Navbar() {
     useState<boolean>(false);
   const [stepContract, setStepContract] = useState<string>("");
   const [isValidProfileUserState, setIsValidProfileUserState] =
-    useState<boolean>(false);
+    useState<boolean | undefined>(undefined);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const isHomePage =
