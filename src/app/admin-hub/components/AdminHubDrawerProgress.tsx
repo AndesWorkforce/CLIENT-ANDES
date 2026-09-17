@@ -1,3 +1,5 @@
+import { t } from "../i18n";
+
 interface AdminHubDrawerProgressProps {
   currentStep: number;
   totalSteps: number;
@@ -15,7 +17,11 @@ export default function AdminHubDrawerProgress({
     <div className="flex w-full flex-col gap-1.5">
       <div className="flex items-start justify-between gap-2">
         <p className="text-[14px] font-semibold leading-[1.3] text-[#0097B2]">
-          Paso {currentStep} de {totalSteps} ⋅ {stepLabel}
+          {t("common.stepProgress", {
+            current: currentStep,
+            total: totalSteps,
+            label: stepLabel,
+          })}
         </p>
         <p className="shrink-0 text-[14px] font-semibold leading-[1.3] text-[#C8C8C8]">
           {percent}%
