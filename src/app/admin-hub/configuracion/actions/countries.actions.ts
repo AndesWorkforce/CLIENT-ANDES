@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createServerAxios } from "@/services/axios.server";
 
 export interface CountryConfig {
@@ -33,7 +32,7 @@ export interface CreateCountryConfigInput extends CountryConfigInput {
 interface CountryResult {
   success: boolean;
   message?: string;
-  data?: CountryConfig;
+  data?: CountryConfig | null;
 }
 
 interface CountriesResult {
@@ -57,22 +56,28 @@ function mapCountry(payload: Record<string, unknown>): CountryConfig {
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
-  const message = (
-    error as {
-      response?: { data?: { message?: string | string[] } };
-    }
-  )?.response?.data?.message;
+  const axiosError = error as {
+    code?: string;
+    message?: string;
+    response?: { data?: { message?: string | string[]; meta?: { message?: string } } };
+  };
+  const message =
+    axiosError?.response?.data?.message ?? axiosError?.response?.data?.meta?.message;
 
   if (Array.isArray(message)) return message.join(". ");
-  return typeof message === "string" && message.trim() ? message : fallback;
+  if (typeof message === "string" && message.trim()) return message;
+  if (axiosError?.code === "ECONNABORTED") return "The request timed out. Please try again.";
+  return fallback;
 }
 
-export async function getCountries(): Promise<CountriesResult> {
-  const axios = await createServerAxios();
+const COUNTRY_REQUEST_TIMEOUT_MS = 20_000;
 
+export async function getCountries(): Promise<CountriesResult> {
   try {
+    const axios = await createServerAxios();
     const response = await axios.get("countries", {
       headers: { "Cache-Control": "no-store" },
+      timeout: COUNTRY_REQUEST_TIMEOUT_MS,
     });
     const payload = Array.isArray(response.data?.data) ? response.data.data : [];
 
@@ -81,7 +86,10 @@ export async function getCountries(): Promise<CountriesResult> {
       data: payload.map((country: Record<string, unknown>) => mapCountry(country)),
     };
   } catch (error) {
-    console.error("[COUNTRIES] Error al obtener países:", error);
+    console.error(
+      "[COUNTRIES] Error al obtener países:",
+      getErrorMessage(error, "No se pudieron cargar los países."),
+    );
     return {
       success: false,
       message: getErrorMessage(error, "No se pudieron cargar los países."),
@@ -90,23 +98,35 @@ export async function getCountries(): Promise<CountriesResult> {
 }
 
 export async function createCountry(input: CreateCountryConfigInput): Promise<CountryResult> {
-  const axios = await createServerAxios();
-
   try {
-    const response = await axios.post("countries", {
-      ...input,
-      codigo: input.codigo.trim().toUpperCase(),
-      nombre: input.nombre.trim(),
-    });
+    const axios = await createServerAxios();
+    const response = await axios.post(
+      "countries",
+      {
+        codigo: input.codigo.trim().toUpperCase(),
+        nombre: input.nombre.trim(),
+        activo: input.activo,
+        tarifaHrNacional: input.tarifaHrNacional,
+        diasLaboralesMes: input.diasLaboralesMes,
+        tarifaFestivo: input.tarifaFestivo,
+        tarifaOTDiaSemana: input.tarifaOTDiaSemana,
+        tarifaOTSabado: input.tarifaOTSabado,
+        tarifaOTDomingo: input.tarifaOTDomingo,
+      },
+      { timeout: COUNTRY_REQUEST_TIMEOUT_MS },
+    );
+    const created = response.data?.data;
 
-    revalidatePath("/admin-hub/configuracion");
     return {
       success: true,
       message: "País creado correctamente.",
-      data: response.data?.data ? mapCountry(response.data.data) : undefined,
+      data: created ? mapCountry(created) : null,
     };
   } catch (error) {
-    console.error("[COUNTRIES] Error al crear país:", error);
+    console.error(
+      "[COUNTRIES] Error al crear país:",
+      getErrorMessage(error, "No se pudo crear el país."),
+    );
     return {
       success: false,
       message: getErrorMessage(error, "No se pudo crear el país."),
@@ -118,22 +138,28 @@ export async function updateCountry(
   codigo: string,
   input: Partial<CountryConfigInput>,
 ): Promise<CountryResult> {
-  const axios = await createServerAxios();
-
   try {
-    const response = await axios.patch(`countries/${encodeURIComponent(codigo)}`, {
-      ...input,
-      ...(input.nombre !== undefined ? { nombre: input.nombre.trim() } : {}),
-    });
+    const axios = await createServerAxios();
+    const response = await axios.patch(
+      `countries/${encodeURIComponent(codigo)}`,
+      {
+        ...input,
+        ...(input.nombre !== undefined ? { nombre: input.nombre.trim() } : {}),
+      },
+      { timeout: COUNTRY_REQUEST_TIMEOUT_MS },
+    );
+    const updated = response.data?.data;
 
-    revalidatePath("/admin-hub/configuracion");
     return {
       success: true,
       message: "País actualizado correctamente.",
-      data: response.data?.data ? mapCountry(response.data.data) : undefined,
+      data: updated ? mapCountry(updated) : null,
     };
   } catch (error) {
-    console.error("[COUNTRIES] Error al actualizar país:", error);
+    console.error(
+      "[COUNTRIES] Error al actualizar país:",
+      getErrorMessage(error, "No se pudo actualizar el país."),
+    );
     return {
       success: false,
       message: getErrorMessage(error, "No se pudo actualizar el país."),

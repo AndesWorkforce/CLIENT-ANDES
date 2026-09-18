@@ -218,27 +218,31 @@ export default function CountryFormDrawer({
     if (!step2Complete || saving) return;
 
     setSaving(true);
-    const input = formToInput(form);
-    const result = editingCountry
-      ? await updateCountry(editingCountry.codigo, input)
-      : await createCountry({ codigo: form.codigo, ...input });
+    try {
+      const input = formToInput(form);
+      const result = editingCountry
+        ? await updateCountry(editingCountry.codigo, input)
+        : await createCountry({ codigo: form.codigo, ...input });
 
-    if (!result.success) {
-      addNotification(result.message || t("configuracion.countrySaveError"), "error");
+      if (!result.success) {
+        addNotification(result.message || t("configuracion.countrySaveError"), "error");
+        return;
+      }
+
+      addNotification(
+        editingCountry
+          ? t("configuracion.countryUpdateSuccess")
+          : t("configuracion.countryCreateSuccess"),
+        "success",
+        "compact",
+      );
+      await onSaved();
+      onClose();
+    } catch {
+      addNotification(t("configuracion.countrySaveError"), "error");
+    } finally {
       setSaving(false);
-      return;
     }
-
-    addNotification(
-      editingCountry
-        ? t("configuracion.countryUpdateSuccess")
-        : t("configuracion.countryCreateSuccess"),
-      "success",
-      "compact",
-    );
-    setSaving(false);
-    await onSaved();
-    onClose();
   }
 
   const stepLabel = step === 1 ? t("configuracion.stepBasic") : t("configuracion.stepRates");
@@ -256,8 +260,12 @@ export default function CountryFormDrawer({
       }
       footer={
         <AdminHubDrawerFooter
-          onCancel={handleClose}
-          primaryLabel={saving ? t("configuracion.savingCountry") : t("common.next")}
+          onCancel={step === 2 && !saving ? () => setStep(1) : handleClose}
+          cancelLabel={step === 2 ? t("common.back") : t("common.cancel")}
+          cancelVariant={step === 2 ? "back" : "cancel"}
+          primaryLabel={
+            saving ? t("configuracion.savingCountry") : step === 1 ? t("common.next") : t("common.save")
+          }
           onPrimary={handleNext}
           primaryDisabled={step === 1 ? !step1Complete : !step2Complete || saving}
         />

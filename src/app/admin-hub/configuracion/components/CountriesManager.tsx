@@ -85,27 +85,31 @@ export default function CountriesManager() {
   async function handleStatusChange() {
     if (!statusCountry) return;
     setChangingStatus(true);
-    const result = await updateCountry(statusCountry.codigo, {
-      activo: !statusCountry.activo,
-    });
+    try {
+      const result = await updateCountry(statusCountry.codigo, {
+        activo: !statusCountry.activo,
+      });
 
-    if (!result.success) {
-      addNotification(result.message || t("configuracion.countryStatusError"), "error");
+      if (!result.success) {
+        addNotification(result.message || t("configuracion.countryStatusError"), "error");
+        return;
+      }
+
+      addNotification(
+        statusCountry.activo
+          ? t("configuracion.countryDeactivated")
+          : t("configuracion.countryActivated"),
+        "success",
+        "compact",
+      );
+      setStatusCountry(null);
+      await loadCountries();
+    } catch {
+      addNotification(t("configuracion.countryStatusError"), "error");
+    } finally {
       setChangingStatus(false);
       setStatusCountry(null);
-      return;
     }
-
-    addNotification(
-      statusCountry.activo
-        ? t("configuracion.countryDeactivated")
-        : t("configuracion.countryActivated"),
-      "success",
-      "compact",
-    );
-    setChangingStatus(false);
-    setStatusCountry(null);
-    await loadCountries();
   }
 
   return (
