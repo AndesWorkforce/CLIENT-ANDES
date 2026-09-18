@@ -36,6 +36,13 @@ interface SendAnnexModalProps {
   onAnnexSent?: () => void;
 }
 
+/**
+ * Anexo manual: en lugar de generar el PDF desde un template de @react-pdf,
+ * el admin sube su propio archivo y solo completa el correo del contratista.
+ * Sirve para meter contratos armados por fuera en el circuito de firmas.
+ */
+const CUSTOM_PDF_TEMPLATE_ID = "custom-uploaded-pdf";
+
 // Funciones auxiliares para labels y placeholders
 const getFieldLabel = (field: string): string => {
   const labels: Record<string, string> = {
@@ -314,6 +321,21 @@ export default function SendAnnexModal({
   const [previewKey, setPreviewKey] = useState(0);
   const [showPreview, setShowPreview] = useState(true);
   const sendingRef = useRef(false);
+  const [uploadedPdf, setUploadedPdf] = useState<File | null>(null);
+  const [uploadedPdfUrl, setUploadedPdfUrl] = useState<string | null>(null);
+  const isCustomPdf = selectedTemplate?.id === CUSTOM_PDF_TEMPLATE_ID;
+
+  // El object URL vive mientras haya archivo cargado; se revoca al cambiarlo.
+  useEffect(() => {
+    if (!uploadedPdf) {
+      setUploadedPdfUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(uploadedPdf);
+    setUploadedPdfUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [uploadedPdf]);
+
   const PSA_COL_DEFAULT_SERVICES =
     "maintaining client files, answering phone calls, speaking with potential and current clients, processing legal documents, initiating claims and appeals, providing case-related information, uploading PDFs to electronic portals, gathering potential client information for review, processing admission documents and entering data digitally, confirming client medical appointments, assisting with required forms, and performing additional tasks as assigned";
 
@@ -381,6 +403,18 @@ export default function SendAnnexModal({
       component: "ImageUseAuthorizationAnnexPDF",
       category: "Compliance",
       variables: ["nombreCompleto", "correoElectronico", "cedula"],
+    });
+
+    // Anexo manual: el PDF lo sube el admin, no se genera desde un template.
+    workingTemplates.push({
+      id: CUSTOM_PDF_TEMPLATE_ID,
+      name: "CUSTOM PDF – UPLOAD YOUR OWN",
+      description:
+        "Upload your own PDF and send it through the e-signature flow. Only the contractor's email is required. Requires only Contractor signature.",
+      subject: "Annex - {{nombreCompleto}}",
+      component: "UploadedPdf",
+      category: "Manual Upload",
+      variables: ["correoElectronico"],
     });
 
     return workingTemplates;
@@ -611,6 +645,9 @@ export default function SendAnnexModal({
 
   const validateRequiredFields = () => {
     const errors: string[] = [];
+    if (isCustomPdf && !uploadedPdf) {
+      errors.push("A PDF file is required");
+    }
     const requiredFields = ["nombreCompleto", "correoElectronico"];
     requiredFields.forEach((field) => {
       if (
@@ -701,6 +738,15 @@ export default function SendAnnexModal({
         });
       }
 
+      let pdfBlob: Blob;
+
+      if (isCustomPdf) {
+        // El PDF ya viene armado: se usa tal cual, sin pasar por @react-pdf.
+        if (!uploadedPdf) {
+          throw new Error("No PDF file uploaded");
+        }
+        pdfBlob = uploadedPdf;
+      } else {
       const { pdf } = await import("@react-pdf/renderer");
       const pdfData = getPDFData();
       let pdfDocument;
@@ -728,7 +774,8 @@ export default function SendAnnexModal({
         throw error;
       }
 
-      const pdfBlob = await pdf(pdfDocument).toBlob();
+        pdfBlob = await pdf(pdfDocument).toBlob();
+      }
 
       // Use template subject with variables replaced for ESIGN document title
       const tituloDoc = replaceVariables(selectedTemplate.subject);
@@ -919,6 +966,35 @@ export default function SendAnnexModal({
                   </div>
                 )}
                 <div className="space-y-4">
+                  {isCustomPdf && (
+                    <div className="border-b border-[#0097B2] pb-3">
+                      <h5 className="text-sm font-semibold text-[#0097B2] mb-2">
+                        PDF File *
+                      </h5>
+                      <input
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null;
+                          setUploadedPdf(file);
+                          if (validationErrors.length > 0) {
+                            setValidationErrors([]);
+                          }
+                        }}
+                        className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm file:mr-3 file:rounded file:border-0 file:bg-[#0097B2] file:px-3 file:py-1 file:text-white focus:outline-none focus:ring-1 focus:ring-[#0097B2]"
+                      />
+                      {uploadedPdf && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          {uploadedPdf.name} ·{" "}
+                          {(uploadedPdf.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      )}
+                      <p className="mt-1 text-xs text-gray-400">
+                        The signature box is placed at the bottom of the last
+                        page, so leave that area free.
+                      </p>
+                    </div>
+                  )}
                   <div className="border-b border-[#0097B2] pb-3">
                     <h5 className="text-sm font-semibold text-[#0097B2] mb-2">
                       Personal Information *
@@ -1092,10 +1168,29 @@ export default function SendAnnexModal({
                 </div>
                 <div className="bg-white rounded border shadow-sm">
                   <div className="h-[600px] border rounded-lg overflow-hidden">
-                    <PDFPreview
-                      selectedTemplate={selectedTemplate}
-                      contractData={getPDFData()}
-                    />
+                    {isCustomPdf ? (
+                      uploadedPdfUrl ? (
+                        <iframe
+                          src={uploadedPdfUrl}
+                          title="Uploaded annex preview"
+                          style={{ width: "100%", height: "100%", border: 0 }}
+                        />
+                      ) : (
+                        <div className="h-full flex items-center justify-center text-gray-500">
+                          <div className="text-center">
+                            <FileText size={48} className="mx-auto mb-4" />
+                            <p className="text-sm text-gray-600">
+                              Upload a PDF to view the preview
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    ) : (
+                      <PDFPreview
+                        selectedTemplate={selectedTemplate}
+                        contractData={getPDFData()}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
