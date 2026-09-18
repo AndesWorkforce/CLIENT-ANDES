@@ -14,6 +14,18 @@ export interface CreatePayrollVariableFormData {
   cantidad: string;
   descripcion: string;
   periodo: string;
+  /**
+   * Ausencias: cubrirlas con días de PTO en lugar de descontar dinero. El
+   * reparto real lo resuelve el backend al aprobar, contra el saldo de ese
+   * momento.
+   */
+  descuentaPto: boolean;
+  /**
+   * Con `descuentaPto` y saldo insuficiente:
+   * true  = consume PTO por todos los días y deja el saldo negativo.
+   * false = consume solo los días enteros disponibles y el resto va a dinero.
+   */
+  permitePtoNegativo: boolean;
 }
 
 export const OVERTIME_UNIT_OPTIONS = [
@@ -42,6 +54,8 @@ export function emptyPayrollVariableForm(): CreatePayrollVariableFormData {
     cantidad: "1",
     descripcion: "",
     periodo: getTodayIso(),
+    descuentaPto: false,
+    permitePtoNegativo: false,
   };
 }
 

@@ -410,6 +410,16 @@ export const en = {
     workScheduleType: "Work schedule type",
     ptoBalance: "PTO balance",
     ptoUsedThisMonth: "used this month",
+    ptoCoverAbsence: "Cover with PTO instead of deducting pay",
+    ptoCoverAbsenceHint:
+      "Uses 1 PTO day per working day of absence. Accrual is 1.25 days a month, up to 15 a year.",
+    ptoNotEnoughTitle: "If the PTO balance is not enough",
+    ptoSplitWithMoney: "Use the whole days available, deduct the rest",
+    ptoSplitWithMoneyHint:
+      "With 3.25 days left, 3 are covered by PTO and the remaining days are deducted from pay. The 0.25 stays available.",
+    ptoAllowNegative: "Use PTO anyway and allow a negative balance",
+    ptoAllowNegativeHint:
+      "No pay is deducted. The balance goes negative and offsets future accrual.",
     saveHours: "Save hours",
     hourlyRatePreview: "Rate {rate}/h × {hours} h =",
     totalEarnings: "Total earnings",

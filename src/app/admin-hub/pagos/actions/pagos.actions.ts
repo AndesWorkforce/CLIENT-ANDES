@@ -405,6 +405,43 @@ export async function getFacturas(
   }
 }
 
+export interface FacturaTotalEmpresa {
+  empresaId: string;
+  total: number;
+  estado: string | null;
+  calculadoEnVivo: boolean;
+}
+
+/**
+ * Total a facturar por empresa para el periodo.
+ *
+ * El listado de pagos se arma desde Empresa, no desde las facturas, así que una
+ * empresa sin snapshot del período quedaba sin monto hasta que alguien abría la
+ * factura (abrirla es lo que genera el snapshot). Este endpoint devuelve un
+ * total para todas: en vivo si no está emitida, congelado si ya lo está.
+ */
+export async function getFacturasTotales(
+  periodo: string,
+): Promise<FacturaTotalEmpresa[]> {
+  const axios = await createServerAxios();
+
+  try {
+    const response = await axios.get("admin-hub/facturas/totales", {
+      params: { periodo },
+      headers: { "Cache-Control": "no-store" },
+    });
+
+    const payload = response.data?.data ?? response.data;
+    // Array plano y no un Map: el valor de retorno de una server action se
+    // serializa, y un Map no sobrevive el cruce de forma confiable.
+    return Array.isArray(payload) ? payload : [];
+  } catch (error: unknown) {
+    console.error("[PAGOS] Error al obtener totales por empresa:", error);
+    // Sin totales el listado sigue funcionando: cae al monto del snapshot.
+    return [];
+  }
+}
+
 export async function getInvoiceDetail(
   invoiceId: string,
 ): Promise<GetInvoiceDetailResult> {

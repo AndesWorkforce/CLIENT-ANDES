@@ -217,6 +217,74 @@ export default function PayrollVariableContextFields({
             </div>
           )}
 
+          {isDeductionAusencia && (
+            <div className="flex flex-col gap-3 rounded-[8px] border border-[#EFEFEF] bg-[#FAFAFA] px-4 py-3">
+              <label className="flex cursor-pointer items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  checked={formData.descuentaPto}
+                  onChange={(event) =>
+                    patch({ descuentaPto: event.target.checked })
+                  }
+                  className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#0097B2]"
+                />
+                <span className="flex flex-col">
+                  <span className="text-[14px] font-medium leading-[1.3] text-[#343434]">
+                    {t("nominas.ptoCoverAbsence")}
+                  </span>
+                  <span className="pt-0.5 text-[12px] leading-[1.35] text-[#858585]">
+                    {t("nominas.ptoCoverAbsenceHint")}
+                  </span>
+                </span>
+              </label>
+
+              {/* Qué hacer si el saldo no alcanza. El reparto exacto lo resuelve
+                  el backend al aprobar, contra el saldo de ese momento. */}
+              {formData.descuentaPto && (
+                <div className="flex flex-col gap-2 border-t border-[#EFEFEF] pt-3">
+                  <span className="text-[12px] font-semibold uppercase leading-[1.3] tracking-[0.4px] text-[#707070]">
+                    {t("nominas.ptoNotEnoughTitle")}
+                  </span>
+                  {[
+                    {
+                      value: false,
+                      label: t("nominas.ptoSplitWithMoney"),
+                      hint: t("nominas.ptoSplitWithMoneyHint"),
+                    },
+                    {
+                      value: true,
+                      label: t("nominas.ptoAllowNegative"),
+                      hint: t("nominas.ptoAllowNegativeHint"),
+                    },
+                  ].map((option) => (
+                    <label
+                      key={String(option.value)}
+                      className="flex cursor-pointer items-start gap-2.5"
+                    >
+                      <input
+                        type="radio"
+                        name="permitePtoNegativo"
+                        checked={formData.permitePtoNegativo === option.value}
+                        onChange={() =>
+                          patch({ permitePtoNegativo: option.value })
+                        }
+                        className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#0097B2]"
+                      />
+                      <span className="flex flex-col">
+                        <span className="text-[13px] leading-[1.3] text-[#343434]">
+                          {option.label}
+                        </span>
+                        <span className="pt-0.5 text-[12px] leading-[1.35] text-[#858585]">
+                          {option.hint}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {isDeductionOther && (
             <AdminHubFormField
               type="input"

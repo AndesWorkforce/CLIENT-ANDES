@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getInitials } from "../../lib/initials";
 import { Download } from "lucide-react";
 import { useNotificationStore } from "@/store/notifications.store";
 import { t, type AdminHubTranslate } from "../../i18n";
@@ -155,15 +156,6 @@ function buildFormState(detail: PersonaDetail): PersonaFormState {
     referredBy: profile.referredBy ?? "",
     notes: profile.notes,
   };
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
 }
 
 export default function PersonaDetailContent({ detail }: PersonaDetailContentProps) {

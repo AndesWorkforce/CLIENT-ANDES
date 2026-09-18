@@ -24,6 +24,10 @@ export interface CreateNominaVariableApiPayload {
   fechaInicio?: string;
   fechaFin?: string;
   cantidadDias?: number;
+  /** Solo ausencias: cubrirlas con PTO en lugar de descontar dinero. */
+  descuentaPto?: boolean;
+  /** Solo ausencias con descuentaPto: permite dejar el saldo en negativo. */
+  permitePtoNegativo?: boolean;
   monto?: number;
   categoria?: string;
   montoIngreso?: number;
@@ -97,6 +101,11 @@ export function formDataToCreateNominaVariablePayload(
           fechaInicio: formData.desde,
           fechaFin: formData.hasta,
           cantidadDias: computeInclusiveCalendarDays(formData.desde, formData.hasta),
+          descuentaPto: formData.descuentaPto,
+          // Solo aplica junto con descuentaPto; si no, el backend lo ignora.
+          permitePtoNegativo: formData.descuentaPto
+            ? formData.permitePtoNegativo
+            : false,
         };
       }
       return {

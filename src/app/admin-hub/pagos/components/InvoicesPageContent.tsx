@@ -20,6 +20,8 @@ import {
 } from "../../nominas/data/payroll-data";
 import {
   getFacturas,
+  getFacturasTotales,
+  type FacturaTotalEmpresa,
   type PagosCliente,
 } from "../actions/pagos.actions";
 import type { Invoice, InvoiceStatus } from "../types/invoice.types";
@@ -48,10 +50,18 @@ const STATUS_FILTER_VALUES: InvoiceStatus[] = [
  * `admin-hub/facturas`: si existe se muestran su total y su estado reales, y si
  * todavía no se generó queda "Sin factura".
  */
+function formatMoney(amount: number): string {
+  return `$${amount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 function mapClienteToInvoiceRow(
   client: PagosCliente,
   period: string,
   factura?: Invoice,
+  total?: FacturaTotalEmpresa,
 ): Invoice {
   return {
     id: factura?.id ?? client.id,
@@ -59,7 +69,12 @@ function mapClienteToInvoiceRow(
     empresaId: client.id,
     client: client.nombre,
     period,
-    totalAmount: factura?.totalAmount ?? "—",
+    // El total del endpoint manda: cubre las empresas sin snapshot, que antes
+    // quedaban en "—" hasta que alguien abría la factura.
+    totalAmount:
+      total !== undefined
+        ? formatMoney(total.total)
+        : (factura?.totalAmount ?? "—"),
     status: factura?.status ?? "Pendiente",
   };
 }
@@ -113,10 +128,15 @@ export default function InvoicesPageContent({
   const [error] = useState<string | null>(initialError);
 
   const selectedPeriod = monthOptionToPeriod(selectedMonth);
+  /** Mismo mes en formato YYYY-MM, que es lo que espera la API. */
+  const selectedPeriodApi = nominaMonthOptionToAnioMes(selectedMonth);
 
   // Facturas reales del periodo, indexadas por empresa.
   const [facturasPorEmpresa, setFacturasPorEmpresa] = useState<
     Map<string, Invoice>
+  >(new Map());
+  const [totalesPorEmpresa, setTotalesPorEmpresa] = useState<
+    Map<string, FacturaTotalEmpresa>
   >(new Map());
 
   useEffect(() => {
@@ -131,12 +151,18 @@ export default function InvoicesPageContent({
         mapa.set(factura.empresaId, factura);
       }
       setFacturasPorEmpresa(mapa);
+
+      const totales = await getFacturasTotales(selectedPeriodApi);
+      if (cancelado) return;
+      setTotalesPorEmpresa(
+        new Map(totales.map((item) => [item.empresaId, item])),
+      );
     })();
 
     return () => {
       cancelado = true;
     };
-  }, [selectedMonth]);
+  }, [selectedMonth, selectedPeriodApi]);
 
   const clientFilterOptions = useMemo(
     () => buildClientFilterOptions(clients),
@@ -156,9 +182,17 @@ export default function InvoicesPageContent({
         client,
         selectedPeriod,
         facturasPorEmpresa.get(client.id),
+        totalesPorEmpresa.get(client.id),
       ),
     );
-  }, [clients, clientFilter, searchQuery, selectedPeriod, facturasPorEmpresa]);
+  }, [
+    clients,
+    clientFilter,
+    searchQuery,
+    selectedPeriod,
+    facturasPorEmpresa,
+    totalesPorEmpresa,
+  ]);
 
   function clearFilters() {
     setClientFilter("");

@@ -81,6 +81,11 @@ export function buildCreateDiaLibrePayload(
     fechaFin: formData.hasta,
     cantidadDias: computeInclusiveCalendarDays(formData.desde, formData.hasta),
     notas: formData.descripcion.trim() || undefined,
+    descuentaPto: formData.descuentaPto,
+    // Solo tiene sentido junto con descuentaPto; si no, el backend lo ignora.
+    permitePtoNegativo: formData.descuentaPto
+      ? formData.permitePtoNegativo
+      : false,
   };
 }
 
@@ -125,6 +130,8 @@ export function mapDiaLibreToFormData(
     cantidad: String(row.cantidadDias),
     descripcion: row.notas?.trim() ?? "",
     periodo: fechaInicio,
+    descuentaPto: row.descuentaPto ?? false,
+    permitePtoNegativo: row.permitePtoNegativo ?? false,
   };
 }
 
@@ -148,6 +155,9 @@ export function mapDeduccionToFormData(
     cantidad: "1",
     descripcion: row.notas?.trim() ?? "",
     periodo: fechaEfectiva,
+    // El PTO solo aplica a ausencias; una deducción común siempre va en dinero.
+    descuentaPto: false,
+    permitePtoNegativo: false,
   };
 }
 
@@ -272,6 +282,12 @@ export function normalizeDiaLibreApiRecord(raw: Record<string, unknown>): DiaLib
       raw.horasAusencia == null ? null : Number(raw.horasAusencia),
     notas: raw.notas == null ? null : String(raw.notas),
     generaCreditoCliente: Boolean(raw.generaCreditoCliente),
+    descuentaPto: Boolean(raw.descuentaPto),
+    permitePtoNegativo: Boolean(raw.permitePtoNegativo),
+    diasPtoAplicados:
+      raw.diasPtoAplicados == null ? null : Number(raw.diasPtoAplicados),
+    diasDineroAplicados:
+      raw.diasDineroAplicados == null ? null : Number(raw.diasDineroAplicados),
     lineaNomina:
       raw.lineaNomina && typeof raw.lineaNomina === "object"
         ? (raw.lineaNomina as DiaLibreApiRecord["lineaNomina"])

@@ -27,6 +27,10 @@ export interface CreateDiaLibreApiPayload {
   mediaJornada?: boolean;
   horasAusencia?: number;
   generaCreditoCliente?: boolean;
+  /** Cubre la ausencia con días de PTO en lugar de descontar dinero. */
+  descuentaPto?: boolean;
+  /** Con saldo insuficiente: true deja el PTO negativo, false parte en dinero. */
+  permitePtoNegativo?: boolean;
 }
 
 export interface CreateDeductionApiPayload {
@@ -59,6 +63,11 @@ export interface DiaLibreApiRecord {
   horasAusencia: number | null;
   notas: string | null;
   generaCreditoCliente: boolean;
+  descuentaPto?: boolean;
+  permitePtoNegativo?: boolean;
+  /** Reparto congelado al aprobar. null mientras la ausencia está pendiente. */
+  diasPtoAplicados?: number | null;
+  diasDineroAplicados?: number | null;
   lineaNomina?: { id: string; nominaId: string } | null;
 }
 

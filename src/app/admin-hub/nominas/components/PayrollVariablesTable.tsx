@@ -15,6 +15,7 @@ import {
   formatPayrollAmount,
   type PayrollVariable,
 } from "../data/mock-payroll-variables";
+import { getInitials } from "../../lib/initials";
 import { applyDateToSortable } from "../lib/payroll-apply-date";
 import { t } from "../../i18n";
 import PayrollVariableStatusBadge from "./PayrollVariableStatusBadge";
@@ -387,7 +388,12 @@ export default function PayrollVariablesTable({
                 <td className="px-3 py-6">
                   <PayrollVariableStatusBadge status={item.status} />
                 </td>
-                <td className={compactCellClass}>{item.createdBy}</td>
+                {/* Iniciales y no el nombre completo: el nombre entero
+                    ensanchaba la tabla y forzaba scroll lateral al 150% de
+                    zoom. El nombre queda en el title. */}
+                <td className={compactCellClass} title={item.createdBy}>
+                  {getInitials(item.createdBy)}
+                </td>
                 <td className={compactCellClass}>{item.applyDate}</td>
                 <td className="overflow-visible px-6 py-6 text-center">
                   <div className="relative inline-block" data-payroll-row-menu>
