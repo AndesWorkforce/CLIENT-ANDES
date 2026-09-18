@@ -23,6 +23,10 @@ interface AdminHubFormInputProps extends BaseProps {
   inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
   inputType?: InputHTMLAttributes<HTMLInputElement>["type"];
   readOnly?: boolean;
+  autoComplete?: InputHTMLAttributes<HTMLInputElement>["autoComplete"];
+  onFocus?: InputHTMLAttributes<HTMLInputElement>["onFocus"];
+  onBlur?: InputHTMLAttributes<HTMLInputElement>["onBlur"];
+  onKeyDown?: InputHTMLAttributes<HTMLInputElement>["onKeyDown"];
 }
 
 type AdminHubFormFieldProps = (AdminHubFormSelectProps | AdminHubFormInputProps) & {
@@ -67,7 +71,11 @@ export default function AdminHubFormField(props: AdminHubFormFieldProps) {
         value={props.value}
         readOnly={isLocked || viewOnly}
         disabled={isLocked}
+        autoComplete={props.autoComplete}
         onChange={(e) => props.onChange(e.target.value)}
+        onFocus={props.onFocus}
+        onBlur={props.onBlur}
+        onKeyDown={props.onKeyDown}
         placeholder={props.placeholder}
         inputMode={props.inputMode}
         className={`h-[50px] w-full rounded-[8px] border border-[#EFEFEF] px-4 text-[14px] leading-[1.3] tracking-[0.28px] placeholder:text-[#C8C8C8] focus:outline-none focus:ring-1 focus:ring-[#0097B2] ${
