@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useNotificationStore } from "@/store/notifications.store";
-import { ALL_COUNTRIES } from "@/lib/countries";
 import AdminHubDrawerFooter from "../../components/AdminHubDrawerFooter";
 import AdminHubDrawerProgress from "../../components/AdminHubDrawerProgress";
 import AdminHubFormField from "../../components/AdminHubFormField";
@@ -19,6 +18,8 @@ import {
   roundCountryRate,
   sanitizeCountryRateInput,
 } from "../lib/format-country-rate";
+import type { WorldCountry } from "../lib/world-countries";
+import CountryNameSuggestField from "./CountryNameSuggestField";
 
 type DrawerStep = 1 | 2;
 
@@ -106,6 +107,18 @@ function isFilledNumber(value: string): boolean {
   return Number.isFinite(parsed) && parsed >= 0;
 }
 
+function normalizeCountryName(value: string): string {
+  return value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function sanitizeIsoCode(value: string): string {
+  return value.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 3);
+}
+
+function isValidIsoCode(value: string): boolean {
+  return /^[A-Z]{2,3}$/.test(value.trim());
+}
+
 interface CountryFormDrawerProps {
   open: boolean;
   existingCountries: CountryConfig[];
@@ -138,52 +151,47 @@ export default function CountryFormDrawer({
     setForm(editingCountry ? countryToForm(editingCountry) : EMPTY_FORM);
   }, [open, editingCountry]);
 
-  const countryOptions = useMemo(() => {
-    const takenCodes = new Set(
+  const excludedCodes = useMemo(() => {
+    return new Set(
       existingCountries
         .map((country) => country.codigo.toUpperCase())
         .filter((code) => code !== editingCountry?.codigo.toUpperCase()),
     );
-
-    const catalog = ALL_COUNTRIES.filter((country) => !takenCodes.has(country.code.toUpperCase())).map(
-      (country) => ({ value: country.code, label: country.name }),
-    );
-
-    if (
-      editingCountry &&
-      !catalog.some((option) => option.value.toUpperCase() === editingCountry.codigo.toUpperCase())
-    ) {
-      catalog.unshift({ value: editingCountry.codigo, label: editingCountry.nombre });
-    }
-
-    return catalog.sort((a, b) => a.label.localeCompare(b.label, "en"));
-  }, [editingCountry, existingCountries]);
+  }, [editingCountry?.codigo, existingCountries]);
 
   const statusOptions = [
     { value: "true", label: t("configuracion.countryActive") },
     { value: "false", label: t("configuracion.countryPending") },
   ];
 
-  const selectedCountryValue =
-    countryOptions.find(
-      (option) =>
-        option.value.toUpperCase() === form.codigo.toUpperCase() || option.label === form.nombre,
-    )?.value ?? "";
-
-  const step1Complete = Boolean(form.nombre.trim() && form.codigo.trim());
+  const step1Complete = Boolean(form.nombre.trim() && isValidIsoCode(form.codigo));
   const step2Complete = RATE_FIELDS.every((field) => isFilledNumber(form[field.key]));
 
   function patch(partial: Partial<FormState>) {
     setForm((current) => ({ ...current, ...partial }));
   }
 
-  function handleCountryChange(code: string) {
-    const selected = ALL_COUNTRIES.find((country) => country.code === code);
-    const fallback = countryOptions.find((option) => option.value === code);
+  function handleSuggestionSelect(country: WorldCountry) {
     patch({
-      codigo: code.toUpperCase(),
-      nombre: selected?.name ?? fallback?.label ?? form.nombre,
+      nombre: country.name,
+      ...(editingCountry ? {} : { codigo: country.code }),
     });
+  }
+
+  function getDuplicateMessage(): string | null {
+    const codigo = form.codigo.trim().toUpperCase();
+    const nombre = normalizeCountryName(form.nombre);
+    const otherCountries = existingCountries.filter(
+      (country) => country.codigo.toUpperCase() !== editingCountry?.codigo.toUpperCase(),
+    );
+
+    if (otherCountries.some((country) => country.codigo.toUpperCase() === codigo)) {
+      return t("configuracion.countryDuplicateCode");
+    }
+    if (otherCountries.some((country) => normalizeCountryName(country.nombre) === nombre)) {
+      return t("configuracion.countryDuplicateName");
+    }
+    return null;
   }
 
   function handleClose() {
@@ -194,6 +202,11 @@ export default function CountryFormDrawer({
   function handleNext() {
     if (step === 1) {
       if (!step1Complete) return;
+      const duplicateMessage = getDuplicateMessage();
+      if (duplicateMessage) {
+        addNotification(duplicateMessage, "error");
+        return;
+      }
       setStep(2);
       return;
     }
@@ -256,21 +269,17 @@ export default function CountryFormDrawer({
 
           {step === 1 ? (
             <>
-              <AdminHubFormField
-                type="select"
-                label={t("configuracion.countryFields.country")}
-                value={selectedCountryValue}
-                onChange={handleCountryChange}
-                options={countryOptions}
-                placeholder={t("configuracion.selectCountry")}
-                searchable
-                readOnly={Boolean(editingCountry)}
+              <CountryNameSuggestField
+                value={form.nombre}
+                excludedCodes={excludedCodes}
+                onChange={(nombre) => patch({ nombre })}
+                onSelect={handleSuggestionSelect}
               />
               <AdminHubFormField
                 type="input"
                 label={t("configuracion.countryFields.code")}
                 value={form.codigo}
-                onChange={(codigo) => patch({ codigo: codigo.toUpperCase().slice(0, 3) })}
+                onChange={(codigo) => patch({ codigo: sanitizeIsoCode(codigo) })}
                 placeholder="AR"
                 readOnly={Boolean(editingCountry)}
               />
